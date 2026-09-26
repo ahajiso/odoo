@@ -1,0 +1,15 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* lartdubati_manual
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+#. module: lartdubati_manual
+#: model:ir.actions.act_url,name:lartdubati_manual.action_open_manual
+#: model:ir.ui.menu,name:lartdubati_manual.menu_manual_root
+msgid "Manuel"
+msgstr "Manual"
