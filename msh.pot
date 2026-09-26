@@ -1,0 +1,184 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* maintenance_shareholder_equipment
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0-20260908\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-26 08:54+0000\n"
+"PO-Revision-Date: 2026-09-26 08:54+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__accounting_depreciation_active
+msgid "Accounting Depreciation Active"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__accounting_ownership
+msgid "Accounting Ownership"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__assigned_employee
+msgid "Assigned to Employee"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__assigned_project
+msgid "Assigned to Project"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__closed
+msgid "Closed"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__accounting_ownership__company
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__company
+msgid "Company"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__compensation_paid
+msgid "Compensation Paid"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__compensation_payable
+msgid "Compensation Payable"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__damaged
+msgid "Damaged"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__handover_date
+msgid "Handover Date"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__handover_value
+msgid "Handover Value"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__in_company_use
+msgid "In Company Use"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__in_warehouse
+msgid "In Warehouse"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__initial_condition
+msgid "Initial Condition"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__lost
+msgid "Lost"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_maintenance_equipment
+msgid "Maintenance Equipment"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_maintenance_request
+msgid "Maintenance Request"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__owner_partner_id
+msgid "Owner (Third Party)"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__ownership_state
+msgid "Ownership Status"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__owner_type
+msgid "Ownership Type"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__physical_wear_active
+msgid "Physical Wear Tracking Active"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_request__repair_cost
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_request_form_repair_cost
+msgid "Repair Cost"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_request__repair_invoice_ref
+msgid "Repair Invoice Reference"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_request__repairer
+msgid "Repairer"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__replaced_for_owner
+msgid "Replaced for Owner"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__replacement_value
+msgid "Replacement Value"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__return_obligation
+msgid "Return Obligation"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__returned_to_owner
+msgid "Returned to Owner"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__shareholder
+msgid "Shareholder"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__stolen
+msgid "Stolen"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__accounting_ownership__third_party
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__third_party
+msgid "Third Party"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
+msgid "Third-Party Ownership (Shareholder)"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__under_maintenance
+msgid "Under Maintenance"
+msgstr ""

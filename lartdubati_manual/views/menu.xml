@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_open_manual" model="ir.actions.act_url">
+        <field name="name">Manuel</field>
+        <field name="url">/manuel</field>
+        <field name="target">new</field>
+    </record>
+    <menuitem id="menu_manual_root"
+              name="Manuel"
+              action="action_open_manual"
+              web_icon="lartdubati_manual,static/description/icon.png"
+              groups="base.group_user"
+              sequence="999"/>
+</odoo>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_maintenance_equipment_form_shareholder" model="ir.ui.view">
+        <field name="name">maintenance.equipment.form.shareholder</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Third-Party Ownership (Shareholder)">
+                    <group>
+                        <field name="owner_type"/>
+                        <field name="owner_partner_id" invisible="owner_type == 'company'"/>
+                        <field name="accounting_ownership"/>
+                        <field name="ownership_state"/>
+                    </group>
+                    <group>
+                        <field name="handover_date"/>
+                        <field name="handover_value"/>
+                        <field name="replacement_value"/>
+                        <field name="initial_condition"/>
+                        <field name="return_obligation"/>
+                        <field name="physical_wear_active"/>
+                        <field name="accounting_depreciation_active"/>
+                    </group>
+                </group>
+                <group string="Location">
+                    <field name="current_location_id"/>
+                </group>
+                <group string="Fleet Management (Acquisition)">
+                    <field name="acquisition_mode"/>
+                    <field name="rental_counterparty_id" invisible="acquisition_mode == 'purchase'"/>
+                    <field name="rental_end_date" invisible="acquisition_mode == 'purchase'"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
