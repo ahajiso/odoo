@@ -26,7 +26,10 @@ h2 .code{display:inline-block;font-size:13px;font-weight:700;color:var(--accent)
 .toc{background:var(--accent-soft);border-radius:8px;padding:10px 16px;margin:12px 0}
 .toc strong{font-size:14px}.toc ul{margin:6px 0 0;padding-inline-start:18px;columns:2;column-gap:28px}
 .toc a{color:var(--ink);text-decoration:none}.toc a:hover{text-decoration:underline}
-a{color:var(--accent)}a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
+a{color:var(--accent)}
+a.screen{color:inherit;text-decoration:none;border-bottom:1px dotted var(--accent)}
+a.screen:hover{color:var(--accent);border-bottom-style:solid}
+a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
 table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14.5px;display:block;overflow-x:auto}
 th,td{border:1px solid var(--line);padding:7px 10px;text-align:start;vertical-align:top}
 th{background:var(--accent-soft)}
@@ -45,7 +48,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>چه کسی · چه زمانی</strong>: حسابدار، پس از ایجاد فیش توسط انباردار/امین اموال و هنگام دریافت فاکتور.</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li>فیش را در <strong>نگهداری ← تجهیزات</strong> باز کنید.</li>
+<li>فیش را در <a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_action" target="_blank" rel="noopener"><strong>نگهداری ← تجهیزات</strong></a> باز کنید.</li>
 <li>تب <strong>اطلاعات محصول</strong>: <strong>هزینه</strong> = قیمت خرید بدون مالیات بر ارزش افزوده، طبق فاکتور.</li>
 <li>گروه <strong>مالکیت شخص ثالث (سهامدار)</strong>: <strong>مالکیت حسابداری</strong> را بررسی کنید (شرکت یا شخص ثالث).</li>
 <li>اگر «شرکت» است و کالای بادوامِ قابل ثبت در دارایی‌هاست: <strong>استهلاک حسابداری فعال</strong> را تیک بزنید و <a class="ref" href="comptable#cpt-03">CPT-03</a> را دنبال کنید.</li>
@@ -268,7 +271,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>مراحل — راه‌اندازی (فقط یک بار)</strong></p>
 <ol>
 <li>
-<p>حساب‌های هزینه را بسازید (اگر حسابدار رسمی حساب‌های خودش را ندارد): <strong>صدور فاکتور ← پیکربندی ← حسابداری ← جدول حساب ها ← جدید</strong>.</p>
+<p>حساب‌های هزینه را بسازید (اگر حسابدار رسمی حساب‌های خودش را ندارد): <a class="screen" href="https://erp.lartdubati.com/odoo/action-account.action_account_form" target="_blank" rel="noopener"><strong>صدور فاکتور ← پیکربندی ← حسابداری ← جدول حساب ها ← جدید</strong></a>.</p>
 <ul>
 <li>627800 – Autres charges et commissions sur prestations de services (کارمزد بانکی)</li>
 <li>626000 – Frais postaux et de télécommunications (اشتراک تلفن)</li>
@@ -277,10 +280,10 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><em>(حساب‌های موجود در Plan Comptable Général واردشده، که به همان شکل استفاده می‌شوند و حساب جدیدی ساخته نمی‌شود — <a class="ref" href="comptable#cpt-02">CPT-02</a> را هم ببینید)</em></p>
 </li>
 <li>
-<p>یک دسته‌بندی محصول اختصاصی بسازید: <strong>انبار ← پیکربندی ← دسته‌بندی محصولات ← جدید</strong> ← « Frais généraux » زیر All / Expenses (<a class="ref" href="reference#ref-04">REF-04</a> را ببینید).</p>
+<p>یک دسته‌بندی محصول اختصاصی بسازید: <a class="screen" href="https://erp.lartdubati.com/odoo/action-product.product_category_action_form" target="_blank" rel="noopener"><strong>انبار ← پیکربندی ← دسته‌بندی محصولات ← جدید</strong></a> ← « Frais généraux » زیر All / Expenses (<a class="ref" href="reference#ref-04">REF-04</a> را ببینید).</p>
 </li>
 <li>
-<p>سه محصول از نوع خدمت بسازید: <strong>فروش (یا خرید) ← محصولات ← جدید</strong>، برای هر کدام:</p>
+<p>سه محصول از نوع خدمت بسازید: <a class="screen" href="https://erp.lartdubati.com/odoo/action-product.product_template_action" target="_blank" rel="noopener"><strong>فروش (یا خرید) ← محصولات ← جدید</strong></a>، برای هر کدام:</p>
 <ul>
 <li>نام: Frais bancaires / Abonnement téléphonique / Frais administratifs</li>
 <li>نوع محصول: خدمت</li>
@@ -292,9 +295,9 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 </ol>
 <p><strong>مراحل — استفادهٔ روزمره</strong></p>
 <ol start="4">
-<li>در هر صورتحساب فروشنده (<strong>صدور فاکتور ← فروشندگان ← صورتحساب ← جدید</strong>)، یک ردیف با محصول متناظر اضافه کنید؛ حساب هزینه خودکار پر می‌شود.</li>
+<li>در هر صورتحساب فروشنده (<a class="screen" href="https://erp.lartdubati.com/odoo/action-account.action_move_in_invoice_type" target="_blank" rel="noopener"><strong>صدور فاکتور ← فروشندگان ← صورتحساب ← جدید</strong></a>)، یک ردیف با محصول متناظر اضافه کنید؛ حساب هزینه خودکار پر می‌شود.</li>
 </ol>
-<p><strong>بررسی</strong>: در <strong>صدور فاکتور ← حسابداری ← آیتم های روزنامه</strong>، با فیلتر روی حساب، مبالغ زیر حساب درست نمایش داده می‌شوند.</p>
+<p><strong>بررسی</strong>: در <a class="screen" href="https://erp.lartdubati.com/odoo/action-account.action_account_moves_all" target="_blank" rel="noopener"><strong>صدور فاکتور ← حسابداری ← آیتم های روزنامه</strong></a>، با فیلتر روی حساب، مبالغ زیر حساب درست نمایش داده می‌شوند.</p>
 <p><strong>توجه</strong>: این ۳ قلم، هزینه‌های عمومی شرکت‌اند و ربطی به تجهیزات ناوگان ندارند — با <a class="ref" href="comptable#cpt-01">CPT-01</a> تا <a class="ref" href="comptable#cpt-06">CPT-06</a> (ثبت حسابداری تجهیزات) اشتباه نشوند.</p>
 <p><strong>بیشتر بخوانید</strong>: <a class="ref" href="reference#ref-04">REF-04</a>.</p>
 <h2 id="cpt-08"><span class="code">CPT-08</span>هزینه‌های پیش از ثبت و راه‌اندازی شرکت</h2>
@@ -390,7 +393,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>اصل</strong> : فایل FEC (فایل ثبت‌های حسابداری) در صورت بازرسی مالیاتی الزامی است. این دستیار در نسخه Community اودو وجود دارد، اما منوی آن را ماژول lartdubati_facturation اضافه کرده است.</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li><strong>صدور فاکتور ← گزارش دهی ← Export FEC</strong> را باز کنید.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-lartdubati_facturation.action_l10n_fr_fec_export_wizard" target="_blank" rel="noopener"><strong>صدور فاکتور ← گزارش دهی ← Export FEC</strong></a> را باز کنید.</li>
 <li>دوره را وارد کنید، برای آزمایش نخست گزینه <strong>فایل آزمایشی</strong> را تیک‌خورده بگذارید و سپس <strong>تولید</strong> را بزنید.</li>
 <li>فایل به‌دست‌آمده را بررسی کنید، سپس با برداشتن تیک <strong>فایل آزمایشی</strong> خروجی نهایی را بگیرید.</li>
 </ol>

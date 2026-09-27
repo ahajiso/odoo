@@ -26,7 +26,10 @@ h2 .code{display:inline-block;font-size:13px;font-weight:700;color:var(--accent)
 .toc{background:var(--accent-soft);border-radius:8px;padding:10px 16px;margin:12px 0}
 .toc strong{font-size:14px}.toc ul{margin:6px 0 0;padding-inline-start:18px;columns:2;column-gap:28px}
 .toc a{color:var(--ink);text-decoration:none}.toc a:hover{text-decoration:underline}
-a{color:var(--accent)}a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
+a{color:var(--accent)}
+a.screen{color:inherit;text-decoration:none;border-bottom:1px dotted var(--accent)}
+a.screen:hover{color:var(--accent);border-bottom-style:solid}
+a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
 table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14.5px;display:block;overflow-x:auto}
 th,td{border:1px solid var(--line);padding:7px 10px;text-align:start;vertical-align:top}
 th{background:var(--accent-soft)}
@@ -46,7 +49,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>Prerequisites</strong>: have checked <a class="ref" href="reference#ref-02">REF-02</a> (confirm it is really an equipment item, not a product).</p>
 <p><strong>Steps</strong></p>
 <ol>
-<li>Open <strong>Maintenance → Configuration → Equipment Categories</strong>, in list view.</li>
+<li>Open <a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_category_action" target="_blank" rel="noopener"><strong>Maintenance → Configuration → Equipment Categories</strong></a>, in list view.</li>
 <li>Search for a keyword of the intended name, in French then in English. Browse all results.</li>
 <li>Add the <strong>Archived</strong> filter and search again. An archived category is reactivated, it is not recreated.</li>
 <li>If nothing matches, click <strong>New</strong>.</li>
@@ -63,7 +66,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>Prerequisites</strong>: have checked <a class="ref" href="reference#ref-02">REF-02</a> (confirm it is really a product counted by quantity).</p>
 <p><strong>Steps</strong></p>
 <ol>
-<li>Open <strong>Inventory → Configuration → Product Categories</strong>, in list view.</li>
+<li>Open <a class="screen" href="https://erp.lartdubati.com/odoo/action-product.product_category_action_form" target="_blank" rel="noopener"><strong>Inventory → Configuration → Product Categories</strong></a>, in list view.</li>
 <li>Search for the intended name (in English), then with the <strong>Archived</strong> filter.</li>
 <li>If nothing matches, click <strong>New</strong>.</li>
 <li><strong>Name</strong>: in English, in the branch's format (two-digit number + name).</li>
@@ -79,10 +82,10 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>See also</strong>: <a class="ref" href="reference#ref-04">REF-04</a>, <a class="ref" href="admin#adm-04">ADM-04</a>. Update <a class="ref" href="reference#ref-04">REF-04</a> and the journal after creation.</p>
 <h2 id="adm-03"><span class="code">ADM-03</span>Create a location (depot, site)</h2>
 <p><strong>Who · When</strong>: administrator or fleet manager, when a site opens or a new storage place is needed.</p>
-<p><strong>Prerequisites</strong>: the <strong>Storage Locations</strong> option is enabled in <strong>Inventory → Configuration → Settings</strong>, Warehouse section (a one-time setup).</p>
+<p><strong>Prerequisites</strong>: the <strong>Storage Locations</strong> option is enabled in <a class="screen" href="https://erp.lartdubati.com/odoo/action-stock.action_stock_config_settings" target="_blank" rel="noopener"><strong>Inventory → Configuration → Settings</strong></a>, Warehouse section (a one-time setup).</p>
 <p><strong>Steps</strong></p>
 <ol>
-<li>Open <strong>Inventory → Configuration → Locations</strong>.</li>
+<li>Open <a class="screen" href="https://erp.lartdubati.com/odoo/action-stock.action_location_form" target="_blank" rel="noopener"><strong>Inventory → Configuration → Locations</strong></a>.</li>
 <li>Search for the place's name, including with the <strong>Archived</strong> filter.</li>
 <li>Click <strong>New</strong>.</li>
 <li><strong>Location Name</strong>: per the <a class="ref" href="reference#ref-07">REF-07</a> convention (e.g. the site's name).</li>
@@ -97,9 +100,9 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>Who · When</strong>: administrator, once a quarter and after every import.</p>
 <p><strong>Steps</strong></p>
 <ol>
-<li><strong>Maintenance → Configuration → Equipment Categories</strong>: sort by name, check that no name repeats and that every category is under its <a class="ref" href="reference#ref-03">REF-03</a> branch.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_category_action" target="_blank" rel="noopener"><strong>Maintenance → Configuration → Equipment Categories</strong></a>: sort by name, check that no name repeats and that every category is under its <a class="ref" href="reference#ref-03">REF-03</a> branch.</li>
 <li>Switch the interface language (French, Persian) and check that the names are translated.</li>
-<li><strong>Inventory → Configuration → Product Categories</strong>: check the <a class="ref" href="reference#ref-04">REF-04</a> hierarchy.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-product.product_category_action_form" target="_blank" rel="noopener"><strong>Inventory → Configuration → Product Categories</strong></a>: check the <a class="ref" href="reference#ref-04">REF-04</a> hierarchy.</li>
 <li>Open each product category and check that the expense account is not empty.</li>
 <li>Compare against <a class="ref" href="reference#ref-03">REF-03</a> and <a class="ref" href="reference#ref-04">REF-04</a>; update the manual if the database has changed.</li>
 </ol>
@@ -120,10 +123,10 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>See also</strong>: <a class="ref" href="reference#ref-05">REF-05</a> (to update if fields change).</p>
 <h2 id="adm-06"><span class="code">ADM-06</span>Create a warehouse</h2>
 <p><strong>Who · When</strong>: administrator, when a new permanent storage site opens (depot, workshop at another site). Never for a site (<a class="ref" href="reference#ref-07">REF-07</a>).</p>
-<p><strong>Prerequisites</strong>: the <strong>Storage Locations</strong> option is enabled in <strong>Inventory → Configuration → Settings</strong> (see <a class="ref" href="admin#adm-03">ADM-03</a>).</p>
+<p><strong>Prerequisites</strong>: the <strong>Storage Locations</strong> option is enabled in <a class="screen" href="https://erp.lartdubati.com/odoo/action-stock.action_stock_config_settings" target="_blank" rel="noopener"><strong>Inventory → Configuration → Settings</strong></a> (see <a class="ref" href="admin#adm-03">ADM-03</a>).</p>
 <p><strong>Steps</strong></p>
 <ol>
-<li>Open <strong>Inventory → Configuration → Warehouses</strong>.</li>
+<li>Open <a class="screen" href="https://erp.lartdubati.com/odoo/action-stock.action_warehouse_form" target="_blank" rel="noopener"><strong>Inventory → Configuration → Warehouses</strong></a>.</li>
 <li>Search for the site's name, including with the <strong>Archived</strong> filter.</li>
 <li>Click <strong>New</strong>.</li>
 <li><strong>Warehouse</strong>: full name of the site, e.g. « Dépôt de Franconville ».</li>
@@ -132,7 +135,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <li>Save.</li>
 <li>Then create its zones, and if needed its Chantiers, Chez tiers and Réparation externe locations, using <a class="ref" href="admin#adm-03">ADM-03</a>.</li>
 </ol>
-<p><strong>Verification</strong>: <strong>Inventory → Configuration → Locations</strong> shows « CODE/Stock »; it is offered in an equipment fiche's Current Location.</p>
+<p><strong>Verification</strong>: <a class="screen" href="https://erp.lartdubati.com/odoo/action-stock.action_location_form" target="_blank" rel="noopener"><strong>Inventory → Configuration → Locations</strong></a> shows « CODE/Stock »; it is offered in an equipment fiche's Current Location.</p>
 <p><strong>Warning</strong>: the code can no longer be changed once movements are recorded. A closed warehouse is archived after checking it is empty (<a class="ref" href="parc#parc-04">PARC-04</a>).</p>
 <p><strong>See also</strong>: <a class="ref" href="reference#ref-07">REF-07</a>, <a class="ref" href="admin#adm-03">ADM-03</a>.</p>
 <h2 id="adm-07"><span class="code">ADM-07</span>Publish the manual on erp.lartdubati.com/manuel</h2>
@@ -158,7 +161,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>Prerequisites</strong>: have checked it does not already exist (<a class="ref" href="reference#ref-10">REF-10</a>).</p>
 <p><strong>Steps</strong></p>
 <ol>
-<li><strong>Contacts → New</strong>.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-contacts.action_contacts" target="_blank" rel="noopener"><strong>Contacts → New</strong></a>.</li>
 <li>Switch the type to <strong>Company</strong> (button at the top of the form).</li>
 <li>Fill in: company name, Address, SIRET, Tax ID (intra-EU VAT number), Website, generic Phone and Email.</li>
 <li>Add one or more <strong>Tags</strong> (<a class="ref" href="reference#ref-10">REF-10</a>) according to the relationship: Fournisseur, Client, Loueur, Partenaire, etc.</li>
@@ -173,7 +176,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>Prerequisites</strong> : the lartdubati_facturation module installed.</p>
 <p><strong>Steps</strong></p>
 <ol>
-<li>Open <strong>Settings → Companies → L'Art du Bâti</strong>, tab <strong>Mentions BTP</strong>.</li>
+<li>Open <a class="screen" href="https://erp.lartdubati.com/odoo/action-base.action_res_company_form" target="_blank" rel="noopener"><strong>Settings → Companies → L'Art du Bâti</strong></a>, tab <strong>Mentions BTP</strong>.</li>
 <li>Fill in the ten-year liability insurer, the policy number and the geographical cover. While these fields are empty the statement is not printed: quotations and invoices remain valid, simply without an insurance statement.</li>
 <li>Fill in the consumer mediator, compulsory as soon as a private customer is invoiced.</li>
 <li>Leave <strong>Imprimer les mentions BTP</strong> ticked. The waste statement comes pre-filled and can be edited.</li>

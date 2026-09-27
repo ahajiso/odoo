@@ -26,7 +26,10 @@ h2 .code{display:inline-block;font-size:13px;font-weight:700;color:var(--accent)
 .toc{background:var(--accent-soft);border-radius:8px;padding:10px 16px;margin:12px 0}
 .toc strong{font-size:14px}.toc ul{margin:6px 0 0;padding-inline-start:18px;columns:2;column-gap:28px}
 .toc a{color:var(--ink);text-decoration:none}.toc a:hover{text-decoration:underline}
-a{color:var(--accent)}a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
+a{color:var(--accent)}
+a.screen{color:inherit;text-decoration:none;border-bottom:1px dotted var(--accent)}
+a.screen:hover{color:var(--accent);border-bottom-style:solid}
+a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
 table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14.5px;display:block;overflow-x:auto}
 th,td{border:1px solid var(--line);padding:7px 10px;text-align:start;vertical-align:top}
 th{background:var(--accent-soft)}
@@ -194,7 +197,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 </ul>
 <p>These names stay in English in all interface languages (see <a class="ref" href="reference#ref-08">REF-08</a>).</p>
 <h2 id="ref-05"><span class="code">REF-05</span>Equipment fiche fields</h2>
-<p>Path: <strong>Maintenance → Equipment</strong>. Native Odoo fields are at the top of the fiche and in the Product Information tab; fields added by our module are at the bottom, in three groups.</p>
+<p>Path: <a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_action" target="_blank" rel="noopener"><strong>Maintenance → Equipment</strong></a>. Native Odoo fields are at the top of the fiche and in the Product Information tab; fields added by our module are at the bottom, in three groups.</p>
 <table>
 <thead>
 <tr>

@@ -26,7 +26,10 @@ h2 .code{display:inline-block;font-size:13px;font-weight:700;color:var(--accent)
 .toc{background:var(--accent-soft);border-radius:8px;padding:10px 16px;margin:12px 0}
 .toc strong{font-size:14px}.toc ul{margin:6px 0 0;padding-inline-start:18px;columns:2;column-gap:28px}
 .toc a{color:var(--ink);text-decoration:none}.toc a:hover{text-decoration:underline}
-a{color:var(--accent)}a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
+a{color:var(--accent)}
+a.screen{color:inherit;text-decoration:none;border-bottom:1px dotted var(--accent)}
+a.screen:hover{color:var(--accent);border-bottom-style:solid}
+a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
 table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14.5px;display:block;overflow-x:auto}
 th,td{border:1px solid var(--line);padding:7px 10px;text-align:start;vertical-align:top}
 th{background:var(--accent-soft)}
@@ -46,7 +49,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>Prerequisites</strong>: the category exists (<a class="ref" href="reference#ref-03">REF-03</a>); the destination location exists (<a class="ref" href="reference#ref-07">REF-07</a>).</p>
 <p><strong>Steps</strong></p>
 <ol>
-<li>Open <strong>Maintenance → Equipment</strong>, list view. Search the name and serial number, including in archived items.</li>
+<li>Open <a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_action" target="_blank" rel="noopener"><strong>Maintenance → Equipment</strong></a>, list view. Search the name and serial number, including in archived items.</li>
 <li>Click <strong>New</strong>.</li>
 <li><strong>Name</strong>: description of the unit, e.g. « Perceuse Makita n°3 ».</li>
 <li><strong>Equipment Category</strong>: per <a class="ref" href="reference#ref-03">REF-03</a>.</li>
@@ -62,7 +65,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>Who · When</strong>: fleet manager, when the same model is purchased in several units and price and supplier need to be tracked.</p>
 <p><strong>Steps</strong></p>
 <ol>
-<li>Open <strong>Purchase → Products</strong> and search the model (name, manufacturer reference), including in archived items.</li>
+<li>Open <a class="screen" href="https://erp.lartdubati.com/odoo/action-product.product_template_action" target="_blank" rel="noopener"><strong>Purchase → Products</strong></a> and search the model (name, manufacturer reference), including in archived items.</li>
 <li>If it does not exist: <strong>New</strong>, Name = exact reference (e.g. « Perceuse Makita HP2050 »). Uncheck <strong>Sales</strong>, leave <strong>Purchase</strong> checked. <strong>Product Type</strong> = Service; only if you also want to count parts of this model in stock: Goods, with <strong>Track Inventory</strong> checked. Save.</li>
 <li>Create each unit as in <a class="ref" href="parc#parc-01">PARC-01</a>, additionally filling in the <strong>Product</strong> field with this model.</li>
 <li>Repeat step 3 for each physical unit.</li>
@@ -75,7 +78,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>Prerequisites</strong>: the destination location exists (<a class="ref" href="admin#adm-03">ADM-03</a>).</p>
 <p><strong>Steps</strong></p>
 <ol>
-<li>Open the fiche in <strong>Maintenance → Equipment</strong>.</li>
+<li>Open the fiche in <a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_action" target="_blank" rel="noopener"><strong>Maintenance → Equipment</strong></a>.</li>
 <li><strong>Location</strong> group: change <strong>Current Location</strong> to the new place.</li>
 <li>If the equipment is durably entrusted to a person or a site, also update <strong>Ownership Status</strong> (<a class="ref" href="reference#ref-06">REF-06</a>). Otherwise change nothing else.</li>
 <li>Save.</li>
@@ -87,7 +90,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>Who · When</strong>: fleet manager, site supervisor or accountant, at any time.</p>
 <p><strong>Steps</strong></p>
 <ol>
-<li>Open <strong>Maintenance → Equipment</strong>, list view.</li>
+<li>Open <a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_action" target="_blank" rel="noopener"><strong>Maintenance → Equipment</strong></a>, list view.</li>
 <li>Click the arrow on the search bar, then <strong>Group By → Add Custom Group → Current Location</strong>.</li>
 <li>Expand the desired location's group. For a single place, type its name in the search and choose « Search Current Location for: … ».</li>
 <li>To keep this view: <strong>Favorites → Save current search</strong>, name « Inventaire par emplacement », check <strong>Shared</strong>.</li>
@@ -160,7 +163,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>See also</strong>: <a class="ref" href="chantier#ch-03">CH-03</a>, <a class="ref" href="comptable#cpt-02">CPT-02</a>, <a class="ref" href="comptable#cpt-04">CPT-04</a>, <a class="ref" href="reference#ref-06">REF-06</a>.</p>
 <h2 id="parc-09"><span class="code">PARC-09</span>Create or check a loan or rental partner</h2>
 <p><strong>Who · When</strong>: fleet manager or accountant, before recording a rental, a borrowing or a loan (<a class="ref" href="parc#parc-05">PARC-05</a>, <a class="ref" href="parc#parc-06">PARC-06</a>, <a class="ref" href="parc#parc-07">PARC-07</a>).</p>
-<p><strong>Prerequisites</strong>: the Actionnaire, Loueur, Prêteur and Emprunteur tags exist (<strong>Contacts → Configuration → Contact Tags</strong>); created once by the administrator.</p>
+<p><strong>Prerequisites</strong>: the Actionnaire, Loueur, Prêteur and Emprunteur tags exist (<a class="screen" href="https://erp.lartdubati.com/odoo/action-base.action_partner_category_form" target="_blank" rel="noopener"><strong>Contacts → Configuration → Contact Tags</strong></a>); created once by the administrator.</p>
 <p><strong>Steps</strong></p>
 <ol>
 <li>Open <strong>Contacts</strong> and search by name, phone, SIRET or VAT number, including with the <strong>Archived</strong> filter.</li>

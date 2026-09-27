@@ -26,7 +26,10 @@ h2 .code{display:inline-block;font-size:13px;font-weight:700;color:var(--accent)
 .toc{background:var(--accent-soft);border-radius:8px;padding:10px 16px;margin:12px 0}
 .toc strong{font-size:14px}.toc ul{margin:6px 0 0;padding-inline-start:18px;columns:2;column-gap:28px}
 .toc a{color:var(--ink);text-decoration:none}.toc a:hover{text-decoration:underline}
-a{color:var(--accent)}a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
+a{color:var(--accent)}
+a.screen{color:inherit;text-decoration:none;border-bottom:1px dotted var(--accent)}
+a.screen:hover{color:var(--accent);border-bottom-style:solid}
+a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
 table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14.5px;display:block;overflow-x:auto}
 th,td{border:1px solid var(--line);padding:7px 10px;text-align:start;vertical-align:top}
 th{background:var(--accent-soft)}
@@ -45,7 +48,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>چه کسی · چه زمانی</strong>: سرکارگر یا کارگر، لحظه‌ای که تجهیز از انبار یا از کارگاهی دیگر خارج می‌شود.</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li><strong>نگهداری ← تجهیزات</strong> را باز کنید و تجهیز را (با نام یا شماره سریال) جستجو کنید.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_action" target="_blank" rel="noopener"><strong>نگهداری ← تجهیزات</strong></a> را باز کنید و تجهیز را (با نام یا شماره سریال) جستجو کنید.</li>
 <li>در گروه <strong>مکان</strong>، <strong>مکان فعلی</strong> را به کارگاه مقصد تغییر دهید.</li>
 <li>ذخیره کنید.</li>
 </ol>

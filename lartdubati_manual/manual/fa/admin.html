@@ -26,7 +26,10 @@ h2 .code{display:inline-block;font-size:13px;font-weight:700;color:var(--accent)
 .toc{background:var(--accent-soft);border-radius:8px;padding:10px 16px;margin:12px 0}
 .toc strong{font-size:14px}.toc ul{margin:6px 0 0;padding-inline-start:18px;columns:2;column-gap:28px}
 .toc a{color:var(--ink);text-decoration:none}.toc a:hover{text-decoration:underline}
-a{color:var(--accent)}a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
+a{color:var(--accent)}
+a.screen{color:inherit;text-decoration:none;border-bottom:1px dotted var(--accent)}
+a.screen:hover{color:var(--accent);border-bottom-style:solid}
+a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
 table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14.5px;display:block;overflow-x:auto}
 th,td{border:1px solid var(--line);padding:7px 10px;text-align:start;vertical-align:top}
 th{background:var(--accent-soft)}
@@ -46,7 +49,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>پیش‌نیازها</strong>: <a class="ref" href="reference#ref-02">REF-02</a> بررسی شده باشد (واقعاً تجهیز است، نه محصول).</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li><strong>نگهداری ← پیکربندی ← دسته‌بندی تجهیزات</strong> را در نمای فهرست باز کنید.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_category_action" target="_blank" rel="noopener"><strong>نگهداری ← پیکربندی ← دسته‌بندی تجهیزات</strong></a> را در نمای فهرست باز کنید.</li>
 <li>یک کلیدواژه از نام موردنظر را جستجو کنید، به فرانسه و سپس به انگلیسی. همهٔ نتایج را مرور کنید.</li>
 <li>فیلتر <strong>بایگانی شده</strong> را اضافه کنید و دوباره جستجو کنید. دسته‌بندی بایگانی‌شده دوباره فعال می‌شود، از نو ساخته نمی‌شود.</li>
 <li>اگر چیزی پیدا نشد، روی <strong>جدید</strong> کلیک کنید.</li>
@@ -63,7 +66,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>پیش‌نیازها</strong>: <a class="ref" href="reference#ref-02">REF-02</a> بررسی شده باشد (واقعاً محصولی است که به تعداد شمرده می‌شود).</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li><strong>انبار ← پیکربندی ← دسته‌بندی محصولات</strong> را در نمای فهرست باز کنید.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-product.product_category_action_form" target="_blank" rel="noopener"><strong>انبار ← پیکربندی ← دسته‌بندی محصولات</strong></a> را در نمای فهرست باز کنید.</li>
 <li>نام موردنظر را (به انگلیسی) جستجو کنید، سپس با فیلتر <strong>بایگانی شده</strong>.</li>
 <li>اگر چیزی پیدا نشد، روی <strong>جدید</strong> کلیک کنید.</li>
 <li><strong>نام</strong>: به انگلیسی، در قالب شاخه (شمارهٔ دورقمی + نام).</li>
@@ -79,10 +82,10 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>بیشتر بخوانید</strong>: <a class="ref" href="reference#ref-04">REF-04</a>، <a class="ref" href="admin#adm-04">ADM-04</a>. پس از ایجاد، <a class="ref" href="reference#ref-04">REF-04</a> و تاریخچهٔ تغییرات را به‌روز کنید.</p>
 <h2 id="adm-03"><span class="code">ADM-03</span>ایجاد یک مکان (انبار، کارگاه)</h2>
 <p><strong>چه کسی · چه زمانی</strong>: مدیر یا انباردار/امین اموال، هنگام شروع یک کارگاه یا ایجاد یک محل نگهداری جدید.</p>
-<p><strong>پیش‌نیازها</strong>: گزینهٔ <strong>مکان‌های ذخیره‌سازی</strong> در <strong>انبار ← پیکربندی ← تنظیمات</strong>، بخش انبار، فعال شده باشد (فقط یک بار).</p>
+<p><strong>پیش‌نیازها</strong>: گزینهٔ <strong>مکان‌های ذخیره‌سازی</strong> در <a class="screen" href="https://erp.lartdubati.com/odoo/action-stock.action_stock_config_settings" target="_blank" rel="noopener"><strong>انبار ← پیکربندی ← تنظیمات</strong></a>، بخش انبار، فعال شده باشد (فقط یک بار).</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li><strong>انبار ← پیکربندی ← مکان‌ها</strong> را باز کنید.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-stock.action_location_form" target="_blank" rel="noopener"><strong>انبار ← پیکربندی ← مکان‌ها</strong></a> را باز کنید.</li>
 <li>نام محل را جستجو کنید، با فیلتر <strong>بایگانی شده</strong> هم.</li>
 <li>روی <strong>جدید</strong> کلیک کنید.</li>
 <li><strong>نام مکان</strong>: طبق قاعدهٔ <a class="ref" href="reference#ref-07">REF-07</a> (مثلاً نام کارگاه).</li>
@@ -97,9 +100,9 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>چه کسی · چه زمانی</strong>: مدیر، هر سه ماه یک بار و پس از هر واردکردن داده.</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li><strong>نگهداری ← پیکربندی ← دسته‌بندی تجهیزات</strong>: بر اساس نام مرتب کنید، بررسی کنید هیچ نامی تکراری نباشد و هر دسته‌بندی زیر شاخهٔ خود در <a class="ref" href="reference#ref-03">REF-03</a> باشد.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_category_action" target="_blank" rel="noopener"><strong>نگهداری ← پیکربندی ← دسته‌بندی تجهیزات</strong></a>: بر اساس نام مرتب کنید، بررسی کنید هیچ نامی تکراری نباشد و هر دسته‌بندی زیر شاخهٔ خود در <a class="ref" href="reference#ref-03">REF-03</a> باشد.</li>
 <li>زبان رابط کاربری خود را تغییر دهید (فرانسه، فارسی) و بررسی کنید که نام‌ها ترجمه شده باشند.</li>
-<li><strong>انبار ← پیکربندی ← دسته‌بندی محصولات</strong>: سلسله‌مراتب <a class="ref" href="reference#ref-04">REF-04</a> را بررسی کنید.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-product.product_category_action_form" target="_blank" rel="noopener"><strong>انبار ← پیکربندی ← دسته‌بندی محصولات</strong></a>: سلسله‌مراتب <a class="ref" href="reference#ref-04">REF-04</a> را بررسی کنید.</li>
 <li>هر دسته‌بندی محصول را باز کنید و بررسی کنید که حساب هزینه خالی نباشد.</li>
 <li>با <a class="ref" href="reference#ref-03">REF-03</a> و <a class="ref" href="reference#ref-04">REF-04</a> مقایسه کنید؛ اگر پایگاه داده تغییر کرده، راهنما را به‌روز کنید.</li>
 </ol>
@@ -120,10 +123,10 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>بیشتر بخوانید</strong>: <a class="ref" href="reference#ref-05">REF-05</a> (اگر فیلدها تغییر کنند باید به‌روز شود).</p>
 <h2 id="adm-06"><span class="code">ADM-06</span>ایجاد یک انبار</h2>
 <p><strong>چه کسی · چه زمانی</strong>: مدیر، هنگام راه‌اندازی یک محل نگهداری دائمی جدید (انبار، کارگاه در محلی دیگر). هرگز برای یک کارگاه ساختمانی (<a class="ref" href="reference#ref-07">REF-07</a>).</p>
-<p><strong>پیش‌نیازها</strong>: گزینهٔ <strong>مکان‌های ذخیره‌سازی</strong> در <strong>انبار ← پیکربندی ← تنظیمات</strong> فعال شده باشد (<a class="ref" href="admin#adm-03">ADM-03</a> را ببینید).</p>
+<p><strong>پیش‌نیازها</strong>: گزینهٔ <strong>مکان‌های ذخیره‌سازی</strong> در <a class="screen" href="https://erp.lartdubati.com/odoo/action-stock.action_stock_config_settings" target="_blank" rel="noopener"><strong>انبار ← پیکربندی ← تنظیمات</strong></a> فعال شده باشد (<a class="ref" href="admin#adm-03">ADM-03</a> را ببینید).</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li><strong>انبار ← پیکربندی ← انبارها</strong> را باز کنید.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-stock.action_warehouse_form" target="_blank" rel="noopener"><strong>انبار ← پیکربندی ← انبارها</strong></a> را باز کنید.</li>
 <li>نام محل را جستجو کنید، با فیلتر <strong>بایگانی شده</strong> هم.</li>
 <li>روی <strong>جدید</strong> کلیک کنید.</li>
 <li><strong>انبار</strong>: نام کامل محل، مثلاً « Dépôt de Franconville ».</li>
@@ -132,7 +135,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <li>ذخیره کنید.</li>
 <li>سپس با <a class="ref" href="admin#adm-03">ADM-03</a> بخش‌های آن و در صورت نیاز مکان‌های Chantiers، Chez tiers و Réparation externe آن را بسازید.</li>
 </ol>
-<p><strong>بررسی</strong>: <strong>انبار ← پیکربندی ← مکان‌ها</strong> « CODE/Stock » را نشان می‌دهد؛ این مکان در «مکان فعلی» فیش تجهیز پیشنهاد می‌شود.</p>
+<p><strong>بررسی</strong>: <a class="screen" href="https://erp.lartdubati.com/odoo/action-stock.action_location_form" target="_blank" rel="noopener"><strong>انبار ← پیکربندی ← مکان‌ها</strong></a> « CODE/Stock » را نشان می‌دهد؛ این مکان در «مکان فعلی» فیش تجهیز پیشنهاد می‌شود.</p>
 <p><strong>توجه</strong>: پس از ثبت اولین حرکت‌ها، کد دیگر قابل تغییر نیست. انباری که بسته می‌شود، پس از اطمینان از خالی بودنش (<a class="ref" href="parc#parc-04">PARC-04</a>) بایگانی می‌شود.</p>
 <p><strong>بیشتر بخوانید</strong>: <a class="ref" href="reference#ref-07">REF-07</a>، <a class="ref" href="admin#adm-03">ADM-03</a>.</p>
 <h2 id="adm-07"><span class="code">ADM-07</span>انتشار راهنما در erp.lartdubati.com/manuel</h2>
@@ -158,7 +161,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>پیش‌نیازها</strong>: بررسی شده باشد که از قبل وجود ندارد (<a class="ref" href="reference#ref-10">REF-10</a>).</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li><strong>مخاطبان ← جدید</strong>.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-contacts.action_contacts" target="_blank" rel="noopener"><strong>مخاطبان ← جدید</strong></a>.</li>
 <li>نوع را روی <strong>شرکت</strong> بگذارید (دکمهٔ بالای فرم).</li>
 <li>وارد کنید: نام شرکت، نشانی، SIRET، شناسه مالیاتی (شمارهٔ مالیات بر ارزش افزودهٔ درون‌اتحادیه‌ای)، وب سایت، تلفن و پست الکترونیک عمومی.</li>
 <li>یک یا چند <strong>برچسب</strong> (<a class="ref" href="reference#ref-10">REF-10</a>) متناسب با رابطه اضافه کنید: Fournisseur، Client، Loueur، Partenaire و غیره.</li>
@@ -173,7 +176,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>پیش‌نیاز</strong> : نصب ماژول lartdubati_facturation.</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li><strong>تنظیمات ← شرکت ها ← L'Art du Bâti</strong> را باز کنید، زبانه <strong>Mentions BTP</strong>.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-base.action_res_company_form" target="_blank" rel="noopener"><strong>تنظیمات ← شرکت ها ← L'Art du Bâti</strong></a> را باز کنید، زبانه <strong>Mentions BTP</strong>.</li>
 <li>شرکت بیمه ده‌ساله، شماره قرارداد و دامنه جغرافیایی پوشش را وارد کنید. تا زمانی که این فیلدها خالی باشد، این عبارت چاپ نمی‌شود: پیش‌فاکتور و فاکتور معتبر می‌مانند، فقط بدون عبارت بیمه.</li>
 <li>میانجیگر مصرف‌کننده را وارد کنید؛ این مورد به محض صدور فاکتور برای مشتری حقیقی الزامی است.</li>
 <li>گزینه <strong>Imprimer les mentions BTP</strong> را تیک‌خورده بگذارید. عبارت مربوط به پسماندها از پیش پر شده و قابل ویرایش است.</li>

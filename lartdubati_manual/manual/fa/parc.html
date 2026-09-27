@@ -26,7 +26,10 @@ h2 .code{display:inline-block;font-size:13px;font-weight:700;color:var(--accent)
 .toc{background:var(--accent-soft);border-radius:8px;padding:10px 16px;margin:12px 0}
 .toc strong{font-size:14px}.toc ul{margin:6px 0 0;padding-inline-start:18px;columns:2;column-gap:28px}
 .toc a{color:var(--ink);text-decoration:none}.toc a:hover{text-decoration:underline}
-a{color:var(--accent)}a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
+a{color:var(--accent)}
+a.screen{color:inherit;text-decoration:none;border-bottom:1px dotted var(--accent)}
+a.screen:hover{color:var(--accent);border-bottom-style:solid}
+a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
 table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14.5px;display:block;overflow-x:auto}
 th,td{border:1px solid var(--line);padding:7px 10px;text-align:start;vertical-align:top}
 th{background:var(--accent-soft)}
@@ -46,7 +49,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>پیش‌نیازها</strong>: دسته‌بندی وجود دارد (<a class="ref" href="reference#ref-03">REF-03</a>)؛ مکان مقصد وجود دارد (<a class="ref" href="reference#ref-07">REF-07</a>).</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li><strong>نگهداری ← تجهیزات</strong> را در نمای فهرست باز کنید. نام و شماره سریال را جستجو کنید، در موارد بایگانی‌شده هم.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_action" target="_blank" rel="noopener"><strong>نگهداری ← تجهیزات</strong></a> را در نمای فهرست باز کنید. نام و شماره سریال را جستجو کنید، در موارد بایگانی‌شده هم.</li>
 <li>روی <strong>جدید</strong> کلیک کنید.</li>
 <li><strong>نام</strong>: توصیف این نسخه، مثلاً « Perceuse Makita n°3 ».</li>
 <li><strong>دسته تجهیزات</strong>: طبق <a class="ref" href="reference#ref-03">REF-03</a>.</li>
@@ -62,7 +65,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>چه کسی · چه زمانی</strong>: انباردار/امین اموال، وقتی یک مدل در چند نسخه خریده می‌شود و می‌خواهیم قیمت و فروشنده را پیگیری کنیم.</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li><strong>خرید ← محصولات</strong> را باز کنید و مدل را (نام، مرجع سازنده) جستجو کنید، در موارد بایگانی‌شده هم.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-product.product_template_action" target="_blank" rel="noopener"><strong>خرید ← محصولات</strong></a> را باز کنید و مدل را (نام، مرجع سازنده) جستجو کنید، در موارد بایگانی‌شده هم.</li>
 <li>اگر وجود ندارد: <strong>جدید</strong>، نام = مرجع دقیق (مثلاً « Perceuse Makita HP2050 »). تیک <strong>فروش</strong> را بردارید و <strong>خرید</strong> را تیک‌خورده بگذارید. <strong>نوع محصول</strong> = خدمت؛ فقط اگر می‌خواهید قطعات این مدل را هم در انبار بشمارید: کالاها، با تیک <strong>ردیابی موجودی</strong>. ذخیره کنید.</li>
 <li>هر نسخه را مانند <a class="ref" href="parc#parc-01">PARC-01</a> بسازید و علاوه بر آن فیلد <strong>محصول</strong> را با این مدل پر کنید.</li>
 <li>مرحلهٔ ۳ را برای هر نسخهٔ فیزیکی تکرار کنید.</li>
@@ -75,7 +78,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>پیش‌نیازها</strong>: مکان مقصد وجود دارد (<a class="ref" href="admin#adm-03">ADM-03</a>).</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li>فیش را در <strong>نگهداری ← تجهیزات</strong> باز کنید.</li>
+<li>فیش را در <a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_action" target="_blank" rel="noopener"><strong>نگهداری ← تجهیزات</strong></a> باز کنید.</li>
 <li>گروه <strong>مکان</strong>: <strong>مکان فعلی</strong> را به محل جدید تغییر دهید.</li>
 <li>اگر تجهیز به‌طور پایدار به یک نفر یا یک کارگاه سپرده می‌شود، <strong>وضعیت مالکیت</strong> را هم به‌روز کنید (<a class="ref" href="reference#ref-06">REF-06</a>). در غیر این صورت چیز دیگری را تغییر ندهید.</li>
 <li>ذخیره کنید.</li>
@@ -87,7 +90,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>چه کسی · چه زمانی</strong>: انباردار/امین اموال، سرکارگر یا حسابدار، در هر زمان.</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li><strong>نگهداری ← تجهیزات</strong> را در نمای فهرست باز کنید.</li>
+<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_action" target="_blank" rel="noopener"><strong>نگهداری ← تجهیزات</strong></a> را در نمای فهرست باز کنید.</li>
 <li>روی فلش نوار جستجو کلیک کنید، سپس <strong>گروه‌بندی برمبنای ← افزودن گروه سفارشی ← مکان فعلی</strong>.</li>
 <li>گروه مکان موردنظر را باز کنید. برای یک محل خاص، نامش را در جستجو تایپ کنید و « جستجوی مکان فعلی برای: … » را انتخاب کنید.</li>
 <li>برای نگه داشتن این نما: <strong>علاقه‌مندی ها ← ذخیره سازی فایل فعلی</strong>، نام « Inventaire par emplacement »، و گزینهٔ <strong>به اشتراک گذاشته شده</strong> را تیک بزنید.</li>
@@ -160,7 +163,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>بیشتر بخوانید</strong>: <a class="ref" href="chantier#ch-03">CH-03</a>، <a class="ref" href="comptable#cpt-02">CPT-02</a>، <a class="ref" href="comptable#cpt-04">CPT-04</a>، <a class="ref" href="reference#ref-06">REF-06</a>.</p>
 <h2 id="parc-09"><span class="code">PARC-09</span>ایجاد یا بررسی یک طرف امانت یا اجاره</h2>
 <p><strong>چه کسی · چه زمانی</strong>: انباردار/امین اموال یا حسابدار، پیش از ثبت یک اجاره، قرض گرفتن یا امانت دادن (<a class="ref" href="parc#parc-05">PARC-05</a>، <a class="ref" href="parc#parc-06">PARC-06</a>، <a class="ref" href="parc#parc-07">PARC-07</a>).</p>
-<p><strong>پیش‌نیازها</strong>: برچسب‌های Actionnaire، Loueur، Prêteur و Emprunteur وجود دارند (<strong>مخاطبان ← پیکربندی ← برچسب‌های مخاطبان</strong>)؛ یک بار توسط مدیر ساخته می‌شوند.</p>
+<p><strong>پیش‌نیازها</strong>: برچسب‌های Actionnaire، Loueur، Prêteur و Emprunteur وجود دارند (<a class="screen" href="https://erp.lartdubati.com/odoo/action-base.action_partner_category_form" target="_blank" rel="noopener"><strong>مخاطبان ← پیکربندی ← برچسب‌های مخاطبان</strong></a>)؛ یک بار توسط مدیر ساخته می‌شوند.</p>
 <p><strong>مراحل</strong></p>
 <ol>
 <li><strong>مخاطبان</strong> را باز کنید و بر اساس نام، تلفن، SIRET یا شناسه مالیاتی جستجو کنید، با فیلتر <strong>بایگانی شده</strong> هم.</li>

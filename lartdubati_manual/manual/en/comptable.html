@@ -26,7 +26,10 @@ h2 .code{display:inline-block;font-size:13px;font-weight:700;color:var(--accent)
 .toc{background:var(--accent-soft);border-radius:8px;padding:10px 16px;margin:12px 0}
 .toc strong{font-size:14px}.toc ul{margin:6px 0 0;padding-inline-start:18px;columns:2;column-gap:28px}
 .toc a{color:var(--ink);text-decoration:none}.toc a:hover{text-decoration:underline}
-a{color:var(--accent)}a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
+a{color:var(--accent)}
+a.screen{color:inherit;text-decoration:none;border-bottom:1px dotted var(--accent)}
+a.screen:hover{color:var(--accent);border-bottom-style:solid}
+a.ref{font-weight:600;text-decoration:none;white-space:nowrap}
 table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14.5px;display:block;overflow-x:auto}
 th,td{border:1px solid var(--line);padding:7px 10px;text-align:start;vertical-align:top}
 th{background:var(--accent-soft)}
@@ -45,7 +48,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>Who · When</strong>: accountant, after the fiche is created by the fleet manager and on receipt of the invoice.</p>
 <p><strong>Steps</strong></p>
 <ol>
-<li>Open the fiche in <strong>Maintenance → Equipment</strong>.</li>
+<li>Open the fiche in <a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_action" target="_blank" rel="noopener"><strong>Maintenance → Equipment</strong></a>.</li>
 <li><strong>Product Information</strong> tab: <strong>Cost</strong> = pre-tax purchase price shown on the invoice.</li>
 <li><strong>Third-Party Ownership (Shareholder)</strong> group: check <strong>Accounting Ownership</strong> (Company or Third Party).</li>
 <li>If Company and a durable capitalized asset: check <strong>Accounting Depreciation Active</strong> and follow <a class="ref" href="comptable#cpt-03">CPT-03</a>.</li>
@@ -268,7 +271,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>Steps — one-time setup</strong></p>
 <ol>
 <li>
-<p>Create the expense accounts (if the external accountant does not already have their own): <strong>Invoicing → Configuration → Accounting → Chart of Accounts → New</strong>.</p>
+<p>Create the expense accounts (if the external accountant does not already have their own): <a class="screen" href="https://erp.lartdubati.com/odoo/action-account.action_account_form" target="_blank" rel="noopener"><strong>Invoicing → Configuration → Accounting → Chart of Accounts → New</strong></a>.</p>
 <ul>
 <li>627800 – Autres charges et commissions sur prestations de services (bank fees)</li>
 <li>626000 – Frais postaux et de télécommunications (phone subscription)</li>
@@ -277,10 +280,10 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><em>(existing accounts from the imported Plan Comptable Général, reused as-is rather than creating new accounts — see also <a class="ref" href="comptable#cpt-02">CPT-02</a>)</em></p>
 </li>
 <li>
-<p>Create a dedicated product category: <strong>Inventory → Configuration → Product Categories → New</strong> → « Frais généraux » under All / Expenses (see <a class="ref" href="reference#ref-04">REF-04</a>).</p>
+<p>Create a dedicated product category: <a class="screen" href="https://erp.lartdubati.com/odoo/action-product.product_category_action_form" target="_blank" rel="noopener"><strong>Inventory → Configuration → Product Categories → New</strong></a> → « Frais généraux » under All / Expenses (see <a class="ref" href="reference#ref-04">REF-04</a>).</p>
 </li>
 <li>
-<p>Create the 3 Service-type products: <strong>Sales (or Purchase) → Products → New</strong>, for each:</p>
+<p>Create the 3 Service-type products: <a class="screen" href="https://erp.lartdubati.com/odoo/action-product.product_template_action" target="_blank" rel="noopener"><strong>Sales (or Purchase) → Products → New</strong></a>, for each:</p>
 <ul>
 <li>Name: Frais bancaires / Abonnement téléphonique / Frais administratifs</li>
 <li>Product Type: Service</li>
@@ -292,9 +295,9 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 </ol>
 <p><strong>Steps — everyday use</strong></p>
 <ol start="4">
-<li>On every vendor bill (<strong>Invoicing → Vendors → Bills → New</strong>), add a line with the corresponding product; the expense account fills in automatically.</li>
+<li>On every vendor bill (<a class="screen" href="https://erp.lartdubati.com/odoo/action-account.action_move_in_invoice_type" target="_blank" rel="noopener"><strong>Invoicing → Vendors → Bills → New</strong></a>), add a line with the corresponding product; the expense account fills in automatically.</li>
 </ol>
-<p><strong>Verification</strong>: in <strong>Invoicing → Accounting → Journal Items</strong>, a filter on the account shows the amounts under the right account.</p>
+<p><strong>Verification</strong>: in <a class="screen" href="https://erp.lartdubati.com/odoo/action-account.action_account_moves_all" target="_blank" rel="noopener"><strong>Invoicing → Accounting → Journal Items</strong></a>, a filter on the account shows the amounts under the right account.</p>
 <p><strong>Warning</strong>: these 3 items are general company expenses, unrelated to any fleet equipment — not to be confused with <a class="ref" href="comptable#cpt-01">CPT-01</a> to <a class="ref" href="comptable#cpt-06">CPT-06</a> (equipment accounting).</p>
 <p><strong>See also</strong>: <a class="ref" href="reference#ref-04">REF-04</a></p>
 <h2 id="cpt-08"><span class="code">CPT-08</span>Costs incurred before the company's registration and launch</h2>
@@ -390,7 +393,7 @@ footer button{background:none;border:1px solid var(--line);color:var(--muted);bo
 <p><strong>Principle</strong> : the FEC (accounting entries file) is compulsory in the event of a tax audit. The wizard ships with Odoo Community, but its menu was added by the lartdubati_facturation module.</p>
 <p><strong>Steps</strong></p>
 <ol>
-<li>Open <strong>Invoicing → Reporting → Export FEC</strong>.</li>
+<li>Open <a class="screen" href="https://erp.lartdubati.com/odoo/action-lartdubati_facturation.action_l10n_fr_fec_export_wizard" target="_blank" rel="noopener"><strong>Invoicing → Reporting → Export FEC</strong></a>.</li>
 <li>Set the period, leave <strong>Test file</strong> ticked for a first run, then <strong>Generate</strong>.</li>
 <li>Check the resulting file, then run it again with <strong>Test file</strong> unticked for the final export.</li>
 </ol>
