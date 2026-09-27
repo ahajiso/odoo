@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="lartdubati_env_ribbon.EnvRibbon">
+        <div t-if="isTestDb" class="o_env_ribbon_test" role="alert">
+            ⚠ BASE DE TEST — <t t-esc="dbName"/> — ne pas utiliser pour la production
+        </div>
+    </t>
+</templates>

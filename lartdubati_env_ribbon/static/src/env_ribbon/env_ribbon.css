@@ -1,0 +1,22 @@
+.o_env_ribbon_test {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    background-color: #d32f2f;
+    color: #ffffff;
+    text-align: center;
+    font-weight: bold;
+    font-size: 13px;
+    line-height: 22px;
+    padding: 2px 0;
+    letter-spacing: 0.3px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+}
+
+/* Décale l'interface pour que le bandeau ne recouvre pas le menu principal */
+body.o_web_client:has(.o_env_ribbon_test) {
+    padding-top: 24px;
+}
