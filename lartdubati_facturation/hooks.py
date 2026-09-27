@@ -196,8 +196,9 @@ def _create_fiscal_position(env, company, autoliq_taxes):
         'company_id': company.id,
         'country_id': env.ref('base.fr').id,
         'auto_apply': False,
-        'note': AUTOLIQUIDATION_MENTION,
-        'fiscal_position_tax_ids': tax_mapping,
+        # 'note' is an Html field: it holds the legal mention printed on invoices.
+        'note': f'<p>{AUTOLIQUIDATION_MENTION}</p>',
+        'tax_ids': tax_mapping,
     })
     _logger.info("lartdubati_facturation: position fiscale sous-traitance créée (id=%s, %s correspondances)",
                  fpos.id, len(tax_mapping))
