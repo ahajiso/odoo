@@ -205,10 +205,48 @@ def _create_fiscal_position(env, company, autoliq_taxes):
     return fpos
 
 
+def _find_account(env, company, code_prefix):
+    """Find a chart-of-accounts account by code prefix for this company."""
+    return env['account.account'].search([
+        ('company_ids', 'in', company.id), ('code', 'like', f'{code_prefix}%'),
+    ], limit=1)
+
+
+def _check_btp_accounts(env, company):
+    """Report which BTP-specific accounts are available in the chart."""
+    expected = {
+        '4117': 'Clients - Retenues de garantie',
+        '4181': 'Clients - Factures à établir',
+        '4191': 'Clients créditeurs - Avances et acomptes reçus',
+        '704': 'Travaux',
+        '706': 'Ventes de prestations de services',
+        '707': 'Ventes de marchandises',
+    }
+    missing = []
+    for code, label in expected.items():
+        if not _find_account(env, company, code):
+            missing.append(f'{code} ({label})')
+    if missing:
+        _logger.warning(
+            "lartdubati_facturation: comptes BTP absents du plan comptable : %s. "
+            "À créer manuellement si nécessaire.", ', '.join(missing),
+        )
+    else:
+        _logger.info(
+            "lartdubati_facturation: tous les comptes BTP attendus sont présents "
+            "(retenue de garantie, factures à établir, acomptes, 704/706/707)."
+        )
+
+
 def _create_products(env, company):
     Product = env['product.template']
     tax_10_service = _find_tax(env, company, 'sale', 'service', 10.0)
     tax_20_service = _find_tax(env, company, 'sale', 'service', 20.0)
+
+    # Comptes de produits du PCG : travaux, marchandises, prestations de services.
+    account_704 = _find_account(env, company, '704')
+    account_706 = _find_account(env, company, '706')
+    account_707 = _find_account(env, company, '707')
 
     products_data = [
         {
@@ -216,18 +254,21 @@ def _create_products(env, company):
             'type': 'service',
             'uom_name': 'Heure(s)',
             'taxes': tax_10_service,
+            'income_account': account_704,
         },
         {
             'name': 'Matériaux de construction (finition/façade)',
             'type': 'consu',
             'uom_name': None,
             'taxes': tax_10_service,
+            'income_account': account_707,
         },
         {
             'name': 'Conseil / Prestation intellectuelle',
             'type': 'service',
             'uom_name': None,
             'taxes': tax_20_service,
+            'income_account': account_706,
         },
     ]
 
@@ -238,6 +279,14 @@ def _create_products(env, company):
             ('name', '=', vals['name']), ('company_id', 'in', [company.id, False]),
         ], limit=1)
         if existing:
+            # Idempotent: complete an article created by a previous run that
+            # predates the income-account configuration.
+            if vals.get('income_account') and not existing.property_account_income_id:
+                existing.property_account_income_id = vals['income_account']
+                _logger.info(
+                    "lartdubati_facturation: compte de produit %s affecté à l'article existant %s",
+                    vals['income_account'].code, vals['name'],
+                )
             continue
         create_vals = {
             'name': vals['name'],
@@ -249,6 +298,8 @@ def _create_products(env, company):
         # 'invoice_policy' only exists once the Sales app ('sale') is installed.
         if 'invoice_policy' in Product._fields:
             create_vals['invoice_policy'] = 'order'
+        if vals.get('income_account'):
+            create_vals['property_account_income_id'] = vals['income_account'].id
         if vals['uom_name'] == 'Heure(s)' and uom_hour:
             create_vals['uom_id'] = uom_hour.id
             create_vals['uom_po_id'] = uom_hour.id
@@ -262,5 +313,6 @@ def post_init_hook(env):
     _activate_reduced_rate_taxes(env, company)
     autoliq_taxes = _create_autoliquidation_taxes(env, company)
     _create_fiscal_position(env, company, autoliq_taxes)
+    _check_btp_accounts(env, company)
     _create_products(env, company)
     _logger.info("lartdubati_facturation: post_init_hook terminé")

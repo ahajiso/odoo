@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Onglet dédié aux mentions BTP sur la fiche société -->
+    <record id="view_company_form_btp" model="ir.ui.view">
+        <field name="name">res.company.form.btp</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Mentions BTP" name="lartdubati_btp">
+                    <group>
+                        <group string="Assurance décennale">
+                            <field name="lartdubati_decennale_assureur"
+                                   placeholder="Ex. : AXA France IARD"/>
+                            <field name="lartdubati_decennale_contrat"
+                                   placeholder="Ex. : 1234567890"/>
+                            <field name="lartdubati_decennale_zone"/>
+                        </group>
+                        <group string="Impression">
+                            <field name="lartdubati_mentions_btp"/>
+                            <field name="lartdubati_mediateur"
+                                   placeholder="Ex. : CM2C - 14 rue Saint Jean, 75017 Paris - cm2c.net"/>
+                        </group>
+                    </group>
+                    <group string="Gestion des déchets (loi AGEC)">
+                        <field name="lartdubati_dechets_mention" nolabel="1"/>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        Tant que l'assurance décennale n'est pas souscrite, laissez
+                        les champs « Assureur » et « N° de contrat » vides : la
+                        mention correspondante ne sera pas imprimée sur les factures.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

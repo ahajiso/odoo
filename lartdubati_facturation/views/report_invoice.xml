@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Mentions obligatoires d'une entreprise du bâtiment, imprimées en pied de
+        facture client. Chaque bloc ne s'affiche que si l'information existe :
+        tant que l'assurance décennale n'est pas souscrite, sa mention reste
+        absente du document.
+    -->
+    <template id="report_invoice_document_btp"
+              inherit_id="account.report_invoice_document">
+        <xpath expr="//div[@name='comment']" position="after">
+            <div t-if="o.company_id.lartdubati_mentions_btp and o.move_type.startswith('out_')"
+                 class="mt-3" style="font-size: 9px; line-height: 1.35;"
+                 name="lartdubati_mentions_btp">
+
+                <!-- Assurance de responsabilité décennale -->
+                <p t-if="o.company_id.lartdubati_decennale_assureur and o.company_id.lartdubati_decennale_contrat"
+                   class="mb-1">
+                    <strong>Assurance de responsabilité décennale :</strong>
+                    <span t-field="o.company_id.lartdubati_decennale_assureur"/>,
+                    contrat n° <span t-field="o.company_id.lartdubati_decennale_contrat"/><t t-if="o.company_id.lartdubati_decennale_zone">,
+                    couverture géographique : <span t-field="o.company_id.lartdubati_decennale_zone"/></t>.
+                </p>
+
+                <!-- Pénalités de retard et indemnité forfaitaire (clients professionnels) -->
+                <p t-if="o.partner_id.commercial_partner_id.is_company" class="mb-1">
+                    <strong>Retard de paiement :</strong> en cas de paiement après la
+                    date d'échéance, des pénalités de retard sont exigibles au taux
+                    d'intérêt appliqué par la Banque centrale européenne à son
+                    opération de refinancement la plus récente majoré de 10 points de
+                    pourcentage, sans qu'un rappel soit nécessaire. Une indemnité
+                    forfaitaire pour frais de recouvrement de 40 € est également due
+                    (art. L.441-10 et D.441-5 du Code de commerce). Aucun escompte
+                    n'est accordé en cas de paiement anticipé.
+                </p>
+
+                <!-- Médiation de la consommation (clients particuliers) -->
+                <p t-if="not o.partner_id.commercial_partner_id.is_company and o.company_id.lartdubati_mediateur"
+                   class="mb-1">
+                    <strong>Médiation de la consommation :</strong> conformément à
+                    l'article L.616-1 du Code de la consommation, vous pouvez recourir
+                    gratuitement au médiateur suivant :
+                    <span t-field="o.company_id.lartdubati_mediateur"/>.
+                </p>
+
+                <!-- Gestion des déchets de chantier (loi AGEC) -->
+                <p t-if="o.company_id.lartdubati_dechets_mention" class="mb-1">
+                    <strong>Gestion des déchets :</strong>
+                    <span t-field="o.company_id.lartdubati_dechets_mention"/>
+                </p>
+
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

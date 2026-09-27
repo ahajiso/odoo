@@ -36,15 +36,33 @@ en BTP (main d'œuvre, matériaux, conseil), en couvrant :
 3. **Articles de facturation de base** : main d'œuvre (horaire),
    matériaux de construction, conseil / prestation intellectuelle —
    avec une fiscalité de départ cohérente (10% pour les deux premiers,
-   20% pour le conseil, non éligible au taux réduit).
+   20% pour le conseil, non éligible au taux réduit) et les comptes
+   de produits du PCG (704 Travaux, 707 Ventes de marchandises,
+   706 Prestations de services).
+
+4. **Mentions légales du bâtiment** : champs d'assurance décennale sur
+   la fiche société (onglet « Mentions BTP ») et bloc imprimé en pied
+   de facture — décennale, pénalités de retard et indemnité forfaitaire
+   de 40 € pour les clients professionnels, médiateur de la
+   consommation pour les particuliers, gestion des déchets (loi AGEC).
+   Chaque mention ne s'imprime que si l'information est renseignée.
+
+5. **Export FEC** : ajoute le menu d'export du Fichier des Écritures
+   Comptables (Comptabilité → Analyse → Export FEC), l'assistant
+   existant dans l10n_fr_account n'étant exposé qu'en édition
+   Enterprise.
 
 À installer et valider sur une base de test avant toute mise en
 production.
 """,
     'author': "L'Art du Bâti",
     'license': 'LGPL-3',
-    'depends': ['account'],
-    'data': [],
+    'depends': ['account', 'l10n_fr_account'],
+    'data': [
+        'views/res_company_views.xml',
+        'views/report_invoice.xml',
+        'views/fec_export_menu.xml',
+    ],
     'installable': True,
     'application': False,
     'post_init_hook': 'post_init_hook',

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        L'assistant d'export FEC (Fichier des Écritures Comptables) existe dans
+        le module standard l10n_fr_account, mais Odoo n'expose son menu qu'en
+        édition Enterprise. On ajoute ici l'action et l'entrée de menu
+        correspondantes pour l'édition Community.
+    -->
+    <record id="action_l10n_fr_fec_export_wizard" model="ir.actions.act_window">
+        <field name="name">Export FEC</field>
+        <field name="res_model">l10n_fr.fec.export.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="l10n_fr_account.fec_export_wizard_view"/>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_l10n_fr_fec_export"
+              name="Export FEC"
+              parent="account.menu_finance_reports"
+              action="action_l10n_fr_fec_export_wizard"
+              groups="account.group_account_user"
+              sequence="90"/>
+
+</odoo>
