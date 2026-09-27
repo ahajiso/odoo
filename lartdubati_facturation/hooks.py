@@ -96,11 +96,13 @@ def _create_autoliquidation_taxes(env, company):
     taxes['vente_0'] = sale_tax
 
     # --- Purchase side: self-assessed 20% / 10% / 5.5% when hiring a subcontractor ---
+    # Note: since Odoo 17, account.account is shared across companies via
+    # 'company_ids' (m2m) rather than a single 'company_id' field.
     acc_444 = env['account.account'].search([
-        ('company_id', '=', company.id), ('code', 'like', '445662%'),
+        ('company_ids', 'in', company.id), ('code', 'like', '445662%'),
     ], limit=1)
     acc_445 = env['account.account'].search([
-        ('company_id', '=', company.id), ('code', 'like', '44521%'),
+        ('company_ids', 'in', company.id), ('code', 'like', '44521%'),
     ], limit=1)
     if not acc_444 or not acc_445:
         _logger.warning(
