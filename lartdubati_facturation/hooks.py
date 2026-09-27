@@ -121,10 +121,11 @@ def _create_autoliquidation_taxes(env, company):
             # Invoice side: +100% collected (445662-type account), -100% deductible (44521-type account).
             invoice_collected = {'factor_percent': 100, 'repartition_type': 'tax'}
             invoice_deductible = {'factor_percent': -100, 'repartition_type': 'tax'}
-            # Refund side mirrors the invoice side with flipped signs (matches the
-            # pattern used by Odoo's own intra-EU reverse-charge tax template).
-            refund_collected = {'factor_percent': -100, 'repartition_type': 'tax'}
-            refund_deductible = {'factor_percent': 100, 'repartition_type': 'tax'}
+            # Refund side must use the SAME percentages, in the same order, as the
+            # invoice side (Odoo validates this); only the report tags differ, and
+            # those are left empty pending the accountant's CA3 box confirmation.
+            refund_collected = {'factor_percent': 100, 'repartition_type': 'tax'}
+            refund_deductible = {'factor_percent': -100, 'repartition_type': 'tax'}
             if acc_444:
                 invoice_collected['account_id'] = acc_444.id
                 refund_collected['account_id'] = acc_444.id
