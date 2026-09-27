@@ -54,6 +54,10 @@ en BTP (main d'œuvre, matériaux, conseil), en couvrant :
    existant dans l10n_fr_account n'étant exposé qu'en édition
    Enterprise.
 
+6. **Conditions de paiement** : comptant, 30 jours, 45 jours fin de mois
+   (plafond légal dérogatoire entre professionnels), et deux formules
+   avec acompte de 30 % à la commande.
+
 À installer et valider sur une base de test avant toute mise en
 production.
 """,
@@ -61,6 +65,7 @@ production.
     'license': 'LGPL-3',
     'depends': ['account', 'l10n_fr_account', 'sale'],
     'data': [
+        'data/account_payment_term_data.xml',
         'views/res_company_views.xml',
         'views/report_invoice.xml',
         'views/report_saleorder.xml',
