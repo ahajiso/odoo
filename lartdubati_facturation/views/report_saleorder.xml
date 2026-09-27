@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Mentions obligatoires du bâtiment sur les devis, plus le cadre
+        « bon pour accord » qui matérialise l'acceptation du client.
+        Dans ce rapport, l'enregistrement courant est 'doc' (et non 'o').
+    -->
+    <template id="report_saleorder_document_btp"
+              inherit_id="sale.report_saleorder_document">
+        <xpath expr="//p[@id='fiscal_position_remark']" position="after">
+
+            <!-- Cadre d'acceptation du devis -->
+            <div t-if="doc.company_id.lartdubati_mentions_btp and doc.state in ('draft', 'sent')"
+                 class="mt-4" name="lartdubati_bon_pour_accord">
+                <div style="border: 1px solid #000; padding: 8px; width: 60%;">
+                    <p class="mb-1" style="font-size: 10px;">
+                        <strong>Acceptation du devis</strong> — à retourner daté et signé,
+                        précédé de la mention manuscrite « Lu et approuvé, bon pour accord ».
+                    </p>
+                    <p class="mb-0 mt-3" style="font-size: 10px;">
+                        Date : ............................
+                        &amp;nbsp;&amp;nbsp;&amp;nbsp;
+                        Signature :
+                    </p>
+                    <div style="height: 1.6cm;"/>
+                </div>
+            </div>
+
+            <!-- Mentions légales -->
+            <div t-if="doc.company_id.lartdubati_mentions_btp"
+                 class="mt-3" style="font-size: 9px; line-height: 1.35;"
+                 name="lartdubati_mentions_btp">
+
+                <p t-if="doc.company_id.lartdubati_decennale_assureur and doc.company_id.lartdubati_decennale_contrat"
+                   class="mb-1">
+                    <strong>Assurance de responsabilité décennale :</strong>
+                    <span t-field="doc.company_id.lartdubati_decennale_assureur"/>,
+                    contrat n° <span t-field="doc.company_id.lartdubati_decennale_contrat"/><t t-if="doc.company_id.lartdubati_decennale_zone">,
+                    couverture géographique : <span t-field="doc.company_id.lartdubati_decennale_zone"/></t>.
+                </p>
+
+                <p t-if="doc.partner_id.commercial_partner_id.is_company" class="mb-1">
+                    <strong>Retard de paiement :</strong> en cas de paiement après la
+                    date d'échéance, des pénalités de retard sont exigibles au taux
+                    d'intérêt appliqué par la Banque centrale européenne à son
+                    opération de refinancement la plus récente majoré de 10 points de
+                    pourcentage, sans qu'un rappel soit nécessaire. Une indemnité
+                    forfaitaire pour frais de recouvrement de 40 € est également due
+                    (art. L.441-10 et D.441-5 du Code de commerce). Aucun escompte
+                    n'est accordé en cas de paiement anticipé.
+                </p>
+
+                <p t-if="not doc.partner_id.commercial_partner_id.is_company" class="mb-1">
+                    <strong>Droit de rétractation :</strong> pour un contrat conclu hors
+                    établissement, vous disposez d'un délai de quatorze jours pour exercer
+                    votre droit de rétractation (art. L.221-18 du Code de la consommation),
+                    sauf renoncement exprès en cas de travaux d'urgence.
+                </p>
+
+                <p t-if="not doc.partner_id.commercial_partner_id.is_company and doc.company_id.lartdubati_mediateur"
+                   class="mb-1">
+                    <strong>Médiation de la consommation :</strong> conformément à
+                    l'article L.616-1 du Code de la consommation, vous pouvez recourir
+                    gratuitement au médiateur suivant :
+                    <span t-field="doc.company_id.lartdubati_mediateur"/>.
+                </p>
+
+                <p t-if="doc.company_id.lartdubati_dechets_mention" class="mb-1">
+                    <strong>Gestion des déchets :</strong>
+                    <span t-field="doc.company_id.lartdubati_dechets_mention"/>
+                </p>
+
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

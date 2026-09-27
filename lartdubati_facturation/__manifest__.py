@@ -42,10 +42,12 @@ en BTP (main d'œuvre, matériaux, conseil), en couvrant :
 
 4. **Mentions légales du bâtiment** : champs d'assurance décennale sur
    la fiche société (onglet « Mentions BTP ») et bloc imprimé en pied
-   de facture — décennale, pénalités de retard et indemnité forfaitaire
-   de 40 € pour les clients professionnels, médiateur de la
-   consommation pour les particuliers, gestion des déchets (loi AGEC).
-   Chaque mention ne s'imprime que si l'information est renseignée.
+   de facture et de devis — décennale, pénalités de retard et indemnité
+   forfaitaire de 40 € pour les clients professionnels, droit de
+   rétractation et médiateur de la consommation pour les particuliers,
+   gestion des déchets (loi AGEC). Les devis reçoivent en plus le cadre
+   « bon pour accord ». Chaque mention ne s'imprime que si l'information
+   est renseignée.
 
 5. **Export FEC** : ajoute le menu d'export du Fichier des Écritures
    Comptables (Comptabilité → Analyse → Export FEC), l'assistant
@@ -57,10 +59,11 @@ production.
 """,
     'author': "L'Art du Bâti",
     'license': 'LGPL-3',
-    'depends': ['account', 'l10n_fr_account'],
+    'depends': ['account', 'l10n_fr_account', 'sale'],
     'data': [
         'views/res_company_views.xml',
         'views/report_invoice.xml',
+        'views/report_saleorder.xml',
         'views/fec_export_menu.xml',
     ],
     'installable': True,
