@@ -22,10 +22,10 @@ doivent jamais être éditées directement (voir `maintenance-manuel-odoo.md`
 | EN | Manuel Odoo – L'Art du Bâti (EN) | 3efc85ac-0f1e-4694-90e5-a3256b5d9cbc | https://claude.ai/code/artifact/3efc85ac-0f1e-4694-90e5-a3256b5d9cbc |
 | FA | Manuel Odoo – L'Art du Bâti (FA) | c84b1427-c085-42b9-99ef-2565486b743c | https://claude.ai/code/artifact/c84b1427-c085-42b9-99ef-2565486b743c |
 
-Ces trois documents ne sont accessibles qu'à une session Claude qui a accès
-au projet claude.ai « Odoo » de l'utilisateur (Ali / hajisotoudeh@gmail.com).
-Une session Claude Code qui travaille uniquement depuis le dépôt GitHub
-`ahajiso/odoo` ne peut pas les lire ni les modifier : voir la section
+Ces trois documents sont liés au compte claude.ai de l'utilisateur. Une
+session Claude Code peut les lire, les modifier et les exporter si elle
+dispose des outils `mcp__Claude_Docs__*` (c'est le cas des sessions Claude
+Code sur le web ouvertes avec ce compte). Sans ces outils, voir la section
 « Ce qui n'existe que côté Claude Docs » tout en bas de ce fichier.
 
 ### Onglets
@@ -238,7 +238,7 @@ persans en FA).
 | Module bandeau d'environnement | lartdubati_env_ribbon 18.0.1.0.0 : bandeau rouge quand le nom de la base se termine par `_test`, `_staging` ou `_dev`. Composant Owl purement client (`static/src/env_ribbon/env_ribbon.{js,xml,css}`), aucune donnée serveur. Pour le désactiver temporairement le temps d'une capture d'écran, voir §2 « Prendre les captures sans bandeau de test » — aucune modification du module ni du serveur. |
 | Dépôts OCA ajoutés | server-ux-18 (date_range), account-reconcile-18 (account_reconcile_oca, account_statement_base), bank-statement-import-18 (OFX, CAMT) ; addons_path mis à jour dans `/opt/odoo/config/odoo.conf` |
 | Module de publication | lartdubati_manual 18.0.1.0.0 : routes `/manuel`, `/manuel/<lang>/<page>` (auth user, langue de l'utilisateur par défaut) ; menu racine « Manuel » (act_url, nouvel onglet) traduit en « Manual » (en.po) et « راهنما » (fa_IR.po) ; pages lues depuis `lartdubati_manual/manual/<lang>/*.html` (contrôleur `controllers/main.py`, constante `MANUAL_DIR`) ; fichiers sous `lartdubati_manual/static/` (captures d'écran, fichiers modèles d'import) servis automatiquement par le mécanisme standard des modules Odoo, sans route dédiée. |
-| OCA immobilisations | account_asset_management 18.0.1.1.11 (+ report_xlsx, report_xlsx_helper) présent dans le dépôt, installation NON confirmée à ce jour |
+| OCA immobilisations | account_asset_management 18.0.1.1.11 (+ report_xlsx, report_xlsx_helper) installé sur artdubati_test (vérifié le 03/10/2026) ; catégories d'immobilisation en attente de l'expert-comptable ; non installé en production |
 | Hiérarchie catégories équipement | module OCA maintenance_equipment_category_hierarchy |
 | Langues | en_US (base), fr_FR, fa_IR |
 | Application comptable | CE = « Facturation » (Invoicing / صدور فاکتور) ; pas de rapport compte de résultat en CE |
@@ -333,7 +333,8 @@ d'import pour que la correspondance automatique fonctionne du premier coup.
 
 ## 5. Ce qui n'existe que côté Claude Docs
 
-Une session Claude Code travaillant uniquement depuis le dépôt GitHub ne peut
+Cette section ne concerne que les sessions **sans** les outils
+`mcp__Claude_Docs__*` (voir §1). Une telle session ne peut
 **ni lire ni modifier** le contenu des fiches — celui-ci vit exclusivement
 dans les trois documents Claude Docs listés en §1, qui sont des documents
 claude.ai liés au compte de l'utilisateur, pas des fichiers du dépôt. Ce que
