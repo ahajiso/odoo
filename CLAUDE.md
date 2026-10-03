@@ -5,7 +5,10 @@
 - This repo is the custom addons folder: each module sits at the repo root and is cloned
   on the server at /opt/odoo/addons/custom. Existing modules: maintenance_shareholder_equipment,
   lartdubati_facturation, lartdubati_env_ribbon, lartdubati_manual, plus OCA
-  account_asset_management (with report_xlsx, report_xlsx_helper), present but NOT confirmed installed.
+  account_asset_management (with report_xlsx, report_xlsx_helper), installed on artdubati_test.
+- Also installed on artdubati_test (OCA, not in this repo): maintenance_product,
+  maintenance_partner, maintenance_request_repair, maintenance_equipment_category_hierarchy.
+- Single company. DB container: odoo_db (`docker exec -i odoo_db psql -U odoo -d artdubati_test`).
 - Languages: en_US, fr_FR, fa_IR (RTL). All UI strings translatable; .po files come from
   `odoo --i18n-export`, never written by hand.
 - Business definitions are in docs/DEFINITIONS.md. Read it first and follow it exactly.
@@ -39,6 +42,21 @@ New module `lartdubati_investor_home`:
 - Update module on the server: `docker exec -i odoo_web odoo -d artdubati_test -u <module>
   --stop-after-init` then `docker restart odoo_web`.
 - Small commits, clear messages. Propose a plan before coding each phase.
+
+## Decisions (validated by the owner)
+- Main rule: use standard Odoo data and features first; change the repo only when necessary.
+- Consumable ownership uses standard stock.quant owner_id (already excluded from valuation
+  by Odoo): no owner or company = owned; quant in a lent-out stock = lent_out; third-party
+  owner = borrowed, or rented when rental terms exist. No custom field in the quant key.
+- Equipment ownership is derived from existing values: acquisition_mode rental = rented,
+  borrowed = borrowed, loaned_out = lent_out; purchase = owned if owner_type is company,
+  otherwise borrowed. Who owns it is secondary.
+- The new ownership field must not be labelled "Ownership Status" (already used by
+  ownership_state).
+- Access record rules are global (not group rules, which Odoo ORs with
+  maintenance rules) and only filter internal stock locations.
+- Phase 0: consumable product categories 11-17 set to average cost on artdubati_test.
+  Asset profiles wait for the accountant's answers.
 
 ## Phases
 0. Install and configure OCA account_asset_management on artdubati_test (asset categories,
