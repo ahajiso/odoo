@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_stock_rental_list" model="ir.ui.view">
+        <field name="name">lartdubati.stock.rental.list</field>
+        <field name="model">lartdubati.stock.rental</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="owner_id"/>
+                <field name="product_id"/>
+                <field name="rent_amount"/>
+                <field name="currency_id" optional="hide"/>
+                <field name="rent_period"/>
+                <field name="rent_start_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stock_rental_form" model="ir.ui.view">
+        <field name="name">lartdubati.stock.rental.form</field>
+        <field name="model">lartdubati.stock.rental</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="owner_id"/>
+                            <field name="product_id"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="rent_amount"/>
+                            <field name="currency_id" options="{'no_create': True}"/>
+                            <field name="rent_period"/>
+                            <field name="rent_start_date"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_stock_rental" model="ir.actions.act_window">
+        <field name="name">Consumable Rental Terms</field>
+        <field name="res_model">lartdubati.stock.rental</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Record the rent paid for consumables owned by a third party</p>
+            <p>Stock owned by a third party counts as rented when it has rental terms, otherwise as borrowed.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_stock_rental"
+              action="action_stock_rental"
+              parent="stock.menu_stock_inventory_control"
+              groups="stock.group_stock_user"
+              sequence="50"/>
+</odoo>

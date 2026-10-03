@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_location_form_investor" model="ir.ui.view">
+        <field name="name">stock.location.form.investor</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='additional_info']" position="after">
+                <group string="Stock Monitor" name="stock_monitor" invisible="usage != 'internal'">
+                    <field name="place_type"/>
+                    <field name="currency_id" options="{'no_create': True}"/>
+                    <field name="country_id" options="{'no_create': True}"/>
+                    <field name="state_id" options="{'no_create': True}"/>
+                    <field name="city"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
