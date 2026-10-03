@@ -36,9 +36,14 @@ New module `lartdubati_investor_home`:
 - Develop and test on artdubati_test only; production only on explicit request.
 - Never guess an external ID: look it up and show it first.
 - Every Odoo change requires the manual update (FR, then EN/FA), a changelog line,
-  and regeneration of /manuel. The procedure is in the document
-  claude/maintenance-manuel-odoo.md of the Claude project "Odoo" (read it with the
-  Projects tool before touching the manual). New "Investor" profile tab in the three manuals.
+  and regeneration of /manuel. The procedure and all definitions (card codes, doc/tab ids,
+  writing rules, terminology, impact matrix) are in docs/manual/maintenance-manuel-odoo.md
+  and docs/manual/definitions-manuel.md in this repo — read those first; they no longer
+  require access to the Claude project "Odoo". The manual's actual content (the fiches)
+  still lives only in the three Claude Docs documents listed there, reachable only from a
+  session with Claude Docs / claude.ai access, not from this repo alone. The generator
+  that turns those documents into /manuel's HTML pages is in lartdubati_manual/tools/
+  (see its README). New "Investor" profile tab in the three manuals.
 - Update module on the server: `docker exec -i odoo_web odoo -d artdubati_test -u <module>
   --stop-after-init` then `docker restart odoo_web`.
 - Small commits, clear messages. Propose a plan before coding each phase.
