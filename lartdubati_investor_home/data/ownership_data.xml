@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="ownership_owned" model="lartdubati.ownership.type">
+        <field name="name">Owned</field>
+        <field name="code">owned</field>
+        <field name="sequence">1</field>
+    </record>
+    <record id="ownership_borrowed" model="lartdubati.ownership.type">
+        <field name="name">Borrowed</field>
+        <field name="code">borrowed</field>
+        <field name="sequence">2</field>
+    </record>
+    <record id="ownership_rented" model="lartdubati.ownership.type">
+        <field name="name">Rented</field>
+        <field name="code">rented</field>
+        <field name="sequence">3</field>
+    </record>
+    <record id="ownership_lent_out" model="lartdubati.ownership.type">
+        <field name="name">Lent Out</field>
+        <field name="code">lent_out</field>
+        <field name="sequence">4</field>
+    </record>
+
+    <record id="family_asset" model="lartdubati.item.family">
+        <field name="name">Assets</field>
+        <field name="code">asset</field>
+        <field name="sequence">1</field>
+    </record>
+    <record id="family_consumable" model="lartdubati.item.family">
+        <field name="name">Consumables</field>
+        <field name="code">consumable</field>
+        <field name="sequence">2</field>
+    </record>
+</odoo>

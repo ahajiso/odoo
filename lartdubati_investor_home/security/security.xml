@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_stock_investor" model="res.groups">
+        <field name="name">Stock Monitor Investor</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+        <field name="comment">Stock access restricted by the user's Stock Access Profile.</field>
+    </record>
+
+    <!-- Global rules (no groups): Odoo ORs group rules, so a group rule could be
+         widened by another group. Non-members get an always-true domain. -->
+    <record id="rule_equipment_stock_access" model="ir.rule">
+        <field name="name">Equipment: stock access profile</field>
+        <field name="model_id" ref="maintenance.model_maintenance_equipment"/>
+        <field name="domain_force">user.stock_access_rule_domain('equipment')</field>
+    </record>
+
+    <record id="rule_quant_stock_access" model="ir.rule">
+        <field name="name">Quants: stock access profile</field>
+        <field name="model_id" ref="stock.model_stock_quant"/>
+        <field name="domain_force">user.stock_access_rule_domain('quant')</field>
+    </record>
+
+    <record id="rule_location_stock_access" model="ir.rule">
+        <field name="name">Locations: stock access profile</field>
+        <field name="model_id" ref="stock.model_stock_location"/>
+        <field name="domain_force">user.stock_access_rule_domain('location')</field>
+    </record>
+</odoo>
