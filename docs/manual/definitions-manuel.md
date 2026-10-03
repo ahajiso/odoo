@@ -41,9 +41,10 @@ Code sur le web ouvertes avec ce compte). Sans ces outils, voir la section
 
 Rôle « Responsable parc » : EN « Fleet Manager / Storekeeper », FA
 « انباردار/امین اموال » (choix de l'utilisateur ; ne plus utiliser
-« مسئول پارک » ni « مسئول ناوگان » — un ancien nom de fichier d'export,
-`مسئول ناوگان.md`, a néanmoins été conservé comme nom de fichier attendu par
-le générateur pour l'onglet FA « parc », voir `lartdubati_manual/tools/README.md`).
+« مسئول پارک » ni « مسئول ناوگان »). L'export Claude Docs remplace le « / »
+du nom d'onglet par une espace : le fichier attendu par le générateur pour
+l'onglet FA « parc » est `انباردار امین اموال.md` (voir
+`lartdubati_manual/tools/README.md`).
 
 Les **ids de blocs** à l'intérieur d'un onglet (ceux qu'on cible avec
 `{"kind":"blocks","ids":[...]}`) changent à chaque réécriture : ne jamais les

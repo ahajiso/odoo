@@ -49,7 +49,7 @@ dans `build_site.py`) :
 | --- | --- |
 | fr | `Accueil.md`, `Référence.md`, `Admin Odoo.md`, `Responsable parc.md`, `Comptable.md`, `Chantier.md` |
 | en | `Home.md`, `Reference.md`, `Odoo Admin.md`, `Fleet manager.md`, `Accountant.md`, `Site.md` |
-| fa | `خانه.md`, `مرجع.md`, `مدیر اودو.md`, `مسئول ناوگان.md`, `حسابدار.md`, `کارگاه.md` |
+| fa | `خانه.md`, `مرجع.md`, `مدیر اودو.md`, `انباردار امین اموال.md`, `حسابدار.md`, `کارگاه.md` |
 
 Un onglet absent du dossier source est simplement omis de la sortie (pas
 d'erreur), sauf si le dossier est entièrement vide pour la langue.
