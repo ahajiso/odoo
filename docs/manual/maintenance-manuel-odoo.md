@@ -209,8 +209,3 @@ dossier suivi par git.
 - SIRET et assurance décennale en cours d'obtention : compléter la fiche
   société, l'onglet Mentions BTP (ADM-09) et prévoir l'inscription à la
   plateforme agréée (module l10n_fr_pdp).
-- Documentation de l'import en masse (ADM-01, ADM-02, fiche PARC dédiée) :
-  ajoutée en FR/EN/FA le 03/10/2026 avec deux captures d'écran et deux
-  fichiers modèles (`definitions-manuel.md` §2) ; export, régénération et
-  publication (§4 de ce document) restent à faire pour que le site
-  `/manuel` reflète ces fiches.

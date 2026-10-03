@@ -3,7 +3,7 @@ import re, os, collections
 PAGES = {
     "fr": ["Accueil.md", "Référence.md", "Admin Odoo.md", "Responsable parc.md", "Comptable.md", "Chantier.md"],
     "en": ["Home.md", "Reference.md", "Odoo Admin.md", "Fleet manager.md", "Accountant.md", "Site.md"],
-    "fa": ["خانه.md", "مرجع.md", "مدیر اودو.md", "مسئول ناوگان.md", "حسابدار.md", "کارگاه.md"],
+    "fa": ["خانه.md", "مرجع.md", "مدیر اودو.md", "انباردار امین اموال.md", "حسابدار.md", "کارگاه.md"],
 }
 FA_DIG = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
 CODE = re.compile(r"\b(REF|ADM|PARC|CPT|CH)-(\d{2})\b")

@@ -7,7 +7,8 @@ fiche technique de l'instance Odoo. La procédure elle-même (quand et comment
 agir) est dans `maintenance-manuel-odoo.md`, à côté de ce fichier.
 
 Dernière mise à jour : 03/10/2026 (ajout des conventions d'import en masse,
-de capture d'écran et de publication par dépôt git).
+de capture d'écran et de publication par dépôt git ; libellés FA de l'assistant
+d'import vérifiés dans les fichiers fa.po officiels d'Odoo 18).
 
 ## 1. Les trois documents
 
@@ -260,9 +261,11 @@ persans en FA).
 | Invoicing → Accounting → Journal Items | Facturation → Comptabilité → Écritures comptables | صدور فاکتور ← حسابداری ← آیتم های روزنامه |
 | Group By → Add Custom Group | Regrouper par → Ajouter un groupe personnalisé | گروه‌بندی برمبنای ← افزودن گروه سفارشی |
 | Favorites → Save current search · Shared | Favoris → Enregistrer la recherche actuelle · Partagé | علاقه‌مندی ها ← ذخیره سازی فایل فعلی · به اشتراک گذاشته شده |
-| Import Records | Importer des enregistrements | درون‌ریزی گروهی / وارد کردن رکوردها |
-| Test (assistant d'import) | Tester | آزمایش |
-| Import (assistant d'import, bouton final) | Importer | درون‌ریزی |
+| Import records | Importer des enregistrements | ورود رکورد |
+| Test (assistant d'import) | Tester | تست |
+| Import (assistant d'import, bouton final) | Importer | ورود |
+| See possible values (assistant d'import) | Voir les valeurs possibles | مقادیر ممکن را مشاهده کنید. |
+| Product (champ de l'équipement, module OCA maintenance_product) | Article | Product (non traduit en persan) |
 
 ### Champs du module (technique → FR / FA)
 
