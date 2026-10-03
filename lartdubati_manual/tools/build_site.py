@@ -16,7 +16,7 @@ UI = {
     "fr": {
         "dir": "ltr", "title": "Manuel Odoo – L'Art du Bâti", "search": "Rechercher une fiche (code, mot-clé)…",
         "toc": "Fiches de cet onglet", "noresult": "Aucune fiche trouvée", "generated": "Généré le",
-        "source": "Source unique : le manuel dans Claude Docs. Ne pas modifier ces pages directement.",
+        "source": "Ne pas modifier ces pages directement.",
         "print": "Imprimer",
         "pages": [
             ("index", "Accueil.md", "Accueil"),
@@ -30,7 +30,7 @@ UI = {
     "en": {
         "dir": "ltr", "title": "Odoo Manual – L'Art du Bâti", "search": "Search a sheet (code, keyword)…",
         "toc": "Sheets in this tab", "noresult": "No sheet found", "generated": "Generated on",
-        "source": "Single source: the manual in Claude Docs. Do not edit these pages directly.",
+        "source": "Do not edit these pages directly.",
         "print": "Print",
         "pages": [
             ("index", "Home.md", "Home"), ("reference", "Reference.md", "Reference"),
@@ -41,7 +41,7 @@ UI = {
     "fa": {
         "dir": "rtl", "title": "راهنمای اودو – L'Art du Bâti", "search": "جستجوی برگه (کد، کلیدواژه)…",
         "toc": "برگه‌های این بخش", "noresult": "برگه‌ای یافت نشد", "generated": "تاریخ تولید",
-        "source": "منبع واحد: راهنما در Claude Docs. این صفحات را مستقیماً ویرایش نکنید.",
+        "source": "این صفحات را مستقیماً ویرایش نکنید.",
         "print": "چاپ",
         "pages": [
             ("index", "خانه.md", "خانه"), ("reference", "مرجع.md", "مرجع"),
