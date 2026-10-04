@@ -46,6 +46,11 @@ New module `lartdubati_investor_home`:
   (see its README). New "Investor" profile tab in the three manuals.
 - Update module on the server: `docker exec -i odoo_web odoo -d artdubati_test -u <module>
   --stop-after-init` then `docker restart odoo_web`.
+  Run tests: `docker exec -i odoo_web odoo -d artdubati_test -u <module> --test-enable
+  --test-tags /<module> --workers 0 --http-port 8079 --stop-after-init 2>&1 | tail -40`
+  (tests start an HTTP server: without another port it collides with the running 8069).
+- UI checks: Playwright from the session can log in to https://erp.lartdubati.com
+  (db=artdubati_test) with a non-admin test user given by the owner; never store its password.
 - Small commits, clear messages. Propose a plan before coding each phase.
 
 ## Decisions (validated by the owner)
