@@ -27,9 +27,10 @@ class ResUsers(models.Model):
         user = self.env.user.sudo()
         if not user.has_group("lartdubati_investor_home.group_stock_investor"):
             return expression.TRUE_DOMAIN
-        domain = user.stock_access_id._rule_domain(target)
         if target == "location":
             # Partner, transit and virtual locations stay readable so that
             # pickings keep working.
-            return expression.OR([[("usage", "!=", "internal")], domain])
-        return domain
+            return expression.OR(
+                [[("usage", "!=", "internal")], user.stock_access_id._location_domain()]
+            )
+        raise ValueError(target)

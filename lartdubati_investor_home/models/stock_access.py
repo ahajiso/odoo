@@ -41,33 +41,16 @@ class StockAccess(models.Model):
         self.env.registry.clear_cache()
         return res
 
-    def _rule_domain(self, target):
-        """Record-rule domain for target 'equipment', 'quant' or 'location'."""
+    def _location_domain(self):
+        """Record-rule domain on stock.location for this profile."""
         if not self:
             return expression.FALSE_DOMAIN
         self.ensure_one()
-        families = set(self.family_ids.mapped("code"))
-        ownerships = self.ownership_type_ids.mapped("code")
-        location_ids = self.location_ids.ids
-        country_ids = self.country_ids.ids
-
-        if target == "location":
-            domain = []
-            if location_ids:
-                domain.append([("id", "child_of", location_ids)])
-            if country_ids:
-                domain.append([("country_id", "in", country_ids)])
-            return expression.AND(domain) if domain else expression.TRUE_DOMAIN
-
-        family = "asset" if target == "equipment" else "consumable"
-        if families and family not in families:
-            return expression.FALSE_DOMAIN
-        location_field = "current_location_id" if target == "equipment" else "location_id"
         domain = []
-        if ownerships:
-            domain.append([("ownership", "in", ownerships)])
-        if location_ids:
-            domain.append([(location_field, "child_of", location_ids)])
-        if country_ids:
-            domain.append([(f"{location_field}.country_id", "in", country_ids)])
+        if self.location_ids:
+            domain.append([("id", "child_of", self.location_ids.ids)])
+        if self.country_ids:
+            domain.append(
+                [("warehouse_id.partner_id.country_id", "in", self.country_ids.ids)]
+            )
         return expression.AND(domain) if domain else expression.TRUE_DOMAIN

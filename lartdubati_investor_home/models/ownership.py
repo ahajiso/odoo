@@ -7,14 +7,6 @@ OWNERSHIP_SELECTION = [
     ("lent_out", "Lent Out"),
 ]
 
-RENT_PERIOD_SELECTION = [
-    ("day", "Day"),
-    ("week", "Week"),
-    ("month", "Month"),
-    ("quarter", "Quarter"),
-    ("year", "Year"),
-]
-
 
 class OwnershipType(models.Model):
     _name = "lartdubati.ownership.type"

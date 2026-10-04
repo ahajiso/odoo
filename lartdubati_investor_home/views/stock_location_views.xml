@@ -8,10 +8,6 @@
             <xpath expr="//group[@name='additional_info']" position="after">
                 <group string="Stock Monitor" name="stock_monitor" invisible="usage != 'internal'">
                     <field name="place_type"/>
-                    <field name="currency_id" options="{'no_create': True}"/>
-                    <field name="country_id" options="{'no_create': True}"/>
-                    <field name="state_id" options="{'no_create': True}"/>
-                    <field name="city"/>
                 </group>
             </xpath>
         </field>
