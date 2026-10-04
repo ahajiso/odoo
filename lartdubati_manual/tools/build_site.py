@@ -25,6 +25,7 @@ UI = {
             ("parc", "Responsable parc.md", "Responsable parc"),
             ("comptable", "Comptable.md", "Comptable"),
             ("chantier", "Chantier.md", "Chantier"),
+            ("investisseur", "Investisseur.md", "Investisseur"),
         ],
     },
     "en": {
@@ -36,6 +37,7 @@ UI = {
             ("index", "Home.md", "Home"), ("reference", "Reference.md", "Reference"),
             ("admin", "Odoo Admin.md", "Odoo Admin"), ("parc", "Fleet manager.md", "Fleet manager"),
             ("comptable", "Accountant.md", "Accountant"), ("chantier", "Site.md", "Site"),
+            ("investisseur", "Investor.md", "Investor"),
         ],
     },
     "fa": {
@@ -47,12 +49,13 @@ UI = {
             ("index", "خانه.md", "خانه"), ("reference", "مرجع.md", "مرجع"),
             ("admin", "مدیر اودو.md", "مدیر اودو"), ("parc", "انباردار امین اموال.md", "انباردار/امین اموال"),
             ("comptable", "حسابدار.md", "حسابدار"), ("chantier", "کارگاه.md", "کارگاه"),
+            ("investisseur", "سرمایه\u200cگذار.md", "سرمایه\u200cگذار"),
         ],
     },
 }
 LANG_LABELS = {"fr": "FR", "en": "EN", "fa": "FA"}
-CODE_PAGE = {"REF": "reference", "ADM": "admin", "PARC": "parc", "CPT": "comptable", "CH": "chantier"}
-CODE_RE = re.compile(r"\b(REF|ADM|PARC|CPT|CH)-(\d{2})\b")
+CODE_PAGE = {"REF": "reference", "ADM": "admin", "PARC": "parc", "CPT": "comptable", "CH": "chantier", "INV": "investisseur"}
+CODE_RE = re.compile(r"\b(REF|ADM|PARC|CPT|CH|INV)-(\d{2})\b")
 BYLINE_RE = re.compile(r"^(?:[A-Z][a-z]{2} \d{1,2}, \d{4}|[\d۰-۹]{2}/[\d۰-۹]{2}/[\d۰-۹]{4}) · @?\S.*$", re.M)
 
 
@@ -86,6 +89,10 @@ SCREENS = {
         "taxes": "account.action_tax_form",
         "param\u00e8tres": "stock.action_stock_config_settings",
         "export fec": "lartdubati_facturation.action_l10n_fr_fec_export_wizard",
+        "utilisateurs": "base.action_res_users",
+        "profils d'accès aux stocks": "lartdubati_investor_home.action_stock_access",
+        "contrats d'achats": "contract.action_supplier_contract",
+        "réceptions": "stock.method_action_picking_tree_incoming",
     },
     "en": {
         "equipment": "maintenance.hr_equipment_action",
@@ -106,6 +113,10 @@ SCREENS = {
         "taxes": "account.action_tax_form",
         "settings": "stock.action_stock_config_settings",
         "export fec": "lartdubati_facturation.action_l10n_fr_fec_export_wizard",
+        "users": "base.action_res_users",
+        "stock access profiles": "lartdubati_investor_home.action_stock_access",
+        "supplier contracts": "contract.action_supplier_contract",
+        "receipts": "stock.method_action_picking_tree_incoming",
     },
     "fa": {
         "تجهیزات": "maintenance.hr_equipment_action",
@@ -129,6 +140,10 @@ SCREENS = {
         "تنظیمات": "stock.action_stock_config_settings",
         "صورتحساب": "account.action_move_in_invoice_type",
         "export fec": "lartdubati_facturation.action_l10n_fr_fec_export_wizard",
+        "کاربران": "base.action_res_users",
+        "پروفایل\u200cهای دسترسی انبار": "lartdubati_investor_home.action_stock_access",
+        "supplier contracts": "contract.action_supplier_contract",
+        "رسیدها": "stock.method_action_picking_tree_incoming",
     },
 }
 # Séparateurs de chemin : flèche latine et flèche RTL du persan.
@@ -295,14 +310,14 @@ def render(md_text):
             if tok.tag == "h1" and title is None:
                 title = text
             elif tok.tag == "h2":
-                m = re.match(r"^((?:REF|ADM|PARC|CPT|CH)-\d{2})\s+(.*)$", text)
+                m = re.match(r"^((?:REF|ADM|PARC|CPT|CH|INV)-\d{2})\s+(.*)$", text)
                 hid = m.group(1).lower() if m else slug(text)
                 tok.attrSet("id", hid)
                 fiches.append({"id": hid, "code": m.group(1) if m else "", "title": m.group(2) if m else text})
     body = md.renderer.render(tokens, md.options, {})
     # remove h1 (rendered in page header) and decorate h2 codes
     body = re.sub(r"<h1>.*?</h1>\n?", "", body, count=1, flags=re.S)
-    body = re.sub(r'(<h2 id="[^"]+">)((?:REF|ADM|PARC|CPT|CH)-\d{2})\s', r'\1<span class="code">\2</span>', body)
+    body = re.sub(r'(<h2 id="[^"]+">)((?:REF|ADM|PARC|CPT|CH|INV)-\d{2})\s', r'\1<span class="code">\2</span>', body)
     return title, fiches, body
 
 
@@ -327,7 +342,7 @@ def build(lang, src, out):
             if not m:
                 continue
             htxt = plain(m.group(2)).strip()
-            cm = re.match(r"^((?:REF|ADM|PARC|CPT|CH)-\d{2})\s*(.*)$", htxt)
+            cm = re.match(r"^((?:REF|ADM|PARC|CPT|CH|INV)-\d{2})\s*(.*)$", htxt)
             index.append({
                 "c": cm.group(1) if cm else "", "t": html.escape(cm.group(2) if cm else htxt), "p": html.escape(label),
                 "u": f"{key}#{m.group(1)}",

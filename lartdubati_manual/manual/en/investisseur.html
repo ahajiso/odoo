@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en" dir="ltr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
-<title>Home · Odoo Manual – L&#x27;Art du Bâti</title><style>
+<title>Investor · Odoo Manual – L&#x27;Art du Bâti</title><style>
 :root{--bg:#f7f6f3;--card:#fff;--ink:#1f2328;--muted:#5d6570;--line:#e3e1dc;--accent:#6b3f5c;--accent-soft:#f3ebf0;--code:#f1efe9}
 @media (prefers-color-scheme:dark){:root{--bg:#16181b;--card:#1f2226;--ink:#e8e6e3;--muted:#a3a9b1;--line:#33373d;--accent:#d9a5c6;--accent-soft:#2c2229;--code:#2a2d31}}
 *{box-sizing:border-box}html{scroll-padding-top:120px}
@@ -45,178 +45,97 @@ figure.shot figcaption{margin-top:6px;font-size:13px;color:var(--muted)}
 </style></head>
 <body><header><div class="bar"><a class="brand" href="index">Odoo Manual – L&#x27;Art du Bâti</a>
 <input id="q" type="search" placeholder="Search a sheet (code, keyword)…" autocomplete="off">
-<span class="langs"><a href="/manuel/en/index" class=on>EN</a><a href="/manuel/fa/index">FA</a><a href="/manuel/fr/index">FR</a></span></div><nav class="tabs"><a href="index" class=on>Home</a><a href="reference">Reference</a><a href="admin">Odoo Admin</a><a href="parc">Fleet manager</a><a href="comptable">Accountant</a><a href="chantier">Site</a><a href="investisseur">Investor</a></nav><div id="results"></div></header>
-<main><div class="card"><h1>Odoo Manual – L&#x27;Art du Bâti</h1><div class="toc"><strong>Sheets in this tab</strong><ul><li><a href="#who-reads-what">Who reads what</a></li><li><a href="#fiche-template">Fiche template</a></li><li><a href="#update-rules">Update rules</a></li><li><a href="#change-log">Change log</a></li></ul></div><p>This manual is broken down into short fiches, one per action, sorted by user profile. Each person only reads their own tab; shared information (tree structures, fields, statuses) is written once, in the Reference tab.</p>
-<p>Base: artdubati — Odoo 18.0 Community — erp.lartdubati.com. Accessible in Odoo via the Manual menu, or at erp.lartdubati.com/manuel.</p>
-<h2 id="who-reads-what">Who reads what</h2>
-<table>
-<thead>
-<tr>
-<th>Profile</th>
-<th>Tab</th>
-<th>Fiches</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Everyone</td>
-<td>Reference</td>
-<td><a class="ref" href="reference#ref-01">REF-01</a> to <a class="ref" href="reference#ref-10">REF-10</a>: dimensions, tree structures, fields, statuses, warehouses and locations, limitations, partners, stakeholders</td>
-</tr>
-<tr>
-<td>Odoo Administrator</td>
-<td>Odoo Admin</td>
-<td><a class="ref" href="admin#adm-01">ADM-01</a> to <a class="ref" href="admin#adm-12">ADM-12</a>: categories, locations, control, module, warehouses, manual publication, company contact, legal statements and payment terms, investor accounts and profiles, stock monitor settings</td>
-</tr>
-<tr>
-<td>Fleet manager / storekeeper</td>
-<td>Fleet manager</td>
-<td><a class="ref" href="parc#parc-01">PARC-01</a> to <a class="ref" href="parc#parc-11">PARC-11</a>: creation, movement, inventory, rental, loan, incidents, partners, receiving third-party consumables, rental contracts</td>
-</tr>
-<tr>
-<td>Accountant</td>
-<td>Accountant</td>
-<td><a class="ref" href="comptable#cpt-01">CPT-01</a> to <a class="ref" href="comptable#cpt-15">CPT-15</a>: values, statuses, capitalization, compensation, rental/loan/borrowing, general expenses, start-up costs, site VAT rates, subcontracting reverse charge, bank reconciliation, FEC export, contract rent, stock values</td>
-</tr>
-<tr>
-<td>Site supervisor / worker</td>
-<td>Site</td>
-<td><a class="ref" href="chantier#ch-01">CH-01</a> to <a class="ref" href="chantier#ch-03">CH-03</a>: check-out, return, reporting</td>
-</tr>
-<tr>
-<td>Investor</td>
-<td>Investor</td>
-<td><a class="ref" href="investisseur#inv-01">INV-01</a> to <a class="ref" href="investisseur#inv-04">INV-04</a>: home page, stock monitor, columns, rights and language</td>
-</tr>
-</tbody>
-</table>
-<p>An equipment item is described along three independent dimensions — accounting, location, fleet management — explained in <a class="ref" href="reference#ref-01">REF-01</a>. Each profile only touches its own dimension.</p>
-<h2 id="fiche-template">Fiche template</h2>
-<p>All fiches follow the same layout, in this order. A section with no content is omitted.</p>
-<table>
-<thead>
-<tr>
-<th>Section</th>
-<th>Content</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Title</td>
-<td>Stable code (e.g. <a class="ref" href="parc#parc-03">PARC-03</a>) + action in the infinitive</td>
-</tr>
-<tr>
-<td>Who · When</td>
-<td>The profile concerned and the triggering event, in one line</td>
-</tr>
-<tr>
-<td>Prerequisites</td>
-<td>What must exist before starting (permissions, category, location)</td>
-</tr>
-<tr>
-<td>Steps</td>
-<td>Numbered list, one click or entry per step, menus in bold</td>
-</tr>
-<tr>
-<td>Verification</td>
-<td>How to confirm it worked</td>
-</tr>
-<tr>
-<td>Warning</td>
-<td>Mistakes to avoid, if any</td>
-</tr>
-<tr>
-<td>See also</td>
-<td>Codes of related fiches</td>
-</tr>
-</tbody>
-</table>
-<h2 id="update-rules">Update rules</h2>
+<span class="langs"><a href="/manuel/en/investisseur" class=on>EN</a><a href="/manuel/fa/investisseur">FA</a><a href="/manuel/fr/investisseur">FR</a></span></div><nav class="tabs"><a href="index">Home</a><a href="reference">Reference</a><a href="admin">Odoo Admin</a><a href="parc">Fleet manager</a><a href="comptable">Accountant</a><a href="chantier">Site</a><a href="investisseur" class=on>Investor</a></nav><div id="results"></div></header>
+<main><div class="card"><h1>Investor</h1><div class="toc"><strong>Sheets in this tab</strong><ul><li><a href="#inv-01">INV-01 Open the investor home page</a></li><li><a href="#inv-02">INV-02 View the stock monitor</a></li><li><a href="#inv-03">INV-03 Understand the stock monitor columns</a></li><li><a href="#inv-04">INV-04 What an investor sees</a></li></ul></div><p>Fiches for investors: the home page and the stock monitor. An investor only sees the stocks allowed by their access profile (<a class="ref" href="admin#adm-11">ADM-11</a>). Available on the test database artdubati_test, awaiting production.</p>
+<h2 id="inv-01"><span class="code">INV-01</span>Open the investor home page</h2>
+<p><strong>Who · When</strong>: investor, at each login.</p>
+<p><strong>Prerequisites</strong>: an investor account (<a class="ref" href="admin#adm-10">ADM-10</a>).</p>
+<p><strong>Steps</strong></p>
 <ol>
-<li>A piece of information is written in only one place. If two fiches need it, it goes in Reference and the fiches refer to it by its code.</li>
-<li>A fiche code never changes, even if the fiche is renamed. A deleted fiche leaves its code unused.</li>
-<li>A new fiche takes the next number in its tab (e.g. <a class="ref" href="parc#parc-09">PARC-09</a>).</li>
-<li>French is the reference version. The English and Persian versions are updated afterward, fiche by fiche, with the same code.</li>
-<li>Menu and field names are written exactly as in the Odoo interface, in the language of the version: the English interface here, the French and Persian interfaces in the other versions.</li>
-<li>Every change is logged in the journal below.</li>
+<li>Log in to erp.lartdubati.com with your login.</li>
+<li>The home page opens with four buttons: Financial, Administrative, Commerce &amp; Services, Production.</li>
+<li>Click Financial to open the stock monitor (<a class="ref" href="investisseur#inv-02">INV-02</a>).</li>
+<li>Administrative, Commerce &amp; Services and Production show « Coming soon »: these functions are not open yet.</li>
+<li>To come back to the home page, open erp.lartdubati.com/odoo.</li>
 </ol>
-<h2 id="change-log">Change log</h2>
+<p><strong>Verification</strong>: the four buttons show in the account's language.</p>
+<p><strong>See also</strong>: <a class="ref" href="investisseur#inv-02">INV-02</a>, <a class="ref" href="investisseur#inv-04">INV-04</a>, <a class="ref" href="admin#adm-10">ADM-10</a>.</p>
+<h2 id="inv-02"><span class="code">INV-02</span>View the stock monitor</h2>
+<p><strong>Who · When</strong>: investor, to know what the stocks hold and what they are worth.</p>
+<p><strong>Prerequisites</strong>: a stock access profile assigned (<a class="ref" href="admin#adm-11">ADM-11</a>).</p>
+<p><strong>Steps</strong></p>
+<ol>
+<li>From the home page, click Financial, or open <strong>Dashboards → Stock Monitor</strong>.</li>
+<li>The default view is a pivot table: stocks in rows, Asset and Consumable in columns, with Quantity and Inventory Value.</li>
+<li>For one stock: type its name in the search bar and choose « Search Stock for: … ».</li>
+<li>For a country, a city, a warehouse, a family or an ownership: same method, or open the search bar menu and pick a criterion under <strong>Group By</strong>.</li>
+<li>Click a row of the table (+ sign) to break it down, for example by Ownership.</li>
+<li>The icons at the top right switch to the list view (one line per item, totals per currency) or to the graph.</li>
+</ol>
+<p><strong>Verification</strong>: totals are grouped by Currency.</p>
+<p><strong>Warning</strong>: amounts in two different currencies are never added up; group by Currency before reading a total.</p>
+<p><strong>See also</strong>: <a class="ref" href="investisseur#inv-03">INV-03</a>, <a class="ref" href="investisseur#inv-04">INV-04</a>.</p>
+<h2 id="inv-03"><span class="code">INV-03</span>Understand the stock monitor columns</h2>
+<p><strong>Who · When</strong>: investor, accountant, fleet manager, to read the stock monitor.</p>
 <table>
 <thead>
 <tr>
-<th>Date</th>
-<th>Fiches</th>
-<th>Change</th>
+<th>Column</th>
+<th>Meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>26/09/2026</td>
-<td>All</td>
-<td>Creation of the modular manual (replaces the trilingual Word document)</td>
+<td>Family</td>
+<td>Asset: an item tracked one by one in Maintenance (quantity 1). Consumable: a product whose quantity on hand is tracked.</td>
 </tr>
 <tr>
-<td>26/09/2026</td>
-<td><a class="ref" href="reference#ref-07">REF-07</a>, <a class="ref" href="reference#ref-09">REF-09</a>, <a class="ref" href="admin#adm-06">ADM-06</a>, <a class="ref" href="parc#parc-05">PARC-05</a> to <a class="ref" href="parc#parc-07">PARC-07</a>, <a class="ref" href="parc#parc-09">PARC-09</a></td>
-<td>Warehouses vs. locations; loan and rental partners (tags); partner prerequisites.</td>
+<td>Ownership</td>
+<td>Owned: company property, in its stock. Borrowed: belongs to a third party, lent free of charge. Rented: belongs to a third party, rent is paid. Lent Out: company property held by a third party.</td>
 </tr>
 <tr>
-<td>26/09/2026</td>
-<td><a class="ref" href="admin#adm-07">ADM-07</a>, Home</td>
-<td>Publication of the manual on erp.lartdubati.com/manuel (lartdubati_manual module).</td>
+<td>Stock, Warehouse, Country, State, City</td>
+<td>Where the item is. Country and city come from the warehouse address (<a class="ref" href="admin#adm-06">ADM-06</a>).</td>
 </tr>
 <tr>
-<td>26/09/2026</td>
-<td><a class="ref" href="comptable#cpt-07">CPT-07</a>, <a class="ref" href="reference#ref-04">REF-04</a></td>
-<td>Addition of <a class="ref" href="comptable#cpt-07">CPT-07</a> (general expenses: bank fees, phone subscription, administrative fees) and update of <a class="ref" href="reference#ref-04">REF-04</a>. Accounts 627800, 626000, 606400; &quot;Frais généraux&quot; category and the 3 products created in Odoo.</td>
+<td>Place Type</td>
+<td>Physical, Lent Out (stock of lent items) or Virtual.</td>
 </tr>
 <tr>
-<td>26/09/2026</td>
-<td><a class="ref" href="comptable#cpt-05">CPT-05</a>, <a class="ref" href="comptable#cpt-08">CPT-08</a>, <a class="ref" href="reference#ref-10">REF-10</a>, <a class="ref" href="admin#adm-08">ADM-08</a></td>
-<td>Detailed accounting: <a class="ref" href="comptable#cpt-05">CPT-05</a> expanded (rental/loan/borrowing/contribution entries); addition of <a class="ref" href="comptable#cpt-08">CPT-08</a> (pre-registration costs), <a class="ref" href="reference#ref-10">REF-10</a> and <a class="ref" href="admin#adm-08">ADM-08</a> (stakeholders, partner companies).</td>
+<td>Quantity</td>
+<td>1 per asset; quantity on hand for a consumable.</td>
 </tr>
 <tr>
-<td>26/09/2026</td>
-<td>All</td>
-<td>English and Persian versions created and published (/manuel/en, /manuel/fa); menu translated (Manual, راهنما).</td>
+<td>Inventory Value</td>
+<td>Everything physically in the stock, whoever owns it. Company property: Cost on the equipment fiche, or average cost of the consumable. Third-party property: Replacement Value of the equipment, or replacement price of the consumable (<a class="ref" href="admin#adm-12">ADM-12</a>).</td>
 </tr>
 <tr>
-<td>26/09/2026</td>
-<td><a class="ref" href="admin#adm-05">ADM-05</a>, <a class="ref" href="admin#adm-07">ADM-07</a></td>
-<td>Custom modules version-controlled in GitHub (ahajiso/odoo): the server is updated with git pull.</td>
+<td>Accounting Value</td>
+<td>Company property only: net book value of the fixed asset (purchase value minus depreciation) for an asset, average cost for a consumable. 0 for third-party property.</td>
 </tr>
 <tr>
-<td>26/09/2026</td>
-<td><a class="ref" href="comptable#cpt-05">CPT-05</a>, <a class="ref" href="parc#parc-05">PARC-05</a>, <a class="ref" href="reference#ref-09">REF-09</a>, <a class="ref" href="parc#parc-09">PARC-09</a>, and others</td>
-<td>Corrections: Accounting Ownership = Third Party (not Ownership Status); Cost field; Individual contact type; &quot;expert-comptable&quot; rendered as external accountant; Loueur rendered as rental company.</td>
+<td>Rent per Month, Rent Paid to Date</td>
+<td>Rented items only: rent converted to a monthly amount, and total of posted vendor bills (<a class="ref" href="comptable#cpt-14">CPT-14</a>).</td>
 </tr>
 <tr>
-<td>26/09/2026</td>
-<td><a class="ref" href="reference#ref-05">REF-05</a>, <a class="ref" href="reference#ref-08">REF-08</a>, <a class="ref" href="admin#adm-02">ADM-02</a>, <a class="ref" href="admin#adm-08">ADM-08</a>, <a class="ref" href="parc#parc-01">PARC-01</a> to <a class="ref" href="parc#parc-04">PARC-04</a>, <a class="ref" href="comptable#cpt-01">CPT-01</a>, <a class="ref" href="comptable#cpt-07">CPT-07</a>, <a class="ref" href="chantier#ch-01">CH-01</a>, and all fiches</td>
-<td>Review: menus and fields now quoted with the labels of Odoo 18's English interface (the French manual keeps the French interface); Odoo 18 product checkboxes (Sales / Purchase, Goods, Track Inventory); Invoicing menu; rule 5 clarified.</td>
-</tr>
-<tr>
-<td>27/09/2026</td>
-<td><a class="ref" href="comptable#cpt-09">CPT-09</a> to <a class="ref" href="comptable#cpt-13">CPT-13</a>, <a class="ref" href="admin#adm-09">ADM-09</a></td>
-<td>Construction invoicing launched: 10 % and 5.5 % reduced rates reactivated, subcontracting reverse charge, legal statements on quotations and invoices, payment terms, FEC export, OCA bank reconciliation. Set up on the artdubati_test database, pending the chartered accountant's confirmation and the move to production. CA3 boxes for the reverse charge still to be filled in.</td>
-</tr>
-<tr>
-<td>03/10/2026</td>
-<td><a class="ref" href="admin#adm-01">ADM-01</a>, <a class="ref" href="admin#adm-02">ADM-02</a>, <a class="ref" href="parc#parc-01">PARC-01</a>, <a class="ref" href="parc#parc-02">PARC-02</a></td>
-<td>Bulk import: Odoo's native import method (Test before Import), the full-English-path pitfall for categories, two screenshots and two CSV templates. <a class="ref" href="parc#parc-02">PARC-02</a> field labels aligned with the English interface (Sales, Purchase, Product).</td>
-</tr>
-<tr>
-<td>04/10/2026</td>
-<td><a class="ref" href="admin#adm-07">ADM-07</a></td>
-<td>Neutral wording: the manual's source and the regeneration of the web pages no longer name a tool. Web page footer simplified.</td>
-</tr>
-<tr>
-<td>04/10/2026</td>
-<td><a class="ref" href="investisseur#inv-01">INV-01</a> to <a class="ref" href="investisseur#inv-04">INV-04</a>, <a class="ref" href="admin#adm-10">ADM-10</a> to <a class="ref" href="admin#adm-12">ADM-12</a>, <a class="ref" href="parc#parc-10">PARC-10</a>, <a class="ref" href="parc#parc-11">PARC-11</a>, <a class="ref" href="comptable#cpt-14">CPT-14</a>, <a class="ref" href="comptable#cpt-15">CPT-15</a>, <a class="ref" href="reference#ref-05">REF-05</a>, <a class="ref" href="reference#ref-07">REF-07</a>, <a class="ref" href="reference#ref-08">REF-08</a>, <a class="ref" href="admin#adm-06">ADM-06</a>, <a class="ref" href="parc#parc-05">PARC-05</a></td>
-<td>Investor home and stock monitor (test database artdubati_test): new Investor tab; investor accounts and access profiles, stock monitor settings; receiving third-party consumables and supplier rental contracts; stock rent and values; Current Location mandatory; stock address and place type.</td>
+<td>Currency</td>
+<td>Currency of the stock's country; see the conversion setting in <a class="ref" href="admin#adm-12">ADM-12</a>.</td>
 </tr>
 </tbody>
 </table>
+<p>Accounting Value and rent only appear in <strong>Dashboards → Stock Monitor - Values &amp; Rent</strong>, reserved for the accountant and the stock manager (<a class="ref" href="comptable#cpt-15">CPT-15</a>).</p>
+<p><strong>See also</strong>: <a class="ref" href="investisseur#inv-02">INV-02</a>, <a class="ref" href="comptable#cpt-15">CPT-15</a>, <a class="ref" href="admin#adm-12">ADM-12</a>.</p>
+<h2 id="inv-04"><span class="code">INV-04</span>What an investor sees</h2>
+<p><strong>Who · When</strong>: investor, administrator, to understand the rights of an investor account.</p>
+<p>An investor account only sees the stock monitor. Its stock access profile limits the rows shown by country, stock, ownership and family; an empty list in the profile means no limit on that criterion; an account without a profile sees no stock. Accounting value and rent are not shown to it.</p>
+<p><strong>Steps</strong> (change language)</p>
+<ol>
+<li>Click your avatar at the top right, then Preferences.</li>
+<li>Choose the Language: French, English or Persian.</li>
+<li>Save: menus, buttons and columns change language.</li>
+</ol>
+<p><strong>Warning</strong>: stock and item names are entered data; they stay as entered, in every language.</p>
+<p><strong>See also</strong>: <a class="ref" href="admin#adm-10">ADM-10</a>, <a class="ref" href="admin#adm-11">ADM-11</a>.</p>
 </div></main>
 <footer><span>Generated on 04/10/2026 · Do not edit these pages directly.</span><button onclick="print()">Print</button></footer>
 <script>

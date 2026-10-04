@@ -47,15 +47,15 @@ dans `build_site.py`) :
 
 | Langue | Fichiers attendus |
 | --- | --- |
-| fr | `Accueil.md`, `Référence.md`, `Admin Odoo.md`, `Responsable parc.md`, `Comptable.md`, `Chantier.md` |
-| en | `Home.md`, `Reference.md`, `Odoo Admin.md`, `Fleet manager.md`, `Accountant.md`, `Site.md` |
-| fa | `خانه.md`, `مرجع.md`, `مدیر اودو.md`, `انباردار امین اموال.md`, `حسابدار.md`, `کارگاه.md` |
+| fr | `Accueil.md`, `Référence.md`, `Admin Odoo.md`, `Responsable parc.md`, `Comptable.md`, `Chantier.md`, `Investisseur.md` |
+| en | `Home.md`, `Reference.md`, `Odoo Admin.md`, `Fleet manager.md`, `Accountant.md`, `Site.md`, `Investor.md` |
+| fa | `خانه.md`, `مرجع.md`, `مدیر اودو.md`, `انباردار امین اموال.md`, `حسابدار.md`, `کارگاه.md`, `سرمایه‌گذار.md` (avec ZWNJ) |
 
 Un onglet absent du dossier source est simplement omis de la sortie (pas
 d'erreur), sauf si le dossier est entièrement vide pour la langue.
 
 **Sortie** : `<out>/<lang>/<page>.html` — une page HTML autonome par onglet et
-par langue (`index`, `reference`, `admin`, `parc`, `comptable`, `chantier`).
+par langue (`index`, `reference`, `admin`, `parc`, `comptable`, `chantier`, `investisseur`).
 
 ## Comment l'obtenir (export Claude Docs)
 

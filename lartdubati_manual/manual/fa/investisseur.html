@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fa" dir="rtl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
-<title>کارگاه · راهنمای اودو – L&#x27;Art du Bâti</title><style>
+<title>سرمایه‌گذار · راهنمای اودو – L&#x27;Art du Bâti</title><style>
 :root{--bg:#f7f6f3;--card:#fff;--ink:#1f2328;--muted:#5d6570;--line:#e3e1dc;--accent:#6b3f5c;--accent-soft:#f3ebf0;--code:#f1efe9}
 @media (prefers-color-scheme:dark){:root{--bg:#16181b;--card:#1f2226;--ink:#e8e6e3;--muted:#a3a9b1;--line:#33373d;--accent:#d9a5c6;--accent-soft:#2c2229;--code:#2a2d31}}
 *{box-sizing:border-box}html{scroll-padding-top:120px}
@@ -45,40 +45,97 @@ figure.shot figcaption{margin-top:6px;font-size:13px;color:var(--muted)}
 </style></head>
 <body><header><div class="bar"><a class="brand" href="index">راهنمای اودو – L&#x27;Art du Bâti</a>
 <input id="q" type="search" placeholder="جستجوی برگه (کد، کلیدواژه)…" autocomplete="off">
-<span class="langs"><a href="/manuel/en/chantier">EN</a><a href="/manuel/fa/chantier" class=on>FA</a><a href="/manuel/fr/chantier">FR</a></span></div><nav class="tabs"><a href="index">خانه</a><a href="reference">مرجع</a><a href="admin">مدیر اودو</a><a href="parc">انباردار/امین اموال</a><a href="comptable">حسابدار</a><a href="chantier" class=on>کارگاه</a><a href="investisseur">سرمایه‌گذار</a></nav><div id="results"></div></header>
-<main><div class="card"><h1>سرکارگر / کارگر</h1><div class="toc"><strong>برگه‌های این بخش</strong><ul><li><a href="#ch-01">CH-01 خارج کردن یک تجهیز برای کارگاه</a></li><li><a href="#ch-02">CH-02 بازگرداندن یک تجهیز به انبار</a></li><li><a href="#ch-03">CH-03 گزارش خرابی یا خسارت</a></li></ul></div><p>سه کار که در هر جابجایی یا حادثه باید انجام شود. کمتر از یک دقیقه طول می‌کشند و نمی‌گذارند رد تجهیزات گم شود.</p>
-<h2 id="ch-01"><span class="code">CH-01</span>خارج کردن یک تجهیز برای کارگاه</h2>
-<p><strong>چه کسی · چه زمانی</strong>: سرکارگر یا کارگر، لحظه‌ای که تجهیز از انبار یا از کارگاهی دیگر خارج می‌شود.</p>
+<span class="langs"><a href="/manuel/en/investisseur">EN</a><a href="/manuel/fa/investisseur" class=on>FA</a><a href="/manuel/fr/investisseur">FR</a></span></div><nav class="tabs"><a href="index">خانه</a><a href="reference">مرجع</a><a href="admin">مدیر اودو</a><a href="parc">انباردار/امین اموال</a><a href="comptable">حسابدار</a><a href="chantier">کارگاه</a><a href="investisseur" class=on>سرمایه‌گذار</a></nav><div id="results"></div></header>
+<main><div class="card"><h1>سرمایه‌گذار</h1><div class="toc"><strong>برگه‌های این بخش</strong><ul><li><a href="#inv-01">INV-01 بازکردن صفحهٔ خانهٔ سرمایه‌گذار</a></li><li><a href="#inv-02">INV-02 مشاهدهٔ پایش انبار</a></li><li><a href="#inv-03">INV-03 شناخت ستون‌های پایش انبار</a></li><li><a href="#inv-04">INV-04 آنچه سرمایه‌گذار می‌بیند</a></li></ul></div><p>فیش‌های سرمایه‌گذار: صفحهٔ خانه و پایش انبار. سرمایه‌گذار فقط انبارهایی را می‌بیند که پروفایل دسترسی او اجازه می‌دهد (<a class="ref" href="admin#adm-11">ADM-11</a>). در پایگاه دادهٔ آزمایشی artdubati_test در دسترس است، در انتظار راه‌اندازی در نسخهٔ اصلی.</p>
+<h2 id="inv-01"><span class="code">INV-01</span>بازکردن صفحهٔ خانهٔ سرمایه‌گذار</h2>
+<p><strong>چه کسی · چه زمانی</strong>: سرمایه‌گذار، در هر ورود.</p>
+<p><strong>پیش‌نیازها</strong>: یک حساب سرمایه‌گذار (<a class="ref" href="admin#adm-10">ADM-10</a>).</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li><a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_action" target="_blank" rel="noopener"><strong>نگهداری ← تجهیزات</strong></a> را باز کنید و تجهیز را (با نام یا شماره سریال) جستجو کنید.</li>
-<li>در گروه <strong>مکان</strong>، <strong>مکان فعلی</strong> را به کارگاه مقصد تغییر دهید.</li>
-<li>ذخیره کنید.</li>
+<li>با شناسهٔ کاربری خود وارد erp.lartdubati.com شوید.</li>
+<li>صفحهٔ خانه با چهار دکمه باز می‌شود: مالی، اداری، بازرگانی و خدمات، تولید.</li>
+<li>روی مالی کلیک کنید تا پایش انبار باز شود (<a class="ref" href="investisseur#inv-02">INV-02</a>).</li>
+<li>دکمه‌های اداری، بازرگانی و خدمات و تولید پیام « به‌زودی » را نشان می‌دهند: این بخش‌ها هنوز فعال نیستند.</li>
+<li>برای بازگشت به صفحهٔ خانه، erp.lartdubati.com/odoo را باز کنید.</li>
 </ol>
-<p><strong>توجه</strong>: به هیچ فیلد دیگری دست نزنید. اگر کارگاه در فهرست نیست، از انباردار/امین اموال بخواهید آن را بسازد (<a class="ref" href="admin#adm-03">ADM-03</a>).</p>
-<p><strong>بیشتر بخوانید</strong>: <a class="ref" href="parc#parc-03">PARC-03</a>.</p>
-<h2 id="ch-02"><span class="code">CH-02</span>بازگرداندن یک تجهیز به انبار</h2>
-<p><strong>چه کسی · چه زمانی</strong>: سرکارگر یا کارگر، هنگام بازگشت تجهیز.</p>
+<p><strong>بررسی</strong>: چهار دکمه به زبان حساب کاربری نمایش داده می‌شوند.</p>
+<p><strong>بیشتر بخوانید</strong>: <a class="ref" href="investisseur#inv-02">INV-02</a>، <a class="ref" href="investisseur#inv-04">INV-04</a>، <a class="ref" href="admin#adm-10">ADM-10</a>.</p>
+<h2 id="inv-02"><span class="code">INV-02</span>مشاهدهٔ پایش انبار</h2>
+<p><strong>چه کسی · چه زمانی</strong>: سرمایه‌گذار، برای دانستن محتوا و ارزش انبارها.</p>
+<p><strong>پیش‌نیازها</strong>: یک پروفایل دسترسی انبار به حساب داده شده باشد (<a class="ref" href="admin#adm-11">ADM-11</a>).</p>
 <p><strong>مراحل</strong></p>
 <ol>
-<li>فیش تجهیز را باز کنید.</li>
-<li><strong>مکان فعلی</strong> = انبار (WH/Stock).</li>
-<li>ذخیره کنید.</li>
-<li>اگر تجهیز آسیب‌دیده یا ناقص برگشته، <a class="ref" href="chantier#ch-03">CH-03</a> را هم انجام دهید.</li>
+<li>از صفحهٔ خانه روی مالی کلیک کنید، یا <strong>داشبوردها ← پایش انبار</strong> را باز کنید.</li>
+<li>نمای پیش‌فرض یک جدول محوری است: انبارها در سطرها، تجهیزات و مصرفی در ستون‌ها، با مقدار و ارزش موجودی.</li>
+<li>برای یک انبار: نام آن را در نوار جستجو بنویسید و « جستجو محل انبار برای: … » را انتخاب کنید.</li>
+<li>برای یک کشور، شهر، انبار، خانواده یا مالکیت: همین روش، یا منوی نوار جستجو را باز کنید و یک معیار را در <strong>گروه‌بندی برمبنای</strong> انتخاب کنید.</li>
+<li>روی یک سطر جدول (علامت +) کلیک کنید تا جزئیات آن، مثلاً بر اساس مالکیت، نمایش داده شود.</li>
+<li>آیکون‌های بالای صفحه به نمای فهرست (یک سطر برای هر قلم، جمع بر اساس ارز) یا نمودار می‌روند.</li>
 </ol>
-<p><strong>بیشتر بخوانید</strong>: <a class="ref" href="parc#parc-03">PARC-03</a>، <a class="ref" href="chantier#ch-03">CH-03</a>.</p>
-<h2 id="ch-03"><span class="code">CH-03</span>گزارش خرابی یا خسارت</h2>
-<p><strong>چه کسی · چه زمانی</strong>: هر کسی که خرابی، شکستگی، گم شدن یا سرقتی را ببیند، همان روز.</p>
-<p><strong>مراحل</strong></p>
+<p><strong>بررسی</strong>: جمع‌ها بر اساس ارز گروه‌بندی شده‌اند.</p>
+<p><strong>توجه</strong>: مبالغ دو ارز مختلف هرگز با هم جمع نمی‌شوند؛ پیش از خواندن یک جمع، بر اساس ارز گروه‌بندی کنید.</p>
+<p><strong>بیشتر بخوانید</strong>: <a class="ref" href="investisseur#inv-03">INV-03</a>، <a class="ref" href="investisseur#inv-04">INV-04</a>.</p>
+<h2 id="inv-03"><span class="code">INV-03</span>شناخت ستون‌های پایش انبار</h2>
+<p><strong>چه کسی · چه زمانی</strong>: سرمایه‌گذار، حسابدار، انباردار/امین اموال، برای خواندن پایش انبار.</p>
+<table>
+<thead>
+<tr>
+<th>ستون</th>
+<th>معنا</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>خانواده</td>
+<td>تجهیزات: قلمی که یکی‌یکی در نگهداری پیگیری می‌شود (مقدار ۱). مصرفی: محصولی که مقدار موجودی آن پیگیری می‌شود.</td>
+</tr>
+<tr>
+<td>مالکیت</td>
+<td>ملکی: مال شرکت، در انبار خودش. امانی: متعلق به شخص ثالث، رایگان نزد ما. اجاره‌ای: متعلق به شخص ثالث، اجاره‌بها پرداخت می‌شود. امانت داده شده: مال شرکت نزد شخص ثالث.</td>
+</tr>
+<tr>
+<td>محل انبار، انبار، کشور، استان، شهر</td>
+<td>قلم کجاست. کشور و شهر از نشانی انبار گرفته می‌شوند (<a class="ref" href="admin#adm-06">ADM-06</a>).</td>
+</tr>
+<tr>
+<td>نوع محل</td>
+<td>فیزیکی، امانت (انبار اقلام امانت داده شده) یا مجازی.</td>
+</tr>
+<tr>
+<td>مقدار</td>
+<td>۱ برای هر تجهیز؛ مقدار موجود برای مصرفی.</td>
+</tr>
+<tr>
+<td>ارزش موجودی</td>
+<td>هر آنچه فیزیکی در انبار است، صرف‌نظر از مالک. مال شرکت: هزینهٔ فیش تجهیز، یا بهای میانگین مصرفی. مال شخص ثالث: ارزش جایگزینی تجهیز، یا قیمت جایگزینی مصرفی (<a class="ref" href="admin#adm-12">ADM-12</a>).</td>
+</tr>
+<tr>
+<td>ارزش دفتری</td>
+<td>فقط مال شرکت: ارزش خالص دارایی ثابت (ارزش خرید منهای استهلاک) برای تجهیز، بهای میانگین برای مصرفی. برای مال شخص ثالث صفر.</td>
+</tr>
+<tr>
+<td>اجاره ماهانه، اجاره پرداخت‌شده تا امروز</td>
+<td>فقط اقلام اجاره‌ای: اجاره به مبلغ ماهانه، و جمع صورتحساب‌های تاییدشدهٔ فروشنده (<a class="ref" href="comptable#cpt-14">CPT-14</a>).</td>
+</tr>
+<tr>
+<td>ارز</td>
+<td>ارز کشور انبار؛ تنظیم تبدیل در <a class="ref" href="admin#adm-12">ADM-12</a>.</td>
+</tr>
+</tbody>
+</table>
+<p>ارزش دفتری و اجاره‌ها فقط در <strong>داشبوردها ← پایش انبار - ارزش‌ها و اجاره</strong> آمده‌اند، که ویژهٔ حسابدار و مسئول انبار است (<a class="ref" href="comptable#cpt-15">CPT-15</a>).</p>
+<p><strong>بیشتر بخوانید</strong>: <a class="ref" href="investisseur#inv-02">INV-02</a>، <a class="ref" href="comptable#cpt-15">CPT-15</a>، <a class="ref" href="admin#adm-12">ADM-12</a>.</p>
+<h2 id="inv-04"><span class="code">INV-04</span>آنچه سرمایه‌گذار می‌بیند</h2>
+<p><strong>چه کسی · چه زمانی</strong>: سرمایه‌گذار، مدیر، برای فهم حقوق یک حساب سرمایه‌گذار.</p>
+<p>حساب سرمایه‌گذار فقط پایش انبار را می‌بیند. پروفایل دسترسی انبارِ آن سطرهای نمایش‌داده‌شده را بر اساس کشور، انبار، مالکیت و خانواده محدود می‌کند؛ فهرست خالی در پروفایل یعنی هیچ محدودیتی برای آن معیار؛ حسابی که پروفایل ندارد هیچ انباری نمی‌بیند. ارزش دفتری و اجاره‌ها به او نمایش داده نمی‌شوند.</p>
+<p><strong>مراحل</strong> (تغییر زبان)</p>
 <ol>
-<li>فیش تجهیز را باز کنید و روی دکمهٔ <strong>نگهداری</strong> در بالای فیش کلیک کنید.</li>
-<li>روی <strong>جدید</strong> کلیک کنید.</li>
-<li>عنوان درخواست: آنچه رخ داده در چند کلمه، مثلاً « موتور روشن نمی‌شود » یا « در کارگاه گم شده ».</li>
-<li>در توضیحات: تاریخ، محل، شرایط، و در صورت امکان عکس.</li>
-<li>ذخیره کنید.</li>
+<li>روی آواتار خود در بالای صفحه و سپس روی ترجیحات کلیک کنید.</li>
+<li>زبان را انتخاب کنید: فرانسوی، انگلیسی یا فارسی.</li>
+<li>ذخیره کنید: منوها، دکمه‌ها و ستون‌ها به زبان انتخابی درمی‌آیند.</li>
 </ol>
-<p><strong>توجه</strong>: وضعیت مالکیت را تغییر ندهید؛ این کار با انباردار/امین اموال است (<a class="ref" href="parc#parc-08">PARC-08</a>). در صورت سرقت، انباردار/امین اموال را فوراً تلفنی هم خبر کنید.</p>
-<p><strong>بیشتر بخوانید</strong>: <a class="ref" href="parc#parc-08">PARC-08</a>.</p>
+<p><strong>توجه</strong>: نام انبارها و اقلام دادهٔ واردشده هستند و در همهٔ زبان‌ها همان‌طور که وارد شده‌اند می‌مانند.</p>
+<p><strong>بیشتر بخوانید</strong>: <a class="ref" href="admin#adm-10">ADM-10</a>، <a class="ref" href="admin#adm-11">ADM-11</a>.</p>
 </div></main>
 <footer><span>تاریخ تولید 04/10/2026 · این صفحات را مستقیماً ویرایش نکنید.</span><button onclick="print()">چاپ</button></footer>
 <script>

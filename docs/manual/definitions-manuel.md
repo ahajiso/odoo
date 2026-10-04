@@ -35,10 +35,11 @@ Code sur le web ouvertes avec ce compte). Sans ces outils, voir la section
 | --- | --- | --- | --- | --- |
 | index | Accueil · 05221feb-a132 · d1d291f9-609a | Home · 74e370d1-0795 · 30337180-15e6 | خانه · a79db514-d0c7 · 83d88cca-b426 | — (profils, gabarit, règles, journal) |
 | reference | Référence · 47fe5456-87fd · db68ed44-17c1 | Reference · 4209b37f-fe2a · 18c4999b-763a | مرجع · 27b9226c-732c · 19fbef5b-1e02 | REF-01 à REF-10 |
-| admin | Admin Odoo · 5b6a64e4-79ec · e9e520e4-6128 | Odoo Admin · aa096bb8-3386 · 7ec38d8c-7e79 | مدیر اودو · d55939d9-a7aa · 6f5f67be-42cd | ADM-01 à ADM-09 |
-| parc | Responsable parc · 91901160-3123 · 80b1101f-ee7f | Fleet manager · 6b99ac29-c5ed · 369c8c02-7c72 | انباردار/امین اموال · c9615183-5878 · 7e7daaf3-4f51 | PARC-01 à PARC-09 |
-| comptable | Comptable · 0e760d90-5bf2 · b259aee5-6ba6 | Accountant · 1911f8d6-30f8 · 732f18f9-2e73 | حسابدار · f7e2d130-575c · 805cfd89-b3a4 | CPT-01 à CPT-13 |
+| admin | Admin Odoo · 5b6a64e4-79ec · e9e520e4-6128 | Odoo Admin · aa096bb8-3386 · 7ec38d8c-7e79 | مدیر اودو · d55939d9-a7aa · 6f5f67be-42cd | ADM-01 à ADM-12 |
+| parc | Responsable parc · 91901160-3123 · 80b1101f-ee7f | Fleet manager · 6b99ac29-c5ed · 369c8c02-7c72 | انباردار/امین اموال · c9615183-5878 · 7e7daaf3-4f51 | PARC-01 à PARC-11 |
+| comptable | Comptable · 0e760d90-5bf2 · b259aee5-6ba6 | Accountant · 1911f8d6-30f8 · 732f18f9-2e73 | حسابدار · f7e2d130-575c · 805cfd89-b3a4 | CPT-01 à CPT-15 |
 | chantier | Chantier · 02229e66-47d7 · 1ab14945-7ad7 | Site · 0454b652-a47f · d9ab7a8f-cb6d | کارگاه · ad9f5a05-6add · 1fd65ca3-9d78 | CH-01 à CH-03 |
+| investisseur | Investisseur · cecdf6f0-f762 · 3d07bd64-7e4e | Investor · c3598199-ab2e · 57cf7d2a-8b05 | سرمایه‌گذار · 81042ad0-6384 · d45d0660-98ec | INV-01 à INV-04 |
 
 Rôle « Responsable parc » : EN « Fleet Manager / Storekeeper », FA
 « انباردار/امین اموال » (choix de l'utilisateur ; ne plus utiliser
@@ -46,6 +47,11 @@ Rôle « Responsable parc » : EN « Fleet Manager / Storekeeper », FA
 du nom d'onglet par une espace : le fichier attendu par le générateur pour
 l'onglet FA « parc » est `انباردار امین اموال.md` (voir
 `lartdubati_manual/tools/README.md`).
+
+Onglet FA « investisseur » : nom « سرمایه‌گذار » avec demi-espace (ZWNJ,
+U+200C) ; l'export garde le ZWNJ (`سرمایه‌گذار.md`). Claude Docs refuse le
+ZWNJ dans le `birthName` d'un onglet : l'onglet a été créé avec le
+birthName `Investor-fa.ldoc`, puis renommé.
 
 Les **ids de blocs** à l'intérieur d'un onglet (ceux qu'on cible avec
 `{"kind":"blocks","ids":[...]}`) changent à chaque réécriture : ne jamais les
@@ -225,6 +231,12 @@ persans en FA).
 | Nouveau profil utilisateur | Nouvel onglet dans les trois docs + ligne dans « Qui lit quoi » + `UI[lang]["pages"]` de `build_site.py` |
 | Montée de version Odoo | Toutes les fiches : vérifier menus et libellés dans les trois langues ; REF-08 (limites) ; ADM-05 |
 | Limite levée (ex. traduction des catégories de produit) | REF-08 + fiches qui la citent (REF-04, ADM-02) |
+| Accès des investisseurs (profils d'accès aux stocks, groupe Investisseur, règles) — module lartdubati_investor_home | ADM-10, ADM-11, INV-02, INV-04, REF-08 |
+| Écran d'accueil investisseur (web_quick_start_screen, `docs/investor_home/setup_investor_home.py`) | INV-01, ADM-10 |
+| Colonnes, calculs ou réglages du moniteur de stock (bi_sql_editor, `docs/stock_monitor/`, Paramètres → Inventaire → Moniteur de stock) | INV-03, ADM-12, CPT-15, REF-08 |
+| Type de lieu d'un emplacement (place_type), adresse d'entrepôt | ADM-06, REF-07, INV-03 |
+| Contrats fournisseurs de location (OCA contract, maintenance_equipment_contract) | PARC-11, CPT-14, PARC-05 |
+| Création d'équipement depuis facture fournisseur (OCA maintenance_account) | PARC-10, CPT-01 |
 | Nouveau formulaire d'import documenté / nouveau fichier modèle | La fiche ADM/PARC concernée + `lartdubati_manual/static/templates/` + ce fichier (§2, note sur l'import) si la règle générale change |
 
 ## 4. Référence technique Odoo
@@ -241,6 +253,8 @@ persans en FA).
 | Dépôts OCA ajoutés | server-ux-18 (date_range), account-reconcile-18 (account_reconcile_oca, account_statement_base), bank-statement-import-18 (OFX, CAMT) ; addons_path mis à jour dans `/opt/odoo/config/odoo.conf` |
 | Module de publication | lartdubati_manual 18.0.1.0.0 : routes `/manuel`, `/manuel/<lang>/<page>` (auth user, langue de l'utilisateur par défaut) ; menu racine « Manuel » (act_url, nouvel onglet) traduit en « Manual » (en.po) et « راهنما » (fa_IR.po) ; pages lues depuis `lartdubati_manual/manual/<lang>/*.html` (contrôleur `controllers/main.py`, constante `MANUAL_DIR`) ; fichiers sous `lartdubati_manual/static/` (captures d'écran, fichiers modèles d'import) servis automatiquement par le mécanisme standard des modules Odoo, sans route dédiée. |
 | OCA immobilisations | account_asset_management 18.0.1.1.11 (+ report_xlsx, report_xlsx_helper) installé sur artdubati_test (vérifié le 03/10/2026) ; catégories d'immobilisation en attente de l'expert-comptable ; non installé en production |
+| Module investisseur | lartdubati_investor_home 18.0.1.4.0 : type de lieu des emplacements, profils d'accès aux stocks (res.users `stock_access_id`), groupe « Investisseur », règles globales, contrainte équipement actif ⇒ stock interne, réglages du moniteur de stock (Paramètres → Inventaire). Moniteur = 2 rapports OCA bi_sql_editor (`docs/stock_monitor/`) ; accueil = OCA web_quick_start_screen (`docs/investor_home/`). Installé sur artdubati_test uniquement. |
+| Dépôts OCA (investisseur) | contract-18 (contract, maintenance_equipment_contract), reporting-engine-18 (bi_sql_editor), web-18 (web_quick_start_screen), server-ux-18 (base_menu_visibility_restriction) ; maintenance_account, base_maintenance |
 | Hiérarchie catégories équipement | module OCA maintenance_equipment_category_hierarchy |
 | Langues | en_US (base), fr_FR, fa_IR |
 | Application comptable | CE = « Facturation » (Invoicing / صدور فاکتور) ; pas de rapport compte de résultat en CE |

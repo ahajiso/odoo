@@ -1,12 +1,12 @@
 """Compare FR/EN/FA manual sources fiche by fiche."""
 import re, os, collections
 PAGES = {
-    "fr": ["Accueil.md", "Référence.md", "Admin Odoo.md", "Responsable parc.md", "Comptable.md", "Chantier.md"],
-    "en": ["Home.md", "Reference.md", "Odoo Admin.md", "Fleet manager.md", "Accountant.md", "Site.md"],
-    "fa": ["خانه.md", "مرجع.md", "مدیر اودو.md", "انباردار امین اموال.md", "حسابدار.md", "کارگاه.md"],
+    "fr": ["Accueil.md", "Référence.md", "Admin Odoo.md", "Responsable parc.md", "Comptable.md", "Chantier.md", "Investisseur.md"],
+    "en": ["Home.md", "Reference.md", "Odoo Admin.md", "Fleet manager.md", "Accountant.md", "Site.md", "Investor.md"],
+    "fa": ["خانه.md", "مرجع.md", "مدیر اودو.md", "انباردار امین اموال.md", "حسابدار.md", "کارگاه.md", "سرمایه\u200cگذار.md"],
 }
 FA_DIG = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
-CODE = re.compile(r"\b(REF|ADM|PARC|CPT|CH)-(\d{2})\b")
+CODE = re.compile(r"\b(REF|ADM|PARC|CPT|CH|INV)-(\d{2})\b")
 
 def load(lang):
     data = {}

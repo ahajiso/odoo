@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fr" dir="ltr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
-<title>Responsable parc · Manuel Odoo – L&#x27;Art du Bâti</title><style>
+<title>Investisseur · Manuel Odoo – L&#x27;Art du Bâti</title><style>
 :root{--bg:#f7f6f3;--card:#fff;--ink:#1f2328;--muted:#5d6570;--line:#e3e1dc;--accent:#6b3f5c;--accent-soft:#f3ebf0;--code:#f1efe9}
 @media (prefers-color-scheme:dark){:root{--bg:#16181b;--card:#1f2226;--ink:#e8e6e3;--muted:#a3a9b1;--line:#33373d;--accent:#d9a5c6;--accent-soft:#2c2229;--code:#2a2d31}}
 *{box-sizing:border-box}html{scroll-padding-top:120px}
@@ -45,178 +45,97 @@ figure.shot figcaption{margin-top:6px;font-size:13px;color:var(--muted)}
 </style></head>
 <body><header><div class="bar"><a class="brand" href="index">Manuel Odoo – L&#x27;Art du Bâti</a>
 <input id="q" type="search" placeholder="Rechercher une fiche (code, mot-clé)…" autocomplete="off">
-<span class="langs"><a href="/manuel/en/parc">EN</a><a href="/manuel/fa/parc">FA</a><a href="/manuel/fr/parc" class=on>FR</a></span></div><nav class="tabs"><a href="index">Accueil</a><a href="reference">Référence</a><a href="admin">Admin Odoo</a><a href="parc" class=on>Responsable parc</a><a href="comptable">Comptable</a><a href="chantier">Chantier</a><a href="investisseur">Investisseur</a></nav><div id="results"></div></header>
-<main><div class="card"><h1>Responsable parc / magasinier</h1><div class="toc"><strong>Fiches de cet onglet</strong><ul><li><a href="#parc-01">PARC-01 Créer un équipement sans produit</a></li><li><a href="#parc-02">PARC-02 Créer un équipement lié à un produit</a></li><li><a href="#parc-03">PARC-03 Déplacer un équipement</a></li><li><a href="#parc-04">PARC-04 Afficher l&#x27;inventaire d&#x27;un emplacement</a></li><li><a href="#parc-05">PARC-05 Enregistrer un équipement loué</a></li><li><a href="#parc-06">PARC-06 Enregistrer un équipement emprunté ou apporté par un actionnaire</a></li><li><a href="#parc-07">PARC-07 Prêter un équipement à un tiers</a></li><li><a href="#parc-08">PARC-08 Déclarer une perte, un vol ou un dommage</a></li><li><a href="#parc-09">PARC-09 Créer ou vérifier un partenaire de prêt ou de location</a></li><li><a href="#parc-10">PARC-10 Réceptionner un consommable appartenant à un tiers</a></li><li><a href="#parc-11">PARC-11 Rattacher un contrat de location fournisseur</a></li></ul></div><p>Création des fiches équipement, suivi de leur localisation et de leur mode d'acquisition. Aucune de ces fiches ne passe d'écriture comptable.</p>
-<h2 id="parc-01"><span class="code">PARC-01</span>Créer un équipement sans produit</h2>
-<p><strong>Qui · Quand</strong> : responsable parc, à l'arrivée d'un équipement unique (véhicule, machine sans référence catalogue, outil ancien).</p>
-<p><strong>Prérequis</strong> : la catégorie existe (<a class="ref" href="reference#ref-03">REF-03</a>) ; l'emplacement de destination existe (<a class="ref" href="reference#ref-07">REF-07</a>).</p>
+<span class="langs"><a href="/manuel/en/investisseur">EN</a><a href="/manuel/fa/investisseur">FA</a><a href="/manuel/fr/investisseur" class=on>FR</a></span></div><nav class="tabs"><a href="index">Accueil</a><a href="reference">Référence</a><a href="admin">Admin Odoo</a><a href="parc">Responsable parc</a><a href="comptable">Comptable</a><a href="chantier">Chantier</a><a href="investisseur" class=on>Investisseur</a></nav><div id="results"></div></header>
+<main><div class="card"><h1>Investisseur</h1><div class="toc"><strong>Fiches de cet onglet</strong><ul><li><a href="#inv-01">INV-01 Ouvrir la page d&#x27;accueil investisseur</a></li><li><a href="#inv-02">INV-02 Consulter le suivi des stocks</a></li><li><a href="#inv-03">INV-03 Comprendre les colonnes du suivi des stocks</a></li><li><a href="#inv-04">INV-04 Ce que voit un investisseur</a></li></ul></div><p>Fiches de l'investisseur : la page d'accueil et le suivi des stocks. L'investisseur ne voit que les stocks autorisés par son profil d'accès (<a class="ref" href="admin#adm-11">ADM-11</a>). Disponible sur la base de test artdubati_test, en attente de mise en production.</p>
+<h2 id="inv-01"><span class="code">INV-01</span>Ouvrir la page d'accueil investisseur</h2>
+<p><strong>Qui · Quand</strong> : investisseur, à chaque connexion.</p>
+<p><strong>Prérequis</strong> : un compte investisseur (<a class="ref" href="admin#adm-10">ADM-10</a>).</p>
 <p><strong>Étapes</strong></p>
 <ol>
-<li>Ouvrir <a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_action" target="_blank" rel="noopener"><strong>Maintenance → Équipement</strong></a>, vue liste. Chercher le nom et le numéro de série, y compris dans les archivés.</li>
-<li>Cliquer sur <strong>Nouveau</strong>.</li>
-<li><strong>Nom</strong> : description de l'exemplaire, ex. « Perceuse Makita n°3 ».</li>
-<li><strong>Catégorie d'équipement</strong> : selon <a class="ref" href="reference#ref-03">REF-03</a>.</li>
-<li>Onglet <strong>Informations sur le produit</strong> : fournisseur, modèle, numéro de série, fin de garantie, coût s'il est connu.</li>
-<li>Groupe <strong>Propriété tierce (actionnaire)</strong> : laisser Type de propriété = Entreprise si l'entreprise l'a acheté. Sinon voir <a class="ref" href="parc#parc-06">PARC-06</a>.</li>
-<li>Groupe <strong>Localisation</strong> : Localisation actuelle = lieu où il se trouve à la réception, en général le dépôt.</li>
-<li>Groupe <strong>Gestion du parc (acquisition)</strong> : Mode d'acquisition = Achat. Pour une location voir <a class="ref" href="parc#parc-05">PARC-05</a>.</li>
-<li>Enregistrer.</li>
+<li>Se connecter à erp.lartdubati.com avec son identifiant.</li>
+<li>La page d'accueil s'ouvre avec quatre boutons : Financier, Administratif, Commerce et services, Production.</li>
+<li>Cliquer sur Financier pour ouvrir le suivi des stocks (<a class="ref" href="investisseur#inv-02">INV-02</a>).</li>
+<li>Les boutons Administratif, Commerce et services et Production affichent « Bientôt disponible » : ces fonctions ne sont pas encore ouvertes.</li>
+<li>Pour revenir à l'accueil, ouvrir erp.lartdubati.com/odoo.</li>
 </ol>
-<p><strong>Vérification</strong> : l'équipement apparaît dans l'inventaire de son emplacement (<a class="ref" href="parc#parc-04">PARC-04</a>).</p>
-<p><strong>Import en masse</strong> : pour créer plusieurs équipements d'un coup (inventaire initial, arrivée d'un lot), utiliser l'import natif d'Odoo plutôt que de saisir chaque fiche une à une : depuis la vue liste <a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_action" target="_blank" rel="noopener"><strong>Maintenance → Équipement</strong></a>, icône ⚙ à côté du titre → <strong>Importer des enregistrements</strong>.</p>
-<p><figure class="shot"><img src="/lartdubati_manual/static/screenshots/fr/import-etape1-deposer-fichier.png" alt="Capture : déposer le fichier à importer" loading="lazy"><figcaption>Capture : déposer le fichier à importer</figcaption></figure></p>
-<p>Déposer un fichier Excel ou CSV, une ligne par équipement. Odoo fait correspondre chaque colonne à un champ ; vérifier la correspondance, cliquer sur <strong>Tester</strong> pour valider sans rien créer, corriger si besoin, puis <strong>Importer</strong> pour de bon.</p>
-<p><figure class="shot"><img src="/lartdubati_manual/static/screenshots/fr/import-etape2-correspondance-champs.png" alt="Capture : correspondance des champs validée" loading="lazy"><figcaption>Capture : correspondance des champs validée</figcaption></figure></p>
-<p><strong>Attention aux champs de type liste</strong> (Catégorie d'équipement, Localisation actuelle, Propriétaire (tiers)…) : Odoo exige une correspondance exacte. Pour une catégorie, indiquer le <strong>chemin complet depuis la racine</strong>, séparé par « / », avec les noms <strong>en anglais</strong> de <a class="ref" href="reference#ref-03">REF-03</a> (jamais la traduction affichée dans les menus, même en interface française) — exemple : « Assets &amp; Equipment / Power &amp; Workshop Tools / 02 Corded Power Tools ». Si Odoo ne trouve pas de correspondance, il liste les valeurs qu'il connaît via le lien <strong>Voir les valeurs possibles</strong> : copier la valeur exacte dans le fichier puis cliquer de nouveau sur <strong>Tester</strong> avant de continuer.</p>
-<p><strong>Modèle de fichier</strong> : <a href="https://erp.lartdubati.com/lartdubati_manual/static/templates/import-equipements-modele.csv">modèle CSV équipements</a> reprend nos champs spécifiques (propriété, localisation, mode d'acquisition…) avec un exemple pour chaque cas courant (achat direct, matériel apporté par un actionnaire, location). Dupliquer une ligne, remplacer les valeurs, laisser vide les colonnes inconnues au départ — le comptable les complétera ensuite (<a class="ref" href="comptable#cpt-01">CPT-01</a>).</p>
-<p><strong>Voir aussi</strong> : <a class="ref" href="reference#ref-02">REF-02</a>, <a class="ref" href="reference#ref-05">REF-05</a>, <a class="ref" href="comptable#cpt-01">CPT-01</a> (le comptable complète les valeurs).</p>
-<h2 id="parc-02"><span class="code">PARC-02</span>Créer un équipement lié à un produit</h2>
-<p><strong>Qui · Quand</strong> : responsable parc, quand le même modèle est acheté en plusieurs exemplaires et qu'on veut suivre prix et fournisseur.</p>
+<p><strong>Vérification</strong> : les quatre boutons s'affichent dans la langue du compte.</p>
+<p><strong>Voir aussi</strong> : <a class="ref" href="investisseur#inv-02">INV-02</a>, <a class="ref" href="investisseur#inv-04">INV-04</a>, <a class="ref" href="admin#adm-10">ADM-10</a>.</p>
+<h2 id="inv-02"><span class="code">INV-02</span>Consulter le suivi des stocks</h2>
+<p><strong>Qui · Quand</strong> : investisseur, pour connaître le contenu et la valeur des stocks.</p>
+<p><strong>Prérequis</strong> : un profil d'accès aux stocks attribué (<a class="ref" href="admin#adm-11">ADM-11</a>).</p>
 <p><strong>Étapes</strong></p>
 <ol>
-<li>Ouvrir <a class="screen" href="https://erp.lartdubati.com/odoo/action-product.product_template_action" target="_blank" rel="noopener"><strong>Achats → Produits</strong></a> et chercher le modèle (nom, référence fabricant), y compris dans les archivés.</li>
-<li>S'il n'existe pas : <strong>Nouveau</strong>, Nom = référence exacte (ex. « Perceuse Makita HP2050 »). Décocher <strong>Ventes</strong>, laisser <strong>Achat</strong> coché. <strong>Type de produit</strong> = Service ; seulement si on veut aussi compter des pièces de ce modèle en stock : Biens, avec <strong>Suivre l'inventaire</strong> coché. Enregistrer.</li>
-<li>Créer chaque exemplaire comme en <a class="ref" href="parc#parc-01">PARC-01</a>, en renseignant en plus le champ <strong>Produit</strong> avec ce modèle.</li>
-<li>Répéter l'étape 3 pour chaque exemplaire physique.</li>
+<li>Depuis l'accueil, cliquer sur Financier, ou ouvrir <strong>Tableaux de bord → Suivi des stocks</strong>.</li>
+<li>La vue par défaut est un tableau croisé : les stocks en lignes, Équipement et Consommable en colonnes, avec la Quantité et la Valeur d'inventaire.</li>
+<li>Pour un seul stock : taper son nom dans la barre de recherche et choisir « Rechercher Stock pour: … ».</li>
+<li>Pour un pays, une ville, un entrepôt, une famille ou une propriété : même méthode, ou ouvrir le menu de la barre de recherche et choisir un critère dans <strong>Regrouper par</strong>.</li>
+<li>Cliquer sur une ligne du tableau (signe +) pour la détailler, par exemple par Propriété.</li>
+<li>Les icônes en haut à droite passent en vue liste (une ligne par article, totaux par devise) ou en graphique.</li>
 </ol>
-<p><strong>Vérification</strong> : depuis le produit, tous les exemplaires sont retrouvables en filtrant les équipements par ce produit.</p>
-<p><strong>Attention</strong> : un modèle = un seul produit. Si deux produits identiques existent, les faire fusionner par l'administrateur avant de continuer.</p>
-<p><strong>Import en masse (modèles/produits)</strong> : pour créer plusieurs modèles d'un coup, depuis <a class="screen" href="https://erp.lartdubati.com/odoo/action-product.product_template_action" target="_blank" rel="noopener"><strong>Achats → Produits</strong></a> (vue liste) → icône ⚙ → <strong>Importer des enregistrements</strong> — même méthode qu'en <a class="ref" href="parc#parc-01">PARC-01</a> (déposer le fichier, faire correspondre les colonnes, <strong>Tester</strong> puis <strong>Importer</strong>). Modèle : <a href="https://erp.lartdubati.com/lartdubati_manual/static/templates/import-produits-modele.csv">modèle CSV produits</a>. Rappel des colonnes utiles : décocher <strong>Ventes</strong>, cocher <strong>Achats</strong>, choisir le <strong>Type de produit</strong> (Biens + <strong>Suivre l'inventaire</strong> coché pour les pièces stockées, Service sinon) — la <strong>Catégorie de produits</strong> suit la même règle de chemin complet en anglais qu'en <a class="ref" href="parc#parc-01">PARC-01</a> (voir <a class="ref" href="reference#ref-04">REF-04</a>). Les exemplaires individuels s'importent ensuite séparément avec le modèle <a class="ref" href="parc#parc-01">PARC-01</a>, colonne <strong>Article</strong> renseignée avec le nom exact du produit créé ici.</p>
-<p><strong>Voir aussi</strong> : <a class="ref" href="reference#ref-02">REF-02</a>, <a class="ref" href="parc#parc-01">PARC-01</a>.</p>
-<h2 id="parc-03"><span class="code">PARC-03</span>Déplacer un équipement</h2>
-<p><strong>Qui · Quand</strong> : responsable parc ou chef de chantier, à chaque changement de lieu (dépôt vers chantier, chantier vers chantier, retour, envoi en réparation).</p>
-<p><strong>Prérequis</strong> : l'emplacement de destination existe (<a class="ref" href="admin#adm-03">ADM-03</a>).</p>
-<p><strong>Étapes</strong></p>
+<p><strong>Vérification</strong> : les totaux sont regroupés par Devise.</p>
+<p><strong>Attention</strong> : des montants dans deux devises différentes ne s'additionnent jamais ; regrouper par Devise avant de lire un total.</p>
+<p><strong>Voir aussi</strong> : <a class="ref" href="investisseur#inv-03">INV-03</a>, <a class="ref" href="investisseur#inv-04">INV-04</a>.</p>
+<h2 id="inv-03"><span class="code">INV-03</span>Comprendre les colonnes du suivi des stocks</h2>
+<p><strong>Qui · Quand</strong> : investisseur, comptable, responsable parc, pour lire le suivi des stocks.</p>
+<table>
+<thead>
+<tr>
+<th>Colonne</th>
+<th>Signification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Famille</td>
+<td>Équipement : un bien suivi un par un dans Maintenance (quantité 1). Consommable : un article dont on suit la quantité en stock.</td>
+</tr>
+<tr>
+<td>Propriété</td>
+<td>En propriété : bien de l'entreprise, dans son stock. Emprunté : appartient à un tiers, prêté gratuitement. Loué : appartient à un tiers, un loyer est payé. Prêté : bien de l'entreprise confié à un tiers.</td>
+</tr>
+<tr>
+<td>Stock, Entrepôt, Pays, Région, Ville</td>
+<td>Où se trouve l'article. Le pays et la ville sont ceux de l'adresse de l'entrepôt (<a class="ref" href="admin#adm-06">ADM-06</a>).</td>
+</tr>
+<tr>
+<td>Type de lieu</td>
+<td>Physique, Prêté (stock des biens prêtés) ou Virtuel.</td>
+</tr>
+<tr>
+<td>Quantité</td>
+<td>1 par équipement ; quantité en stock pour un consommable.</td>
+</tr>
+<tr>
+<td>Valeur d'inventaire</td>
+<td>Tout ce qui est physiquement dans le stock, quel qu'en soit le propriétaire. Biens de l'entreprise : Coût de la fiche équipement, ou coût moyen du consommable. Biens de tiers : Valeur de remplacement de l'équipement, ou prix de remplacement du consommable (<a class="ref" href="admin#adm-12">ADM-12</a>).</td>
+</tr>
+<tr>
+<td>Valeur comptable</td>
+<td>Biens de l'entreprise seulement : valeur nette de l'immobilisation (valeur d'achat moins amortissements) pour un équipement, coût moyen pour un consommable. 0 pour un bien de tiers.</td>
+</tr>
+<tr>
+<td>Loyer mensuel, Loyer payé à ce jour</td>
+<td>Biens loués seulement : loyer ramené au mois et total des factures fournisseurs comptabilisées (<a class="ref" href="comptable#cpt-14">CPT-14</a>).</td>
+</tr>
+<tr>
+<td>Devise</td>
+<td>Devise du pays du stock ; voir le réglage de conversion en <a class="ref" href="admin#adm-12">ADM-12</a>.</td>
+</tr>
+</tbody>
+</table>
+<p>La Valeur comptable et les loyers ne figurent que dans <strong>Tableaux de bord → Suivi des stocks - Valeurs et loyers</strong>, réservé au comptable et au responsable des stocks (<a class="ref" href="comptable#cpt-15">CPT-15</a>).</p>
+<p><strong>Voir aussi</strong> : <a class="ref" href="investisseur#inv-02">INV-02</a>, <a class="ref" href="comptable#cpt-15">CPT-15</a>, <a class="ref" href="admin#adm-12">ADM-12</a>.</p>
+<h2 id="inv-04"><span class="code">INV-04</span>Ce que voit un investisseur</h2>
+<p><strong>Qui · Quand</strong> : investisseur, administrateur, pour comprendre les droits d'un compte investisseur.</p>
+<p>Un compte investisseur ne voit que le suivi des stocks. Son profil d'accès aux stocks limite les lignes affichées par pays, stock, propriété et famille ; une liste vide dans le profil signifie aucune limite sur ce critère ; un compte sans profil ne voit aucun stock. La valeur comptable et les loyers ne lui sont pas affichés.</p>
+<p><strong>Étapes</strong> (changer de langue)</p>
 <ol>
-<li>Ouvrir la fiche dans <a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_action" target="_blank" rel="noopener"><strong>Maintenance → Équipement</strong></a>.</li>
-<li>Groupe <strong>Localisation</strong> : changer <strong>Localisation actuelle</strong> pour le nouveau lieu.</li>
-<li>Si l'équipement est confié durablement à une personne ou à un chantier, mettre aussi à jour le <strong>Statut de propriété</strong> (<a class="ref" href="reference#ref-06">REF-06</a>). Sinon ne rien changer d'autre.</li>
-<li>Enregistrer.</li>
+<li>Cliquer sur son avatar en haut à droite, puis sur Préférences.</li>
+<li>Choisir la Langue : français, anglais ou persan.</li>
+<li>Enregistrer : les menus, les boutons et les colonnes changent de langue.</li>
 </ol>
-<p><strong>Vérification</strong> : l'historique en bas de la fiche montre l'ancien et le nouveau lieu, avec la date et l'auteur.</p>
-<p><strong>Attention</strong> : un déplacement n'entraîne aucune écriture comptable. Ne pas utiliser le champ natif « Lieu d'utilisation » (<a class="ref" href="reference#ref-08">REF-08</a>).</p>
-<p><strong>Voir aussi</strong> : <a class="ref" href="chantier#ch-01">CH-01</a>, <a class="ref" href="chantier#ch-02">CH-02</a>, <a class="ref" href="reference#ref-01">REF-01</a>.</p>
-<h2 id="parc-04"><span class="code">PARC-04</span>Afficher l'inventaire d'un emplacement</h2>
-<p><strong>Qui · Quand</strong> : responsable parc, chef de chantier ou comptable, à tout moment.</p>
-<p><strong>Étapes</strong></p>
-<ol>
-<li>Ouvrir <a class="screen" href="https://erp.lartdubati.com/odoo/action-maintenance.hr_equipment_action" target="_blank" rel="noopener"><strong>Maintenance → Équipement</strong></a>, vue liste.</li>
-<li>Cliquer sur la flèche de la barre de recherche, puis <strong>Regrouper par → Ajouter un groupe personnalisé → Localisation actuelle</strong>.</li>
-<li>Déplier le groupe de l'emplacement voulu. Pour un seul lieu, taper son nom dans la recherche et choisir « Rechercher Localisation actuelle ».</li>
-<li>Pour garder cette vue : <strong>Favoris → Enregistrer la recherche actuelle</strong>, nom « Inventaire par emplacement », cocher <strong>Partagé</strong>.</li>
-</ol>
-<p><strong>Vérification</strong> : le groupe « Aucun » doit être vide ; sinon, des équipements n'ont pas de localisation et doivent être complétés.</p>
-<p><strong>Attention</strong> : cet inventaire est indépendant de la valeur comptable. Un équipement amorti y figure tant qu'il n'est pas clôturé.</p>
-<p><strong>Voir aussi</strong> : <a class="ref" href="parc#parc-03">PARC-03</a>, <a class="ref" href="reference#ref-07">REF-07</a>.</p>
-<h2 id="parc-05"><span class="code">PARC-05</span>Enregistrer un équipement loué</h2>
-<p><strong>Qui · Quand</strong> : responsable parc, à la livraison d'un équipement loué à un loueur (nacelle, mini-pelle…).</p>
-<p><strong>Prérequis</strong> : le loueur existe dans les contacts avec l'étiquette Loueur (<a class="ref" href="parc#parc-09">PARC-09</a>).</p>
-<p><strong>Étapes</strong></p>
-<ol>
-<li>Créer la fiche comme en <a class="ref" href="parc#parc-01">PARC-01</a>.</li>
-<li>Groupe <strong>Propriété tierce (actionnaire)</strong> : Type de propriété = Tiers ; Propriétaire (tiers) = le loueur ; Propriété comptable = Tiers ; cocher Obligation de restitution.</li>
-<li>Groupe <strong>Gestion du parc (acquisition)</strong> : Mode d'acquisition = Location ; Partenaire de location / prêt = le loueur ; Date de fin de location / prêt = date de retour prévue.</li>
-<li>Groupe <strong>Localisation</strong> : le chantier de livraison.</li>
-<li>Enregistrer.</li>
-<li>Au retour : Statut de propriété = Restitué au propriétaire, puis archiver la fiche.</li>
-</ol>
-<p><strong>Vérification</strong> : la fiche apparaît avec le filtre Mode d'acquisition = Location ; les dates de fin permettent de repérer les retours à venir.</p>
-<p><strong>Attention</strong> : ne jamais saisir de Coût ni cocher Amortissement comptable actif. Le loyer est une facture fournisseur, créée par un contrat fournisseur (<a class="ref" href="parc#parc-11">PARC-11</a>, <a class="ref" href="comptable#cpt-14">CPT-14</a>, <a class="ref" href="comptable#cpt-05">CPT-05</a>).</p>
-<p><strong>Voir aussi</strong> : <a class="ref" href="comptable#cpt-05">CPT-05</a>, <a class="ref" href="reference#ref-01">REF-01</a>.</p>
-<h2 id="parc-06"><span class="code">PARC-06</span>Enregistrer un équipement emprunté ou apporté par un actionnaire</h2>
-<p><strong>Qui · Quand</strong> : responsable parc, quand un actionnaire, un sous-traitant ou un partenaire met un équipement à disposition sans loyer.</p>
-<p><strong>Prérequis</strong> : le propriétaire existe dans les contacts avec l'étiquette Actionnaire ou Prêteur (<a class="ref" href="parc#parc-09">PARC-09</a>).</p>
-<p><strong>Étapes</strong></p>
-<ol>
-<li>Créer la fiche comme en <a class="ref" href="parc#parc-01">PARC-01</a>.</li>
-<li>Groupe <strong>Propriété tierce (actionnaire)</strong> :
-<ul>
-<li>Type de propriété = Actionnaire ou Tiers ; Propriétaire (tiers) = la personne ou la société.</li>
-<li>Propriété comptable = Tiers.</li>
-<li>Date de remise, Valeur de remise et État initial : constat fait ensemble à la remise.</li>
-<li>Valeur de remplacement : montant convenu en cas de perte ou de destruction.</li>
-<li>Cocher Obligation de restitution ; laisser Amortissement comptable actif décoché.</li>
-</ul>
-</li>
-<li>Groupe <strong>Gestion du parc (acquisition)</strong> : Mode d'acquisition = Emprunté à un tiers ; Partenaire = le propriétaire ; date de fin si convenue.</li>
-<li>Groupe <strong>Localisation</strong> : lieu actuel.</li>
-<li>Enregistrer. Joindre le constat de remise signé dans l'historique de la fiche (trombone).</li>
-</ol>
-<p><strong>Vérification</strong> : Valeur de remplacement renseignée et constat joint.</p>
-<p><strong>Attention</strong> : sans constat ni Valeur de remplacement, un litige en cas de casse ne peut pas être tranché.</p>
-<p><strong>Voir aussi</strong> : <a class="ref" href="comptable#cpt-04">CPT-04</a>, <a class="ref" href="comptable#cpt-05">CPT-05</a>, <a class="ref" href="parc#parc-08">PARC-08</a>.</p>
-<h2 id="parc-07"><span class="code">PARC-07</span>Prêter un équipement à un tiers</h2>
-<p><strong>Qui · Quand</strong> : responsable parc, quand un équipement de l'entreprise part temporairement chez un tiers.</p>
-<p><strong>Prérequis</strong> : l'emprunteur existe dans les contacts avec l'étiquette Emprunteur (<a class="ref" href="parc#parc-09">PARC-09</a>) ; l'emplacement Chez tiers existe (<a class="ref" href="reference#ref-07">REF-07</a>).</p>
-<p><strong>Étapes</strong></p>
-<ol>
-<li>Ouvrir la fiche de l'équipement.</li>
-<li>Groupe <strong>Gestion du parc (acquisition)</strong> : Mode d'acquisition = Prêté à un tiers ; Partenaire de location / prêt = l'emprunteur ; Date de fin = retour prévu.</li>
-<li>Groupe <strong>Localisation</strong> : Localisation actuelle = WH/Chez tiers (<a class="ref" href="reference#ref-07">REF-07</a>).</li>
-<li>Enregistrer.</li>
-<li>Au retour : Localisation actuelle = lieu réel ; Mode d'acquisition = Achat ; vider Partenaire et Date de fin.</li>
-</ol>
-<p><strong>Attention</strong> : l'équipement reste un actif de l'entreprise ; aucun changement comptable. Ne pas modifier le groupe Propriété tierce.</p>
-<p><strong>Voir aussi</strong> : <a class="ref" href="parc#parc-03">PARC-03</a>, <a class="ref" href="reference#ref-01">REF-01</a>.</p>
-<h2 id="parc-08"><span class="code">PARC-08</span>Déclarer une perte, un vol ou un dommage</h2>
-<p><strong>Qui · Quand</strong> : responsable parc, dès qu'un incident est signalé (<a class="ref" href="chantier#ch-03">CH-03</a>).</p>
-<p><strong>Étapes</strong></p>
-<ol>
-<li>Ouvrir la fiche de l'équipement.</li>
-<li><strong>Statut de propriété</strong> : Endommagé, Perdu ou Volé.</li>
-<li>Dommage réparable : créer une demande de maintenance depuis le bouton <strong>Maintenance</strong> de la fiche, puis Statut = En maintenance. À la réparation, renseigner Coût de réparation, Réparateur et Référence facture de réparation dans la demande.</li>
-<li>Vol : joindre le dépôt de plainte à la fiche.</li>
-<li>Écrire une note dans l'historique : date, circonstances, personne concernée.</li>
-<li>Prévenir le comptable, qui applique <a class="ref" href="comptable#cpt-02">CPT-02</a>.</li>
-</ol>
-<p><strong>Attention</strong> : si l'équipement appartient à un tiers (Propriété comptable = Tiers), ne pas choisir soi-même « Indemnisation à payer » : c'est le comptable qui le fait (<a class="ref" href="comptable#cpt-04">CPT-04</a>).</p>
-<p><strong>Voir aussi</strong> : <a class="ref" href="chantier#ch-03">CH-03</a>, <a class="ref" href="comptable#cpt-02">CPT-02</a>, <a class="ref" href="comptable#cpt-04">CPT-04</a>, <a class="ref" href="reference#ref-06">REF-06</a>.</p>
-<h2 id="parc-09"><span class="code">PARC-09</span>Créer ou vérifier un partenaire de prêt ou de location</h2>
-<p><strong>Qui · Quand</strong> : responsable parc ou comptable, avant d'enregistrer une location, un emprunt ou un prêt (<a class="ref" href="parc#parc-05">PARC-05</a>, <a class="ref" href="parc#parc-06">PARC-06</a>, <a class="ref" href="parc#parc-07">PARC-07</a>).</p>
-<p><strong>Prérequis</strong> : les étiquettes Actionnaire, Loueur, Prêteur et Emprunteur existent (<a class="screen" href="https://erp.lartdubati.com/odoo/action-base.action_partner_category_form" target="_blank" rel="noopener"><strong>Contacts → Configuration → Étiquettes de contact</strong></a>) ; à créer une seule fois par l'administrateur.</p>
-<p><strong>Étapes</strong></p>
-<ol>
-<li>Ouvrir <strong>Contacts</strong> et chercher par nom, téléphone, SIRET ou numéro de TVA, y compris avec le filtre <strong>Archivé</strong>.</li>
-<li>S'il existe : vérifier qu'il porte la bonne étiquette, l'ajouter sinon, enregistrer. Fin.</li>
-<li>Sinon, cliquer sur <strong>Nouveau</strong> et choisir <strong>Société</strong> ou <strong>Individu</strong> (<a class="ref" href="reference#ref-09">REF-09</a>).</li>
-<li>Renseigner nom, adresse, téléphone, e-mail ; pour une société, le numéro de TVA ou le SIRET.</li>
-<li><strong>Étiquettes</strong> : Actionnaire, Loueur, Prêteur ou Emprunteur (plusieurs possibles).</li>
-<li>Pour un interlocuteur d'une société : créer la société d'abord, puis la personne en indiquant la société.</li>
-<li>Enregistrer.</li>
-</ol>
-<p><strong>Vérification</strong> : en tapant le nom dans Partenaire de location / prêt d'une fiche équipement, le contact est proposé une seule fois.</p>
-<p><strong>Attention</strong> : un doublon de contact sépare l'historique des prêts et les factures du loueur. En cas de doublon, demander à l'administrateur de fusionner les deux contacts.</p>
-<p><strong>Voir aussi</strong> : <a class="ref" href="reference#ref-09">REF-09</a>, <a class="ref" href="parc#parc-05">PARC-05</a>, <a class="ref" href="parc#parc-06">PARC-06</a>, <a class="ref" href="parc#parc-07">PARC-07</a>.</p>
-<h2 id="parc-10"><span class="code">PARC-10</span>Réceptionner un consommable appartenant à un tiers</h2>
-<p><strong>Qui · Quand</strong> : responsable parc, à la réception de consommables prêtés ou loués par un tiers.</p>
-<p><strong>Prérequis</strong> : base de test artdubati_test (en attente de mise en production) ; option Consignation activée dans <a class="screen" href="https://erp.lartdubati.com/odoo/action-stock.action_stock_config_settings" target="_blank" rel="noopener"><strong>Inventaire → Configuration → Paramètres</strong></a> ; le tiers existe (<a class="ref" href="parc#parc-09">PARC-09</a>) ; pour une location, un contrat fournisseur (<a class="ref" href="parc#parc-11">PARC-11</a>).</p>
-<p><strong>Étapes</strong></p>
-<ol>
-<li>Ouvrir <a class="screen" href="https://erp.lartdubati.com/odoo/action-stock.method_action_picking_tree_incoming" target="_blank" rel="noopener"><strong>Inventaire → Opérations → Réceptions</strong></a> et cliquer sur <strong>Nouveau</strong>.</li>
-<li>Contact : le tiers.</li>
-<li>Emplacement de destination : le stock qui reçoit.</li>
-<li>Assigner un propriétaire : le tiers.</li>
-<li>Ajouter les lignes : article et quantité.</li>
-<li>Valider.</li>
-</ol>
-<p><strong>Vérification</strong> : dans <strong>Tableaux de bord → Suivi des stocks</strong>, la ligne apparaît avec la Propriété Emprunté, ou Loué si un contrat fournisseur couvre cet article.</p>
-<p><strong>Attention</strong> : sans propriétaire, le stock est compté comme propriété de l'entreprise et valorisé dans sa comptabilité.</p>
-<p><strong>Voir aussi</strong> : <a class="ref" href="parc#parc-11">PARC-11</a>, <a class="ref" href="investisseur#inv-03">INV-03</a>.</p>
-<h2 id="parc-11"><span class="code">PARC-11</span>Rattacher un contrat de location fournisseur</h2>
-<p><strong>Qui · Quand</strong> : responsable parc, avec le comptable, à la signature d'une location (équipement ou consommables).</p>
-<p><strong>Prérequis</strong> : base de test artdubati_test (en attente de mise en production) ; le loueur existe avec l'étiquette Loueur (<a class="ref" href="parc#parc-09">PARC-09</a>) ; pour un équipement, sa fiche est créée (<a class="ref" href="parc#parc-05">PARC-05</a>).</p>
-<p><strong>Étapes</strong></p>
-<ol>
-<li>Ouvrir <a class="screen" href="https://erp.lartdubati.com/odoo/action-contract.action_supplier_contract" target="_blank" rel="noopener"><strong>Facturation → Fournisseurs → Contrats d'achats</strong></a> et cliquer sur <strong>Nouveau</strong>.</li>
-<li>Partenaire : le loueur, le même contact que le propriétaire de l'équipement ou du stock.</li>
-<li>Date de début ; Récurrence = Mois ; Facturer tous les = 1.</li>
-<li>Lignes de contrat : Article (le consommable loué, ou un service de location pour un équipement), Quantité, Prix spécifique ; décocher Prix automatique ?.</li>
-<li>Pour un équipement : dans Equipments, ajouter l'équipement loué.</li>
-<li>Enregistrer.</li>
-</ol>
-<p><strong>Vérification</strong> : l'onglet Contracts de la fiche équipement affiche le contrat ; le Loyer mensuel apparaît dans <strong>Tableaux de bord → Suivi des stocks - Valeurs et loyers</strong>.</p>
-<p><strong>Attention</strong> : un contrat lié à plusieurs équipements voit son loyer réparti à parts égales entre eux. Pour un consommable, l'article de la ligne doit être le même que celui reçu (<a class="ref" href="parc#parc-10">PARC-10</a>). Les factures du loyer sont créées par le contrat (<a class="ref" href="comptable#cpt-14">CPT-14</a>).</p>
-<p><strong>Voir aussi</strong> : <a class="ref" href="parc#parc-05">PARC-05</a>, <a class="ref" href="parc#parc-10">PARC-10</a>, <a class="ref" href="comptable#cpt-14">CPT-14</a>.</p>
+<p><strong>Attention</strong> : les noms des stocks et des articles sont des données saisies ; ils restent tels qu'ils ont été saisis, dans toutes les langues.</p>
+<p><strong>Voir aussi</strong> : <a class="ref" href="admin#adm-10">ADM-10</a>, <a class="ref" href="admin#adm-11">ADM-11</a>.</p>
 </div></main>
 <footer><span>Généré le 04/10/2026 · Ne pas modifier ces pages directement.</span><button onclick="print()">Imprimer</button></footer>
 <script>
