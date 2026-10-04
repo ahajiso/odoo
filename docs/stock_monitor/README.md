@@ -64,3 +64,22 @@ Written in the query:
 In Dashboards > Configuration > SQL Views: "Set to Draft", paste the new query,
 "Validate SQL Expression", redo the field mapping above, "Create SQL View and Model",
 "Create UI".
+
+## Translations (FR, FA)
+bi_sql_editor creates labels in English only and recreates them in English when a report
+is rebuilt; module .po files cannot reach them. The terms are in `translations.csv`
+(columns en_US, fr_FR, fa_IR; kinds: `report` = menu and action name, `field` = column
+label, `value` = selection value).
+
+To correct a term:
+- Durable: edit `translations.csv`, commit, then run `apply_translations.py` (usage in its
+  header; credentials from environment variables). Run it again after any report rebuild
+  and once on production.
+- Quick, in Odoo (lost at the next rebuild unless also put in the CSV): developer mode,
+  - column label: Settings > Technical > Database Structure > Fields, search the model
+    `x_bi_sql_view.stock_monitor` (or `..._full`) and the field, click the language code
+    next to "Field Label";
+  - selection value: same field form, "Selection Options" list, language code next to
+    the value name;
+  - menu name: Settings > Technical > User Interface > Menu Items, language code next to
+    the name (the window action under Settings > Technical > Actions > Window Actions).
