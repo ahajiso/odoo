@@ -18,49 +18,49 @@ msgstr ""
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__country_ids
 msgid "Allowed Countries"
-msgstr ""
+msgstr "Pays autorisés"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__family_ids
 msgid "Allowed Families"
-msgstr ""
+msgstr "Familles autorisées"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__ownership_type_ids
 msgid "Allowed Ownership"
-msgstr ""
+msgstr "Propriétés autorisées"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__location_ids
 msgid "Allowed Stocks"
-msgstr ""
+msgstr "Stocks autorisés"
 
 #. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_access_form
 msgid "An empty list means no restriction on that criterion."
-msgstr ""
+msgstr "Une liste vide signifie aucune restriction sur ce critère."
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_item_family__code__asset
 msgid "Asset"
-msgstr ""
+msgstr "Équipement"
 
 #. module: lartdubati_investor_home
 #: model:lartdubati.item.family,name:lartdubati_investor_home.family_asset
 msgid "Assets"
-msgstr ""
+msgstr "Équipements"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_ownership_type__code__borrowed
 #: model:lartdubati.ownership.type,name:lartdubati_investor_home.ownership_borrowed
 msgid "Borrowed"
-msgstr ""
+msgstr "Emprunté"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__code
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__code
 msgid "Code"
-msgstr ""
+msgstr "Code"
 
 #. module: lartdubati_investor_home
 #: model:ir.model,name:lartdubati_investor_home.model_res_company
@@ -75,69 +75,69 @@ msgstr "Paramètres de configuration"
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_item_family__code__consumable
 msgid "Consumable"
-msgstr ""
+msgstr "Consommable"
 
 #. module: lartdubati_investor_home
 #: model:lartdubati.item.family,name:lartdubati_investor_home.family_consumable
 msgid "Consumables"
-msgstr ""
+msgstr "Consommables"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__create_uid
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__create_uid
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__create_uid
 msgid "Created by"
-msgstr ""
+msgstr "Créé par"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__create_date
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__create_date
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__create_date
 msgid "Created on"
-msgstr ""
+msgstr "Créé le"
 
 #. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
 msgid "Currency Conversion"
-msgstr ""
+msgstr "Conversion de devise"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__display_name
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__display_name
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__display_name
 msgid "Display Name"
-msgstr ""
+msgstr "Nom d'affichage"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.constraint,message:lartdubati_investor_home.constraint_lartdubati_item_family_code_unique
 msgid "Each item family can only exist once."
-msgstr ""
+msgstr "Chaque famille d'articles ne peut exister qu'une fois."
 
 #. module: lartdubati_investor_home
 #: model:ir.model.constraint,message:lartdubati_investor_home.constraint_lartdubati_ownership_type_code_unique
 msgid "Each ownership type can only exist once."
-msgstr ""
+msgstr "Chaque catégorie de propriété ne peut exister qu'une fois."
 
 #. module: lartdubati_investor_home
 #. odoo-python
 #: code:addons/lartdubati_investor_home/models/maintenance_equipment.py:0
 msgid ""
 "Equipment %(name)s must have a Current Location that is an internal stock."
-msgstr ""
+msgstr "L'équipement %(name)s doit avoir une Localisation actuelle qui est un stock interne."
 
 #. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
 msgid ""
 "How amounts are converted into the currency of a stock located in another "
 "country."
-msgstr ""
+msgstr "Comment les montants sont convertis dans la devise d'un stock situé dans un autre pays."
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__id
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__id
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__id
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #. module: lartdubati_investor_home
 #: model:ir.model,name:lartdubati_investor_home.model_stock_location
@@ -147,17 +147,17 @@ msgstr "Emplacements de l'inventaire"
 #. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
 msgid "Inventory value of borrowed or rented consumables."
-msgstr ""
+msgstr "Valeur d'inventaire des consommables empruntés ou loués."
 
 #. module: lartdubati_investor_home
 #: model:ir.module.category,name:lartdubati_investor_home.module_category_investor
 msgid "Investor"
-msgstr ""
+msgstr "Investisseur"
 
 #. module: lartdubati_investor_home
 #: model:ir.model,name:lartdubati_investor_home.model_lartdubati_item_family
 msgid "Item Family"
-msgstr ""
+msgstr "Famille d'articles"
 
 #. module: lartdubati_investor_home
 #: model:ir.model,name:lartdubati_investor_home.model_account_move_line
@@ -169,38 +169,38 @@ msgstr "Écriture comptable"
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__write_uid
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__write_uid
 msgid "Last Updated by"
-msgstr ""
+msgstr "Dernière mise à jour par"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__write_date
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__write_date
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__write_date
 msgid "Last Updated on"
-msgstr ""
+msgstr "Dernière mise à jour le"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__res_company__stock_monitor_currency_mode__latest
 msgid "Latest Rate"
-msgstr ""
+msgstr "Dernier taux"
 
 #. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
 msgid ""
 "Latest Rate: today's rate. Rate on Entry Date: the rate of the day the\n"
 "                            item entered the stock. No Conversion: everything in the company currency."
-msgstr ""
+msgstr "Dernier taux : le taux du jour. Taux à la date d'entrée : le taux du jour où l'article est entré dans le stock. Sans conversion : tout dans la devise de la société."
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_ownership_type__code__lent_out
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__stock_location__place_type__lent_out
 #: model:lartdubati.ownership.type,name:lartdubati_investor_home.ownership_lent_out
 msgid "Lent Out"
-msgstr ""
+msgstr "Prêté"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,help:lartdubati_investor_home.field_stock_location__place_type
 msgid "Lent Out: the stock that lent-out items belong to and return to."
-msgstr ""
+msgstr "Prêté : le stock auquel appartiennent les articles prêtés et où ils reviennent."
 
 #. module: lartdubati_investor_home
 #: model:ir.model,name:lartdubati_investor_home.model_maintenance_equipment
@@ -212,122 +212,122 @@ msgstr "Équipement de maintenance"
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__name
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__name
 msgid "Name"
-msgstr ""
+msgstr "Nom"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__res_company__stock_monitor_currency_mode__none
 msgid "No Conversion"
-msgstr ""
+msgstr "Sans conversion"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,help:lartdubati_investor_home.field_res_users__stock_access_id
 msgid ""
 "Only used for members of the Stock Monitor Investor group. A member without "
 "a profile sees no stock."
-msgstr ""
+msgstr "N'est utilisé que pour les membres du groupe Investisseur du suivi des stocks. Un membre sans profil ne voit aucun stock."
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_ownership_type__code__owned
 #: model:lartdubati.ownership.type,name:lartdubati_investor_home.ownership_owned
 msgid "Owned"
-msgstr ""
+msgstr "En propriété"
 
 #. module: lartdubati_investor_home
 #: model:ir.model,name:lartdubati_investor_home.model_lartdubati_ownership_type
 msgid "Ownership Type"
-msgstr ""
+msgstr "Catégorie de propriété"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__stock_location__place_type__physical
 msgid "Physical"
-msgstr ""
+msgstr "Physique"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_stock_location__place_type
 msgid "Place Type"
-msgstr ""
+msgstr "Type de lieu"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__res_company__stock_monitor_replacement_price__cost
 msgid "Product Cost"
-msgstr ""
+msgstr "Coût du produit"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__res_company__stock_monitor_currency_mode__entry_date
 msgid "Rate on Entry Date"
-msgstr ""
+msgstr "Taux à la date d'entrée"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_ownership_type__code__rented
 #: model:lartdubati.ownership.type,name:lartdubati_investor_home.ownership_rented
 msgid "Rented"
-msgstr ""
+msgstr "Loué"
 
 #. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
 msgid "Replacement Price"
-msgstr ""
+msgstr "Prix de remplacement"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__res_company__stock_monitor_replacement_price__list_price
 msgid "Sales Price"
-msgstr ""
+msgstr "Prix de vente"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__sequence
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__sequence
 msgid "Sequence"
-msgstr ""
+msgstr "Séquence"
 
 #. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_users_form_stock_access
 msgid "Stock Access"
-msgstr ""
+msgstr "Accès aux stocks"
 
 #. module: lartdubati_investor_home
 #: model:ir.model,name:lartdubati_investor_home.model_lartdubati_stock_access
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_res_users__stock_access_id
 msgid "Stock Access Profile"
-msgstr ""
+msgstr "Profil d'accès aux stocks"
 
 #. module: lartdubati_investor_home
 #: model:ir.actions.act_window,name:lartdubati_investor_home.action_stock_access
 #: model:ir.ui.menu,name:lartdubati_investor_home.menu_stock_access
 msgid "Stock Access Profiles"
-msgstr ""
+msgstr "Profils d'accès aux stocks"
 
 #. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_location_form_investor
 msgid "Stock Monitor"
-msgstr ""
+msgstr "Suivi des stocks"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_res_company__stock_monitor_currency_mode
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_res_config_settings__stock_monitor_currency_mode
 msgid "Stock Monitor Currency Conversion"
-msgstr ""
+msgstr "Conversion de devise du suivi des stocks"
 
 #. module: lartdubati_investor_home
 #: model:res.groups,name:lartdubati_investor_home.group_stock_investor
 msgid "Stock Monitor Investor"
-msgstr ""
+msgstr "Investisseur du suivi des stocks"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_res_company__stock_monitor_replacement_price
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_res_config_settings__stock_monitor_replacement_price
 msgid "Stock Monitor Replacement Price"
-msgstr ""
+msgstr "Prix de remplacement du suivi des stocks"
 
 #. module: lartdubati_investor_home
 #: model:res.groups,comment:lartdubati_investor_home.group_stock_investor
 msgid "Stock access restricted by the user's Stock Access Profile."
-msgstr ""
+msgstr "Accès aux stocks limité par le profil d'accès aux stocks de l'utilisateur."
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_access__location_ids
 msgid "Sub-locations of an allowed stock are allowed too."
-msgstr ""
+msgstr "Les sous-emplacements d'un stock autorisé sont aussi autorisés."
 
 #. module: lartdubati_investor_home
 #: model:ir.model,name:lartdubati_investor_home.model_res_users
@@ -338,14 +338,14 @@ msgstr "Utilisateur"
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__user_ids
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_access_form
 msgid "Users"
-msgstr ""
+msgstr "Utilisateurs"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__stock_location__place_type__virtual
 msgid "Virtual"
-msgstr ""
+msgstr "Virtuel"
 
 #. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_access_form
 msgid "e.g. Investor - France"
-msgstr ""
+msgstr "ex. Investisseur - France"
