@@ -43,15 +43,24 @@ Field mapping (after "Validate SQL Expression"):
 
 Then "Create SQL View and Model", then "Create UI".
 
-## Business choices written in the query (edit the query to change them)
-- Replacement price of borrowed/rented consumables: product cost (`third_value` in the
-  `consumable` part). bi_sql_editor forbids reading system parameters, so this choice
-  is a line of the query.
-- Currency: latest rate into the currency of the stock's country (warehouse address),
-  company currency when that currency has no rate. To be confirmed by the accountant.
+## Business choices
+Set in **Settings > Inventory > Stock Monitor** (stored on the company, fields
+`stock_monitor_currency_mode` and `stock_monitor_replacement_price` of module
+`lartdubati_investor_home`; bi_sql_editor forbids reading system parameters):
+- Currency conversion into the currency of the stock's country (warehouse address):
+  Latest Rate (default) / Rate on Entry Date (stock line entry date, equipment effective
+  date) / No Conversion. Company currency when that currency has no rate.
+- Replacement price of borrowed/rented consumables: Product Cost (default) / Sales Price.
+
+Written in the query:
 - Rent: supplier contracts (OCA contract, type Supplier), lines with a manual price
   (specific price); converted to a monthly amount; paid = posted vendor bills of the
   contract lines. A contract linked to several equipment is split equally between them;
   consumable rent is split between stocks by quantity.
 - Accounting value of an asset: the fixed asset of the vendor bill line the equipment was
   created from (OCA maintenance_account); empty (0) when there is none.
+
+## Changing a query
+In Dashboards > Configuration > SQL Views: "Set to Draft", paste the new query,
+"Validate SQL Expression", redo the field mapping above, "Create SQL View and Model",
+"Create UI".

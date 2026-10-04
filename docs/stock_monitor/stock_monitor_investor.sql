@@ -2,11 +2,14 @@
 -- accounting value and rent columns): one row per item in an internal stock (assets + consumables).
 -- Used as the query of an OCA bi_sql_editor report (Dashboards > Configuration >
 -- SQL Views). Column names must start with x_. Definitions: docs/DEFINITIONS.md.
--- Amounts are in the company currency, converted at the latest rate into the
--- currency of the stock's country (warehouse address); company currency if that
--- currency has no rate.
+-- Amounts are in the company currency, converted into the currency of the stock's
+-- country (warehouse address) as chosen in Settings > Inventory > Stock Monitor
+-- (res_company.stock_monitor_currency_mode: latest rate, rate on the entry date, or
+-- no conversion); company currency when that currency has no rate.
 WITH comp AS (
-    SELECT c.id, c.currency_id, p.commercial_partner_id AS partner_id
+    SELECT c.id, c.currency_id, p.commercial_partner_id AS partner_id,
+           c.stock_monitor_currency_mode AS currency_mode,
+           c.stock_monitor_replacement_price AS replacement_price
     FROM res_company c JOIN res_partner p ON p.id = c.partner_id
 ),
 loc AS (
@@ -67,7 +70,8 @@ asset AS (
            COALESCE(eq.cost, 0) AS own_value,
            COALESCE(eq.replacement_value, 0) AS third_value,
            a.purchase_value - a.value_depreciated AS book_value,
-           er.rent_month, er.paid
+           er.rent_month, er.paid,
+           eq.effective_date AS entry_date
     FROM maintenance_equipment eq
     JOIN loc ON loc.id = eq.current_location_id
     LEFT JOIN account_move_line ml ON ml.id = eq.move_line_id
@@ -79,6 +83,11 @@ quant AS (
     SELECT q.location_id, q.company_id, q.product_id, q.quantity,
            COALESCE(pt.name ->> 'fr_FR', pt.name ->> 'en_US') AS item,
            COALESCE((pp.standard_price ->> q.company_id::text)::numeric, 0) AS unit_cost,
+           -- Replacement price of borrowed/rented consumables (Settings).
+           CASE WHEN comp.replacement_price = 'list_price' THEN COALESCE(pt.list_price, 0)
+                ELSE COALESCE((pp.standard_price ->> q.company_id::text)::numeric, 0)
+           END AS unit_replacement,
+           q.in_date::date AS entry_date,
            op.commercial_partner_id AS owner_id,
            CASE
                WHEN loc.place_type = 'lent_out' THEN 'lent_out'
@@ -111,11 +120,11 @@ consumable AS (
     SELECT 'consumable'::varchar AS family, quant.location_id, quant.company_id,
            quant.product_id, quant.item, quant.ownership, quant.quantity,
            quant.quantity * quant.unit_cost AS own_value,
-           -- Replacement price of borrowed/rented consumables: product cost.
-           quant.quantity * quant.unit_cost AS third_value,
+           quant.quantity * quant.unit_replacement AS third_value,
            quant.quantity * quant.unit_cost AS book_value,
            cr.rent_month * quant.quantity / NULLIF(rq.quantity, 0) AS rent_month,
-           cr.paid * quant.quantity / NULLIF(rq.quantity, 0) AS paid
+           cr.paid * quant.quantity / NULLIF(rq.quantity, 0) AS paid,
+           quant.entry_date
     FROM quant
     LEFT JOIN rented_qty rq ON quant.ownership = 'rented'
          AND rq.owner_id = quant.owner_id AND rq.product_id = quant.product_id
@@ -144,23 +153,30 @@ FROM item
 JOIN loc ON loc.id = item.location_id
 JOIN comp ON comp.id = item.company_id
 LEFT JOIN res_country ctry ON ctry.id = loc.country_id
+CROSS JOIN LATERAL (
+    SELECT CASE WHEN comp.currency_mode = 'entry_date' THEN item.entry_date
+                ELSE CURRENT_DATE END AS rate_date
+) d
+-- Rate on or before the rate date, else the nearest one after it.
 LEFT JOIN LATERAL (
     SELECT r.rate FROM res_currency_rate r
-    WHERE r.currency_id = ctry.currency_id AND r.name <= CURRENT_DATE
+    WHERE r.currency_id = ctry.currency_id
       AND (r.company_id = comp.id OR r.company_id IS NULL)
-    ORDER BY r.name DESC LIMIT 1
+    ORDER BY r.name <= d.rate_date DESC, ABS(r.name - d.rate_date)
+    LIMIT 1
 ) to_rate ON TRUE
 LEFT JOIN LATERAL (
     SELECT r.rate FROM res_currency_rate r
-    WHERE r.currency_id = comp.currency_id AND r.name <= CURRENT_DATE
+    WHERE r.currency_id = comp.currency_id
       AND (r.company_id = comp.id OR r.company_id IS NULL)
-    ORDER BY r.name DESC LIMIT 1
+    ORDER BY r.name <= d.rate_date DESC, ABS(r.name - d.rate_date)
+    LIMIT 1
 ) from_rate ON TRUE
 CROSS JOIN LATERAL (
-    SELECT CASE WHEN ctry.currency_id IS NOT NULL AND ctry.currency_id <> comp.currency_id
-                     AND to_rate.rate IS NOT NULL
-                THEN ctry.currency_id ELSE comp.currency_id END AS currency_id,
-           CASE WHEN ctry.currency_id IS NOT NULL AND ctry.currency_id <> comp.currency_id
-                     AND to_rate.rate IS NOT NULL
-                THEN to_rate.rate / COALESCE(from_rate.rate, 1) ELSE 1 END AS factor
+    SELECT (comp.currency_mode <> 'none' AND ctry.currency_id IS NOT NULL
+            AND ctry.currency_id <> comp.currency_id AND to_rate.rate IS NOT NULL) AS do_convert
+) k
+CROSS JOIN LATERAL (
+    SELECT CASE WHEN k.do_convert THEN ctry.currency_id ELSE comp.currency_id END AS currency_id,
+           CASE WHEN k.do_convert THEN to_rate.rate / COALESCE(from_rate.rate, 1) ELSE 1 END AS factor
 ) cur
