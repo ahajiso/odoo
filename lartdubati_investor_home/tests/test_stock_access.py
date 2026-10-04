@@ -76,3 +76,24 @@ class TestStockAccess(TransactionCase):
     def test_non_member_unrestricted(self):
         self.user.groups_id -= self.env.ref("lartdubati_investor_home.group_stock_investor")
         self.assertEqual(self._visible_stocks(), self.stock_a | self.stock_b)
+
+    def test_monitor_domain(self):
+        Profile = self.Profile
+        self.assertEqual(Profile.browse()._monitor_domain(), [(0, "=", 1)])
+        self.assertEqual(Profile.create({"name": "All"})._monitor_domain(), [(1, "=", 1)])
+        profile = Profile.create(
+            {
+                "name": "Rented assets in France",
+                "country_ids": [Command.set(self.france.ids)],
+                "ownership_type_ids": [
+                    Command.set(self.env.ref("lartdubati_investor_home.ownership_rented").ids)
+                ],
+                "family_ids": [
+                    Command.set(self.env.ref("lartdubati_investor_home.family_asset").ids)
+                ],
+            }
+        )
+        domain = profile._monitor_domain()
+        self.assertIn(("x_family", "in", ["asset"]), domain)
+        self.assertIn(("x_ownership", "in", ["rented"]), domain)
+        self.assertIn(("x_country_id", "in", self.france.ids), domain)

@@ -54,3 +54,20 @@ class StockAccess(models.Model):
                 [("warehouse_id.partner_id.country_id", "in", self.country_ids.ids)]
             )
         return expression.AND(domain) if domain else expression.TRUE_DOMAIN
+
+    def _monitor_domain(self):
+        """Record-rule domain on the stock monitor report (OCA bi_sql_editor
+        view, whose columns are prefixed with x_) for this profile."""
+        if not self:
+            return expression.FALSE_DOMAIN
+        self.ensure_one()
+        domain = []
+        if self.family_ids:
+            domain.append([("x_family", "in", self.family_ids.mapped("code"))])
+        if self.ownership_type_ids:
+            domain.append([("x_ownership", "in", self.ownership_type_ids.mapped("code"))])
+        if self.location_ids:
+            domain.append([("x_location_id", "child_of", self.location_ids.ids)])
+        if self.country_ids:
+            domain.append([("x_country_id", "in", self.country_ids.ids)])
+        return expression.AND(domain) if domain else expression.TRUE_DOMAIN

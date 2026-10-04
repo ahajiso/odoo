@@ -33,4 +33,6 @@ class ResUsers(models.Model):
             return expression.OR(
                 [[("usage", "!=", "internal")], user.stock_access_id._location_domain()]
             )
+        if target == "monitor":
+            return user.stock_access_id._monitor_domain()
         raise ValueError(target)
