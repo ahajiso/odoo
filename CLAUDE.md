@@ -76,6 +76,11 @@ New module `lartdubati_investor_home`:
 - Investors read only the stock monitor (no Inventory/Maintenance rights). Access record
   rules are global (not group rules, which Odoo ORs with other rules): on the monitor
   model and on internal stock locations.
+- Receiving (phase 3, no custom form): consumables by standard Inventory receipts (owner
+  field via the Consignment setting, enabled on artdubati_test); bought assets by vendor
+  bills (OCA maintenance_account creates the equipment, put in the main warehouse stock
+  with its cost); borrowed/rented/lent-out assets on the equipment form. An active
+  equipment must have an internal stock (model constraint).
 - Phase 0: consumable product categories 11-17 set to average cost on artdubati_test.
   Asset profiles wait for the accountant's answers.
 
