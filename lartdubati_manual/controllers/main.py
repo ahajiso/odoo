@@ -8,10 +8,10 @@ MANUAL_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file
 SAFE = re.compile(r"^[a-z0-9-]{1,40}$")
 
 class LartdubatiManual(http.Controller):
-    """Pages HTML statiques générées depuis le manuel Claude Docs.
+    """Pages HTML statiques du manuel (manual/<lang>/<page>.html, éditées dans le dépôt).
 
-    Les fichiers sont lus à chaque requête : republier le contenu
-    (publier_manuel.sh) ne nécessite ni mise à jour du module ni redémarrage.
+    Les fichiers sont lus à chaque requête : publier le contenu (git pull)
+    ne nécessite ni mise à jour du module ni redémarrage.
     """
 
     def _languages(self):

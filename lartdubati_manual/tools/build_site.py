@@ -1,7 +1,12 @@
-"""Génère les pages web du manuel (/manuel) à partir des exports Markdown de Claude Docs.
+"""Gabarit des pages web du manuel (/manuel) et import ponctuel depuis Markdown.
 
-Usage : python3 build_site.py --lang fr --src src --out manual
-Produit manual/<lang>/<page>.html, autonomes (CSS et JS inclus), sans ressource externe.
+Les fiches s'éditent directement dans lartdubati_manual/manual/<lang>/*.html ;
+refresh.py reconstruit ensuite sommaires, index de recherche et liens à partir
+de ces pages, avec le gabarit (CSS, JS, libellés, SCREENS) défini ici.
+
+Usage ponctuel (créer un onglet entier depuis des fichiers Markdown) :
+python3 build_site.py --lang fr --src src --out ../manual
+Produit <out>/<lang>/<page>.html, autonomes (CSS et JS inclus), sans ressource externe.
 """
 import argparse
 import datetime
@@ -10,13 +15,12 @@ import json
 import os
 import re
 
-from markdown_it import MarkdownIt
 
 UI = {
     "fr": {
         "dir": "ltr", "title": "Manuel Odoo – L'Art du Bâti", "search": "Rechercher une fiche (code, mot-clé)…",
-        "toc": "Fiches de cet onglet", "noresult": "Aucune fiche trouvée", "generated": "Généré le",
-        "source": "Ne pas modifier ces pages directement.",
+        "toc": "Fiches de cet onglet", "noresult": "Aucune fiche trouvée", "generated": "Mis à jour le",
+        "source": "",
         "print": "Imprimer",
         "pages": [
             ("index", "Accueil.md", "Accueil"),
@@ -30,8 +34,8 @@ UI = {
     },
     "en": {
         "dir": "ltr", "title": "Odoo Manual – L'Art du Bâti", "search": "Search a sheet (code, keyword)…",
-        "toc": "Sheets in this tab", "noresult": "No sheet found", "generated": "Generated on",
-        "source": "Do not edit these pages directly.",
+        "toc": "Sheets in this tab", "noresult": "No sheet found", "generated": "Updated on",
+        "source": "",
         "print": "Print",
         "pages": [
             ("index", "Home.md", "Home"), ("reference", "Reference.md", "Reference"),
@@ -42,8 +46,8 @@ UI = {
     },
     "fa": {
         "dir": "rtl", "title": "راهنمای اودو – L'Art du Bâti", "search": "جستجوی برگه (کد، کلیدواژه)…",
-        "toc": "برگه‌های این بخش", "noresult": "برگه‌ای یافت نشد", "generated": "تاریخ تولید",
-        "source": "این صفحات را مستقیماً ویرایش نکنید.",
+        "toc": "برگه‌های این بخش", "noresult": "برگه‌ای یافت نشد", "generated": "تاریخ به‌روزرسانی",
+        "source": "",
         "print": "چاپ",
         "pages": [
             ("index", "خانه.md", "خانه"), ("reference", "مرجع.md", "مرجع"),
@@ -250,11 +254,10 @@ IMG_RE = re.compile(
 def link_images(fragment):
     """Transforme les liens vers des captures d'écran en <figure><img>.
 
-    Dans Claude Docs, on insère un lien normal dont l'URL pointe vers le
+    Dans une fiche, on écrit un lien normal dont l'URL pointe vers le
     fichier statique servi par le module (ex.
     /lartdubati_manual/static/screenshots/fr/import-equipement.png) et dont le
-    texte du lien sert de légende. Cette fonction convertit ce lien en image
-    à la génération : aucune image n'est stockée dans Claude Docs.
+    texte du lien sert de légende. Cette fonction convertit ce lien en image.
     """
 
     def repl(m):
@@ -300,6 +303,8 @@ def link_menus(fragment, lang):
 
 
 def render(md_text):
+    from markdown_it import MarkdownIt  # seulement pour l'import depuis Markdown
+
     md_text = BYLINE_RE.sub("", md_text)
     md = MarkdownIt("commonmark", {"html": False, "linkify": False}).enable("table")
     tokens = md.parse(md_text)
@@ -325,34 +330,35 @@ def plain(html_text):
     return html.unescape(re.sub(r"<[^>]+>", " ", html_text))
 
 
-def build(lang, src, out):
+def index_entries(key, label, body):
+    """Entrées de l'index de recherche d'une page : une par titre h2."""
+    entries = []
+    for sec in re.split(r'(?=<h2 id=")', body):
+        m = re.match(r'<h2 id="([^"]+)">(.*?)</h2>', sec, re.S)
+        if not m:
+            continue
+        htxt = plain(m.group(2)).strip()
+        cm = re.match(r"^((?:REF|ADM|PARC|CPT|CH|INV)-\d{2})\s*(.*)$", htxt)
+        entries.append({
+            "c": cm.group(1) if cm else "", "t": html.escape(cm.group(2) if cm else htxt), "p": html.escape(label),
+            "u": f"{key}#{m.group(1)}",
+            "s": re.sub(r"\s+", " ", _norm(plain(sec))),
+        })
+    return entries
+
+
+def write_pages(lang, out, rendered):
+    """Écrit <out>/<lang>/<page>.html. rendered[key] = (titre, fiches, corps, libellé)."""
     ui = UI[lang]
-    rendered, index = {}, []
-    available = [p for p in ui["pages"] if os.path.exists(os.path.join(src, p[1]))]
-    if not available:
-        raise SystemExit(f"Aucune page source trouvée pour {lang} dans {src}")
-    for key, fname, label in available:
-        with open(os.path.join(src, fname), encoding="utf-8") as f:
-            title, fiches, body = render(f.read())
-        rendered[key] = (title or label, fiches, body, label)
-        # search index: split body per h2
-        sections = re.split(r'(?=<h2 id=")', body)
-        for sec in sections:
-            m = re.match(r'<h2 id="([^"]+)">(.*?)</h2>', sec, re.S)
-            if not m:
-                continue
-            htxt = plain(m.group(2)).strip()
-            cm = re.match(r"^((?:REF|ADM|PARC|CPT|CH|INV)-\d{2})\s*(.*)$", htxt)
-            index.append({
-                "c": cm.group(1) if cm else "", "t": html.escape(cm.group(2) if cm else htxt), "p": html.escape(label),
-                "u": f"{key}#{m.group(1)}",
-                "s": re.sub(r"\s+", " ", _norm(plain(sec))),
-            })
+    index = []
+    for key, (title, fiches, body, label) in rendered.items():
+        index += index_entries(key, label, body)
     langs_here = sorted(d for d in os.listdir(out) if os.path.isdir(os.path.join(out, d))) if os.path.isdir(out) else []
     langs_here = sorted(set(langs_here) | {lang})
     today = datetime.date.today().strftime("%d/%m/%Y")
     os.makedirs(os.path.join(out, lang), exist_ok=True)
     js = JS.replace("__INDEX__", json.dumps(index, ensure_ascii=False)).replace("__NORES__", ui["noresult"])
+    footer_src = f" · {html.escape(ui['source'])}" if ui["source"] else ""
     for key, (title, fiches, body, label) in rendered.items():
         tabs = "".join(
             f'<a href="{k}"{" class=on" if k == key else ""}>{html.escape(rendered[k][3])}</a>' for k in rendered
@@ -377,11 +383,24 @@ def build(lang, src, out):
 <input id="q" type="search" placeholder="{html.escape(ui['search'])}" autocomplete="off">
 <span class="langs">{langs}</span></div><nav class="tabs">{tabs}</nav><div id="results"></div></header>
 <main><div class="card"><h1>{html.escape(title)}</h1>{toc}{body_linked}</div></main>
-<footer><span>{ui['generated']} {today} · {html.escape(ui['source'])}</span><button onclick="print()">{ui['print']}</button></footer>
+<footer><span>{ui['generated']} {today}{footer_src}</span><button onclick="print()">{ui['print']}</button></footer>
 <script>{js}</script></body></html>"""
         with open(os.path.join(out, lang, key + ".html"), "w", encoding="utf-8") as f:
             f.write(page)
         print(f"{lang}/{key}.html  {len(fiches)} sections")
+
+
+def build(lang, src, out):
+    ui = UI[lang]
+    rendered = {}
+    available = [p for p in ui["pages"] if os.path.exists(os.path.join(src, p[1]))]
+    if not available:
+        raise SystemExit(f"Aucune page source trouvée pour {lang} dans {src}")
+    for key, fname, label in available:
+        with open(os.path.join(src, fname), encoding="utf-8") as f:
+            title, fiches, body = render(f.read())
+        rendered[key] = (title or label, fiches, body, label)
+    write_pages(lang, out, rendered)
 
 
 def _norm(s):
