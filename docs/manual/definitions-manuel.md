@@ -1,65 +1,43 @@
 # Définitions — manuel Odoo L'Art du Bâti
 
-Document de référence à l'usage de Claude. Il rassemble tout ce qui est
-*stable* : où vivent les trois documents du manuel, les codes de fiches, les
+Document de référence pour toute personne ou tout agent qui modifie Odoo ou
+le manuel. Il rassemble tout ce qui est *stable* : où vivent les pages du
+manuel, les codes de fiches, les
 règles de rédaction, le vocabulaire par langue, le format du journal, et la
 fiche technique de l'instance Odoo. La procédure elle-même (quand et comment
 agir) est dans `maintenance-manuel-odoo.md`, à côté de ce fichier.
 
-Dernière mise à jour : 03/10/2026 (ajout des conventions d'import en masse,
-de capture d'écran et de publication par dépôt git ; libellés FA de l'assistant
-d'import vérifiés dans les fichiers fa.po officiels d'Odoo 18).
+Dernière mise à jour : 07/10/2026 (les fiches s'éditent directement dans les
+pages HTML du dépôt ; Claude Docs n'est plus utilisé).
 
-## 1. Les trois documents
+## 1. Les pages du manuel
 
-Claude Docs est la source unique du contenu ; les pages web sous
-`lartdubati_manual/manual/<lang>/` sont **générées** à partir de lui et ne
-doivent jamais être éditées directement (voir `maintenance-manuel-odoo.md`
-§« Source de vérité »).
+Les pages HTML du dépôt sont la source unique du contenu (voir
+`maintenance-manuel-odoo.md` §« Source de vérité ») :
+`lartdubati_manual/manual/<lang>/<page>.html`, servies sur
+`https://erp.lartdubati.com/manuel/<lang>/<page>` (connexion requise). Balisage
+d'une fiche et outils : `lartdubati_manual/tools/README.md`.
 
-| Langue | Titre | Doc id (container) | URL |
-| --- | --- | --- | --- |
-| FR (référence) | Manuel Odoo – L'Art du Bâti (FR) | a7828da9-0a0c-4a7f-8cae-49f1c3d934ab | https://claude.ai/code/artifact/a7828da9-0a0c-4a7f-8cae-49f1c3d934ab |
-| EN | Manuel Odoo – L'Art du Bâti (EN) | 3efc85ac-0f1e-4694-90e5-a3256b5d9cbc | https://claude.ai/code/artifact/3efc85ac-0f1e-4694-90e5-a3256b5d9cbc |
-| FA | Manuel Odoo – L'Art du Bâti (FA) | c84b1427-c085-42b9-99ef-2565486b743c | https://claude.ai/code/artifact/c84b1427-c085-42b9-99ef-2565486b743c |
-
-Ces trois documents sont liés au compte claude.ai de l'utilisateur. Une
-session Claude Code peut les lire, les modifier et les exporter si elle
-dispose des outils `mcp__Claude_Docs__*` (c'est le cas des sessions Claude
-Code sur le web ouvertes avec ce compte). Sans ces outils, voir la section
-« Ce qui n'existe que côté Claude Docs » tout en bas de ce fichier.
-
-### Onglets
-
-| Page web | FR : onglet · tab id · node | EN : onglet · tab id · node | FA : onglet · tab id · node | Codes |
+| Page (fichier) | FR | EN | FA | Codes |
 | --- | --- | --- | --- | --- |
-| index | Accueil · 05221feb-a132 · d1d291f9-609a | Home · 74e370d1-0795 · 30337180-15e6 | خانه · a79db514-d0c7 · 83d88cca-b426 | — (profils, gabarit, règles, journal) |
-| reference | Référence · 47fe5456-87fd · db68ed44-17c1 | Reference · 4209b37f-fe2a · 18c4999b-763a | مرجع · 27b9226c-732c · 19fbef5b-1e02 | REF-01 à REF-10 |
-| admin | Admin Odoo · 5b6a64e4-79ec · e9e520e4-6128 | Odoo Admin · aa096bb8-3386 · 7ec38d8c-7e79 | مدیر اودو · d55939d9-a7aa · 6f5f67be-42cd | ADM-01 à ADM-12 |
-| parc | Responsable parc · 91901160-3123 · 80b1101f-ee7f | Fleet manager · 6b99ac29-c5ed · 369c8c02-7c72 | انباردار/امین اموال · c9615183-5878 · 7e7daaf3-4f51 | PARC-01 à PARC-11 |
-| comptable | Comptable · 0e760d90-5bf2 · b259aee5-6ba6 | Accountant · 1911f8d6-30f8 · 732f18f9-2e73 | حسابدار · f7e2d130-575c · 805cfd89-b3a4 | CPT-01 à CPT-15 |
-| chantier | Chantier · 02229e66-47d7 · 1ab14945-7ad7 | Site · 0454b652-a47f · d9ab7a8f-cb6d | کارگاه · ad9f5a05-6add · 1fd65ca3-9d78 | CH-01 à CH-03 |
-| investisseur | Investisseur · cecdf6f0-f762 · 3d07bd64-7e4e | Investor · c3598199-ab2e · 57cf7d2a-8b05 | سرمایه‌گذار · 81042ad0-6384 · d45d0660-98ec | INV-01 à INV-04 |
+| index | Accueil | Home | خانه | — (profils, gabarit, règles, journal) |
+| reference | Référence | Reference | مرجع | REF-01 à REF-10 |
+| admin | Admin Odoo | Odoo Admin | مدیر اودو | ADM-01 à ADM-12 |
+| parc | Responsable parc | Fleet manager | انباردار/امین اموال | PARC-01 à PARC-11 |
+| comptable | Comptable | Accountant | حسابدار | CPT-01 à CPT-15 |
+| chantier | Chantier | Site | کارگاه | CH-01 à CH-03 |
+| investisseur | Investisseur | Investor | سرمایه‌گذار | INV-01 à INV-04 |
+
+Les noms d'onglets affichés viennent de `UI[lang]["pages"]` dans
+`lartdubati_manual/tools/build_site.py` ; les préfixes de codes et leur page,
+de `CODE_PAGE` dans le même fichier.
 
 Rôle « Responsable parc » : EN « Fleet Manager / Storekeeper », FA
 « انباردار/امین اموال » (choix de l'utilisateur ; ne plus utiliser
-« مسئول پارک » ni « مسئول ناوگان »). L'export Claude Docs remplace le « / »
-du nom d'onglet par une espace : le fichier attendu par le générateur pour
-l'onglet FA « parc » est `انباردار امین اموال.md` (voir
-`lartdubati_manual/tools/README.md`).
+« مسئول پارک » ni « مسئول ناوگان »).
 
 Onglet FA « investisseur » : nom « سرمایه‌گذار » avec demi-espace (ZWNJ,
-U+200C) ; l'export garde le ZWNJ (`سرمایه‌گذار.md`). Claude Docs refuse le
-ZWNJ dans le `birthName` d'un onglet : l'onglet a été créé avec le
-birthName `Investor-fa.ldoc`, puis renommé.
-
-Les **ids de blocs** à l'intérieur d'un onglet (ceux qu'on cible avec
-`{"kind":"blocks","ids":[...]}`) changent à chaque réécriture : ne jamais les
-stocker dans ce fichier. Avant de modifier une fiche, lire l'outline de
-l'onglet (`read` sur le node, payload `{"kind":"view","outline":true}`), ou
-chercher (`{"kind":"search","text":"…"}` / `"pattern"`). Les **ids de doc**,
-**de tab** et **de node** ci-dessus, eux, sont stables — c'est pour ça qu'ils
-sont enregistrés ici.
+U+200C).
 
 ## 2. Règles de rédaction
 
@@ -74,7 +52,7 @@ sont enregistrés ici.
   fichiers de traduction officiels Odoo 18 (`addons/*/i18n/fr.po`, `fa.po` ;
   `msgid` = libellé anglais) et dans `lartdubati_manual` /
   `maintenance_shareholder_equipment` i18n pour les champs du module. Voir
-  §5 pour les libellés courants.
+  §4 pour les libellés courants.
 - Données saisies en français dans Odoo (étiquettes de contact, emplacements
   WH/…, catégorie et produits « Frais généraux », noms d'exemple) : gardées
   telles quelles dans les trois langues, avec une glose si utile.
@@ -87,10 +65,9 @@ sont enregistrés ici.
   `lartdubati_manual/tools/README.md`).
 - Comptes comptables : plan comptable général, toujours présentés comme « à
   valider par l'expert-comptable ».
-- Renvoi vers un écran d'Odoo : **ne rien faire de particulier dans Claude
-  Docs** — écrire le chemin de menu en gras comme d'habitude (**Maintenance →
-  Équipement**), `build_site.py` le transforme en lien à la génération, dans
-  les trois langues. Le dictionnaire `SCREENS` du script associe le libellé
+- Renvoi vers un écran d'Odoo : écrire le chemin de menu en gras comme
+  d'habitude (**Maintenance → Équipement**, en HTML `<strong>…</strong>`) ;
+  `refresh.py` le transforme en lien, dans les trois langues. Le dictionnaire `SCREENS` du script associe le libellé
   du dernier segment (par langue) à un XML ID d'action ; si le chemin se
   termine par une action (Nouveau) ou un nom d'enregistrement (L'Art du
   Bâti), le générateur remonte le chemin jusqu'au premier segment connu.
@@ -123,22 +100,13 @@ sont enregistrés ici.
     Servies directement par Odoo comme toute ressource statique d'un module
     (`/lartdubati_manual/static/screenshots/<lang>/<fichier>.png`), sans
     contrôleur dédié.
-  - **Comment l'insérer dans Claude Docs** : un lien Markdown normal, dont le
-    texte sert de légende et dont l'URL est l'**URL absolue et complète**
-    (`https://erp.lartdubati.com/lartdubati_manual/static/screenshots/...`) —
-    jamais un chemin relatif ou commençant par `/` seul. Claude Docs
-    transforme silencieusement un lien à chemin relatif/host-relatif en texte
-    brut (le lien disparaît) ; seule une URL absolue produit un vrai lien.
-    Toujours relire le paragraphe après insertion
-    (`{"kind":"view","parentId":"<id du bloc>"}`) pour vérifier qu'un
-    `<link href="...">` a bien été créé.
-  - **Comment ça devient une image à la publication** : `build_site.py`
-    reconnaît ce motif exact (lien vers
-    `.../lartdubati_manual/static/screenshots/....png|jpg|jpeg`) et le
+  - **Comment l'insérer dans une fiche** : un lien dont le texte sert de
+    légende et dont l'URL pointe vers le fichier
+    (`<a href="/lartdubati_manual/static/screenshots/fr/x.png">Légende</a>`).
+  - **Comment ça devient une image** : `refresh.py` reconnaît ce motif (lien
+    vers `.../lartdubati_manual/static/screenshots/....png|jpg|jpeg`) et le
     transforme en `<figure><img loading="lazy"><figcaption></figure>` — voir
-    `IMG_RE` / `link_images()` dans
-    `lartdubati_manual/tools/build_site.py`. Aucune image n'est stockée dans
-    Claude Docs.
+    `IMG_RE` / `link_images()` dans `lartdubati_manual/tools/build_site.py`.
   - **Réutiliser une capture entre langues** : une capture ne montre qu'une
     seule interface (le plus souvent FR). Les fiches EN/FA peuvent pointer
     vers la même image FR tant que l'assistant Odoo concerné n'a pas de
@@ -148,9 +116,9 @@ sont enregistrés ici.
     l'interface diffère réellement (ex. RTL en FA).
   - **Prendre les captures sans bandeau de test** : le module
     `lartdubati_env_ribbon` affiche un bandeau rouge sur les bases de test
-    (voir §5). Pour une capture propre sans toucher au serveur ni redéployer
+    (voir §4). Pour une capture propre sans toucher au serveur ni redéployer
     quoi que ce soit, injecter dans la page, avant la capture, via l'outil
-    JavaScript du navigateur Claude :
+    console JavaScript du navigateur :
     ```js
     const s = document.createElement('style');
     s.textContent = '.o_env_ribbon_test{display:none !important}';
@@ -186,9 +154,9 @@ sont enregistrés ici.
   - **Fichiers modèles** : un fichier CSV d'exemple par formulaire d'import
     sujet à nos champs personnalisés, sous
     `lartdubati_manual/static/templates/` (mêmes règles de publication/lien
-    que les captures d'écran : lien Markdown vers l'URL absolue
-    `https://erp.lartdubati.com/lartdubati_manual/static/templates/<fichier>.csv`,
-    texte du lien = libellé du fichier).
+    que les captures d'écran : lien vers
+    `/lartdubati_manual/static/templates/<fichier>.csv`, texte du lien =
+    libellé du fichier).
     - `import-equipements-modele.csv` — équipements
       (`maintenance.equipment`), colonnes alignées sur nos champs
       personnalisés (propriétaire, responsable/partenaire, statut de
@@ -228,7 +196,7 @@ persans en FA).
 | Changement de plan comptable / comptes utilisés | CPT-02 à CPT-13 |
 | Dépenses générales (nouveau type, nouveau compte) | CPT-07, REF-04 |
 | Changement de droits d'accès / groupes | Rubrique Prérequis des fiches concernées ; tableau « Qui lit quoi » (Accueil) |
-| Nouveau profil utilisateur | Nouvel onglet dans les trois docs + ligne dans « Qui lit quoi » + `UI[lang]["pages"]` de `build_site.py` |
+| Nouveau profil utilisateur | Nouvelle page dans les trois langues + ligne dans « Qui lit quoi » + `UI[lang]["pages"]` et `CODE_PAGE` de `build_site.py` |
 | Montée de version Odoo | Toutes les fiches : vérifier menus et libellés dans les trois langues ; REF-08 (limites) ; ADM-05 |
 | Limite levée (ex. traduction des catégories de produit) | REF-08 + fiches qui la citent (REF-04, ADM-02) |
 | Accès des investisseurs (profils d'accès aux stocks, groupe Investisseur, règles) — module lartdubati_investor_home | ADM-10, ADM-11, INV-02, INV-04, REF-08 |
@@ -345,33 +313,5 @@ d'import pour que la correspondance automatique fonctionne du premier coup.
   quand le code, les vues, le menu ou les `.po` d'un module changent ; **pas**
   pour les seules pages HTML du manuel (`git pull` suffit, voir
   `maintenance-manuel-odoo.md` §« Publication »).
-- Lien Markdown Claude Docs à chemin relatif (`/lartdubati_manual/...`) :
-  silencieusement transformé en texte brut, pas en lien. Toujours une URL
-  absolue (`https://erp.lartdubati.com/...`) — voir §2.
-
-## 5. Ce qui n'existe que côté Claude Docs
-
-Cette section ne concerne que les sessions **sans** les outils
-`mcp__Claude_Docs__*` (voir §1). Une telle session ne peut
-**ni lire ni modifier** le contenu des fiches — celui-ci vit exclusivement
-dans les trois documents Claude Docs listés en §1, qui sont des documents
-claude.ai liés au compte de l'utilisateur, pas des fichiers du dépôt. Ce que
-le dépôt contient, c'est : le **résultat** de ce contenu (les pages HTML déjà
-générées, sous `lartdubati_manual/manual/`), l'**outil** qui le régénère
-(`lartdubati_manual/tools/`), et **cette documentation**. Concrètement, une
-session Claude Code peut :
-
-- régénérer les pages HTML si on lui fournit les exports Markdown à jour
-  (soit en dossier déjà exporté, soit en les import-collant dans le dépôt) ;
-- vérifier la cohérence FR/EN/FA des exports fournis (`check.py`) ;
-- modifier le générateur lui-même (`build_site.py`, templates CSS/JS,
-  correspondances d'écrans) ;
-- mettre à jour cette documentation.
-
-Elle ne peut pas, sans qu'on lui donne un export à jour : savoir ce que
-contient une fiche, ajouter ou modifier une fiche, consulter le journal des
-modifications, ou vérifier qu'une fiche correspond encore à l'état réel
-d'Odoo. Si une tâche demande cela, la bonne réponse est de le dire
-explicitement plutôt que de deviner à partir des pages HTML déjà publiées
-(qui peuvent être en retard sur Claude Docs, ou — plus rarement — avoir été
-régénérées depuis un export qui n'a pas encore été relu).
+- Éditer une page sans lancer `refresh.py` : le sommaire, la recherche des
+  autres pages et les liens automatiques restent sur l'ancien état.

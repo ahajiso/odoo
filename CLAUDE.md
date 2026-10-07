@@ -60,12 +60,13 @@
   when necessary.
 - Develop and test on artdubati_test only; production only on explicit request.
 - Never guess an external ID: look it up and show it first.
-- Every Odoo change requires the manual update (FR, then EN/FA), a changelog line,
-  and regeneration of /manuel. The procedure and its definitions (card codes, writing
-  rules, terminology, impact matrix) are in this repo: docs/manual/maintenance-manuel-odoo.md
-  and docs/manual/definitions-manuel.md; the generator is in lartdubati_manual/tools/
-  (see its README). Read them before touching the manual. Investor profile tab in the
-  three manuals.
+- Every Odoo change requires the manual update (FR, then EN/FA) and a changelog line.
+  The manual's cards are edited directly in lartdubati_manual/manual/<lang>/*.html,
+  then `lartdubati_manual/tools/refresh.py` and `check.py` are run. Procedure and
+  definitions (card codes, writing rules, terminology, impact matrix):
+  docs/manual/maintenance-manuel-odoo.md and docs/manual/definitions-manuel.md; tools:
+  lartdubati_manual/tools/README.md. Read them before touching the manual. Investor
+  profile tab in the three manuals.
 - Update module on the server: `docker exec -i odoo_web odoo -d artdubati_test -u <module>
   --stop-after-init` then `docker restart odoo_web`.
   Run tests: `docker exec -i odoo_web odoo -d artdubati_test -u <module> --test-enable

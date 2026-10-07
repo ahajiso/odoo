@@ -1,15 +1,13 @@
 # Maintenance du manuel Odoo – L'Art du Bâti
 
-Document technique à l'usage de Claude. Il décrit où se trouve le manuel
-utilisateur, comment il est construit et comment le tenir à jour. Les
-éléments stables (ids, codes de fiches, règles de rédaction, vocabulaire,
-fiche technique Odoo) sont dans `definitions-manuel.md`, à côté de ce
-fichier — ce document-ci couvre la procédure : quand agir, dans quel ordre,
-avec quels outils.
+Document de procédure pour toute personne ou tout agent (Claude Code, Codex,
+développeur) qui modifie Odoo ou le manuel. Il décrit où se trouve le manuel
+utilisateur, comment le modifier et comment le publier. Les éléments stables
+(pages et codes de fiches, règles de rédaction, vocabulaire, fiche technique
+Odoo) sont dans `definitions-manuel.md`, à côté de ce fichier.
 
-Dernière mise à jour : 03/10/2026 (publication par dépôt git plutôt que par
-archive copiée sur le serveur ; ajout de la documentation sur l'import de
-fichier et des captures d'écran).
+Dernière mise à jour : 07/10/2026 (les fiches s'éditent directement dans les
+pages HTML du dépôt ; Claude Docs n'est plus utilisé).
 
 ## 1. Règle fondamentale
 
@@ -20,156 +18,127 @@ lorsque :
 
 1. il fonctionne dans Odoo ;
 2. les fiches impactées du manuel FR sont à jour ;
-3. une ligne est ajoutée au journal des modifications (onglet Accueil,
-   format en §« Journal » de `definitions-manuel.md`) ;
+3. une ligne est ajoutée au journal des modifications (page Accueil, format en
+   §« Journal » de `definitions-manuel.md`) ;
 4. les versions EN et FA sont mises à jour avec les mêmes codes, ou le
    retard est noté dans le journal (« EN/FA à faire ») ;
-5. le site `/manuel` est régénéré et poussé sur GitHub (§4) ; l'utilisateur
-   n'a plus qu'à faire `git pull` sur le serveur.
+5. les pages sont rafraîchies (`refresh.py`), vérifiées (`check.py`),
+   commitées et poussées (§4) ; l'utilisateur n'a plus qu'à faire `git pull`
+   sur le serveur.
 
-Si rien dans le manuel n'est impacté, le dire explicitement à l'utilisateur
-(« aucune fiche impactée ») plutôt que de passer l'étape sous silence.
+Si rien dans le manuel n'est impacté, le dire explicitement (« aucune fiche
+impactée ») plutôt que de passer l'étape sous silence.
 
 Pour savoir quelles fiches sont concernées par un changement donné, voir la
 matrice d'impact (`definitions-manuel.md` §3).
 
 ## 2. Source de vérité
 
-**Claude Docs est la source unique du contenu.** Les trois documents listés
-dans `definitions-manuel.md` §1 (Manuel Odoo – L'Art du Bâti, FR/EN/FA) sont
-l'endroit où une fiche se crée, se corrige, se complète. Les pages HTML sous
-`lartdubati_manual/manual/<lang>/*.html`, dans ce dépôt, sont un **résultat
-généré** : elles ne doivent jamais être éditées à la main. Toute édition
-faite directement sur un fichier `.html` serait écrasée à la prochaine
-régénération, sans avertissement.
+**Les pages HTML du dépôt sont la source unique du contenu** :
+`lartdubati_manual/manual/<lang>/<page>.html` (langues `fr`, `en`, `fa` ;
+pages `index`, `reference`, `admin`, `parc`, `comptable`, `chantier`,
+`investisseur`). Le module Odoo `lartdubati_manual` les sert telles quelles sur
+`https://erp.lartdubati.com/manuel` (connexion requise). Il n'y a pas d'autre
+copie : ni Claude Docs, ni projet Claude, ni fichier Markdown.
 
-**EN et FA ne sont pas retraduits automatiquement à chaque changement.** Ce
-sont des documents Claude Docs vivants, tenus en parallèle du FR : une
-nouvelle fiche FR est répercutée en EN et FA à la main (ou par Claude), avec
-les codes identiques et les libellés de l'interface Odoo dans leur propre
-langue (`definitions-manuel.md` §2) — ce n'est pas une traduction mot à mot
-automatisée du texte FR, mais la même information réécrite avec le
-vocabulaire correct de chaque interface. Si le temps manque, le retard est
-noté dans le journal (« EN/FA à faire ») plutôt que d'improviser une
-traduction non vérifiée.
+Dans une page, seul le **corps de la carte** s'édite à la main (tout ce qui
+suit le sommaire, jusqu'à `</div></main>`). L'en-tête, les onglets, le
+sommaire, l'index de recherche, le pied de page et les liens automatiques sont
+réécrits par `lartdubati_manual/tools/refresh.py` (balisage attendu et détail :
+`lartdubati_manual/tools/README.md`).
 
-Le site publié (`lartdubati_manual/manual/`) peut donc légitimement être en
-retard de quelques minutes ou heures sur Claude Docs, le temps de régénérer
-et pousser — mais jamais en avance, et jamais divergent sur le fond.
+**EN et FA ne sont pas retraduits automatiquement.** Une nouvelle fiche FR est
+répercutée en EN et FA avec les codes identiques et les libellés de
+l'interface Odoo dans leur propre langue (`definitions-manuel.md` §2 et §4) :
+la même information réécrite avec le vocabulaire de chaque interface, pas une
+traduction mot à mot. Si le temps manque, le retard est noté dans le journal
+(« EN/FA à faire ») plutôt que d'improviser une traduction non vérifiée.
 
 ## 3. Procédure de mise à jour d'une fiche
 
 1. Identifier le changement Odoo et les fiches impactées
-   (`definitions-manuel.md` §3).
-2. Lire l'outline des onglets concernés (FR, puis EN, FA) — jamais à partir
-   d'ids de blocs mémorisés, qui changent à chaque réécriture
-   (`definitions-manuel.md` §1).
-3. Modifier uniquement les fiches concernées : `update` sur le node de
-   l'onglet (engine prose), `replace` d'un bloc (guard `ifHash`, ou `ifRev`
-   sur ses propres écritures), ou cible `{"kind":"find","text":"…"}` (texte
-   sans `**` ; `"nth":1` si plusieurs occurrences ; `with` en `"as":"text"`
-   pour garder la mise en forme, `"as":"markdown"` pour ajouter du gras).
-4. Nouvelle fiche : `insert` après la dernière fiche de l'onglet, code
-   suivant, gabarit de rédaction (`definitions-manuel.md` §2). Nouvelle
-   ligne de tableau : `insert` `"as":"blocks"` en `"side":"end"` sur l'id du
-   tableau.
-5. Ajouter la ligne au journal (Accueil, dernier tableau) dans les trois
+   (`definitions-manuel.md` §3). Retrouver une fiche : `grep -n "INV-03"
+   lartdubati_manual/manual/fr/*.html`, ou la recherche du site.
+2. Modifier uniquement les fiches concernées, dans le corps de la page FR.
+3. Nouvelle fiche : à la fin de la page de l'onglet, code suivant de l'onglet
+   (jamais un code réutilisé), gabarit de rédaction (`definitions-manuel.md`
+   §2) et balisage du README des outils.
+4. Ajouter la ligne au journal (page Accueil, dernier tableau) dans les trois
    langues.
-6. Répercuter en EN/FA avec les libellés de leur interface (§2 ci-dessus,
-   `definitions-manuel.md` §2 et §4), ou noter « EN/FA à faire » dans le
+5. Répercuter en EN/FA (§2 ci-dessus), ou noter « EN/FA à faire » dans le
    journal.
-7. Régénérer et publier (§4 ci-dessous).
-8. Mettre à jour `definitions-manuel.md` si les ids, la version du module,
-   les champs, les libellés ou la matrice d'impact changent ; mettre à jour
-   ce document si la procédure elle-même change.
-9. Dire à l'utilisateur quelles fiches ont changé et confirmer qu'il n'a
-   rien d'autre à faire que `git pull` sur le serveur (§4).
+6. Rafraîchir et vérifier (§4).
+7. Mettre à jour `definitions-manuel.md` si les pages, la version d'un module,
+   les champs, les libellés ou la matrice d'impact changent ; mettre à jour ce
+   document si la procédure elle-même change.
+8. Dire à l'utilisateur quelles fiches ont changé et qu'il n'a rien d'autre à
+   faire que `git pull` sur le serveur (§4).
 
-Si le changement Odoo est préparé par Claude (module, script, config), la
-mise à jour du manuel fait partie de la livraison : la proposer dans la même
-réponse, avant de déclarer le travail terminé.
+Si le changement Odoo est préparé par un agent (module, script, config), la
+mise à jour du manuel fait partie de la livraison : la faire dans le même
+travail, avant de déclarer celui-ci terminé.
 
 ### Capture d'écran ou fichier modèle d'import
 
-Si la fiche a besoin d'une capture d'écran ou d'un nouveau fichier modèle
-d'import, voir `definitions-manuel.md` §2 pour les conventions (où les
-fichiers vivent, comment les lier depuis Claude Docs, comment désactiver le
-bandeau de test le temps de la capture). Ajouter le fichier sous
+Conventions dans `definitions-manuel.md` §2 (quand faire une capture, où les
+fichiers vivent, comment masquer le bandeau de test). Ajouter le fichier sous
 `lartdubati_manual/static/screenshots/<lang>/` ou
-`lartdubati_manual/static/templates/`, le committer avec le reste (§4), puis
-seulement ensuite écrire le lien Markdown dans la fiche.
+`lartdubati_manual/static/templates/`, puis le lier depuis la fiche (le
+README des outils donne le balisage) et le committer avec la page.
 
-## 4. Génération et publication
+## 4. Rafraîchissement, vérification, publication
 
-Chaîne complète : **Claude Docs (source, 3 documents) → export Markdown par
-onglet → pages HTML (`lartdubati_manual/tools/build_site.py`) → commit +
-push dans `lartdubati_manual/manual/<lang>/` du dépôt
-github.com/ahajiso/odoo → `git pull` sur le serveur.**
+Chaîne complète : **édition de `lartdubati_manual/manual/<lang>/*.html` →
+`refresh.py` → `check.py` → commit + push sur github.com/ahajiso/odoo →
+`git pull` sur le serveur.**
 
-Le serveur n'a plus d'étape de copie d'archive : le dossier des modules sur
-mesure du serveur (`/opt/odoo/addons/custom`, voir
-`definitions-manuel.md` §4) **est** un clone de ce dépôt. Publier une mise à
-jour du manuel se résume, côté serveur, à `git pull` — aucun redémarrage,
-aucune commande `-u` (ça, c'est uniquement nécessaire quand le code, les
-vues ou les fichiers `.po` d'un module changent, pas pour les pages HTML du
-manuel, cf. `definitions-manuel.md` §« Pièges connus »).
+1. Rafraîchir les pages modifiées et leurs voisines :
+   ```bash
+   cd lartdubati_manual/tools
+   python3 refresh.py          # toutes les langues (ou : python3 refresh.py fr)
+   ```
+   Sans cette étape, le sommaire de l'onglet, la recherche des autres pages
+   et les liens automatiques (codes, menus, captures) ne voient pas la
+   modification.
+2. Contrôler :
+   - `python3 check.py` : cohérence FR/EN/FA (mêmes fiches, mêmes codes, mêmes
+     renvois, mêmes nombres, même nombre d'étapes, aucun renvoi orphelin) ;
+     toute différence restante doit être délibérée et notée au journal ;
+   - `git diff` : seules les fiches voulues ont changé (le reste du diff doit
+     se limiter à l'index de recherche et à la date du pied de page) ;
+   - rendu visuel des pages touchées (bureau, mobile, RTL pour FA), dans un
+     navigateur, pas seulement une relecture du HTML.
+3. Commit + push sur `github.com/ahajiso/odoo`, avec dans le même commit les
+   pages modifiées et tout nouveau fichier sous `lartdubati_manual/static/`
+   (captures, modèles d'import) qu'elles référencent.
+4. Publication : le dossier des modules sur mesure du serveur
+   (`/opt/odoo/addons/custom`, voir `definitions-manuel.md` §4) **est** un
+   clone de ce dépôt. Un `git pull` dans ce dossier suffit : aucun
+   redémarrage, aucune commande `-u` (nécessaire seulement quand le code, les
+   vues ou les `.po` d'un module changent, pas pour les pages du manuel).
 
-Étapes, côté session Claude qui a accès à Claude Docs :
+### Historique : méthodes abandonnées
 
-1. Exporter chaque onglet des trois documents avec
-   `mcp__Claude_Docs__export` (voir `lartdubati_manual/tools/README.md` pour
-   le détail exact de l'appel et des noms de fichiers attendus).
-2. Récupérer les fichiers exportés dans des dossiers source
-   (`python3 extract_exports.py …`, voir le même README).
-3. Générer : pour chaque langue,
-   `python3 build_site.py --lang <lang> --src <dossier_src_lang> --out
-   ../manual` depuis `lartdubati_manual/tools/` (détail complet, dépendances
-   et options dans `lartdubati_manual/tools/README.md`).
-4. Contrôler avant de committer :
-   - cohérence FR/EN/FA avec `check.py` (mêmes fiches, mêmes codes, mêmes
-     renvois, même nombre d'étapes — voir le README des outils) ;
-   - liens `page#code` et ancres valides ;
-   - rendu visuel (desktop + mobile, RTL pour FA) — par une capture rapide
-     des pages générées dans le navigateur, pas seulement une relecture du
-     HTML.
-5. Commit + push sur `github.com/ahajiso/odoo`, avec les lignes
-   d'attribution Claude en fin de message (voir le rappel système de la
-   session en cours pour le format exact). Inclure dans le même commit :
-   les pages `lartdubati_manual/manual/<lang>/*.html` régénérées, et tout
-   fichier nouveau sous `lartdubati_manual/static/` (captures, modèles
-   d'import) référencé par les fiches qui viennent d'être modifiées.
-6. Dire à l'utilisateur qu'un `git pull` sur le serveur (dans
-   `/opt/odoo/addons/custom`) suffit à publier — aucun redémarrage d'Odoo.
-
-### Historique : ancienne méthode par archive (abandonnée)
-
-Avant le passage du dossier des modules sur mesure du serveur à un clone git
-(voir `definitions-manuel.md` §4), la publication se faisait par archive
-zip copiée sur le serveur (`publier_manuel.sh`) et nécessitait un script
-séparé pour l'installation initiale du module
-(`installer_module_manuel.sh`). Ces deux scripts ne sont plus d'actualité et
-n'ont pas été repris dans ce dépôt — seule la méthode par `git pull` ci-dessus
-s'applique désormais. Si un serveur devait un jour revenir à un déploiement
-par archive (nouvel environnement non cloné depuis ce dépôt, par exemple),
-réécrire un script équivalent plutôt que d'aller chercher l'ancien : il
-copiait `lartdubati_manual/manual/<lang>/` dans un dossier détecté par
-inspection du point de montage Docker, ce qui n'a plus de sens une fois le
-dossier suivi par git.
+- Jusqu'au 07/10/2026, le contenu vivait dans trois documents Claude Docs
+  (FR/EN/FA), exportés en Markdown puis convertis en HTML par
+  `build_site.py`. Les pages actuelles du dépôt sont le dernier état de ces
+  documents ; elles sont désormais la source. Les outils d'export Claude Docs
+  (`extract_exports.py`, `helpers/`) ont été retirés.
+- Avant le passage du dossier des modules à un clone git, la publication se
+  faisait par archive zip copiée sur le serveur (`publier_manuel.sh`,
+  `installer_module_manuel.sh`). Ces scripts ne sont plus d'actualité.
 
 ## 5. Ce que fait et ne fait pas cette documentation
 
-- Elle décrit la procédure et les règles ; elle ne contient jamais le texte
-  des fiches lui-même (celui-ci n'existe que dans Claude Docs, voir
-  `definitions-manuel.md` §5).
-- `lartdubati_manual/tools/` contient tout le code du générateur : il n'y a
-  pas, par ailleurs, d'étape manuelle de mise en forme HTML, de CSS ou de JS
-  en dehors de ce que `build_site.py` produit. Toute capture d'écran ou
-  fichier modèle d'import, en revanche, est bien un fichier statique ajouté
-  à la main (§3 ci-dessus) — ce n'est pas généré.
-- Si une étape de ce document ne correspond plus à ce que fait réellement
-  une session Claude (nom de fichier changé, nouvel outil, nouvelle
-  contrainte de l'API Claude Docs), corriger ce document dans la même
-  session plutôt que de laisser la divergence s'installer.
+- Elle décrit la procédure et les règles ; le texte des fiches est dans les
+  pages HTML.
+- `lartdubati_manual/tools/` contient le gabarit (CSS, JS, libellés, table
+  `SCREENS`) et les outils `refresh.py` et `check.py` : il n'y a pas d'autre
+  mise en forme à maintenir. Captures d'écran et fichiers modèles d'import
+  sont des fichiers statiques ajoutés à la main.
+- Si une étape de ce document ne correspond plus à la pratique (nom de
+  fichier changé, nouvel outil), corriger ce document dans le même travail
+  plutôt que de laisser la divergence s'installer.
 
 ## 6. Questions ouvertes (au 03/10/2026)
 
