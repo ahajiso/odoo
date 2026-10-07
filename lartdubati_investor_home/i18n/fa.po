@@ -1,0 +1,351 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* lartdubati_investor_home
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0-20260908\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-04 16:42+0000\n"
+"PO-Revision-Date: 2026-10-04 16:42+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__country_ids
+msgid "Allowed Countries"
+msgstr "کشورهای مجاز"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__family_ids
+msgid "Allowed Families"
+msgstr "خانواده‌های مجاز"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__ownership_type_ids
+msgid "Allowed Ownership"
+msgstr "مالکیت‌های مجاز"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__location_ids
+msgid "Allowed Stocks"
+msgstr "انبارهای مجاز"
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_access_form
+msgid "An empty list means no restriction on that criterion."
+msgstr "فهرست خالی یعنی هیچ محدودیتی برای این معیار وجود ندارد."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_item_family__code__asset
+msgid "Asset"
+msgstr "تجهیزات"
+
+#. module: lartdubati_investor_home
+#: model:lartdubati.item.family,name:lartdubati_investor_home.family_asset
+msgid "Assets"
+msgstr "تجهیزات"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_ownership_type__code__borrowed
+#: model:lartdubati.ownership.type,name:lartdubati_investor_home.ownership_borrowed
+msgid "Borrowed"
+msgstr "امانی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__code
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__code
+msgid "Code"
+msgstr "کد"
+
+#. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_res_company
+msgid "Companies"
+msgstr "شرکت‌ها"
+
+#. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_res_config_settings
+msgid "Config Settings"
+msgstr "تنظیمات پیکربندی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_item_family__code__consumable
+msgid "Consumable"
+msgstr "مصرفی"
+
+#. module: lartdubati_investor_home
+#: model:lartdubati.item.family,name:lartdubati_investor_home.family_consumable
+msgid "Consumables"
+msgstr "اقلام مصرفی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__create_uid
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__create_uid
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__create_uid
+msgid "Created by"
+msgstr "ایجاد شده توسط"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__create_date
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__create_date
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__create_date
+msgid "Created on"
+msgstr "ایجاد شده در"
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
+msgid "Currency Conversion"
+msgstr "تبدیل ارز"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__display_name
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__display_name
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__display_name
+msgid "Display Name"
+msgstr "نام نمایشی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.constraint,message:lartdubati_investor_home.constraint_lartdubati_item_family_code_unique
+msgid "Each item family can only exist once."
+msgstr "هر خانواده اقلام فقط یک بار می‌تواند وجود داشته باشد."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.constraint,message:lartdubati_investor_home.constraint_lartdubati_ownership_type_code_unique
+msgid "Each ownership type can only exist once."
+msgstr "هر دسته مالکیت فقط یک بار می‌تواند وجود داشته باشد."
+
+#. module: lartdubati_investor_home
+#. odoo-python
+#: code:addons/lartdubati_investor_home/models/maintenance_equipment.py:0
+msgid ""
+"Equipment %(name)s must have a Current Location that is an internal stock."
+msgstr "تجهیز %(name)s باید «مکان فعلی» داشته باشد که یک انبار داخلی باشد."
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
+msgid ""
+"How amounts are converted into the currency of a stock located in another "
+"country."
+msgstr "نحوه تبدیل مبالغ به ارز انباری که در کشور دیگری قرار دارد."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__id
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__id
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__id
+msgid "ID"
+msgstr "شناسه"
+
+#. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_stock_location
+msgid "Inventory Locations"
+msgstr "مکان های انبارداری"
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
+msgid "Inventory value of borrowed or rented consumables."
+msgstr "ارزش موجودی اقلام مصرفی امانی یا اجاره‌ای."
+
+#. module: lartdubati_investor_home
+#: model:ir.module.category,name:lartdubati_investor_home.module_category_investor
+msgid "Investor"
+msgstr "سرمایه‌گذار"
+
+#. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_lartdubati_item_family
+msgid "Item Family"
+msgstr "خانواده اقلام"
+
+#. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_account_move_line
+msgid "Journal Item"
+msgstr "آیتم دفترروزنامه"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__write_uid
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__write_uid
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__write_uid
+msgid "Last Updated by"
+msgstr "آخرین به‌روزرسانی توسط"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__write_date
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__write_date
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__write_date
+msgid "Last Updated on"
+msgstr "آخرین به‌روزرسانی در"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__res_company__stock_monitor_currency_mode__latest
+msgid "Latest Rate"
+msgstr "آخرین نرخ"
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
+msgid ""
+"Latest Rate: today's rate. Rate on Entry Date: the rate of the day the\n"
+"                            item entered the stock. No Conversion: everything in the company currency."
+msgstr "آخرین نرخ: نرخ امروز. نرخ در تاریخ ورود: نرخ روزی که قلم وارد انبار شد. بدون تبدیل: همه مبالغ به ارز شرکت."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_ownership_type__code__lent_out
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__stock_location__place_type__lent_out
+#: model:lartdubati.ownership.type,name:lartdubati_investor_home.ownership_lent_out
+msgid "Lent Out"
+msgstr "امانت داده شده"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_stock_location__place_type
+msgid "Lent Out: the stock that lent-out items belong to and return to."
+msgstr "امانت داده شده: انباری که اقلام امانت داده شده به آن تعلق دارند و به آن بازمی‌گردند."
+
+#. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_maintenance_equipment
+msgid "Maintenance Equipment"
+msgstr "تجهیزات نگهداری"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__name
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__name
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__name
+msgid "Name"
+msgstr "نام"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__res_company__stock_monitor_currency_mode__none
+msgid "No Conversion"
+msgstr "بدون تبدیل"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_res_users__stock_access_id
+msgid ""
+"Only used for members of the Stock Monitor Investor group. A member without "
+"a profile sees no stock."
+msgstr "فقط برای اعضای گروه «سرمایه‌گذار پایش انبار» استفاده می‌شود. عضوی که پروفایل ندارد هیچ انباری نمی‌بیند."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_ownership_type__code__owned
+#: model:lartdubati.ownership.type,name:lartdubati_investor_home.ownership_owned
+msgid "Owned"
+msgstr "ملکی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_lartdubati_ownership_type
+msgid "Ownership Type"
+msgstr "دسته مالکیت"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__stock_location__place_type__physical
+msgid "Physical"
+msgstr "فیزیکی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_stock_location__place_type
+msgid "Place Type"
+msgstr "نوع محل"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__res_company__stock_monitor_replacement_price__cost
+msgid "Product Cost"
+msgstr "بهای تمام‌شده محصول"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__res_company__stock_monitor_currency_mode__entry_date
+msgid "Rate on Entry Date"
+msgstr "نرخ در تاریخ ورود"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_ownership_type__code__rented
+#: model:lartdubati.ownership.type,name:lartdubati_investor_home.ownership_rented
+msgid "Rented"
+msgstr "اجاره‌ای"
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
+msgid "Replacement Price"
+msgstr "قیمت جایگزینی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__res_company__stock_monitor_replacement_price__list_price
+msgid "Sales Price"
+msgstr "قیمت فروش"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__sequence
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__sequence
+msgid "Sequence"
+msgstr "دنباله"
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_users_form_stock_access
+msgid "Stock Access"
+msgstr "دسترسی انبار"
+
+#. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_lartdubati_stock_access
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_res_users__stock_access_id
+msgid "Stock Access Profile"
+msgstr "پروفایل دسترسی انبار"
+
+#. module: lartdubati_investor_home
+#: model:ir.actions.act_window,name:lartdubati_investor_home.action_stock_access
+#: model:ir.ui.menu,name:lartdubati_investor_home.menu_stock_access
+msgid "Stock Access Profiles"
+msgstr "پروفایل‌های دسترسی انبار"
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_location_form_investor
+msgid "Stock Monitor"
+msgstr "پایش انبار"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_res_company__stock_monitor_currency_mode
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_res_config_settings__stock_monitor_currency_mode
+msgid "Stock Monitor Currency Conversion"
+msgstr "تبدیل ارز پایش انبار"
+
+#. module: lartdubati_investor_home
+#: model:res.groups,name:lartdubati_investor_home.group_stock_investor
+msgid "Stock Monitor Investor"
+msgstr "سرمایه‌گذار پایش انبار"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_res_company__stock_monitor_replacement_price
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_res_config_settings__stock_monitor_replacement_price
+msgid "Stock Monitor Replacement Price"
+msgstr "قیمت جایگزینی پایش انبار"
+
+#. module: lartdubati_investor_home
+#: model:res.groups,comment:lartdubati_investor_home.group_stock_investor
+msgid "Stock access restricted by the user's Stock Access Profile."
+msgstr "دسترسی انبار محدود به پروفایل دسترسی انبار کاربر."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_access__location_ids
+msgid "Sub-locations of an allowed stock are allowed too."
+msgstr "زیرمکان‌های یک انبار مجاز نیز مجاز هستند."
+
+#. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_res_users
+msgid "User"
+msgstr "کاربر"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__user_ids
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_access_form
+msgid "Users"
+msgstr "کاربران"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__stock_location__place_type__virtual
+msgid "Virtual"
+msgstr "مجازی"
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_access_form
+msgid "e.g. Investor - France"
+msgstr "مثلاً سرمایه‌گذار - فرانسه"
