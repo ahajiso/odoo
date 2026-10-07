@@ -41,6 +41,11 @@ a normal or job-site location, assigned through its responsible user and usage h
   - Only archived historical equipment may have neither.
 - Consumable: goods product with Track Inventory, quantity from stock.quant, no
   equipment record. Serial tracking optional.
+  v1: consumables are always `owned`. A receipt of a consumable with a third-party
+  owner is refused (constraint), because without a lot nothing tells a loan from a
+  rental. Required for the next version: lot tracking for borrowed / rented consumables
+  (e.g. scaffolding, props), with the ownership status on stock.lot and contract lines
+  pointing to the lot.
 
 ## Sources of truth
 | Information | Source |
@@ -59,8 +64,10 @@ a normal or job-site location, assigned through its responsible user and usage h
 
 The equipment field `partner_id` is the vendor, never the owner.
 
-## Ownership status (one explicit field, both families)
-`ownership_status`: owned | borrowed | rented | lent_out (stored, indexed, tracked).
+## Ownership status
+`ownership_status`: owned | borrowed | rented | lent_out (stored, indexed, tracked) on
+maintenance.equipment. Consumables are owned only in v1 (see Item families); the
+monitor shows them as owned.
 - owned: company property, in its stock.
 - borrowed: belongs to a third party (possibly a shareholder), held for free.
 - rented: belongs to a lessor, we pay rent.
@@ -225,3 +232,9 @@ ownership_state, rental_counterparty_id, rental_end_date, accounting_depreciatio
 physical_wear_active, return_obligation, initial_condition.
 Removed from maintenance.request: repairer, repair_invoice_ref, repair_cost (replaced by
 linked purchase orders and their bills).
+
+## Hypotheses to confirm by tests
+The integration with OCA modules (order of the `action_post()` overrides, one asset per
+unit with `asset_product_item`, no duplicate equipment from `maintenance_account`, free
+loan producing no invoice) is a design assumption until Odoo integration tests confirm
+it. List and status in CLAUDE.md.
