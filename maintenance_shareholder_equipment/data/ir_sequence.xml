@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_equipment_operation" model="ir.sequence">
+        <field name="name">Equipment Operation</field>
+        <field name="code">equipment.operation</field>
+        <field name="prefix">EQOP/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

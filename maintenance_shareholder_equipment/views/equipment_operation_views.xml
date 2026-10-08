@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="equipment_operation_view_list" model="ir.ui.view">
+        <field name="name">equipment.operation.list</field>
+        <field name="model">equipment.operation</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="operation_type"/>
+                <field name="receipt_branch" optional="show"/>
+                <field name="partner_id"/>
+                <field name="date"/>
+                <field name="requester_id" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-info="state in ('draft', 'to_approve')"
+                       decoration-warning="state == 'approved'"
+                       decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="equipment_operation_view_search" model="ir.ui.view">
+        <field name="name">equipment.operation.search</field>
+        <field name="model">equipment.operation</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="line_ids" string="Equipment" filter_domain="[('line_ids.equipment_id', 'ilike', self)]"/>
+                <filter name="to_approve" string="To Approve" domain="[('state', '=', 'to_approve')]"/>
+                <filter name="to_execute" string="To Execute" domain="[('state', 'in', ('draft', 'approved'))]"/>
+                <separator/>
+                <filter name="receipts" string="Receipts" domain="[('operation_type', '=', 'receipt')]"/>
+                <filter name="exits" string="Exits and Returns" domain="[('operation_type', 'in', ('exit', 'return'))]"/>
+                <filter name="restitutions" string="Restitutions" domain="[('operation_type', '=', 'restitution')]"/>
+                <group>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_type" string="Type" context="{'group_by': 'operation_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="equipment_operation_view_form" model="ir.ui.view">
+        <field name="name">equipment.operation.form</field>
+        <field name="model">equipment.operation</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" type="object" string="Submit for Approval" class="btn-primary"
+                            invisible="state != 'draft' or not needs_approval"
+                            groups="maintenance_shareholder_equipment.group_equipment_operator"/>
+                    <button name="action_approve" type="object" string="Approve" class="btn-primary"
+                            invisible="state not in ('draft', 'to_approve') or not needs_approval"
+                            groups="maintenance_shareholder_equipment.group_equipment_approver"/>
+                    <button name="action_execute" type="object" string="Execute" class="btn-primary"
+                            invisible="state not in ('draft', 'approved')"
+                            groups="maintenance_shareholder_equipment.group_equipment_operator"
+                            confirm="The stock movement, equipment and documents are created now, on today's date. Continue?"/>
+                    <button name="action_refresh_stop_lines" type="object" string="Load Contract Lines"
+                            invisible="state not in ('draft', 'to_approve') or operation_type not in ('return', 'restitution')"/>
+                    <button name="action_reset_draft" type="object" string="Back to Draft"
+                            invisible="state not in ('to_approve', 'approved')"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state not in ('draft', 'to_approve', 'approved')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,to_approve,approved,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="operation_type" readonly="state != 'draft'"/>
+                            <field name="receipt_branch" invisible="operation_type != 'receipt'"
+                                   required="operation_type == 'receipt'"/>
+                            <field name="acquisition_nature" invisible="receipt_branch != 'acquisition' or operation_type != 'receipt'"/>
+                            <field name="partner_id"/>
+                            <field name="site_partner_id" invisible="operation_type != 'exit'"
+                                   domain="[('commercial_partner_id', '=', partner_id)]"/>
+                            <field name="picking_type_id"/>
+                            <field name="location_dest_id" invisible="operation_type != 'receipt'"
+                                   domain="[('usage', '=', 'internal'), ('place_type', '=', 'physical')]"/>
+                        </group>
+                        <group>
+                            <field name="date"/>
+                            <field name="requester_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="needs_approval"/>
+                            <field name="approver_id" invisible="not approver_id"/>
+                            <field name="approval_date" invisible="not approval_date"/>
+                            <field name="executor_id" invisible="not executor_id"/>
+                            <field name="execution_date" invisible="not execution_date"/>
+                        </group>
+                    </group>
+                    <group string="Purchase" invisible="operation_type != 'receipt' or receipt_branch != 'purchase'">
+                        <group>
+                            <field name="purchase_mode"/>
+                            <field name="purchase_id" invisible="purchase_mode != 'existing'"
+                                   domain="[('state', '=', 'purchase'), ('partner_id', 'child_of', partner_id)]"/>
+                            <field name="currency_id" invisible="purchase_mode != 'create'"/>
+                            <field name="purchase_created_id" invisible="not purchase_created_id"/>
+                        </group>
+                        <group>
+                            <field name="bill_mode"/>
+                            <field name="bill_ref" invisible="bill_mode != 'create'"/>
+                            <field name="bill_date" invisible="bill_mode != 'create'"/>
+                            <field name="bill_attachment_ids" widget="many2many_binary" invisible="bill_mode != 'create'"/>
+                            <field name="bill_id" invisible="not bill_id"/>
+                        </group>
+                    </group>
+                    <group string="Contract"
+                           invisible="not (operation_type == 'exit' or (operation_type == 'receipt' and receipt_branch in ('borrowed', 'rented')))">
+                        <group>
+                            <field name="exit_nature" invisible="operation_type != 'exit'"/>
+                            <field name="contract_mode" invisible="operation_type != 'receipt'"/>
+                            <field name="contract_id" invisible="contract_mode != 'existing' or operation_type != 'receipt'"
+                                   domain="[('contract_type', '=', 'purchase'), ('partner_id', '=', partner_id)]"/>
+                            <field name="periodicity"/>
+                        </group>
+                        <group>
+                            <field name="contract_start"/>
+                            <field name="open_ended"/>
+                            <field name="contract_end" invisible="open_ended"/>
+                            <field name="contract_attachment_ids" widget="many2many_binary"/>
+                        </group>
+                    </group>
+                    <group string="Off-Site Stock" invisible="operation_type != 'exit'">
+                        <field name="offsite_location_id"
+                               domain="[('place_type', '=', 'lent_out'), ('usage', '=', 'internal'), ('address_id', 'child_of', partner_id)]"/>
+                        <field name="new_location_name" invisible="offsite_location_id"/>
+                        <field name="new_location_parent_id" invisible="offsite_location_id"/>
+                    </group>
+                    <notebook>
+                        <page string="Lines" name="lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="operation_type" column_invisible="1"/>
+                                    <field name="equipment_id" optional="show"/>
+                                    <field name="product_id"/>
+                                    <field name="family" optional="show"/>
+                                    <field name="quantity"/>
+                                    <field name="quantity_done" optional="show"/>
+                                    <field name="purchase_line_id" optional="hide"/>
+                                    <field name="price_unit" optional="hide"/>
+                                    <field name="tax_ids" widget="many2many_tags" optional="hide"/>
+                                    <field name="unit_value" optional="hide"/>
+                                    <field name="lot_name" optional="show"/>
+                                    <field name="lot_generate" optional="hide"/>
+                                    <field name="equipment_name" optional="hide"/>
+                                    <field name="responsible_user_id" optional="show"/>
+                                    <field name="warranty_status" optional="show"/>
+                                    <field name="insurance_status" optional="show"/>
+                                    <field name="replacement_value" optional="hide"/>
+                                    <field name="replacement_currency_id" optional="hide"/>
+                                    <field name="replacement_value_date" optional="hide"/>
+                                    <field name="rent_amount" optional="hide"/>
+                                    <field name="dest_location_id" optional="hide"/>
+                                    <field name="origin_location_id" optional="hide"/>
+                                    <field name="condition" optional="show"/>
+                                    <field name="attachment_ids" widget="many2many_binary" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Contract Lines to Stop" name="stops"
+                              invisible="operation_type not in ('return', 'restitution')">
+                            <field name="stop_line_ids">
+                                <list editable="bottom" create="0" delete="0">
+                                    <field name="contract_id"/>
+                                    <field name="contract_line_id"/>
+                                    <field name="equipment_id"/>
+                                    <field name="nature"/>
+                                    <field name="mandatory"/>
+                                    <field name="to_stop" readonly="mandatory"/>
+                                    <field name="confirmed" readonly="mandatory"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Documents" name="documents">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                            <field name="note" placeholder="Note"/>
+                        </page>
+                        <page string="Created Records" name="created" invisible="state != 'done'">
+                            <group>
+                                <field name="picking_ids" widget="many2many_tags"/>
+                                <field name="contract_ids" widget="many2many_tags"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_equipment_operation" model="ir.actions.act_window">
+        <field name="name">Equipment Operations</field>
+        <field name="res_model">equipment.operation</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_to_execute': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Receive, lend, take back or return equipment</p>
+            <p>Every supplier receipt and acquisition, every exit to a third party, return and restitution goes through an operation.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_equipment_operation_stock" action="action_equipment_operation"
+              parent="stock.menu_stock_warehouse_mgmt" sequence="3"
+              groups="group_equipment_operator,group_equipment_approver"/>
+    <menuitem id="menu_equipment_operation_maintenance" action="action_equipment_operation"
+              parent="maintenance.menu_maintenance_title" sequence="15"
+              groups="group_equipment_operator,group_equipment_approver"/>
+</odoo>

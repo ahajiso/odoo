@@ -1,5 +1,5 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 
 from .maintenance_equipment import THIRD_PARTY_OWNED
 
@@ -17,6 +17,11 @@ class StockLocation(models.Model):
         default="physical",
         required=True,
         help="Lent Out: the stock that lent-out items belong to and return to.",
+    )
+    is_offsite_parent = fields.Boolean(
+        string="Parent of Off-Site Stocks",
+        help="Off-site stocks (held by third parties) are created under this location, "
+        "outside the warehouse stock (e.g. WH/Chez tiers).",
     )
     return_location_id = fields.Many2one(
         "stock.location",
@@ -51,13 +56,125 @@ class StockLocation(models.Model):
                 )
 
 
+def _refuse_link_from_client(env, vals_list):
+    """The link to an equipment operation is written only by server code (superuser
+    mode, not reachable by RPC), never by a client."""
+    if not env.su and any("equipment_operation_id" in vals for vals in vals_list):
+        raise AccessError(_("The equipment operation link is set by the operation only."))
+
+
+class StockPicking(models.Model):
+    _inherit = "stock.picking"
+
+    equipment_operation_id = fields.Many2one(
+        "equipment.operation", string="Equipment Operation", readonly=True, copy=False,
+        index="btree_not_null",
+    )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        _refuse_link_from_client(self.env, vals_list)
+        return super().create(vals_list)
+
+    def write(self, vals):
+        _refuse_link_from_client(self.env, [vals])
+        return super().write(vals)
+
+
+class StockMove(models.Model):
+    _inherit = "stock.move"
+
+    equipment_operation_id = fields.Many2one(
+        "equipment.operation", string="Equipment Operation", readonly=True, copy=False,
+        index="btree_not_null",
+    )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        _refuse_link_from_client(self.env, vals_list)
+        return super().create(vals_list)
+
+    def write(self, vals):
+        _refuse_link_from_client(self.env, [vals])
+        return super().write(vals)
+
+
 class StockMoveLine(models.Model):
     _inherit = "stock.move.line"
 
     def _action_done(self):
         res = super()._action_done()
-        self.exists()._check_third_party_owner()
+        lines = self.exists()
+        lines._check_equipment_operation()
+        lines._check_third_party_owner()
         return res
+
+    def _running_operation(self):
+        """Operation type of the equipment operation being executed that this line
+        belongs to, or False."""
+        self.ensure_one()
+        operation = (self.move_id.equipment_operation_id
+                     or self.picking_id.equipment_operation_id).sudo()
+        return operation.operation_type if operation.state == "processing" else False
+
+    def _check_equipment_operation(self):
+        """Stock movements governed by phase 2 (docs/phase2/PLAN.md, section 8):
+        - supplier receipts and acquisitions, consumables included, only through a
+          receipt operation;
+        - a maintainable product tracked in stock never enters or leaves the internal
+          locations without its operation (receipt in, restitution out); owned
+          equipment never leaves the company (until the disposal operation);
+        - entering or leaving an off-site (lent-out) stock: exit / return operations;
+        - consumables never enter an off-site stock (v1)."""
+        Equipment = self.env["maintenance.equipment"].sudo().with_context(active_test=False)
+        companies = self.env["res.company"].sudo().search([])
+        acquisition = (companies.equipment_gift_location_id
+                       | companies.equipment_current_account_location_id
+                       | companies.equipment_regularisation_location_id)
+        by_lot = {}
+        if self.lot_id:
+            for equipment in Equipment.search([("stock_lot_id", "in", self.lot_id.ids)]):
+                by_lot.setdefault(equipment.stock_lot_id.id, equipment)
+
+        def refuse(line, message):
+            raise ValidationError(_("%(product)s %(lot)s: %(message)s",
+                                    product=line.product_id.display_name,
+                                    lot=line.lot_id.name or "", message=message))
+
+        for line in self:
+            running = line._running_operation()
+            src, dst = line.location_id, line.location_dest_id
+            src_in, dst_in = src.usage == "internal", dst.usage == "internal"
+            product = line.product_id
+            equipment = by_lot.get(line.lot_id.id) if line.lot_id else None
+            if dst_in and not src_in and (src.usage == "supplier" or src in acquisition) \
+                    and running != "receipt":
+                refuse(line, _("receipts from suppliers and acquisitions go through an "
+                               "equipment operation (Receipt)."))
+            if equipment or (product.maintenance_ok and product.is_storable):
+                if dst_in and not src_in and running != "receipt":
+                    refuse(line, _("an equipment enters the stock only through a receipt "
+                                   "operation."))
+                if src_in and not dst_in:
+                    if equipment and equipment.ownership_status in THIRD_PARTY_OWNED:
+                        if running != "restitution":
+                            refuse(line, _("property of a third party: it leaves only "
+                                           "through a restitution to its owner."))
+                    else:
+                        refuse(line, _("an equipment of the company cannot leave the "
+                                       "company (sale, scrap, return, loss) until the "
+                                       "disposal operation exists."))
+                if src_in and dst_in:
+                    if dst.place_type == "lent_out" and src.place_type != "lent_out" \
+                            and running != "exit":
+                        refuse(line, _("only an exit operation moves equipment to an "
+                                       "off-site stock."))
+                    if src.place_type == "lent_out" and dst.place_type != "lent_out" \
+                            and running != "return":
+                        refuse(line, _("only a return operation brings equipment back "
+                                       "from an off-site stock."))
+            elif dst_in and dst.place_type == "lent_out" and src.place_type != "lent_out":
+                refuse(line, _("consumables are always owned and never lent out (v1)."))
 
     def _check_third_party_owner(self):
         """Owner on stock and equipment ownership must agree, in both directions:

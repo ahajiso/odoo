@@ -1,6 +1,6 @@
 {
     "name": "Maintenance - Equipment Ownership, Stock and Assets",
-    "version": "18.0.2.0.0",
+    "version": "18.0.3.0.0",
     "summary": "Equipment ownership status, serial number, fixed asset, contracts "
     "and supplier bill integration (L'Art du Bâti).",
     "author": "UBI Solutions",
@@ -23,6 +23,7 @@
         "security/ir.model.access.csv",
         "data/mail_activity_type.xml",
         "data/ir_cron.xml",
+        "data/ir_sequence.xml",
         "wizards/ownership_correction_views.xml",
         "views/maintenance_equipment_views.xml",
         "views/stock_location_views.xml",
@@ -30,6 +31,7 @@
         "views/contract_line_views.xml",
         "views/account_move_views.xml",
         "views/res_config_settings_views.xml",
+        "views/equipment_operation_views.xml",
     ],
     "post_init_hook": "post_init_hook",
     "installable": True,

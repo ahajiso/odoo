@@ -349,6 +349,17 @@ class MaintenanceEquipment(models.Model):
         expected = self._expected_stock_owner()
         return quants.filtered(lambda q: q.owner_id != expected)
 
+    def _internal_quants(self):
+        """Positive quants of the serial number in internal locations."""
+        self.ensure_one()
+        if not self.stock_lot_id:
+            return self.env["stock.quant"]
+        return self.env["stock.quant"].sudo().search([
+            ("lot_id", "=", self.stock_lot_id.id),
+            ("quantity", ">", 0),
+            ("location_id.usage", "=", "internal"),
+        ])
+
     def _check_stock_owner_consistency(self, raise_error=False):
         self.ensure_one()
         mismatch = self._stock_owner_mismatch()

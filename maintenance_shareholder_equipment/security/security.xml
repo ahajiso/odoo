@@ -8,4 +8,41 @@
         <field name="implied_ids" eval="[(4, ref('maintenance.group_equipment_manager'))]"/>
         <field name="comment">Can correct the ownership status and the legal owner of an equipment, with a mandatory reason.</field>
     </record>
+
+    <!-- Phase 2: equipment operations (docs/phase2/PLAN.md, section 7). -->
+    <record id="group_equipment_operator" model="res.groups">
+        <field name="name">Equipment Operator</field>
+        <field name="category_id" ref="base.module_category_manufacturing_maintenance"/>
+        <field name="implied_ids" eval="[(4, ref('stock.group_stock_user'))]"/>
+        <field name="comment">Prepares and executes equipment operations (receipt, exit, return, restitution). Commitments need an approver.</field>
+    </record>
+    <record id="group_equipment_approver" model="res.groups">
+        <field name="name">Equipment Operations Approver</field>
+        <field name="category_id" ref="base.module_category_manufacturing_maintenance"/>
+        <field name="comment">Approves the commitments of equipment operations (orders, bills, contracts, acquisitions), without moving stock.</field>
+    </record>
+
+    <record id="rule_equipment_operation_company" model="ir.rule">
+        <field name="name">Equipment operation: multi-company</field>
+        <field name="model_id" ref="model_equipment_operation"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_equipment_operation_line_company" model="ir.rule">
+        <field name="name">Equipment operation line: multi-company</field>
+        <field name="model_id" ref="model_equipment_operation_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <!-- Operators and approvers choose and check any equipment of their companies (the
+         standard rule only shows the equipment a user follows). Read only. -->
+    <record id="rule_equipment_read_operation_users" model="ir.rule">
+        <field name="name">Equipment: read by equipment operators and approvers</field>
+        <field name="model_id" ref="maintenance.model_maintenance_equipment"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_equipment_operator')), (4, ref('group_equipment_approver'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
 </odoo>

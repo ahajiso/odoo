@@ -4,3 +4,4 @@ from . import product
 from . import stock
 from . import contract
 from . import account_move
+from . import equipment_operation

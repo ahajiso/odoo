@@ -9,6 +9,7 @@
             <xpath expr="//group[@name='additional_info']" position="after">
                 <group string="Stock Monitor" name="stock_monitor" invisible="usage != 'internal'">
                     <field name="place_type"/>
+                    <field name="is_offsite_parent"/>
                     <field name="return_location_id" invisible="place_type != 'lent_out'"
                            required="place_type == 'lent_out'"/>
                 </group>

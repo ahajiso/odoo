@@ -177,6 +177,7 @@ class TestStockOwner(EquipmentCommon):
             {"name": "Screws", "type": "consu", "is_storable": True}
         )
         picking = self._receive_with_owner(consumable, None, self.lender)
+        self._as_running_operation(picking)
         with self.assertRaises(ValidationError):
             picking.button_validate()
 
@@ -189,6 +190,7 @@ class TestStockOwner(EquipmentCommon):
             "company_id": self.company.id,
         })
         picking = self._receive_with_owner(self.drill, "B1", self.lender)
+        self._as_running_operation(picking)
         picking.button_validate()
         self.assertEqual(picking.state, "done")
         self.assertTrue(equipment._check_stock_owner_consistency())
@@ -200,6 +202,7 @@ class TestStockOwner(EquipmentCommon):
             "name": "Owned drill", "product_id": self.drill.id, "stock_lot_id": lot.id,
         })
         picking = self._receive_with_owner(self.drill, "O1", self.lender)
+        self._as_running_operation(picking)
         with self.assertRaises(ValidationError):
             picking.button_validate()
 

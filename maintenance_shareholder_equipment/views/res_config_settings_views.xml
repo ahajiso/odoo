@@ -14,6 +14,22 @@
                     <setting help="Off: supplier refunds on fixed-asset accounts are refused.">
                         <field name="allow_asset_supplier_refund"/>
                     </setting>
+                    <setting string="Contract products"
+                             help="Service products of the loan and rental lines created by the equipment operations.">
+                        <div class="content-group">
+                            <div class="row mt8"><label for="equipment_loan_product_id" class="col-lg-4"/><field name="equipment_loan_product_id"/></div>
+                            <div class="row"><label for="equipment_rent_paid_product_id" class="col-lg-4"/><field name="equipment_rent_paid_product_id"/></div>
+                            <div class="row"><label for="equipment_rent_received_product_id" class="col-lg-4"/><field name="equipment_rent_received_product_id"/></div>
+                        </div>
+                    </setting>
+                    <setting string="Acquisitions without purchase"
+                             help="Source locations of gifts, current account contributions and regularisations; their account is credited (C17).">
+                        <div class="content-group">
+                            <div class="row mt8"><label for="equipment_gift_location_id" class="col-lg-4"/><field name="equipment_gift_location_id"/></div>
+                            <div class="row"><label for="equipment_current_account_location_id" class="col-lg-4"/><field name="equipment_current_account_location_id"/></div>
+                            <div class="row"><label for="equipment_regularisation_location_id" class="col-lg-4"/><field name="equipment_regularisation_location_id"/></div>
+                        </div>
+                    </setting>
                 </block>
             </xpath>
         </field>
