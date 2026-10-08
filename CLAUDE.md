@@ -179,7 +179,7 @@ same tests on artdubati_test (docs/phase1/README.md, step 6).
    central status method and "Equipment ownership managers" group, `action_post()`
    integration (equipment to bill line, asset_id fill), contract line on supplier bill
    lines with posting lock. Integration tests for the hypotheses above.
-   Code on branch claude/clever-rubin-z76iba (not on main until audited): 46 tests
+   Code on branch claude/clever-rubin-z76iba (not on main until audited): 47 tests
    passing locally, migration rehearsed from the previous versions with the real
    monitor queries (docs/phase1/README.md). Manual: rewritten at the end of phase 5.
 2. Receiving and exit wizards: four branches, return from a third party, restitution

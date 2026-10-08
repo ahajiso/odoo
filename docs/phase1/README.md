@@ -6,10 +6,14 @@ server, in this order, only after the audit and once the code is on `main`.
 Rehearsed locally on 08/10/2026 (Odoo 18 + OCA heads, database installed with the
 previous versions of both modules, test data, and the two stock monitor queries of
 `docs/stock_monitor/` created as SQL views): preparation script, update of both
-modules, tests passing (46 after the audit fixes), both monitor views intact.
+modules, tests passing (47 after the audit fixes), deploy_phase1.sh rehearsed with a fake docker (success, update failure, test failure), both monitor views intact.
 
 Do not restart `odoo_web` between the `git pull` (step 2) and the module update
 (step 6): the new Python code would be loaded against the old database.
+
+Order: 1 backup, 2 code, 3 preparation dry run, 4 views before, 5 preparation apply,
+6 update and tests (service stopped; 6b rollback if it fails), flag of the fixed-asset
+category, 7 views after, 8 interface checks.
 
 ## 1. Backup
 
@@ -81,8 +85,8 @@ python3 setup_phase1.py          # control: 0 equipment, nothing left to do
 
 The update must not run while the application serves requests. `odoo_web` serves both
 databases, so **production is unavailable during this step** (a few minutes): choose a
-quiet moment. The update and the tests run in a one-off container with the same image,
-volumes, network and environment as `odoo_web`.
+maintenance window. `deploy_phase1.sh` runs the update and the tests in a one-off
+container with the same image, volumes, network and environment as `odoo_web`.
 
 Check first what will be reused (prints names, not the secret values):
 
@@ -97,53 +101,39 @@ Expected: one image, one network, the mounts of `/etc/odoo`, `/mnt/extra-addons`
 data volume, and environment variable names such as `HOST`, `USER`, `PASSWORD` (used
 by the image to reach the database). If the output differs, stop and send it to Claude.
 
-```bash
-set -o pipefail
-IMG=$(docker inspect -f '{{.Config.Image}}' odoo_web)
-NET=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' odoo_web | awk '{print $1}')
-ENVF=$(mktemp) && chmod 600 "$ENVF"
-docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' odoo_web > "$ENVF"
-run_odoo() {
-  docker run --rm --network "$NET" --volumes-from odoo_web --env-file "$ENVF" "$IMG" odoo "$@"
-}
-LOG=/opt/odoo/logs/phase1_update_$(date +%F_%H%M).log
-LOGT=/opt/odoo/logs/phase1_tests_$(date +%F_%H%M).log
+Then, with the backup file of step 1:
 
-docker stop odoo_web
-run_odoo -d artdubati_test -u maintenance_shareholder_equipment,lartdubati_investor_home \
-  --stop-after-init 2>&1 | tee "$LOG" && echo "UPDATE COMMAND OK"
-grep -E " (ERROR|CRITICAL) " "$LOG" && echo "PROBLEM FOUND" || echo "no ERROR/CRITICAL line"
+```bash
+bash /opt/odoo/addons/custom/docs/phase1/deploy_phase1.sh /opt/odoo/backups/<backup of step 1>.dump
 ```
 
-Only with « UPDATE COMMAND OK » and « no ERROR/CRITICAL line », run the tests and
-restart:
+The script stops `odoo_web`, updates both modules, runs the tests and restarts
+`odoo_web` only if everything passed. Expected last lines: « UPDATE OK »,
+« TESTS OK: 0 failed, 0 error(s) of 47 tests », « odoo_web started ». One log line
+« duplicate key value violates unique constraint "maintenance_equipment_stock_lot_uniq" »
+in the test log is normal: it is the test of that constraint.
+
+At the first failure it prints « FAILED: … » and **leaves `odoo_web` stopped**: go to
+6b. The temporary file holding `odoo_web`'s environment is always removed.
+
+### 6b. Rollback (only after a FAILED)
+
+Odoo commits after each module, so a failure can leave the database partly updated:
+restore the backup and the previous code before restarting. `odoo_web` is stopped.
 
 ```bash
-run_odoo -d artdubati_test -u maintenance_shareholder_equipment,lartdubati_investor_home \
-  --test-enable --test-tags /maintenance_shareholder_equipment,/lartdubati_investor_home \
-  --workers 0 --stop-after-init 2>&1 | tee "$LOGT" | grep -E "tests when|FAIL:|ERROR:"
-docker start odoo_web
-rm -f "$ENVF"
-```
-
-Expected: « 0 failed, 0 error(s) of 46 tests ». One log line « duplicate key value
-violates unique constraint "maintenance_equipment_stock_lot_uniq" » is normal: it is the
-test of that constraint. A warning « no account 613500 » is not expected on
-artdubati_test (the account exists).
-
-**If the update failed** (no « UPDATE COMMAND OK », or a problem line): the update is
-one transaction, so the database is still in its previous state, but the code on disk
-is the new one. Put the previous code back before restarting, then send the log to
-Claude:
-
-```bash
+set -euo pipefail
+BACKUP=/opt/odoo/backups/<backup of step 1>.dump
 cd /opt/odoo/addons/custom && git checkout "$(cat /opt/odoo/logs/phase1_previous_commit)"
+docker exec odoo_db dropdb -U odoo artdubati_test
+docker exec odoo_db createdb -U odoo artdubati_test
+docker exec -i odoo_db pg_restore -U odoo -d artdubati_test --no-owner < "$BACKUP" \
+  && echo "RESTORE OK"
 docker start odoo_web
-rm -f "$ENVF"
 ```
 
-(The repository is then in « detached HEAD »; `git checkout main` brings it back once
-the fix is pushed.)
+Then send Claude the two logs named by the script. The repository is left in
+« detached HEAD »; `git checkout main` brings it back once the fix is pushed.
 
 Then flag the fixed-asset category (dry run, then apply):
 
