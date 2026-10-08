@@ -64,7 +64,10 @@
   when necessary.
 - Develop and test on artdubati_test only; production only on explicit request.
 - Never guess an external ID: look it up and show it first.
-- Every Odoo change requires the manual update (FR, then EN/FA) and a changelog line.
+- Manual: for phases 1 to 5 of this project, the manual is rewritten once, at the end of
+  the last phase (owner's decision, 08/10/2026: nobody uses it before and it would
+  change again). Outside this project, every Odoo change requires the manual update
+  (FR, then EN/FA) and a changelog line.
   The manual's cards are edited directly in lartdubati_manual/manual/<lang>/*.html,
   then `lartdubati_manual/tools/refresh.py` and `check.py` are run. Procedure and
   definitions (card codes, writing rules, terminology, impact matrix):
@@ -178,9 +181,11 @@ same tests on artdubati_test (docs/phase1/README.md, step 6).
    lines with posting lock. Integration tests for the hypotheses above.
    Code on branch claude/clever-rubin-z76iba (not on main until audited): 37 tests
    passing locally, migration rehearsed from the previous versions with the real
-   monitor queries (docs/phase1/README.md). Manual: pending decision.
+   monitor queries (docs/phase1/README.md). Manual: rewritten at the end of phase 5.
 2. Receiving and exit wizards: four branches, return from a third party, restitution
    to the owner, tests (including free loan producing no invoice).
 3. Stock monitor on revision 2 (SQL view, access rules) and rework of the existing code.
 4. Home page and investor user setup (review the existing configuration).
-5. Translations, manual update, deployment checklist (docs/deployment/investor_home.md).
+5. Translations, manual rewrite for all phases (cards citing removed or changed fields,
+   new receiving procedures, Investor tab), deployment checklist
+   (docs/deployment/investor_home.md).

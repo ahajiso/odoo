@@ -314,9 +314,10 @@ Order on the server: backup, script dry run, product corrections, `psql` check,
 - Integration tests: the four hypotheses of CLAUDE.md, sections 1 to 9, write
   protection by API for a non-manager, idempotence of the job.
 - `.po` from `--i18n-export`, FR / FA translations of the new labels.
-- Manual: REF-05, REF-06, ADM-05, every card citing a removed field (searched in the
-  three languages); a « To complete » card for draft equipment. Receiving procedures
-  come with phase 2.
+- Manual: not updated in phase 1 (owner's decision, 08/10/2026): rewritten once at the
+  end of phase 5. Cards to rewrite then (citing removed or changed fields): REF-01,
+  REF-05 to REF-09, ADM-03, ADM-06, ADM-11, PARC-01, PARC-03 to PARC-09, CPT-01,
+  CPT-03 to CPT-06, CH-01 to CH-03, INV-03.
 
 ## Verified / not verified / hypotheses
 
