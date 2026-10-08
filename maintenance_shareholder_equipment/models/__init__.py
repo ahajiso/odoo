@@ -1,2 +1,6 @@
 from . import maintenance_equipment
-from . import maintenance_request
+from . import res_company
+from . import product
+from . import stock
+from . import contract
+from . import account_move

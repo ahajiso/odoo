@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Only members can correct the ownership of an equipment (wizard with a reason).
+         Nobody writes the protected fields directly: see maintenance.equipment.write(). -->
+    <record id="group_equipment_ownership_manager" model="res.groups">
+        <field name="name">Equipment Ownership Manager</field>
+        <field name="category_id" ref="base.module_category_manufacturing_maintenance"/>
+        <field name="implied_ids" eval="[(4, ref('maintenance.group_equipment_manager'))]"/>
+        <field name="comment">Can correct the ownership status and the legal owner of an equipment, with a mandatory reason.</field>
+    </record>
+</odoo>

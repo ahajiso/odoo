@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_category_form_fixed_asset" model="ir.ui.view">
+        <field name="name">product.category.form.fixed.asset</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="product.product_category_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Equipment" name="equipment">
+                    <field name="is_fixed_asset_stock"/>
+                    <field name="default_warranty_status"/>
+                    <field name="default_insurance_status"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

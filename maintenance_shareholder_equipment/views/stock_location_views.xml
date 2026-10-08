@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_location_form_investor" model="ir.ui.view">
-        <field name="name">stock.location.form.investor</field>
+    <!-- Moved from lartdubati_investor_home with the place_type field. -->
+    <record id="view_location_form_place_type" model="ir.ui.view">
+        <field name="name">stock.location.form.place.type</field>
         <field name="model">stock.location</field>
         <field name="inherit_id" ref="stock.view_location_form"/>
         <field name="arch" type="xml">
             <xpath expr="//group[@name='additional_info']" position="after">
                 <group string="Stock Monitor" name="stock_monitor" invisible="usage != 'internal'">
                     <field name="place_type"/>
+                    <field name="return_location_id" invisible="place_type != 'lent_out'"
+                           required="place_type == 'lent_out'"/>
                 </group>
             </xpath>
         </field>

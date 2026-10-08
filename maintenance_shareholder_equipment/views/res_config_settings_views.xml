@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_equipment" model="ir.ui.view">
+        <field name="name">res.config.settings.form.equipment</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='account']" position="inside">
+                <block title="Equipment (test choices, see the accountant)" name="equipment_accounting">
+                    <setting string="Equipment rental account"
+                             help="Supplier bill lines on this account need a rental contract line.">
+                        <field name="equipment_rent_account_id"/>
+                    </setting>
+                    <setting help="Off: supplier refunds on fixed-asset accounts are refused.">
+                        <field name="allow_asset_supplier_refund"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

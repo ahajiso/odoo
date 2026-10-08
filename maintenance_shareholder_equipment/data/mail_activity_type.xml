@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="mail_activity_ownership_check" model="mail.activity.type">
+        <field name="name">Ownership to check</field>
+        <field name="res_model">maintenance.equipment</field>
+        <field name="summary">The owner on stock differs from the equipment's ownership</field>
+        <field name="icon">fa-exclamation-triangle</field>
+    </record>
+</odoo>
