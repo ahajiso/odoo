@@ -119,11 +119,9 @@ replace it by a module model on a SQL view with `groups=` per field. Same questi
 the home page (web_quick_start_screen configuration versus a client action).
 
 ## Existing code to rework (built on the 04/10 decisions)
-- lartdubati_investor_home/models/account_move_line.py: sets `current_location_id` on
-  equipment created from a bill → replaced by creation at receipt and linking at
-  posting.
-- lartdubati_investor_home/models/maintenance_equipment.py: requires an internal
-  `current_location_id` on every active equipment → only for non-stock assets.
+- Done in phase 1: account_move_line.py no longer sets `current_location_id`;
+  maintenance_equipment.py (internal location required) removed; `place_type` moved to
+  maintenance_shareholder_equipment.
 - lartdubati_investor_home/models/res_company.py: `stock_monitor_replacement_price`
   (replacement price of borrowed / rented consumables) → moot while consumables are
   owned only; `stock_monitor_currency_mode` stays pending the accountant.
@@ -135,15 +133,23 @@ the home page (web_quick_start_screen configuration versus a client action).
 - Tests in lartdubati_investor_home/tests/ to update accordingly; access profile tests
   stay valid.
 
-## Hypotheses to confirm by Odoo integration tests (not acquired before)
-- Our `action_post()` override runs after maintenance_account and
-  account_asset_management: the asset and the equipment both exist on return of super().
-- `asset_product_item` splits a received purchase bill line into quantity-1 lines, one
-  asset each, without breaking the purchase / bill matching.
-- Linking the bill line to equipment created at receipt prevents maintenance_account
-  from creating a duplicate.
-- A free loan contract line without invoicing recurrence never produces an invoice, not
-  even at zero.
+## Hypotheses of phase 1 (results of the local integration tests, 08/10/2026)
+Local Odoo 18 + OCA heads, see docs/phase1/CHARACTERISATION.md; to be confirmed by the
+same tests on artdubati_test (docs/phase1/README.md, step 6).
+- Our `action_post()` runs after maintenance_account and account_asset_management:
+  confirmed (asset_id filled from the bill line after posting).
+- `asset_product_item` keeps the purchase / bill matching: FALSE in the standard
+  combination (split lines lose `purchase_line_id`); fixed by our override of
+  `_expand_asset_line()` (copy with `include_business_fields`), tested.
+- No duplicate equipment from maintenance_account: confirmed with our full
+  reconciliation of each bill line (partial flows included).
+- A free loan line never produces an invoice: confirmed with our overrides of
+  `_can_be_invoiced()`, `_compute_recurring_next_date()` and the invoicing button.
+- Supplier refunds on a fixed-asset bill create negative assets and keep the original
+  (reversal included): confirmed; refused by default (question C8).
+- Changing a column type (Float -> Monetary, or adding digits) makes Odoo drop every
+  SQL view reading it: found by the migration rehearsal; such changes are forbidden on
+  columns read by the monitor reports.
 
 ## Open decisions (external, blocking only the related parts)
 - Accountant: every question, with the test choice made and where to change it, is in
@@ -170,6 +176,9 @@ the home page (web_quick_start_screen configuration versus a client action).
    central status method and "Equipment ownership managers" group, `action_post()`
    integration (equipment to bill line, asset_id fill), contract line on supplier bill
    lines with posting lock. Integration tests for the hypotheses above.
+   Code on branch claude/clever-rubin-z76iba (not on main until audited): 37 tests
+   passing locally, migration rehearsed from the previous versions with the real
+   monitor queries (docs/phase1/README.md). Manual: pending decision.
 2. Receiving and exit wizards: four branches, return from a third party, restitution
    to the owner, tests (including free loan producing no invoice).
 3. Stock monitor on revision 2 (SQL view, access rules) and rework of the existing code.

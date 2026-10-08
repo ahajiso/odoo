@@ -1,6 +1,6 @@
 # Phase 1 plan – data model (revision 2 after audit)
 
-Status: proposal, revised after the fifth audit (08/10/2026). No code written yet.
+Status: plan validated by the audit (08/10/2026); code written and tested locally, see README.md and CHARACTERISATION.md. Deviations from the plan: `replacement_value` and `handover_value` stay Float (a type change drops the monitor views); the fixed-asset category check runs for the companies selected when saving.
 Scope: `maintenance_shareholder_equipment` 18.0.2.0.0 and the parts of
 `lartdubati_investor_home` that conflict with it. Wizards are phase 2, the monitor phase 3.
 
