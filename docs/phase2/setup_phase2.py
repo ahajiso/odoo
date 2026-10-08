@@ -10,6 +10,7 @@ Through JSON-RPC (credentials from the environment, never stored):
   « Virtual Locations »), each with its credited account (C17);
 - flags the internal location « Chez tiers » (phase 0) as parent of off-site stocks;
 - writes the company settings (Invoicing → Equipment);
+- refuses to go on if a warehouse receives in several steps (not supported);
 - lists, without changing them: serial numbers of maintainable products in internal
   stock without equipment, open incoming receipts (to be received through equipment
   operations from now on), lent-out locations without address, incoming operation
@@ -109,7 +110,8 @@ print()
 products = {}
 for setting, name, role, account_field in PRODUCTS:
     read = ["name", "type", "maintenance_ok", "company_id"] + ([account_field] if account_field else [])
-    found = call("product.product", "search_read", [("name", "=", name)], read)
+    found = call("product.product", "search_read",
+                 [("name", "=", name), ("company_id", "in", [False, company_id])], read)
     if len(found) > 1:
         errors.append(f"product {name!r}: {len(found)} found, keep one")
         continue
@@ -140,7 +142,8 @@ virtual = xmlid("stock", "stock_location_locations_virtual")
 locations = {}
 for setting, name, role in LOCATIONS:
     found = call("stock.location", "search_read",
-                 [("name", "=", name), ("usage", "=", "inventory")],
+                 [("name", "=", name), ("usage", "=", "inventory"),
+                  ("company_id", "in", [False, company_id])],
                  ["complete_name", "valuation_out_account_id"], context={"active_test": False})
     if len(found) > 1:
         errors.append(f"location {name!r}: {len(found)} found, keep one")
@@ -162,7 +165,8 @@ print()
 
 # 4. Parent of off-site stocks ----------------------------------------------------------
 parents = call("stock.location", "search_read",
-               [("name", "=", "Chez tiers"), ("usage", "=", "internal")],
+               [("name", "=", "Chez tiers"), ("usage", "=", "internal"),
+                ("company_id", "in", [False, company_id])],
                ["complete_name", "is_offsite_parent"])
 if len(parents) != 1:
     errors.append(f"internal location « Chez tiers »: expected exactly one, found {parents}")
@@ -171,7 +175,17 @@ else:
     state = "already flagged" if parent["is_offsite_parent"] else "WOULD flag as parent of off-site stocks"
     print(f"location {parent['complete_name']} (id {parent['id']}): {state}\n")
 
-# 5. Lists (no change) ----------------------------------------------------------------
+# 5. Receipts in one step only ------------------------------------------------------
+warehouses = call("stock.warehouse", "search_read", [("company_id", "=", company_id)],
+                  ["name", "code", "reception_steps"])
+for wh in warehouses:
+    print(f"warehouse {wh['name']} ({wh['code']}): reception_steps={wh['reception_steps']}")
+    if wh["reception_steps"] != "one_step":
+        errors.append(f"warehouse {wh['name']}: receipts in several steps are not supported "
+                      "by the equipment operations; set « Receive goods directly (1 step) »")
+print()
+
+# 6. Lists (no change) ----------------------------------------------------------------
 lots = call("stock.quant", "search_read",
             [("quantity", ">", 0), ("location_id.usage", "=", "internal"),
              ("lot_id", "!=", False), ("product_id.maintenance_ok", "=", True)],

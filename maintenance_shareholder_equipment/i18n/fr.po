@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-08 21:54+0000\n"
-"PO-Revision-Date: 2026-10-08 21:54+0000\n"
+"POT-Creation-Date: 2026-10-08 23:07+0000\n"
+"PO-Revision-Date: 2026-10-08 23:07+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -207,6 +207,12 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/res_company.py:0
+msgid "%(record)s belongs to another company than %(company)s."
+msgstr "%(record)s appartient à une autre société que %(company)s."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s (exit)"
 msgstr "%s (sortie)"
@@ -372,6 +378,13 @@ msgstr "%s : destination de retour"
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s: serial number"
 msgstr "%s : numéro de série"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/res_company.py:0
+msgid "%s: the source of acquisitions must be an inventory location."
+msgstr ""
+"%s : l'origine des acquisitions doit être un emplacement d'inventaire."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -575,6 +588,12 @@ msgid "Asset profile"
 msgstr "Catégorie d'immobilisation"
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "Attachment %s cannot be added to this operation."
+msgstr "La pièce jointe %s ne peut pas être ajoutée à cette opération."
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__message_attachment_count
 msgid "Attachment Count"
 msgstr "Nombre de pièces jointes"
@@ -588,6 +607,21 @@ msgstr "Remettre en brouillon"
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__bill_attachment_ids
 msgid "Bill (PDF)"
 msgstr "Facture (PDF)"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__bill_mode__existing
+msgid "Bill Already Received"
+msgstr "Facture déjà reçue"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__bill_mode
+msgid ""
+"Bill Already Received: the bills of the order lines received (posted before "
+"the receipt) are linked to the operation; at least one is required."
+msgstr ""
+"Facture déjà reçue : les factures des lignes de commande reçues "
+"(comptabilisées avant la réception) sont liées à l'opération ; au moins une "
+"est requise."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__bill_date
@@ -638,6 +672,11 @@ msgstr ""
 msgid "Bill line %s: equipment links are inconsistent."
 msgstr ""
 "Ligne de facture %s : les liens avec les équipements sont incohérents."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__bill_ids
+msgid "Bills"
+msgstr "Factures"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__receipt_branch__borrowed
@@ -709,6 +748,7 @@ msgstr "Sociétés"
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__company_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__company_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__company_id
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__company
 msgid "Company"
 msgstr "Entreprise"
@@ -931,17 +971,21 @@ msgid "Draft"
 msgstr "Brouillon"
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__bill_id
-msgid "Draft Bill"
-msgstr "Facture brouillon"
-
-#. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "Draft bill created by %s, to be checked and posted by the accountant."
 msgstr ""
 "Facture brouillon créée par %s, à contrôler et comptabiliser par le "
 "comptable."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__bill_ids
+msgid ""
+"Draft bill created by the operation, or bills already received for the lines"
+" it received."
+msgstr ""
+"Facture brouillon créée par l'opération, ou factures déjà reçues pour les "
+"lignes qu'elle a reçues."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_id
@@ -1411,6 +1455,14 @@ msgstr "Ligne %s : les montants ne peuvent pas être négatifs."
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "Line %s: an exit, return or restitution moves the whole equipment."
+msgstr ""
+"Ligne %s : une sortie, un retour ou une restitution déplace l'équipement "
+"entier."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid ""
 "Line %s: quantities must be positive and the quantity executed cannot exceed"
 " the quantity approved."
@@ -1603,6 +1655,12 @@ msgstr "Non autorisé."
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Note"
 msgstr "Note"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "Nothing to execute: every executed quantity is 0."
+msgstr "Rien à exécuter : toutes les quantités exécutées sont à 0."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__message_needaction_counter
@@ -1920,8 +1978,8 @@ msgstr "Commande d'achat %s créée et confirmée."
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation_line__quantity_done
 msgid ""
-"Quantity actually received or moved; at most the approved quantity. Empty: "
-"the approved quantity."
+"Quantity actually received or moved; at most the approved quantity. Defaults"
+" to the approved quantity; 0 means nothing executed for this line."
 msgstr ""
 "Quantité réellement reçue ou déplacée ; au plus la quantité approuvée. Vide "
 ": la quantité approuvée."
@@ -2388,6 +2446,16 @@ msgstr "La commande doit être confirmée."
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid ""
+"The receipt of %s is chained to other transfers (receipt in several steps): "
+"not supported."
+msgstr ""
+"La réception de %s est enchaînée à d'autres transferts (réception en "
+"plusieurs étapes) : non pris en charge."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "The return destination must be an internal physical stock."
 msgstr "La destination de retour doit être un stock interne physique."
 
@@ -2518,6 +2586,16 @@ msgid "Virtual"
 msgstr "Virtuel"
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid ""
+"Warehouse %s receives in several steps: not supported by the equipment "
+"operations (one-step receipts only)."
+msgstr ""
+"L'entrepôt %s reçoit en plusieurs étapes : non pris en charge par les "
+"opérations matériel (réceptions en une étape uniquement)."
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__warranty_status
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__warranty_status
 msgid "Warranty Status"
@@ -2567,8 +2645,24 @@ msgstr "emplacement d'acquisition dans les paramètres"
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid "an equipment cannot be moved to a virtual place."
+msgstr "un équipement ne peut pas être déplacé vers un lieu virtuel."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
 msgid "an equipment enters the stock only through a receipt operation."
 msgstr "un équipement n'entre en stock que par une opération de réception."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid ""
+"an equipment goes from one off-site stock to another only through a return "
+"and a new exit."
+msgstr ""
+"un équipement ne passe d'un stock chez un tiers à un autre que par un retour"
+" puis une nouvelle sortie."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -2591,6 +2685,12 @@ msgstr "au moins une ligne"
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "bill PDF"
 msgstr "PDF de la facture"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "bill already received for these order lines"
+msgstr "facture déjà reçue pour ces lignes de commande"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python

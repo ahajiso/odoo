@@ -1,4 +1,5 @@
-from odoo import fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class ResCompany(models.Model):
@@ -45,6 +46,28 @@ class ResCompany(models.Model):
         "stock.location", string="Source of Regularisations",
         help="Inventory location whose account is credited by a regularisation (C17).",
     )
+
+
+    @api.constrains("equipment_loan_product_id", "equipment_rent_paid_product_id",
+                    "equipment_rent_received_product_id", "equipment_gift_location_id",
+                    "equipment_current_account_location_id",
+                    "equipment_regularisation_location_id")
+    def _check_equipment_settings_company(self):
+        for company in self:
+            records = (company.equipment_loan_product_id | company.equipment_rent_paid_product_id
+                       | company.equipment_rent_received_product_id)
+            locations = (company.equipment_gift_location_id
+                         | company.equipment_current_account_location_id
+                         | company.equipment_regularisation_location_id)
+            for record in list(records) + list(locations):
+                if record.company_id and record.company_id != company:
+                    raise ValidationError(_("%(record)s belongs to another company than "
+                                            "%(company)s.", record=record.display_name,
+                                            company=company.name))
+            for location in locations:
+                if location.usage != "inventory":
+                    raise ValidationError(_("%s: the source of acquisitions must be an "
+                                            "inventory location.", location.display_name))
 
 
 class ResConfigSettings(models.TransientModel):

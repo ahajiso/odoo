@@ -5,7 +5,7 @@ the server, in this order, only after the audit of the code and once it is on `m
 
 Rehearsed locally on 08/10/2026 (Odoo 18 + OCA heads): update from the phase 1
 database (18.0.2.0.0 → 18.0.3.0.0) with the two stock monitor queries as SQL views
-(views unchanged), 79 tests passing, `docs/deploy_modules.sh` with a fake docker
+(views unchanged), 88 tests passing, `docs/deploy_modules.sh` with a fake docker
 running the real update and tests, `setup_phase2.py` dry run, apply (on a scratch copy
 allowing the local database) and control run, operation form opened in a browser.
 
@@ -19,6 +19,11 @@ counts of consumables stay standard.
 Production: one `odoo_web` serves every database, so the site is unavailable during
 step 4 (a few minutes). Acceptable only while there is no real production
 (`docs/deployment/investor_home.md`, section 0).
+
+Prerequisites (true on artdubati_test, checked by the tests and the script): the
+French localisation `l10n_fr_account` installed (the tests build a French company with
+its chart of accounts); every warehouse receives in one step (« Receive goods directly »),
+since the equipment operations refuse receipts in several steps.
 
 Order: 1 backup, 2 code, 3 views before, 4 update and tests (4b rollback if it fails),
 5 settings script, 6 views after, 7 groups, 8 interface checks.
@@ -69,13 +74,13 @@ Expected (08/10/2026): image `odoo-web`, network `odoo_default`, the mounts of
 `/mnt/extra-addons`, `/var/lib/odoo` and `/etc/odoo`, variables `PATH`, `LANG`,
 `ODOO_VERSION`, `ODOO_RC`. If the output differs, stop and send it to Claude.
 
-Then, with the backup of step 1 and the expected number of tests (79):
+Then, with the backup of step 1 and the expected number of tests (88):
 
 ```bash
-bash /opt/odoo/addons/custom/docs/deploy_modules.sh /opt/odoo/backups/<backup of step 1>.dump 79 phase2
+bash /opt/odoo/addons/custom/docs/deploy_modules.sh /opt/odoo/backups/<backup of step 1>.dump 88 phase2
 ```
 
-Expected last lines: « UPDATE OK », « TESTS OK: 0 failed, 0 error(s) of 79 tests »,
+Expected last lines: « UPDATE OK », « TESTS OK: 0 failed, 0 error(s) of 88 tests »,
 « odoo_web started. Update phase2 done. ». Log lines with « ERROR » inside the test log
 are normal when they belong to tests checking a refusal (the script only fails on the
 exit code or on a wrong count).
@@ -114,7 +119,7 @@ it would create: the three service products (« Prêt de matériel », « Locati
 matériel (payée) » on 613500, « Location de matériel (facturée) » on 708300), the three
 acquisition locations (« Acquisitions - Don » 778000, « … Apport en compte courant »
 455100, « … Régularisation » 603200), and the flag on `WH/Chez tiers`. It also lists,
-without changing anything: serial numbers in stock without equipment (expected none),
+without changing anything (and stops on a warehouse receiving in several steps): serial numbers in stock without equipment (expected none),
 **open receipts** (to be received through operations from now on), lent-out locations
 without address, the incoming operation types and the members of the two new groups.
 Any error stops it before writing. Accounting choices: test choices, see

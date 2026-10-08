@@ -42,7 +42,7 @@ APPROVER_GROUP = "maintenance_shareholder_equipment.group_equipment_approver"
 # Written only by the operation's own methods (superuser mode), never directly.
 PROTECTED_FIELDS = {
     "state", "approver_id", "approval_date", "approval_snapshot", "executor_id",
-    "execution_date", "picking_ids", "purchase_created_id", "bill_id", "contract_ids",
+    "execution_date", "picking_ids", "purchase_created_id", "bill_ids", "contract_ids",
 }
 
 
@@ -109,7 +109,10 @@ class EquipmentOperation(models.Model):
         "res.currency", default=lambda self: self.env.company.currency_id,
     )
     bill_mode = fields.Selection(
-        [("none", "No Bill"), ("create", "Create a Draft Bill")], default="none",
+        [("none", "No Bill"), ("existing", "Bill Already Received"),
+         ("create", "Create a Draft Bill")], default="none",
+        help="Bill Already Received: the bills of the order lines received (posted before "
+        "the receipt) are linked to the operation; at least one is required.",
     )
     bill_ref = fields.Char(string="Vendor Bill Reference")
     bill_date = fields.Date(string="Bill Date")
@@ -152,7 +155,9 @@ class EquipmentOperation(models.Model):
                                     string="Contract Lines to Stop")
     picking_ids = fields.One2many("stock.picking", "equipment_operation_id", readonly=True)
     purchase_created_id = fields.Many2one("purchase.order", readonly=True, copy=False)
-    bill_id = fields.Many2one("account.move", string="Draft Bill", readonly=True, copy=False)
+    bill_ids = fields.Many2many("account.move", string="Bills", readonly=True, copy=False,
+                                help="Draft bill created by the operation, or bills already "
+                                "received for the lines it received.")
     contract_ids = fields.Many2many("contract.contract", string="Contracts", readonly=True,
                                     copy=False)
     needs_approval = fields.Boolean(compute="_compute_needs_approval")
@@ -187,13 +192,29 @@ class EquipmentOperation(models.Model):
 
     def _attach_documents(self):
         """Uploaded files belong to the operation, so that the access rules of the
-        operation protect them."""
+        operation protect them. A client may only bring files it uploaded itself for
+        this operation (or not yet attached to anything) and can read: any other
+        attachment id sent through the API is refused before the elevated write."""
         for op in self:
-            files = (op.attachment_ids | op.bill_attachment_ids | op.contract_attachment_ids
-                     | op.line_ids.attachment_ids)
-            files.sudo().filtered(
-                lambda a: a.res_model != op._name or a.res_id != op.id
-            ).write({"res_model": op._name, "res_id": op.id})
+            op_su = op.sudo()
+            files = (op_su.attachment_ids | op_su.bill_attachment_ids
+                     | op_su.contract_attachment_ids | op_su.line_ids.attachment_ids)
+            new = files.filtered(lambda a: a.res_model != op._name or a.res_id != op.id)
+            if not new:
+                continue
+            if not self.env.su:
+                own_ids = {op._name: {op.id}, "equipment.operation.line": set(op_su.line_ids.ids)}
+                for attachment in new:
+                    if attachment.res_id:
+                        allowed = attachment.res_id in own_ids.get(attachment.res_model, ())
+                    else:  # fresh upload: only by the current user, for this model or none
+                        allowed = attachment.create_uid == self.env.user and (
+                            attachment.res_model in (False, op._name, "equipment.operation.line"))
+                    if not allowed:
+                        raise AccessError(_("Attachment %s cannot be added to this operation.",
+                                            attachment.name))
+                    attachment.with_env(self.env).check_access("read")
+            new.write({"res_model": op._name, "res_id": op.id})
 
     # ------------------------------------------------------------------ approval
 
@@ -243,7 +264,8 @@ class EquipmentOperation(models.Model):
             "lines": sorted(
                 [
                     [line.product_id.id, line.quantity, line.price_unit, ids(line.tax_ids),
-                     line.purchase_line_id.id, line.unit_value, line.replacement_value,
+                     line.purchase_line_id.id, line.purchase_line_id.price_unit,
+                     ids(line.purchase_line_id.taxes_id), line.unit_value, line.replacement_value,
                      line.replacement_currency_id.id, str(line.replacement_value_date or ""),
                      line.rent_amount, line.equipment_id.id if op.operation_type != "receipt" else 0]
                     for line in op.line_ids
@@ -355,7 +377,12 @@ class EquipmentOperation(models.Model):
                 raise AccessError(_("Only equipment operators can execute an operation."))
             if op.state not in ("draft", "approved"):
                 raise UserError(_("%s is already executed or being executed.", op.name))
+            was_approved = op.state == "approved"
             op._refresh_stop_lines()
+            if was_approved and op.state == "draft":
+                # the contract lines changed since the approval: stop here (no error, so
+                # that the cancellation of the approval is kept), to be reviewed again
+                continue
             op._check_values()
             op._check_user_access()
             if op.state == "draft" and op._needs_approval():
@@ -387,25 +414,38 @@ class EquipmentOperation(models.Model):
     def _execute_receipt(self):
         if self.receipt_branch == "purchase" and self.purchase_mode == "create":
             self._create_purchase_order()
-        lines = self.line_ids
+        lines = self.line_ids.filtered(lambda ln: ln._qty_executed() > 0)
+        if not lines:
+            raise UserError(_("Nothing to execute: every executed quantity is 0."))
         equipment_lines = lines.filtered(lambda ln: ln.family in ("equipment", "non_stock"))
         for line in lines.filtered(lambda ln: ln.family == "equipment"):
             line._ensure_lot()
         for line in equipment_lines:
             line._prepare_equipment()
-        moved = lines.filtered(lambda ln: ln.family != "non_stock" or self.receipt_branch == "purchase")
+        moved = lines.filtered(lambda ln: ln._needs_move())
         if moved:
-            picking = (self._take_over_purchase_receipt() if self.receipt_branch == "purchase"
-                       else self._new_incoming_picking())
+            picking = (self._take_over_purchase_receipt(moved) if self.receipt_branch == "purchase"
+                       else self._new_incoming_picking(moved))
             self._fill_and_validate(picking, moved)
         for line in equipment_lines:
             line.equipment_id.action_finalize_integration()
         if self.receipt_branch == "purchase" and self.bill_mode == "create":
-            self._create_draft_bill()
+            self._create_draft_bill(lines)
+        if self.receipt_branch == "purchase" and self.bill_mode == "existing":
+            bills = self._received_bills(lines)
+            self.write({"bill_ids": [Command.link(bill.id) for bill in bills]})
         if self.receipt_branch in ("borrowed", "rented"):
             nature = "loan" if self.receipt_branch == "borrowed" else "rental"
             product = self._contract_product(nature, "purchase")
             self._add_contract_lines("purchase", equipment_lines, nature, product)
+
+    def _received_bills(self, lines):
+        """Supplier bills (not cancelled) already carrying the order lines received."""
+        return self.env["account.move"].search([
+            ("move_type", "=", "in_invoice"), ("state", "!=", "cancel"),
+            ("company_id", "=", self.company_id.id),
+            ("invoice_line_ids.purchase_line_id", "in", lines.purchase_line_id.ids),
+        ])
 
     def _purchase(self):
         return self.purchase_created_id or self.purchase_id
@@ -443,21 +483,24 @@ class EquipmentOperation(models.Model):
         self.message_post(body=_("Purchase order %s created and confirmed.",
                                  order._get_html_link()))
 
-    def _take_over_purchase_receipt(self):
+    def _take_over_purchase_receipt(self, lines):
         """The receipt generated by the order: never a second one."""
         order = self._purchase()
         moves = order.order_line.move_ids.filtered(
             lambda m: m.state not in ("done", "cancel") and m.picking_id
             and m.picking_code == "incoming"
         )
-        wanted = self.line_ids.purchase_line_id
+        if moves.move_dest_ids:
+            raise UserError(_("The receipt of %s is chained to other transfers (receipt in "
+                              "several steps): not supported.", order.name))
+        wanted = lines.purchase_line_id
         pickings = moves.filtered(lambda m: m.purchase_line_id in wanted).picking_id
         if len(pickings) != 1:
             raise UserError(_("Exactly one open receipt of %(order)s is expected for these "
                               "lines, found %(count)s.", order=order.name, count=len(pickings)))
         return pickings
 
-    def _new_incoming_picking(self):
+    def _new_incoming_picking(self, lines):
         if self.receipt_branch == "acquisition":
             source = self._acquisition_location()
         else:
@@ -479,7 +522,7 @@ class EquipmentOperation(models.Model):
                     "price_unit": line.unit_value if self.receipt_branch == "acquisition" else 0.0,
                     "company_id": self.company_id.id,
                 })
-                for line in self.line_ids
+                for line in lines
             ],
         })
         picking.action_confirm()
@@ -516,20 +559,35 @@ class EquipmentOperation(models.Model):
         res = picking.with_context(skip_backorder=True, skip_sms=True).button_validate()
         if res is not True and picking.state != "done":
             raise UserError(_("The transfer %s could not be validated.", picking.name))
+        for attachment in self.attachment_ids:
+            attachment.copy({"res_model": "stock.picking", "res_id": picking.id})
         self.message_post(body=_("Transfer %s validated.", picking._get_html_link()))
         return picking
 
-    def _create_draft_bill(self):
+    def _create_draft_bill(self, lines):
+        """Draft bill of the lines and quantities of this operation only, never of
+        other billable lines of the order (they were not approved here)."""
         order = self._purchase()
-        action = order.action_create_invoice()
-        bill = self.env["account.move"].browse(action.get("res_id")) if action.get("res_id") else \
-            order.invoice_ids.filtered(lambda m: m.state == "draft")[-1:]
-        if not bill:
+        bill_lines = []
+        for pol in lines.purchase_line_id:
+            executed = sum(ln._qty_executed() for ln in lines if ln.purchase_line_id == pol)
+            basis = pol.qty_received if pol.product_id.purchase_method == "receive" \
+                else pol.product_qty
+            qty = min(executed, basis - pol.qty_invoiced)
+            if qty <= 0:
+                continue
+            vals = pol._prepare_account_move_line()
+            vals["quantity"] = qty
+            bill_lines.append(Command.create(vals))
+        if not bill_lines:
             raise UserError(_("No bill could be created from %s.", order.name))
-        bill.write({"ref": self.bill_ref, "invoice_date": self.bill_date})
+        vals = order.with_company(self.company_id)._prepare_invoice()
+        vals.update(ref=self.bill_ref, invoice_date=self.bill_date, invoice_line_ids=bill_lines)
+        bill = self.env["account.move"].with_company(self.company_id).with_context(
+            default_move_type="in_invoice").create(vals)
         for attachment in self.bill_attachment_ids:
             attachment.copy({"res_model": "account.move", "res_id": bill.id})
-        self.write({"bill_id": bill.id})
+        self.write({"bill_ids": [Command.link(bill.id)]})
         bill.message_post(body=_("Draft bill created by %s, to be checked and posted by the "
                                  "accountant.", self._get_html_link()))
 
@@ -727,6 +785,9 @@ class EquipmentOperation(models.Model):
                 raise ValidationError(_("Line %s: quantities must be positive and the quantity "
                                         "executed cannot exceed the quantity approved.",
                                         line.product_id.display_name))
+            if op.operation_type != "receipt" and line.quantity_done != line.quantity:
+                raise ValidationError(_("Line %s: an exit, return or restitution moves the "
+                                        "whole equipment.", line.product_id.display_name))
             for amount in (line.price_unit, line.unit_value, line.replacement_value, line.rent_amount):
                 if amount < 0:
                     raise ValidationError(_("Line %s: amounts cannot be negative.",
@@ -746,6 +807,11 @@ class EquipmentOperation(models.Model):
         need(self.location_dest_id, _("destination stock"))
         if self.picking_type_id and self.picking_type_id.code != "incoming":
             raise ValidationError(_("Choose a receipt operation type."))
+        warehouse = self.picking_type_id.warehouse_id
+        if warehouse and warehouse.reception_steps != "one_step":
+            raise ValidationError(_("Warehouse %s receives in several steps: not supported by "
+                                    "the equipment operations (one-step receipts only).",
+                                    warehouse.name))
         dest = self.location_dest_id
         if dest and not (dest.active and dest.usage == "internal" and dest.place_type == "physical"):
             raise ValidationError(_("The destination must be an active internal physical stock."))
@@ -821,6 +887,9 @@ class EquipmentOperation(models.Model):
                         raise ValidationError(_("%(product)s: tax %(tax)s is not a purchase tax "
                                                 "of the company.", product=line.product_id.display_name,
                                                 tax=tax.name))
+        if self.bill_mode == "existing" and self.line_ids.purchase_line_id \
+                and not self._received_bills(self.line_ids):
+            errors.append(_("bill already received for these order lines"))
         if self.bill_mode == "create":
             need(self.bill_ref, _("vendor bill reference"))
             need(self.bill_date, _("bill date"))
@@ -975,7 +1044,7 @@ class EquipmentOperation(models.Model):
     def _refresh_stop_lines(self):
         """Contract lines of the equipment of a return or restitution, and no other."""
         for op in self.filtered(lambda o: o.operation_type in ("return", "restitution")
-                                and o.state in ("draft", "to_approve")):
+                                and o.state in ("draft", "to_approve", "approved")):
             today = op._today
             domain = [("equipment_id", "in", op.line_ids.equipment_id.ids),
                       ("is_canceled", "=", False),
@@ -995,6 +1064,8 @@ class EquipmentOperation(models.Model):
                     "operation_id": op.id, "contract_line_id": contract_line.id,
                     "mandatory": mandatory, "to_stop": True,
                 })
+            # a contract line added or ended after the approval cancels it
+            op._invalidate_changed_approvals()
 
     def action_refresh_stop_lines(self):
         self._refresh_stop_lines()
@@ -1021,7 +1092,7 @@ class EquipmentOperationLine(models.Model):
     quantity_done = fields.Float(
         string="Executed Quantity", digits="Product Unit of Measure",
         help="Quantity actually received or moved; at most the approved quantity. "
-        "Empty: the approved quantity.",
+        "Defaults to the approved quantity; 0 means nothing executed for this line.",
     )
     price_unit = fields.Float(string="Unit Price", digits="Product Price")
     tax_ids = fields.Many2many("account.tax", string="Taxes", check_company=True)
@@ -1078,6 +1149,8 @@ class EquipmentOperationLine(models.Model):
             self._check_editable(op)
             if not self.env.su and ({"lot_id", "origin_location_id"} & set(vals)):
                 raise AccessError(_("This field is set by the operation itself."))
+            if "quantity_done" not in vals:
+                vals["quantity_done"] = vals.get("quantity", 1.0)
         lines = super().create(vals_list)
         lines._fill_defaults()
         lines.operation_id._attach_documents()
@@ -1089,6 +1162,14 @@ class EquipmentOperationLine(models.Model):
         if "lot_id" in vals or "origin_location_id" in vals:
             if not self.env.su:
                 raise AccessError(_("This field is set by the operation itself."))
+        if "quantity" in vals and "quantity_done" not in vals:
+            # the executed quantity follows the approved one unless set apart
+            following = self.filtered(lambda ln: ln.quantity_done == ln.quantity)
+            if following and following != self:
+                return (following.write(dict(vals, quantity_done=vals["quantity"]))
+                        and (self - following).write(vals))
+            if following:
+                vals = dict(vals, quantity_done=vals["quantity"])
         res = super().write(vals)
         self.operation_id._attach_documents()
         self.operation_id._invalidate_changed_approvals()
@@ -1117,8 +1198,21 @@ class EquipmentOperationLine(models.Model):
             if line.operation_type == "return" and not line.dest_location_id and line.equipment_id:
                 line.dest_location_id = line._recorded_origin()
 
+    @api.onchange("quantity")
+    def _onchange_quantity(self):
+        self.quantity_done = self.quantity
+
     def _qty_executed(self):
-        return self.quantity_done or self.quantity
+        """Executed quantity as entered: 0 means nothing received for this line."""
+        return self.quantity_done
+
+    def _needs_move(self):
+        """Equipment in stock and consumables move; a non-stock equipment moves only
+        when its purchase order line still has an open receipt move."""
+        if self.family != "non_stock":
+            return True
+        return bool(self.purchase_line_id.move_ids.filtered(
+            lambda m: m.state not in ("done", "cancel") and m.picking_code == "incoming"))
 
     def _recorded_origin(self):
         """Stock the equipment left from at its last exit; otherwise the return
@@ -1302,6 +1396,7 @@ class EquipmentOperationStop(models.Model):
 
     operation_id = fields.Many2one("equipment.operation", required=True, ondelete="cascade",
                                    index=True)
+    company_id = fields.Many2one(related="operation_id.company_id", store=True, index=True)
     contract_line_id = fields.Many2one("contract.line", required=True, readonly=True,
                                        ondelete="cascade")
     equipment_id = fields.Many2one(related="contract_line_id.equipment_id")

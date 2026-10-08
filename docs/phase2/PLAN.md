@@ -384,6 +384,40 @@ destinations.
 - Server: `docs/deploy_modules.sh` (phase 1 script made generic: backup, expected
   count, label), `docs/phase2/setup_phase2.py`, `docs/phase2/README.md`.
 
+## Corrections after the code audit of e8aa06e
+
+Each point has a test that fails on e8aa06e and passes now (88 tests in all):
+1. Executed quantity: defaults to the approved quantity at creation and follows it while
+   equal; an explicit 0 receives nothing for that line; all lines at 0 → nothing executed.
+   Exit, return and restitution always move the whole equipment.
+2. Non-stock equipment: no move for them except when their order line has an open
+   receipt move; mixed operations build moves only for the lines that move; a service
+   product (no receipt) is handled without picking.
+3. Draft bill: built from the operation's order lines and executed quantities only
+   (bounded by what is received or ordered and not yet invoiced); other billable lines
+   of the order are never billed. Order line prices and taxes are in the snapshot.
+4. « Bill already received » mode: the bills carrying the received order lines are
+   linked (`bill_ids`); at least one is required. No accounting read right is given to
+   the operator: the bills are found by the server.
+5. Internal transfers of equipment: refused to a `virtual` place, and between two
+   off-site stocks (only physical → lent-out by an exit, lent-out → physical by a
+   return).
+6. Contract lines to stop: `company_id` stored and multi-company record rule.
+7. Contract lines changed after the approval (added, ended): refreshed at execution;
+   the approval is cancelled and the execution stops without error (the cancellation is
+   kept), the operation is back in draft for review.
+8. Attachments: only files uploaded by the current user (not yet attached, or attached
+   to this operation or its lines) and readable by them can be added; any other id sent
+   through the API is refused before the elevated write. Common documents are copied on
+   each transfer.
+9. Receipts in several steps: refused by the operation (warehouse of the operation type
+   not in one step, or receipt moves chained to other transfers) and by the setup
+   script.
+Also: the setup script filters products and locations by company; the company settings
+check that products and locations belong to the company and that acquisition sources
+are inventory locations; the tests fail with an explicit message when `l10n_fr_account`
+is not installed (instead of an attempted installation inside the tests).
+
 ## Open decisions for the owner
 
 - Members of the two new groups on artdubati_test (to give before the tests in the

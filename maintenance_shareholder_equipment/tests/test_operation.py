@@ -171,6 +171,10 @@ class TestReceiptBranches(TestOperationCommon):
         self.assertTrue(Attachment.search([("res_model", "=", "maintenance.equipment"),
                                            ("res_id", "=", equipment.id),
                                            ("name", "=", "photo.jpg")]))
+        self.assertTrue(Attachment.search([("res_model", "=", "stock.picking"),
+                                           ("res_id", "=", op.picking_ids.id),
+                                           ("name", "=", "delivery note.pdf")]),
+                        "common documents copied on the receipt")
 
 
 @tagged("post_install", "-at_install")
@@ -178,7 +182,7 @@ class TestPurchaseOperation(TestOperationCommon):
 
     def test_receipt_before_bill_with_draft_bill(self):
         po = self._order(self.drill, 2)
-        bill_pdf = self.env["ir.attachment"].create(
+        bill_pdf = self.env["ir.attachment"].with_user(self.user_operator).create(
             {"name": "bill.pdf", "datas": PDF, "mimetype": "application/pdf"})
         op = self._operation("receipt", user=self.user_operator, receipt_branch="purchase",
                              partner_id=self.vendor.id, purchase_mode="existing",
@@ -194,7 +198,7 @@ class TestPurchaseOperation(TestOperationCommon):
         op = self.env["equipment.operation"].browse(op.id)
         equipment = op.line_ids.equipment_id
         self.assertEqual(set(equipment.mapped("integration_state")), {"done"})
-        bill = op.bill_id
+        bill = op.bill_ids
         self.assertEqual(bill.state, "draft", "never posted by the operation")
         self.assertEqual(bill.ref, "F-001")
         self.assertTrue(self.env["ir.attachment"].search(
@@ -678,3 +682,188 @@ class TestApprovalAndRights(TestOperationCommon):
         self.assertFalse(op.picking_ids)
         op.action_execute()
         self.assertEqual(op.state, "done")
+
+
+@tagged("post_install", "-at_install")
+class TestAuditCorrections(TestOperationCommon):
+    """Cases raised by the audit of commit e8aa06e."""
+
+    def _po(self, *lines):
+        po = self.env["purchase.order"].create({
+            "partner_id": self.vendor.id, "picking_type_id": self.warehouse.in_type_id.id,
+            "order_line": [Command.create({"product_id": product.id, "product_qty": qty,
+                                           "price_unit": 10.0, "taxes_id": [Command.clear()]})
+                           for product, qty in lines],
+        })
+        po.button_confirm()
+        return po
+
+    def _purchase_op(self, po, lines, **vals):
+        return self._operation("receipt", receipt_branch="purchase", partner_id=self.vendor.id,
+                               purchase_mode="existing", purchase_id=po.id, lines=lines, **vals)
+
+    def _pol(self, po, product):
+        return po.order_line.filtered(lambda pl: pl.product_id == product)
+
+    # 1. executed quantity 0
+    def test_executed_quantity_zero_receives_nothing(self):
+        po = self._po((self.screws, 10), (self.drill, 1))
+        op = self._purchase_op(po, [
+            dict(product_id=self.screws.id, quantity=10, quantity_done=0,
+                 purchase_line_id=self._pol(po, self.screws).id),
+            dict(product_id=self.drill.id, purchase_line_id=self._pol(po, self.drill).id,
+                 lot_name="Q0"),
+        ])
+        op.action_execute()
+        self.assertEqual(self._pol(po, self.screws).qty_received, 0)
+        self.assertEqual(self._pol(po, self.drill).qty_received, 1)
+        nothing = self._purchase_op(po, [dict(product_id=self.screws.id, quantity=10,
+                                              quantity_done=0,
+                                              purchase_line_id=self._pol(po, self.screws).id)])
+        with self.assertRaises(UserError):
+            nothing.action_execute()
+        self.assertEqual(nothing.state, "draft")
+
+    # 2. non-stock equipment: purchase and mixed operations
+    def test_non_stock_purchase_and_mixed_operations(self):
+        po = self._po((self.small_tool, 1))
+        op = self._purchase_op(po, [dict(product_id=self.small_tool.id,
+                                         purchase_line_id=po.order_line.id)])
+        op.action_execute()
+        equipment = op.line_ids.equipment_id
+        self.assertEqual(equipment.current_location_id, self.stock)
+        self.assertEqual(equipment.integration_state, "done")
+        lease = self.env["product.product"].create({
+            "name": "Vehicle lease", "type": "service", "maintenance_ok": True,
+            "purchase_ok": True, "supplier_taxes_id": [Command.clear()],
+        })
+        po = self._po((lease, 1))
+        self.assertFalse(po.picking_ids, "a service creates no receipt")
+        op = self._purchase_op(po, [dict(product_id=lease.id, purchase_line_id=po.order_line.id)])
+        op.action_execute()
+        self.assertEqual(op.state, "done")
+        self.assertFalse(op.picking_ids)
+        op = self._operation("receipt", receipt_branch="acquisition",
+                             acquisition_nature="regularisation", lines=[
+                                 dict(product_id=self.screws.id, quantity=3, unit_value=1.0),
+                                 dict(product_id=self.small_tool.id, unit_value=0.0)])
+        op.action_execute()
+        self.assertEqual(op.picking_ids.move_ids.product_id, self.screws,
+                         "no move for the non-stock equipment")
+        self.assertTrue(op.line_ids.filtered(lambda ln: ln.product_id == self.small_tool).equipment_id)
+
+    # 3. draft bill limited to the lines of the operation
+    def test_draft_bill_only_for_operation_lines(self):
+        self.screws.purchase_method = "purchase"  # billable on ordered quantities
+        po = self._po((self.screws, 5), (self.drill, 1))
+        pdf = self.env["ir.attachment"].create({"name": "b.pdf", "datas": PDF,
+                                                "mimetype": "application/pdf"})
+        op = self._purchase_op(po, [dict(product_id=self.drill.id, lot_name="BL1",
+                                         purchase_line_id=self._pol(po, self.drill).id)],
+                               bill_mode="create", bill_ref="F-9", bill_date=fields.Date.today(),
+                               bill_attachment_ids=[Command.set(pdf.ids)])
+        op.action_execute()
+        bill = op.bill_ids
+        self.assertEqual(bill.invoice_line_ids.product_id, self.drill)
+        self.assertEqual(bill.invoice_line_ids.quantity, 1)
+        self.assertEqual(self._pol(po, self.screws).qty_invoiced, 0)
+
+    # 4. bill already received
+    def test_existing_bill_linked(self):
+        po = self._order(self.drill, 1)
+        bill = self._bill(po)
+        op = self._purchase_op(po, [dict(product_id=self.drill.id, lot_name="EB1",
+                                         purchase_line_id=po.order_line.id)],
+                               bill_mode="existing")
+        self.assertFalse(op.needs_approval)
+        op.with_user(self.user_operator).action_execute()
+        self.assertEqual(op.bill_ids, bill)
+        po2 = self._order(self.drill, 1)
+        op = self._purchase_op(po2, [dict(product_id=self.drill.id, lot_name="EB2",
+                                          purchase_line_id=po2.order_line.id)],
+                               bill_mode="existing")
+        with self.assertRaises(ValidationError):
+            op.action_execute()
+
+    # 5. internal transfers
+    def test_transfers_to_virtual_place_and_between_offsite_stocks(self):
+        rules = TestStockRules._transfer
+        equipment = self._owned_equipment("TV1")
+        virtual = self.env["stock.location"].create({
+            "name": "Virtual place", "usage": "internal", "place_type": "virtual",
+            "location_id": self.stock.id})
+        with self.assertRaises(ValidationError):
+            rules(self, equipment, virtual).button_validate()
+        self._exit(equipment).action_execute()
+        other = self.env["stock.location"].create({
+            "name": "Other site", "usage": "internal", "place_type": "lent_out",
+            "location_id": self.offsite_parent.id, "return_location_id": self.stock.id})
+        with self.assertRaises(ValidationError):
+            rules(self, equipment, other).button_validate()
+
+    # 6. multi-company on the contract lines to stop
+    def test_stop_lines_of_another_company_hidden(self):
+        op = self._borrow("MC1")
+        op.action_execute()
+        other_company = self.env.ref("base.main_company")
+        other_op = self.env["equipment.operation"].sudo().create({
+            "operation_type": "restitution", "company_id": other_company.id})
+        stop = self.env["equipment.operation.stop"].sudo().create({
+            "operation_id": other_op.id,
+            "contract_line_id": op.contract_ids.contract_line_ids.id})
+        Stop = self.env["equipment.operation.stop"].with_user(self.user_operator)
+        self.assertNotIn(stop, Stop.search([]))
+        with self.assertRaises(AccessError):
+            stop.with_user(self.user_operator).write({"to_stop": False})
+
+    # 7. contract changed after approval
+    def test_contract_added_after_approval_cancels_it(self):
+        op = self._borrow("CA1", receipt_branch="rented",
+                          lines=[dict(product_id=self.drill.id, lot_name="CA1", rent_amount=10.0,
+                                      replacement_value=1.0,
+                                      replacement_value_date=fields.Date.today())])
+        op.action_execute()
+        equipment = op.line_ids.equipment_id
+        rest = self._operation("restitution", partner_id=self.lender.id,
+                               lines=[dict(equipment_id=equipment.id)])
+        rest.with_user(self.user_approver).action_approve()
+        self.assertEqual(rest.state, "approved")
+        insurer = self.env["res.partner"].create({"name": "Insurer 2"})
+        self.env["contract.contract"].create({
+            "name": "New policy", "partner_id": insurer.id, "contract_type": "purchase",
+            "line_recurrence": True, "company_id": self.company.id,
+            "contract_line_ids": [Command.create({
+                "product_id": self.rent_service.id, "name": "Premium", "quantity": 1,
+                "price_unit": 5.0, "recurring_rule_type": "monthly", "recurring_interval": 1,
+                "date_start": fields.Date.today(), "recurring_next_date": fields.Date.today(),
+                "equipment_id": equipment.id, "equipment_nature": "insurance"})],
+        })
+        rest.with_user(self.user_operator).action_execute()
+        self.assertEqual(rest.state, "draft", "approval cancelled, to review and approve again")
+        self.assertFalse(rest.picking_ids)
+        self.assertEqual(len(rest.stop_line_ids), 2)
+
+    # 8. attachments injected through the API
+    def test_foreign_attachment_refused(self):
+        op = self._borrow("AJ1", user=self.user_operator)
+        other = self.env["ir.attachment"].create({
+            "name": "secret.pdf", "datas": PDF, "res_model": "res.partner",
+            "res_id": self.vendor.id})
+        foreign_upload = self.env["ir.attachment"].create({"name": "not mine.pdf", "datas": PDF})
+        for attachment in (other, foreign_upload):
+            with self.assertRaises(AccessError):
+                op.write({"attachment_ids": [Command.link(attachment.id)]})
+            with self.assertRaises(AccessError):
+                op.line_ids.write({"attachment_ids": [Command.link(attachment.id)]})
+        self.assertEqual(other.res_model, "res.partner")
+        mine = self.env["ir.attachment"].with_user(self.user_operator).create(
+            {"name": "mine.pdf", "datas": PDF})
+        op.write({"attachment_ids": [Command.link(mine.id)]})
+        self.assertEqual((mine.res_model, mine.res_id), ("equipment.operation", op.id))
+
+    # 9. receipts in several steps
+    def test_multi_step_reception_refused(self):
+        self.warehouse.reception_steps = "two_steps"
+        op = self._borrow("MS1")
+        with self.assertRaises(ValidationError):
+            op.action_execute()

@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-08 21:54+0000\n"
-"PO-Revision-Date: 2026-10-08 21:54+0000\n"
+"POT-Creation-Date: 2026-10-08 23:07+0000\n"
+"PO-Revision-Date: 2026-10-08 23:07+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -184,6 +184,12 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/res_company.py:0
+msgid "%(record)s belongs to another company than %(company)s."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s (exit)"
 msgstr ""
@@ -348,6 +354,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s: serial number"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/res_company.py:0
+msgid "%s: the source of acquisitions must be an inventory location."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -542,6 +554,12 @@ msgid "Asset profile"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "Attachment %s cannot be added to this operation."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__message_attachment_count
 msgid "Attachment Count"
 msgstr ""
@@ -554,6 +572,18 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__bill_attachment_ids
 msgid "Bill (PDF)"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__bill_mode__existing
+msgid "Bill Already Received"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__bill_mode
+msgid ""
+"Bill Already Received: the bills of the order lines received (posted before "
+"the receipt) are linked to the operation; at least one is required."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -596,6 +626,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
 msgid "Bill line %s: equipment links are inconsistent."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__bill_ids
+msgid "Bills"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -666,6 +701,7 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__company_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__company_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__company_id
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__company
 msgid "Company"
 msgstr ""
@@ -879,14 +915,16 @@ msgid "Draft"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__bill_id
-msgid "Draft Bill"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "Draft bill created by %s, to be checked and posted by the accountant."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__bill_ids
+msgid ""
+"Draft bill created by the operation, or bills already received for the lines"
+" it received."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -1330,6 +1368,12 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "Line %s: an exit, return or restitution moves the whole equipment."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid ""
 "Line %s: quantities must be positive and the quantity executed cannot exceed"
 " the quantity approved."
@@ -1519,6 +1563,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__note
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Note"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "Nothing to execute: every executed quantity is 0."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -1818,8 +1868,8 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation_line__quantity_done
 msgid ""
-"Quantity actually received or moved; at most the approved quantity. Empty: "
-"the approved quantity."
+"Quantity actually received or moved; at most the approved quantity. Defaults"
+" to the approved quantity; 0 means nothing executed for this line."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2261,6 +2311,14 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid ""
+"The receipt of %s is chained to other transfers (receipt in several steps): "
+"not supported."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "The return destination must be an internal physical stock."
 msgstr ""
 
@@ -2385,6 +2443,14 @@ msgid "Virtual"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid ""
+"Warehouse %s receives in several steps: not supported by the equipment "
+"operations (one-step receipts only)."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__warranty_status
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__warranty_status
 msgid "Warranty Status"
@@ -2432,7 +2498,21 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid "an equipment cannot be moved to a virtual place."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
 msgid "an equipment enters the stock only through a receipt operation."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid ""
+"an equipment goes from one off-site stock to another only through a return "
+"and a new exit."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2453,6 +2533,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "bill PDF"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "bill already received for these order lines"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment

@@ -107,7 +107,7 @@
                             <field name="bill_ref" invisible="bill_mode != 'create'"/>
                             <field name="bill_date" invisible="bill_mode != 'create'"/>
                             <field name="bill_attachment_ids" widget="many2many_binary" invisible="bill_mode != 'create'"/>
-                            <field name="bill_id" invisible="not bill_id"/>
+                            <field name="bill_ids" widget="many2many_tags" invisible="not bill_ids"/>
                         </group>
                     </group>
                     <group string="Contract"

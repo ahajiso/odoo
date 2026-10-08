@@ -16,6 +16,11 @@ class EquipmentCommon(TransactionCase):
             "currency_id": env.ref("base.EUR").id,
         })
         env.user.company_ids |= cls.company
+        if env["ir.module.module"].search_count(
+                [("name", "=", "l10n_fr_account"), ("state", "=", "installed")]) == 0:
+            raise RuntimeError(
+                "These tests need the French localisation (l10n_fr_account) installed in "
+                "the database, as on artdubati_test: install it first.")
         env["account.chart.template"].try_loading("fr", cls.company, install_demo=False)
         cls.env = env(context=dict(env.context, allowed_company_ids=[cls.company.id],
                                    tracking_disable=True))

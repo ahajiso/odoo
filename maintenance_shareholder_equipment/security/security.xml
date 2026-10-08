@@ -27,6 +27,11 @@
         <field name="model_id" ref="model_equipment_operation"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
+    <record id="rule_equipment_operation_stop_company" model="ir.rule">
+        <field name="name">Equipment operation contract line to stop: multi-company</field>
+        <field name="model_id" ref="model_equipment_operation_stop"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
     <record id="rule_equipment_operation_line_company" model="ir.rule">
         <field name="name">Equipment operation line: multi-company</field>
         <field name="model_id" ref="model_equipment_operation_line"/>

@@ -164,15 +164,22 @@ class StockMoveLine(models.Model):
                         refuse(line, _("an equipment of the company cannot leave the "
                                        "company (sale, scrap, return, loss) until the "
                                        "disposal operation exists."))
-                if src_in and dst_in:
-                    if dst.place_type == "lent_out" and src.place_type != "lent_out" \
-                            and running != "exit":
-                        refuse(line, _("only an exit operation moves equipment to an "
-                                       "off-site stock."))
-                    if src.place_type == "lent_out" and dst.place_type != "lent_out" \
-                            and running != "return":
-                        refuse(line, _("only a return operation brings equipment back "
-                                       "from an off-site stock."))
+                if src_in and dst_in and src != dst:
+                    kinds = (src.place_type, dst.place_type)
+                    if dst.place_type == "virtual":
+                        refuse(line, _("an equipment cannot be moved to a virtual place."))
+                    if "lent_out" in kinds:
+                        if kinds == ("physical", "lent_out"):
+                            if running != "exit":
+                                refuse(line, _("only an exit operation moves equipment to "
+                                               "an off-site stock."))
+                        elif kinds == ("lent_out", "physical"):
+                            if running != "return":
+                                refuse(line, _("only a return operation brings equipment "
+                                               "back from an off-site stock."))
+                        else:
+                            refuse(line, _("an equipment goes from one off-site stock to "
+                                           "another only through a return and a new exit."))
             elif dst_in and dst.place_type == "lent_out" and src.place_type != "lent_out":
                 refuse(line, _("consumables are always owned and never lent out (v1)."))
 

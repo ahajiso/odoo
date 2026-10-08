@@ -113,7 +113,8 @@ created. Approval and physical execution are separate: the approver authorises t
 commitments (snapshot invalidated by any later change of them), the operator executes
 when the physical event happens; the stock is recorded on the execution date.
 - Receipt, five branches: purchase (existing order, or order created and confirmed by
-  the operation; optional draft bill with reference, date and PDF), acquisition
+  the operation; bill already received and linked, or draft bill of the received lines
+  only, with reference, date and PDF), acquisition
   without purchase (gift, contribution to a shareholder current account,
   regularisation; unit value mandatory, C17), borrowed (loan line, existing loan
   contract of the owner or new one), rented (rental line, draft bills), consumables
