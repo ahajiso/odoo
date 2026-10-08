@@ -1,6 +1,6 @@
 # Phase 1 plan – data model (revision 2 after audit)
 
-Status: proposal, revised after the third audit (08/10/2026). No code written yet.
+Status: proposal, revised after the fourth audit (08/10/2026). No code written yet.
 Scope: `maintenance_shareholder_equipment` 18.0.2.0.0 and the parts of
 `lartdubati_investor_home` that conflict with it. Wizards are phase 2, the monitor phase 3.
 
@@ -79,9 +79,30 @@ the OCA module: before `super()`, our override records the equipment already lin
 each refund line; after `super()`, the equipment that `maintenance_account` has just
 created for refund lines (linked now, not before) are unlinked from the line and
 deleted, in the same transaction, with `sudo()`. Nothing remains after posting. Returns
-of equipment are handled in phase 2. Test: post a real supplier refund of a
-`maintenance_ok` product, with and without purchase line: no equipment exists
-afterwards, and the refund is posted.
+of equipment are handled in phase 2.
+
+**Refund created with « Extourner » (reversal).** Odoo builds it with `copy()`, and the
+OCA field `equipment_ids` has no `copy=False`: the refund lines would start with the
+original bill's equipment and break the constraints below. Our module redeclares the
+inherited field with `copy=False`, so a reversal starts with no equipment.
+
+What `account_asset_management` does with refunds (read in its `account_move.py`):
+- reversal of a bill that created assets (`_reverse_move_vals`): the asset created by
+  that bill is **deleted** and the refund line gets no asset profile, so no new asset;
+  `equipment.asset_id` (many2one, set null on delete) becomes empty;
+- reset of a supplier bill to draft (`button_draft`): its assets are deleted, and new
+  ones are created at the next posting; `asset_id` is filled again then (section 2,
+  after `super()`);
+- a refund entered by hand on the fixed-asset account (not a reversal) gets the
+  account's asset profile and creates a **negative** asset at posting. This is OCA
+  behaviour, not ours; it is reported to the accountant, not changed in phase 1.
+
+Tests with real posted documents: reversal (« Extourner », standard wizard) of a bill
+that has equipment and assets: refund posted, no equipment left on it, no new
+`account.asset`, the original asset deleted and the equipment's `asset_id` empty;
+refund by hand of a `maintenance_ok` service-account line, with and without purchase
+line: no equipment afterwards; refund by hand on 215400: records the negative asset
+created by OCA (documented behaviour).
 
 **At receipt** (phase 2 wizard and receipt validation), for each serial number of P:
 reuse a `draft` equipment of P without lot (bill already posted), oldest first;
@@ -89,15 +110,32 @@ otherwise create the equipment.
 
 **One equipment, one bill line, both sides checked.** The two relations of
 `maintenance_account` are independent: `account.move.line.equipment_ids` (many2many)
-and `maintenance.equipment.move_line_id`. An API call can write either one directly,
-so the invariants are enforced by constraints on **both** models, whoever writes:
+and `maintenance.equipment.move_line_id`. An API call can write either one directly.
+Two symmetric constraints would make any sequential update fail (whichever side is
+written first breaks the other one), and a context key to bypass them could be sent by
+any API caller. The rules are therefore split so that one fixed order always passes,
+without any bypass:
+- on `maintenance.equipment` (`@api.constrains('move_line_id')`): when set, the
+  equipment must not be in the `equipment_ids` of **another** line of a non-cancelled
+  bill;
 - on `account.move.line` (`@api.constrains('equipment_ids')`): every equipment of the
-  line has `move_line_id` = this line, and no equipment belongs to the
-  `equipment_ids` of another line of a non-cancelled bill;
-- on `maintenance.equipment` (`@api.constrains('move_line_id')`): the line, if set,
-  lists the equipment in its `equipment_ids`;
-- on posting: a line with a `maintenance_ok` product and a purchase line has exactly
-  as many equipment as units.
+  line has `move_line_id` = this line, and none is in the `equipment_ids` of another
+  line of a non-cancelled bill;
+- on `account.move.line.write()`: removing an equipment whose `move_line_id` is still
+  this line is refused, except in superuser mode (`env.su`, reachable only from server
+  code).
+Linking order, always: 1) `equipment.move_line_id`, 2) `line.equipment_ids`. It is the
+order `maintenance_account` already follows (equipment created with `move_line_id`,
+then added to the line), so its behaviour is unchanged. Unlinking order: 1) remove from
+`line.equipment_ids`, 2) clear `move_line_id`, both in superuser mode.
+Two private methods (leading underscore, so not callable by RPC) do this:
+`_link_equipment(line, equipment)` and `_unlink_equipment(line, equipment)`. They run
+with `sudo()`, write in the order above, then check the final invariant explicitly
+(both sides agree, one line per equipment) and raise if it does not hold. An ordinary
+API write that would break the invariant (adding an equipment of another line,
+removing one side only, pointing `move_line_id` to a line that does not list it and is
+then posted) fails; the remaining one-sided state (equipment pointing to a line that
+does not list it) is refused at posting, where the count must also equal the units.
 A cancelled bill releases its links (both relations); the draft equipment it created
 without a lot are archived, not deleted. Tests include direct API writes on each side
 (adding an equipment of another line, removing one side only), which must fail.
