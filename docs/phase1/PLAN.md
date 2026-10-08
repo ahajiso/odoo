@@ -1,6 +1,6 @@
 # Phase 1 plan – data model (revision 2 after audit)
 
-Status: proposal, revised after the second audit (08/10/2026). No code written yet.
+Status: proposal, revised after the third audit (08/10/2026). No code written yet.
 Scope: `maintenance_shareholder_equipment` 18.0.2.0.0 and the parts of
 `lartdubati_investor_home` that conflict with it. Wizards are phase 2, the monitor phase 3.
 
@@ -63,27 +63,53 @@ bill (`in_invoice` only) with a `maintenance_ok` product and a purchase line P:
    `maintenance_account`: `L.equipment_ids` and `equipment.move_line_id`;
 5. create the `needed - linked` missing ones as `draft` equipment, with the values of
    `maintenance_account` (`_prepare_equipment_vals`), linked the same way.
-L then has all its equipment and `maintenance_account` skips it. Bill lines without a
+6. if L already has **more** equipment than units (bill reset to draft and quantity
+   lowered), release the excess in a fixed order: draft equipment without lot created
+   for L first (archived), then received equipment (link removed on both sides, the
+   equipment stays), newest first; the chatter of the bill lists what was released.
+L then has exactly its units and `maintenance_account` skips it. Bill lines without a
 purchase line keep the standard behaviour of `maintenance_account` (equipment created
-as `draft`). Supplier refunds (`in_refund`) never create or link equipment: returns are
-handled in phase 2.
+as `draft`).
+
+**Supplier refunds create no equipment.** Odoo 18 counts `in_refund` as a purchase
+document (`is_purchase_document()`), so `maintenance_account` creates equipment for a
+refund line during `super()`. Masking `is_purchase_document()` is not an option: Odoo
+calls it 8 times in `account_move.py` during posting. Neutralisation, without touching
+the OCA module: before `super()`, our override records the equipment already linked to
+each refund line; after `super()`, the equipment that `maintenance_account` has just
+created for refund lines (linked now, not before) are unlinked from the line and
+deleted, in the same transaction, with `sudo()`. Nothing remains after posting. Returns
+of equipment are handled in phase 2. Test: post a real supplier refund of a
+`maintenance_ok` product, with and without purchase line: no equipment exists
+afterwards, and the refund is posted.
 
 **At receipt** (phase 2 wizard and receipt validation), for each serial number of P:
 reuse a `draft` equipment of P without lot (bill already posted), oldest first;
 otherwise create the equipment.
 
-**One equipment, one bill line**: an equipment already linked to a line of a
-non-cancelled bill is never a candidate again; a constraint on the equipment refuses a
-second link. A cancelled bill releases its links (both relations); the draft equipment
-it created without a lot are archived, not deleted.
+**One equipment, one bill line, both sides checked.** The two relations of
+`maintenance_account` are independent: `account.move.line.equipment_ids` (many2many)
+and `maintenance.equipment.move_line_id`. An API call can write either one directly,
+so the invariants are enforced by constraints on **both** models, whoever writes:
+- on `account.move.line` (`@api.constrains('equipment_ids')`): every equipment of the
+  line has `move_line_id` = this line, and no equipment belongs to the
+  `equipment_ids` of another line of a non-cancelled bill;
+- on `maintenance.equipment` (`@api.constrains('move_line_id')`): the line, if set,
+  lists the equipment in its `equipment_ids`;
+- on posting: a line with a `maintenance_ok` product and a purchase line has exactly
+  as many equipment as units.
+A cancelled bill releases its links (both relations); the draft equipment it created
+without a lot are archived, not deleted. Tests include direct API writes on each side
+(adding an equipment of another line, removing one side only), which must fail.
 
 **After `super()`**: `asset_id` filled from `move_line_id.asset_id` when empty.
 
 **Tests**: bill then receipt; receipt then bill; order 3, receive 1, bill 3 (1 linked,
 2 draft created, then reused by the next receipts); order 3, bill 1 then bill 2;
-receive 3, bill 2 then 1; same equipment never linked twice; cancelled bill releases
-its links; both relations always consistent; one asset per unit; purchase / bill
-quantities unchanged; refund creates nothing.
+receive 3, bill 2 then 1; bill 3 posted, reset to draft, quantity 2, posted again (one
+released); same equipment never linked twice; cancelled bill releases its links; both
+relations always consistent, including after direct API writes; one asset per unit;
+purchase / bill quantities unchanged; posted refund creates nothing.
 
 ## 3. Write protection (model level, API included)
 
@@ -167,9 +193,13 @@ manual valuation; expense account of class 21 with an asset profile; that profil
     empty when the contract has no other invoiceable line. A loan-only contract is
     then never selected by the invoicing job (`recurring_next_date <= today`), and in a
     mixed contract the loan date no longer holds the next date back.
+  - `contract.line._compute_create_invoice_visibility()`: OCA shows the manual
+    invoicing button whenever the line has a `recurring_next_date`; our override sets
+    it to False for `loan` lines, so a loan-only contract shows no invoicing button.
   - Tests: run the invoicing job several times over several periods; a loan-only
-    contract is never selected and produces no invoice; a mixed contract invoices only
-    the rental line, and its next date follows the rental line.
+    contract is never selected, produces no invoice and shows no invoicing button; a
+    mixed contract invoices only the rental line, and its next date follows the rental
+    line.
 
 ## 9. Supplier bills
 
@@ -254,6 +284,9 @@ Order on the server: backup, script dry run, product corrections, `psql` check,
 - Verified in code (second audit): `maintenance_account` skips a line with any
   equipment; `contract._compute_recurring_next_date()` uses all non-cancelled lines
   and falls back to a computed date.
+- Verified in code (third audit): `is_purchase_document()` includes `in_refund` and is
+  used 8 times in Odoo's `account_move.py`; `create_invoice_visibility` depends only on
+  `recurring_next_date`.
 - Not verified: other database views reading removed columns (`psql` check of 12).
 - Hypotheses: the four of CLAUDE.md, to be confirmed by the tests.
 
