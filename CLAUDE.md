@@ -85,6 +85,10 @@
   Each audit point is answered: fixed if right, argued with code or sources if
   disputable, sent to the owner if it needs a decision. Nothing is run on the server
   before the audit, and nothing is called done without saying so explicitly.
+- Accounting questions: whenever an accountant's opinion is needed, 1) make a choice
+  and state it is a test choice, 2) make it configurable (setting, category, profile)
+  as soon as possible, 3) add the question, the choice and where to change it to
+  docs/QUESTIONS_COMPTABLE.md.
 
 ## Decisions
 Revision 2 of docs/DEFINITIONS.md (07/10/2026) replaces the decisions of 04/10/2026
@@ -142,11 +146,8 @@ the home page (web_quick_start_screen configuration versus a client action).
   even at zero.
 
 ## Open decisions (external, blocking only the related parts)
-- Conversion of values to each stock's currency: rate and date (accountant).
-- Meaning of handover_value (transfer, contribution or provision) and counterpart
-  account (accountant).
-- Fixed-asset category setup and rental expense account: test choices in
-  docs/phase0/README.md, to be validated or changed by the accountant.
+- Accountant: every question, with the test choice made and where to change it, is in
+  docs/QUESTIONS_COMPTABLE.md.
 
 ## Phases
 0. Configuration on artdubati_test (docs/phase0/: server commands and setup_phase0.py,

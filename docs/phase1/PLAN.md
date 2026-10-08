@@ -95,7 +95,10 @@ What `account_asset_management` does with refunds (read in its `account_move.py`
   after `super()`);
 - a refund entered by hand on the fixed-asset account (not a reversal) gets the
   account's asset profile and creates a **negative** asset at posting. This is OCA
-  behaviour, not ours; it is reported to the accountant, not changed in phase 1.
+  behaviour. Test choice: left as is. Made configurable in phase 1: company setting
+  « Forbid manual refunds on fixed-asset accounts » (default off); when on, posting a
+  supplier refund that is not a reversal with a line on an account carrying an asset
+  profile is refused (question C8 of docs/QUESTIONS_COMPTABLE.md).
 
 Tests with real posted documents: reversal (« Extourner », standard wizard) of a bill
 that has equipment and assets: refund posted, no equipment left on it, no new
@@ -247,7 +250,8 @@ manual valuation; expense account of class 21 with an asset profile; that profil
   has nature `rental` and an equipment.
 - Posting refused for a line on the rental expense account without a contract line.
   The account is a company setting `equipment_rent_account_id`; its default is looked
-  up by code 613500 at installation and logged.
+  up by code 613500 at installation and logged. (question C10 of
+  docs/QUESTIONS_COMPTABLE.md).
 
 ## 10. stock.location
 

@@ -1,0 +1,44 @@
+# Questions pour l'expert-comptable
+
+Liste des choix comptables arrêtés sans avis du comptable. Règle du projet
+(`CLAUDE.md`) : pour chaque besoin d'avis comptable, on arrête un choix, on le rend
+paramétrable dès que possible, et on ajoute la question ici. Le comptable peut changer
+chaque choix ; la colonne « Où le changer » indique comment.
+
+État au 08/10/2026. Base concernée : `artdubati_test` (aucun de ces choix n'est en
+production).
+
+## Immobilisations et stock
+
+| # | Question | Choix arrêté pour le test | Où le changer | Paramétrable |
+|---|---|---|---|---|
+| C1 | Compte d'immobilisation du matériel et de l'outillage suivis en stock ? | 215400 Matériels industriels | Catégorie d'immobilisation (**Facturation → Configuration → Immobilisations → Catégories d'immobilisation**), compte du plan comptable, catégorie de produit Fixed Assets ; ou constantes de `docs/phase0/setup_phase0.py` | Oui |
+| C2 | Comptes d'amortissement et de dotation ? | 281500 et 681120 | Même catégorie d'immobilisation : **Compte de dépréciation**, **Compte de dépréciation (charge)** | Oui |
+| C3 | Méthode et durée d'amortissement ? Une durée par famille de matériel ? | Linéaire, 5 ans, une ligne par an, prorata temporis ; une seule catégorie | Même catégorie : **Méthode de calcul**, **Nombre d'années**, **Prorata temporis** ; une autre durée = une autre catégorie sur un autre compte de classe 21 (ex. 215500) | Oui |
+| C4 | Les immobilisations créées depuis une facture doivent-elles être validées à la main ? | Oui, elles restent en brouillon | Même catégorie : **Sauter l'état brouillon** | Oui |
+| C5 | Une immobilisation par unité (une par numéro de série) vous convient-elle ? | Oui (nécessaire au suivi par équipement) | Même catégorie : **Créer une immobilisation par article** ; le désactiver casse le lien équipement → immobilisation | Oui, mais structurant |
+| C6 | Valorisation du stock des biens immobilisés suivis en stock ? | Catégorie de produit « All / Fixed Assets » : valorisation manuelle (pas d'écriture de stock), coût moyen, compte de charges 215400 ; la valeur comptable vient de l'immobilisation | **Inventaire → Configuration → Catégories de produits** → Fixed Assets | Oui |
+| C7 | Méthode de coût des consommables ? | Coût moyen (catégories 11 à 17) | Catégories de produits, **Méthode de coût** | Oui |
+| C8 | Avoir fournisseur saisi à la main sur un compte d'immobilisation : il crée une immobilisation négative (comportement du module OCA). Faut-il l'interdire et imposer l'extourne de la facture ? | Laissé tel quel ; l'extourne supprime l'immobilisation d'origine | Réglage société prévu en phase 1 (« Interdire les avoirs manuels sur comptes d'immobilisation », désactivé par défaut) | Prévu (phase 1) |
+| C9 | Valeur de remise d'un actionnaire (`handover_value`) : transfert de propriété, apport en nature ou simple mise à disposition ? Date du transfert, compte de contrepartie (capital, 455, autre), TVA, justificatif ? | Conservée comme information, jamais utilisée en comptabilité | À définir selon la réponse | Non (en attente) |
+
+## Location et prêt
+
+| # | Question | Choix arrêté pour le test | Où le changer | Paramétrable |
+|---|---|---|---|---|
+| C10 | Compte des loyers de matériel ? | 613500 Locations mobilières ; une facture sur ce compte doit être liée à une ligne de contrat | Réglage société prévu en phase 1 (`equipment_rent_account_id`) | Prévu (phase 1) |
+| C11 | Valeur d'inventaire d'un bien emprunté ou loué : valeur de remplacement ? | Valeur de remplacement datée, saisie sur l'équipement | Saisie par équipement | Oui (par équipement) |
+
+## Devises
+
+| # | Question | Choix arrêté pour le test | Où le changer | Paramétrable |
+|---|---|---|---|---|
+| C12 | Conversion des valeurs vers la devise de chaque stock : quel taux et quelle date ? | Dernier taux connu | **Paramètres → Inventaire → Stock Monitor → Stock Monitor Currency Conversion** (dernier taux / taux à la date de saisie / sans conversion) | Oui |
+
+## Facturation BTP (questions déjà ouvertes, reprises ici)
+
+| # | Question | Choix arrêté pour le test | Où le changer | Paramétrable |
+|---|---|---|---|---|
+| C13 | Comptes comptables utilisés dans les fiches CPT-02 à CPT-08 du manuel | Plan comptable général, présentés « à valider » | Fiches du manuel et plan comptable | Oui |
+| C14 | Cases de la CA3 pour l'autoliquidation nationale de sous-traitance | Aucune case sur les 4 taxes (avertissement dans CPT-10, CPT-11) | Lignes de répartition des taxes d'autoliquidation | Oui |
+| C15 | Régime de TVA : débits ou encaissements ? | Non tranché, taxes « S » (encaissement) et « G » (débits) toutes actives | Taxes et positions fiscales | Oui |

@@ -142,6 +142,9 @@ Chaîne complète : **édition de `lartdubati_manual/manual/<lang>/*.html` →
 
 ## 6. Questions ouvertes (au 03/10/2026)
 
+Les questions pour l'expert-comptable (comptes, TVA, immobilisations, devises) sont
+regroupées dans `docs/QUESTIONS_COMPTABLE.md`, avec le choix arrêté et où le changer.
+
 - Type de contact « Individu » (manuel FR) vs « Particulier » (traduction
   officielle Odoo 18 fr.po) : à vérifier dans l'interface réelle, puis
   aligner REF-09, REF-10, PARC-09.
