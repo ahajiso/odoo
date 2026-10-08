@@ -101,8 +101,9 @@ docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' odoo_web | cut -d=
 ```
 
 Expected: one image, one network, the mounts of `/etc/odoo`, `/mnt/extra-addons` and the
-data volume, and environment variable names such as `HOST`, `USER`, `PASSWORD` (used
-by the image to reach the database). If the output differs, stop and send it to Claude.
+data volume, and environment variable names: either `HOST`, `USER`, `PASSWORD`, or only
+`ODOO_RC` (database settings then read from the mounted configuration file, as on the
+test server on 08/10/2026). If the output differs, stop and send it to Claude.
 
 Then, with the backup file of step 1:
 
