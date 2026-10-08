@@ -2,9 +2,28 @@
 
 Checklist for deploying to the production database `artdubati` what was built and
 tested on `artdubati_test`. **Run nothing here without the owner's explicit go.**
-Production and test share the same Odoo container and the same addons folder: the code
-is already on the server (`git pull` in `/opt/odoo/addons/custom`); deploying means
-installing and configuring modules in the `artdubati` database.
+
+## 0. Mandatory prerequisite: separate test and production environments
+
+Today one container `odoo_web` and one addons folder serve both databases: a `git pull`
+for the test changes the code production runs, and a restart would load it against a
+production schema that was not updated. Acceptable only while there is no real
+production (situation on 08/10/2026, audit of phase 1). **Before any production use,
+and before this checklist:**
+- [ ] two Odoo services, e.g. `odoo_test_web` and `odoo_prod_web`, each with its own
+  configuration file and `dbfilter` limited to its database (`list_db = False`);
+- [ ] two independent code folders (custom and OCA addons), production pinned to a commit
+  or tag already validated on test;
+- [ ] two databases, `artdubati_test` and `artdubati` (they may stay on the same
+  PostgreSQL server at first);
+- [ ] two filestores (separate data volumes);
+- [ ] independent backups of each database and filestore, restore tested;
+- [ ] controlled promotion: the commit tested on `artdubati_test` (tests green, owner's
+  checks) is the one checked out in the production folder, then the production modules
+  are updated with production stopped, after a backup.
+
+The steps below assume this separation: « the code » means the production folder, and
+the commands use the production service.
 
 References: `CLAUDE.md` (decisions), `docs/DEFINITIONS.md`, `docs/stock_monitor/README.md`,
 `docs/investor_home/README.md`, manual cards ADM-10 to ADM-12, INV-01 to INV-04,
@@ -17,7 +36,7 @@ PARC-10, PARC-11, CPT-14, CPT-15.
 - [ ] Accountant's answers received, or deliberately postponed: asset profiles
   (account_asset_management), currency conversion choice, replacement price choice.
   The defaults (latest rate, product cost) can stay until then.
-- [ ] Server code up to date: `cd /opt/odoo/addons/custom && git pull`, and the OCA clones
+- [ ] Production code folder on the validated commit (section 0), and the OCA clones
   in `/opt/odoo/addons/` (contract-18, reporting-engine-18, web-18, server-ux-18, and
   the ones of maintenance_account and account_asset_management) are in the addons_path
   of `/opt/odoo/config/odoo.conf` (already true, since artdubati_test uses them).

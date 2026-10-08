@@ -6,7 +6,8 @@ server, in this order, only after the audit and once the code is on `main`.
 Rehearsed locally on 08/10/2026 (Odoo 18 + OCA heads, database installed with the
 previous versions of both modules, test data, and the two stock monitor queries of
 `docs/stock_monitor/` created as SQL views): preparation script, update of both
-modules, tests passing (47 after the audit fixes), deploy_phase1.sh rehearsed with a fake docker (success, update failure, test failure), both monitor views intact.
+modules, tests passing (47 after the audit fixes), deploy_phase1.sh rehearsed with a fake docker (success, update failure, test failure,
+stop / start failure, network count), both monitor views intact.
 
 Do not restart `odoo_web` between the `git pull` (step 2) and the module update
 (step 6): the new Python code would be loaded against the old database.
@@ -83,9 +84,11 @@ python3 setup_phase1.py          # control: 0 equipment, nothing left to do
 
 ## 6. Module update and tests, service stopped
 
-The update must not run while the application serves requests. `odoo_web` serves both
-databases, so **production is unavailable during this step** (a few minutes): choose a
-maintenance window. `deploy_phase1.sh` runs the update and the tests in a one-off
+The update must not run while the application serves requests. `odoo_web` serves every
+database of the server, so **all of them are unavailable during this step** (a few
+minutes). Acceptable only because there is no real production yet: separate test and
+production environments are a mandatory prerequisite before any production use
+(`docs/deployment/investor_home.md`, section 0). `deploy_phase1.sh` runs the update and the tests in a one-off
 container with the same image, volumes, network and environment as `odoo_web`.
 
 Check first what will be reused (prints names, not the secret values):

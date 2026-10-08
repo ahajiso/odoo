@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Phase 1: update the two modules on artdubati_test and run their tests, with odoo_web
-# STOPPED (it also serves production: plan a maintenance window).
+# STOPPED. odoo_web serves every database of the server: acceptable only while there is
+# no real production (see docs/deployment/investor_home.md, section 0).
 #
 # Usage: bash deploy_phase1.sh /opt/odoo/backups/artdubati_test_<date>_phase1.dump
 #
@@ -33,8 +34,12 @@ fail() {
 mkdir -p "$LOGDIR"
 
 IMG=$(docker inspect -f '{{.Config.Image}}' odoo_web)
-NET=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' odoo_web | awk '{print $1}')
-[ -n "$IMG" ] && [ -n "$NET" ] || { echo "Cannot read image or network of odoo_web."; exit 1; }
+NETS=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' odoo_web)
+read -r -a NETA <<< "$NETS"
+[ -n "$IMG" ] || { echo "Cannot read the image of odoo_web."; exit 1; }
+[ "${#NETA[@]}" -eq 1 ] || {
+  echo "odoo_web must be on exactly one Docker network, found: '${NETS}'. Send this to Claude."; exit 1; }
+NET=${NETA[0]}
 ENVF=$(mktemp)
 trap 'rm -f "$ENVF"' EXIT
 chmod 600 "$ENVF"
@@ -46,8 +51,9 @@ run_odoo() {
 
 echo "Backup: $BACKUP"
 echo "Image: $IMG, network: $NET"
-echo "Stopping odoo_web (production unavailable until the end)..."
-docker stop odoo_web
+echo "Stopping odoo_web (every database unavailable until the end)..."
+docker stop odoo_web > /dev/null || {
+  echo "FAILED: docker stop odoo_web. Nothing was changed; check « docker ps -a »."; exit 1; }
 
 echo "Updating $MODULES on $DB..."
 if ! run_odoo -d "$DB" -u "$MODULES" --stop-after-init > "$LOG" 2>&1; then
@@ -70,5 +76,8 @@ if ! grep -q "0 failed, 0 error(s) of $EXPECTED_TESTS tests" "$LOGT"; then
 fi
 echo "TESTS OK: 0 failed, 0 error(s) of $EXPECTED_TESTS tests"
 
-docker start odoo_web
+docker start odoo_web > /dev/null || {
+  echo "FAILED: docker start odoo_web, although update and tests passed."
+  echo "Run « docker start odoo_web » and « docker logs --tail 50 odoo_web », send them to Claude."
+  exit 1; }
 echo "odoo_web started. Phase 1 update done."

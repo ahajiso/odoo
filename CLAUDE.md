@@ -20,6 +20,11 @@
   (owner's choice, keep it and keep the documentation as is), so
   `stock.location.warehouse_id` is empty for Bg/Stock and its children. Never rely on
   `warehouse_id` to find a stock's warehouse, address or country.
+- One container `odoo_web` and one addons folder serve both databases: acceptable only
+  while there is no real production (08/10/2026). Separate test and production
+  environments (services, code, databases, filestores, backups, controlled promotion)
+  are a mandatory prerequisite before any production use: docs/deployment/investor_home.md,
+  section 0.
 - Single company. DB container: odoo_db (`docker exec -i odoo_db psql -U odoo -d artdubati_test`).
 - Languages: en_US, fr_FR, fa_IR (RTL). All UI strings translatable; .po files come from
   `odoo --i18n-export`, never written by hand.
