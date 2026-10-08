@@ -16,6 +16,10 @@
   maintenance_equipment_usage, maintenance_request_purchase (OCA/maintenance),
   stock_location_address (OCA/stock-logistics-transport). To drop: maintenance_equipment_contract
   (unqualified many2many). Not used: maintenance_purchase.
+- Warehouse « Bougival 1 » (code Bg): its stock Bg/Stock is outside its root location WH
+  (owner's choice, keep it and keep the documentation as is), so
+  `stock.location.warehouse_id` is empty for Bg/Stock and its children. Never rely on
+  `warehouse_id` to find a stock's warehouse, address or country.
 - Single company. DB container: odoo_db (`docker exec -i odoo_db psql -U odoo -d artdubati_test`).
 - Languages: en_US, fr_FR, fa_IR (RTL). All UI strings translatable; .po files come from
   `odoo --i18n-export`, never written by hand.
@@ -121,6 +125,9 @@ the home page (web_quick_start_screen configuration versus a client action).
   owned only; `stock_monitor_currency_mode` stays pending the accountant.
 - docs/stock_monitor/*.sql: ownership computed from acquisition_mode / owner_type, rent
   from maintenance_equipment_contract → rewrite on revision 2.
+- lartdubati_investor_home/models/stock_access.py `_location_domain` and
+  docs/stock_monitor/*.sql: country through `warehouse_id.partner_id` → empty for
+  Bg/Stock; use the stock's own `address_id` (stock_location_address).
 - Tests in lartdubati_investor_home/tests/ to update accordingly; access profile tests
   stay valid.
 

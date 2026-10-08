@@ -38,8 +38,20 @@ git clone --depth 1 -b 18.0 https://github.com/OCA/stock-logistics-transport.git
 ls -d stock-logistics-transport-18/stock_location_address
 ```
 
-Add the new clone to `addons_path` in `/opt/odoo/config/odoo.conf`, using the path as
-seen from inside the container (same form as the other OCA entries of that line), then:
+Add the new clone to `addons_path`. The container reads `/etc/odoo/odoo.conf` and sees
+`/opt/odoo/addons/<folder>` as `/mnt/extra-addons/<folder>` (log line "addons paths"
+of the install below). Check, then add the entry:
+
+```bash
+docker inspect odoo_web --format '{{range .Mounts}}{{.Source}} -> {{.Destination}}{{"\n"}}{{end}}'
+docker exec odoo_web ls -d /mnt/extra-addons/stock-logistics-transport-18/stock_location_address
+grep -n '^addons_path' /opt/odoo/config/odoo.conf
+sed -i '/^addons_path/ s|$|,/mnt/extra-addons/stock-logistics-transport-18|' /opt/odoo/config/odoo.conf
+docker exec odoo_web grep -n '^addons_path' /etc/odoo/odoo.conf   # must end with the new entry
+```
+
+Use `sed` only if the `inspect` line shows `/opt/odoo/addons -> /mnt/extra-addons` and
+`/opt/odoo/config -> /etc/odoo`, and the `ls` succeeds; otherwise ask Claude.
 
 ```bash
 set -o pipefail
@@ -48,13 +60,20 @@ docker exec -i odoo_web odoo -d artdubati_test \
      -i contract_line_successor,maintenance_equipment_usage,maintenance_request_purchase,stock_location_address \
      --stop-after-init 2>&1 | tee "$LOG" \
   && echo "INSTALL COMMAND OK"
-grep -E " (ERROR|CRITICAL) " "$LOG" && echo "ERRORS FOUND: do not continue" || echo "no ERROR/CRITICAL line"
+grep -E " (ERROR|CRITICAL) |invalid module names" "$LOG" && echo "PROBLEM FOUND: do not continue" || echo "no ERROR/CRITICAL/invalid module line"
 docker restart odoo_web
 ```
 
 With `-i`, Odoo refreshes the module list itself (no `-u base`, which would update
-every installed module). Continue only with "INSTALL COMMAND OK" and "no ERROR/CRITICAL line". Check in
-**Applications** (filter removed) that the four modules show as installed.
+every installed module). A module missing from `addons_path` only gives a WARNING
+"invalid module names, ignored", hence the `grep` on it. Then check in the database:
+
+```bash
+docker exec -i odoo_db psql -U odoo -d artdubati_test -c "SELECT name, state, latest_version FROM ir_module_module WHERE name IN ('contract_line_successor','maintenance_equipment_usage','maintenance_request_purchase','stock_location_address') ORDER BY name;"
+docker exec -i odoo_db psql -U odoo -d artdubati_test -c "SELECT name FROM ir_model_fields WHERE model = 'stock.location' AND name IN ('address_id','real_address_id');"
+```
+
+Continue only with four rows in state `installed` and the two fields listed.
 
 ## 3. Configuration script
 

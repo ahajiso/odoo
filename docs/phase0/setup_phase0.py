@@ -156,6 +156,13 @@ if len(readable) != 2:
                      "an administrator outside the group 'Stock Monitor Investor'.")
 print(f"warehouse {wh['name']} ({WAREHOUSE_CODE}): root {wh['view_location_id']}, "
       f"stock {wh['lot_stock_id']}")
+stock_path = call("stock.location", "read", [stock_id], ["parent_path"], context=CTX)[0]["parent_path"]
+if f"/{root_id}/" not in "/" + stock_path:
+    # Intentional on artdubati_test (owner's choice): Bg/Stock is outside the root WH, so
+    # its warehouse_id is empty. Reported, not blocking; code must not rely on
+    # stock.location.warehouse_id to find the warehouse of Bg/Stock.
+    print(f"NOTE   stock location {wh['lot_stock_id'][1]} is not under the warehouse root "
+          f"{wh['view_location_id'][1]}: its warehouse_id is empty (known, intentional)")
 locs = call("stock.location", "search_read",
             [("name", "=", THIRD_PARTY_LOCATION), ("location_id", "child_of", root_id),
              ("company_id", "in", [company_id, False])],
