@@ -1,12 +1,19 @@
-# Phase 2 plan – receiving, exit, return and restitution
+# Phase 2 plan – equipment operations (receiving, exit, return, restitution)
 
-Status: draft for audit (08/10/2026). No code written yet.
+Status: revision 2 for audit (08/10/2026), after the audit of revision 1 and the owner's
+answers to O1–O4. No code written yet.
 Scope: `maintenance_shareholder_equipment` 18.0.3.0.0. Builds on phase 1 (data model,
 `_set_ownership`, stock owner checks, contract line rules, bill reconciliation). The
 monitor is phase 3, the manual phase 5.
 
-Reference: docs/DEFINITIONS.md, « Ownership status » and « Receiving (one wizard, four
-branches) ».
+Changes from revision 1: one receiving assistant for every way in (purchase, acquisition
+without purchase, borrowed, rented, consumables), no equipment « to complete » after a
+complete receipt, a dedicated group, a protected business link between operations and
+stock moves, attachments in the assistant, explicit choice of the contracts stopped at
+restitution, off-site stocks chosen or created per third-party site, return destination
+kept on the operation, provisional block on any exit of equipment from the company.
+DEFINITIONS.md (« Receiving (one wizard, four branches) ») is updated accordingly once
+this plan is validated.
 
 ## 0. Facts checked in the code (Odoo 18, OCA heads used in phase 1)
 
@@ -15,257 +22,287 @@ branches) ».
   around line 1265).
 - No stock valuation for a third-party owner: `stock_account` excludes a move line or a
   quant whose `owner_id` is set and is not the company partner (`stock_move_line.py`
-  line 128, `stock_quant.py` line 29). Borrowed and rented items therefore never create
-  valuation layers or journal entries at receipt or restitution.
-- **Quants of third parties are reservable by ordinary operations**: without an owner,
+  line 128, `stock_quant.py` line 29).
+- Quants of third parties are reservable by ordinary operations: without an owner,
   `_get_gather_domain(strict=False)` adds no owner filter (`stock_quant.py` line 770).
-  An ordinary delivery can reserve a borrowed item. Section 6 blocks it at validation.
-- Lent-out stocks are outside `Bg/Stock`, so ordinary reservations (which search
-  `child_of` the source location) never pick them (DEFINITIONS, « Stock »).
-- OCA contract creates invoices and supplier bills as **drafts**
-  (`contract._recurring_create_invoice()` only calls `create`); posting stays with the
-  accountant.
-- `contract_line_successor` provides `contract.line.stop(date_end)`; a date before the
-  line's start cancels the line instead.
-- Contract rights: create / write only for `account.group_account_manager`, read for
-  `account.group_account_invoice` (`contract/security/ir.model.access.csv`).
-- Default serial number: `stock.lot.name` defaults to the sequence `stock.lot.serial`.
+- Lent-out stocks are outside `Bg/Stock`: ordinary reservations (`child_of` the source)
+  never pick them.
+- OCA contract creates invoices and bills as drafts (`_recurring_create_invoice()` only
+  calls `create`).
+- `contract_line_successor` provides `contract.line.stop(date_end)` (a date before the
+  start cancels the line).
+- Contract rights: create / write only for `account.group_account_manager`
+  (`contract/security/ir.model.access.csv`).
+- Default serial number: sequence `stock.lot.serial`.
 - `maintenance_account` takes the equipment category from
-  `product.categ_id.equipment_category_ids` (first one), and creates one if none.
-- Account 708300 « Locations diverses » exists in the French chart (`l10n_fr`,
-  `pcg_7083`).
+  `product.categ_id.equipment_category_ids` (first one) and creates one if none.
+- 708300 « Locations diverses » exists in the French chart (`l10n_fr`, `pcg_7083`).
 
-## 1. Principle: the ownership comes from the business action, the stock checks it
+## 1. One business document: the equipment operation
 
-- Purchase (owned): standard purchase order and receipt. No wizard is needed, because
-  the equipment is created by the receipt itself (section 2), whichever screen
-  validates it.
-- Borrowed, rented (receipt), lent out (exit), return from a third party, restitution
-  to the owner: four wizards. Each one checks the user's rights, then, in one
-  transaction: writes the status through `_set_ownership()` (superuser mode, reason
-  posted in the chatter), creates and validates the stock operation, creates or stops
-  the contract lines, and checks the final consistency.
-- A stock operation alone never changes the status. The rules of section 6 refuse any
-  stock operation that contradicts the status, so the wizards are the only path for
-  third-party property and lent-out items.
+A persistent model `equipment.operation` (not a transient wizard), shown as a guided
+form with one « Validate » button. Persistent because it must keep: who asked, who did
+it, the attachments and condition at receipt, the link to the stock moves, contracts,
+purchase order and bill it created, and the reason posted with each status change.
 
-## 2. Purchase branch: equipment created at receipt
+- Types: **Receipt**, **Exit to a third party**, **Return from a third party**,
+  **Restitution to the owner**. Reference from a sequence, state draft → done
+  (or cancelled while draft).
+- Validation runs in one transaction; any failed check rolls everything back and the
+  operation stays draft. Nothing is created before « Validate » except the draft
+  document itself.
+- Common fields: company, date, requester (`res.users`), operator (current user,
+  read-only), note, attachments (`many2many` `ir.attachment`, multiple upload in the
+  form). At validation the attachments are linked to the operation and copied (same
+  file, new attachment record) to each equipment created or moved, and to the picking.
+- Lines: one per product and quantity for consumables, one per unit for equipment
+  (serial number), with condition at receipt (text, posted in the equipment chatter
+  with the attachments) and per-unit data (section 3).
 
-On validation of stock move lines (`_action_done`, after phase 1's owner check), for
-each done line that
-- brings a serial number into an internal location from a non-internal one (supplier,
-  inventory adjustment, production),
-- of a storable `maintenance_ok` product (serial tracking is already mandatory),
-- without owner (owned),
-- and whose serial number has no equipment yet (archived ones included):
+## 2. Protected business link between operations and stock
 
-1. if the line comes from a purchase order line P and P has draft equipment without a
-   serial number (created when the bill was posted before the receipt, phase 1), the
-   oldest one gets the serial number;
-2. otherwise a new equipment is created: `draft`, `owned`, company partner, product,
-   serial number, name « product – serial », category as `maintenance_account` does it
-   (first equipment category of the product category, created if none), vendor and
-   date from the picking, warranty / insurance defaults of the product category.
+- `stock.picking.equipment_operation_id` (and the same on `stock.move`): read-only,
+  `copy=False`, written only in superuser mode (`create` / `write` refuse it otherwise;
+  `env.su` cannot be reached by RPC). No context key is used.
+- The operation creates its pickings and validates them itself, in superuser mode,
+  after its own checks; the real user stays `env.uid` (Odoo 18 `sudo()` keeps the uid),
+  so `create_uid` / chatter show the operator.
+- Section 7 rules accept the stock moves that change the situation of an equipment only
+  when their picking is linked to an operation of the matching type being validated
+  (state set to `processing` in superuser mode during « Validate », then `done`).
 
-The equipment is then completed and integrated by an equipment manager (« To complete »
-filter, « Integrate » button, phase 1). The bill reconciliation of phase 1 already
-finds these equipment by their serial number on the purchase line's moves.
+## 3. Receiving assistant (type Receipt): five branches
 
-A receipt line with a third-party owner is still refused when no borrowed / rented
-equipment of that owner exists for its serial number (phase 1): third-party receipts
-go through the wizard.
+First choice (mandatory): **Purchase**, **Acquisition without purchase**, **Borrowed**,
+**Rented**. Family is per line: equipment (maintainable product tracked by serial
+number, or non-stock asset) or consumable (any other storable product).
 
-## 3. Receiving wizard (borrowed / rented)
+Header, according to the branch:
 
-Menu: Maintenance → Equipment → « Receive borrowed or rented equipment », and Inventory
-→ Operations. One wizard, branch chosen first.
+| Field | Purchase | Without purchase | Borrowed | Rented |
+|---|---|---|---|---|
+| Vendor / origin / owner | vendor | origin partner (optional) | owner (third party) | lessor |
+| Purchase order | existing (confirmed, with quantities left to receive) or created | – | – | – |
+| Supplier bill | none, existing, or draft created from the order | – | – | – |
+| Contract | – | – | loan line (new supplier contract) | rental line (existing supplier contract of the lessor, or new) |
+| Consumables allowed | yes | yes | no (v1) | no (v1) |
 
-Header (mandatory): status (borrowed / rented), owner (third party, not the company
-partner), destination stock (active internal location, `place_type = physical`, same
-company) or, for non-stock assets, the monitor location; receipt date; reason / note.
-Consumables are refused (v1, owned only): only `maintenance_ok` products tracked by
-serial number, or non-stock products (vehicle, installation).
+Always: requester, receipt type (incoming picking type, `warehouse_id` never used),
+destination stock (active internal location, `place_type = physical`, same company;
+non-stock assets: the monitor location instead), date, attachments.
 
-Lines (one per item): product, serial number (or « no manufacturer serial number »:
-taken from the `stock.lot.serial` sequence), replacement value, currency (default:
-company), date (default: receipt date), warranty and insurance status (default from the
-product category, otherwise mandatory).
+Equipment line data (all mandatory unless stated): product, serial number (existing
+draft equipment of the order, a new number, or « no manufacturer serial number » taken
+from `stock.lot.serial`), name (default « product – serial »), responsible / holder
+(`owner_user_id`), warranty status, insurance status (defaults from the product
+category, shown and editable), condition at receipt; replacement value, currency, date
+for borrowed / rented (optional otherwise); rent amount, periodicity, start date for
+rented.
 
-Contract part:
-- borrowed: one supplier contract (`contract_type = purchase`) per owner and receipt,
-  one `loan` line per item, product = company setting « Loan product » (service, not
-  maintainable), no invoicing (phase 1 overrides);
-- rented: an existing supplier contract of the lessor or a new one, one `rental` line
-  per item: rent product (company setting « Rent product (paid) », expense account
-  613500, see C10), price, periodicity, start date, optional end date. Bills are created
-  as drafts by OCA contract and posted by the accountant.
+On validation:
+1. checks: rights (section 6), branch rules, serial numbers not linked to another
+   equipment, quantities not above what is left on the order, every mandatory value
+   present (otherwise nothing is validated and the missing fields are listed);
+2. purchase order: created and confirmed when « create » was chosen (vendor, lines,
+   prices given in the assistant);
+3. picking: for a purchase, the open receipt of the order (partial quantities: Odoo's
+   backorder is created, the rest stays to receive by a next operation); otherwise a
+   new incoming picking: source = the partner's supplier location (borrowed, rented),
+   or the inventory adjustment location (acquisition without purchase, test choice
+   C17); `owner_id` = owner for borrowed / rented; move lines with the serial numbers;
+   linked to the operation (section 2) and validated;
+4. equipment: for each unit, the draft equipment of the purchase line without serial
+   number (bill posted before receipt, phase 1) is reused if any, otherwise one is
+   created; status and owner through `_set_ownership()` with the operation as reason;
+   all data written; then `action_finalize_integration()`. **A validated receipt
+   never leaves an equipment « to complete ».**
+5. bill: « create draft bill » calls the order's standard bill creation; the bill stays
+   draft for the accountant. When it is posted, phase 1 links its lines to the
+   received equipment and fills `asset_id` from the asset then created: the equipment
+   is integrated from the receipt, the accounting asset appears only at posting;
+6. contract: loan or rental line per equipment (products from the settings, section
+   8), created in superuser mode;
+7. chatter of operation, picking, equipment, order and contract cross-linked.
 
-Validation, in this order, in one transaction:
-1. checks (rights, owner, products, serials not already linked to an equipment, stock);
-2. serial numbers created (`stock.lot`);
-3. equipment created in superuser mode: status, owner, serial number, replacement
-   value, warranty, insurance; then integrated (`action_finalize_integration`) when
-   complete;
-4. incoming picking: type = incoming type chosen in the wizard (default: the incoming
-   type whose default destination contains the stock; `warehouse_id` is never used),
-   source = the owner's supplier location, `owner_id` = owner, one move line per serial
-   number; validated (phase 1's owner check runs and passes);
-5. contract and lines created;
-6. chatter: picking, equipment and contract cross-linked; attachments (photos,
-   condition report) added afterwards in the chatter of the equipment.
+Non-stock assets: no picking, the monitor location is set; the rest is identical.
 
-Non-stock assets: steps 2 and 4 are skipped; the monitor location is set instead.
+Standard « Validate » on a receipt of a maintainable serial product, outside an
+operation: refused with a message pointing to the assistant (otherwise an equipment
+would be created incomplete or not at all). Consumables keep the standard receipt.
+Bills posted before receipt and bills without order still create draft equipment
+through `maintenance_account` (phase 1): those are the only source of « to complete »
+equipment; the receiving assistant offers them as serial number candidates.
 
-## 4. Exit wizard (lent out)
+## 4. Exit to a third party (lent out)
 
-Entry: button « Lend to a third party » on owned equipment (list and form).
+Header: third party, site (an address of that third party: the partner itself or one of
+its contacts / delivery addresses), off-site stock, nature (free loan / rented out),
+date, requester, attachments. Lines: owned, integrated equipment in an internal physical
+stock (or non-stock); condition at exit.
 
-Mandatory: third party (not the company partner), exit date, nature: free loan or
-rented out. Selected equipment must be `owned`, integrated, and in an internal physical
-stock (or non-stock).
+Off-site stock (O4):
+- proposed: active `lent_out` locations whose `address_id` (OCA stock_location_address)
+  belongs to the third party's commercial partner, the chosen site first;
+- or created from the assistant: name, address (must belong to the third party),
+  parent = an internal location flagged « parent of off-site stocks » (new boolean,
+  e.g. `WH/Chez tiers`; default: the flagged parent under the same root as the
+  equipment's stock, changeable), `place_type = lent_out`, return location (phase 1
+  constraint) = the equipment's current stock;
+- several sites per third party are possible, and a site may be shared by several
+  warehouses.
 
-Off-site stock: the existing active `lent_out` location of that third party under the
-parent « Chez tiers » (company setting, see 9), or one created on the fly:
-name = third party, parent = setting, `place_type = lent_out`, `address_id` = third
-party (OCA stock_location_address), return location = the current stock of the first
-item (phase 1 constraint).
+Return destination: stored **on the operation line** (the stock each equipment left
+from). The location's `return_location_id` stays only a default for items without
+recorded origin. A shared off-site stock therefore needs no single return destination.
 
-Contract: one customer contract (`contract_type = sale`) per exit, one line per
-equipment: `loan` (product « Loan product », no invoice) or `rental` (product « Rent
-product (received) », income account 708300, see C16; price, periodicity, start date).
+Validation: `_set_ownership('lent_out', company partner, reason)`, internal picking
+(no owner) from the current stock to the off-site stock linked to the operation,
+customer contract (`sale`) with one `loan` line (no invoice) or `rental` line (price,
+periodicity, start; draft invoices) per equipment. Asset kept, depreciation continues.
 
-Validation: `_set_ownership('lent_out', company partner, reason)`, internal picking from
-the current stock to the off-site stock (no owner), validated, contract created. The
-equipment keeps its asset; depreciation continues.
+## 5. Return from a third party and restitution to the owner
 
-## 5. Return wizard (lent out → owned) and restitution wizard (borrowed / rented)
+**Return** (lent out → owned): lines = lent-out equipment of one off-site stock;
+destination per line = the origin recorded at exit (changeable to another internal
+physical stock). `_set_ownership('owned', company partner, reason)`, internal picking
+back, customer loan / rental line of the equipment stopped at the date.
 
-Return from a third party (button on lent-out equipment): destination = return location
-of the off-site stock (changeable to another internal physical stock), return date.
-`_set_ownership('owned', company, reason)`, internal picking back, open customer
-contract lines of the equipment stopped at the return date (`stop()`).
-
-Restitution to the owner (button on borrowed / rented equipment): restitution date,
-optional note. Outgoing picking from the current stock to the owner's supplier location,
-move line with the serial number and `owner_id` = owner, validated; all open contract
-lines of the equipment (loan, rental, insurance, maintenance) stopped at the date; then
-check that no internal quantity of the serial number is left, and archive the
-equipment (status kept for history; it leaves the active monitor).
+**Restitution** (borrowed / rented → back to the owner, O3): the assistant lists the
+open contract lines **whose `equipment_id` is one of the returned equipment** (no
+other line is ever shown or stopped):
+- loan / rental lines of possession (supplier contract): always stopped, not editable;
+- insurance and maintenance lines: shown checked, but the user must confirm each one
+  (a line unchecked stays open; validation refused until every line is explicitly
+  confirmed or unchecked);
+then outgoing picking from the current stock to the owner's supplier location, move
+lines with `owner_id` = owner, linked to the operation, validated; checked lines
+stopped at the date (`stop()`); no internal quantity of the serial number left;
+equipment archived (status kept for history).
 
 A new exit on the day of a return would overlap the closed interval of the previous
-line: the wizard proposes the next day as start date.
+line: the assistant proposes the next day as start date.
 
-## 6. Stock rules completing phase 1 (checked at validation, any screen, API included)
+## 6. Rights (O1)
 
-For a done move line carrying the serial number of an equipment:
-- destination is a `lent_out` location → the equipment must be `lent_out` (set by the
-  exit wizard just before the move);
-- source is a `lent_out` location and destination is not → the equipment must not be
-  `lent_out` anymore (set by the return wizard just before the move);
-- borrowed / rented equipment leaving the internal locations → only to a supplier or
-  customer location, with `owner_id` = the equipment owner (restitution). Blocks the
-  ordinary delivery that reserved a borrowed item (section 0), scrap and inventory loss
-  of third-party property (to be handled by an ownership manager).
-For a done move line without equipment:
-- a consumable (no equipment, any product not `maintenance_ok`) entering a `lent_out`
-  location is refused (v1: consumables owned only; the 5 cement bags of
-  `Bg/TEST Lent out` were such a case).
+New group **« Equipment operator »** (implies `stock.group_stock_user` only): creates
+and validates equipment operations. It gets no Maintenance manager, Purchase, Invoicing
+or contract rights.
 
-Owned equipment leaving the company (sale, scrap, supplier return) stays allowed with the
-standard operations; the daily job (phase 1) gets a second check: integrated, active
-equipment with a serial number and no positive internal quantity → activity « Equipment
-not in stock », once.
+Controlled elevation, inside the private validation methods only (not callable by RPC),
+after the checks of the operation, each step in superuser mode:
+- allowed: create / confirm a purchase order from the assistant's lines; create a
+  draft bill from that order; create stock lots, pickings, moves and validate them;
+  create equipment and set ownership / integration; create off-site stocks; create
+  contracts and lines, stop the lines selected in a restitution or return; copy
+  attachments;
+- never: post a bill or invoice, confirm or modify an asset, change prices of an
+  existing order, write any other record.
+The operator is the author everywhere (uid kept; chatter messages name them).
+Manual corrections of ownership stay with « Equipment ownership managers » (phase 1).
+Record rule: an operator sees the operations of their companies; equipment managers
+read them; ownership managers can cancel a draft of anyone.
 
-## 7. Rights
+## 7. Stock rules (validation of done move lines, any screen, API included)
 
-- Receiving, exit, return and restitution wizards: users in `stock.group_stock_user`
-  **and** `maintenance.group_equipment_manager` (proposal, O1).
-- The contract part is written in superuser mode by the wizard after these checks, since
-  only billing administrators can create contracts; the contract's chatter names the
-  real author. Bills and invoices stay drafts for the accountant.
-- Ownership corrections without stock movement: unchanged (ownership managers, phase 1).
+For a move line carrying the serial number of an equipment:
+- entering a `lent_out` location, leaving a `lent_out` location, receiving a
+  third-party owned serial number, or leaving the internal locations for a borrowed /
+  rented equipment: only in a picking linked to an operation of the matching type being
+  validated (section 2). An ordinary delivery that reserved a borrowed item (section 0)
+  is refused.
+- owned equipment leaving the company (sale, scrap, supplier return, inventory loss):
+  **provisionally refused** for everyone except « Equipment ownership managers »
+  (group checked on the user, not on the context), until a disposal operation exists
+  (later phase, with the accountant's answer on asset disposal, C18). After such an
+  exit, the daily job creates one activity « Equipment no longer in stock » to archive
+  it.
+- moves between internal physical stocks: allowed (no ownership change).
+For a move line without equipment: a consumable entering a `lent_out` location is
+refused (v1: consumables owned only).
+Phase 1 rules (owner on stock consistent with the status) stay.
 
-## 8. Product rules and settings
+## 8. Settings and phase 2 script
 
 Company settings (block « Equipment », Invoicing settings, phase 1):
-- « Loan product », « Rent product (paid) », « Rent product (received) »: service
-  products, not maintainable (phase 1 contract line constraint);
-- « Off-site stocks parent »: internal location outside the warehouse stock
-  (`WH/Chez tiers`, id 109 on artdubati_test, looked up and shown by the phase 2 script,
-  never hard-coded).
+- « Loan product », « Rent product (paid) » (expense 613500, C10), « Rent product
+  (received) » (income 708300, C16): service products, not maintainable;
+- « Source of acquisitions without purchase » (default: the inventory adjustment
+  location, C17);
+- off-site parents: the boolean on locations (section 4).
 
-Phase 2 script (`docs/phase2/setup_phase2.py`, same rules as phase 1: dry run, `--apply`
-only on artdubati_test): looks up or creates the three service products (« Prêt de
-matériel », « Location de matériel (payée) » with expense account 613500, « Location
-de matériel (facturée) » with income account 708300), checks the accounts exist, sets
-the four settings; lists serial numbers of maintainable products in internal stock
-without equipment (expected: none) and lent-out locations without return location or
-address.
+`docs/phase2/setup_phase2.py` (dry run, `--apply` only on artdubati_test): looks up or
+creates the three products and checks their accounts; flags `WH/Chez tiers` (id 109,
+looked up and shown) as off-site parent; sets the settings; lists serial numbers of
+maintainable products in internal stock without equipment (expected none), lent-out
+locations without address, and the incoming picking types with their default
+destinations.
 
-## 9. Accounting (rule: test choice, configurable, question listed)
+## 9. Accounting (test choice, configurable, listed)
 
-- C16 (new): account for equipment rent invoiced to customers. Test choice: 708300
-  « Locations diverses », on the product « Location de matériel (facturée) ». Change: the
-  product's income account, or another product in the setting.
-- C10 (existing) reused for rent paid: 613500, on the product « Location de matériel
-  (payée) ».
-- Lent-out equipment keeps its asset and its depreciation (DEFINITIONS): no question.
+- C10 (existing): rent paid on 613500, through the product « Rent product (paid) ».
+- C16 (new, accepted by the audit as a test choice): rent invoiced to customers on
+  708300, through the product « Rent product (received) ».
+- C17 (new): acquisition without purchase (gift, contribution, regularisation): test
+  choice = receipt from the inventory adjustment location; consumables get Odoo's
+  standard inventory valuation entry (accounts to be measured by test and reported);
+  equipment of a fixed-asset category (manual valuation) gets no entry and no automatic
+  asset: the accountant creates the asset and links it (`asset_id`, phase 1). Change:
+  setting « Source of acquisitions without purchase ». Linked to C9 (handover value).
+- C18 (new, for the later disposal operation): sale, scrap or loss of an equipment with
+  an asset: removal through OCA `account_asset_management` (removal wizard), gain or
+  loss accounts? Test choice: provisional block (section 7).
 
 ## 10. Tests
 
-- Purchase: receipt creates draft equipment once per serial number; bill before receipt
-  then receipt: the draft equipment gets the serial number (no duplicate); inventory
-  adjustment of a maintainable serial creates draft equipment; receipt with owner and
-  no equipment still refused.
-- Borrowed: wizard creates lot, equipment (borrowed, owner, integrated), receipt with
-  owner (no valuation layer), loan line; the contract invoicing job run over several
-  months creates no bill.
-- Rented: rental line on a new and on an existing supplier contract; the job creates
-  draft bills on 613500 with the contract line; posting passes the phase 1 rent check.
-- Exit free and rented out: off-site stock created once per third party with address
-  and return location; status lent_out; customer invoice drafts only for the rented-out
-  line.
-- Return: status owned, stock back in the return location, line stopped; re-lending the
-  same day refused, next day accepted.
-- Restitution: stock at the owner's location, lines stopped, equipment archived; refused
-  if an internal quantity remains.
-- Stock rules of 6 through ordinary pickings and the API: delivery of a borrowed item to
-  a customer, scrap of a rented item, moving a lent-out item back without the wizard,
-  moving an owned item to a lent-out stock, consumables into a lent-out stock: all
-  refused. Daily job: owned equipment sold → one activity.
-- Rights: a stock user without equipment manager rights cannot run the wizards (API).
-- Non-stock assets: borrowed vehicle with monitor location, no picking.
+- Purchase, existing order: receipt before bill, bill before receipt (draft equipment
+  reused, no duplicate, integrated), partial receipts over two operations with backorder,
+  draft bill created and posted later (asset filled, equipment unchanged).
+- Purchase, order created by the assistant; consumables only; mixed lines.
+- Missing mandatory value (warranty, replacement value, serial): nothing validated.
+- Standard « Validate » of a maintainable serial receipt refused; consumable receipt
+  accepted.
+- Acquisition without purchase: equipment and consumable; valuation entries measured.
+- Borrowed: owner on stock, no valuation layer, loan line; invoicing job over several
+  months creates nothing. Rented: draft bills on 613500 with the contract line; posting
+  passes the phase 1 rent check.
+- Exit: proposed off-site stocks per site; creation from the assistant; two sites for one
+  third party; free and rented out; draft customer invoices only for rented out.
+- Return: to the recorded origin; **two warehouses sharing one off-site stock**, each
+  item back to its own warehouse; re-lending the same day refused, next day accepted.
+- Restitution: possession line always stopped; insurance unchecked stays open; another
+  equipment's lines untouched; refused if quantity left; equipment archived.
+- Section 7 through ordinary pickings and the API: borrowed item delivered to a
+  customer, rented item scrapped, lent-out item moved back, owned item moved to a
+  lent-out stock, owned equipment sold by a stock user, consumables to a lent-out
+  stock: refused; same sale by an ownership manager: accepted, one activity.
+- Protected link: writing `equipment_operation_id` by API refused; a forged context key
+  has no effect.
+- Rights: operator without other rights validates every operation; the elevation never
+  posts a bill; a stock user without the group cannot validate (API).
+- Attachments: present on operation, equipment and picking.
 
 ## 11. Server procedure, translations, manual
 
 - `docs/phase2/README.md`: backup, `git pull`, script dry run, apply, update and tests
   with `deploy.sh` (phase 1 script made generic: modules, test tags and expected count
-  as arguments), interface checks. Reminder: one `odoo_web` for every database, so no
-  real production yet (docs/deployment/investor_home.md, section 0).
-- `.po` from `--i18n-export`; FR / FA translations of the wizards.
-- Manual: phase 5 (new cards: receiving borrowed / rented, lending, return,
-  restitution; PARC and INV cards to rewrite).
+  as arguments), interface checks. One `odoo_web` for every database: no real
+  production yet (docs/deployment/investor_home.md, section 0).
+- `.po` from `--i18n-export`; FR / FA translations.
+- Manual: phase 5 (receiving assistant, exit, return, restitution, operator profile).
 
 ## Verified / not verified / hypotheses
 
 - Verified in code: section 0.
-- Not verified: incoming picking types available on artdubati_test for `Bg/Stock`
-  (the script lists them); whether 613500 and 708300 exist in the test database (the
-  script checks them).
-- Hypotheses, to be confirmed by tests: a receipt with owner validated by the wizard
-  passes phase 1's owner check when the equipment is created just before; the
-  `stock_location_address` `address_id` can be set on creation of the off-site stock;
-  `stop()` on a rental line keeps the already invoiced periods and only limits the next
-  ones.
+- Not verified: incoming picking types and their destinations on artdubati_test;
+  613500 and 708300 in the test database (the script checks them); the accounts used by
+  Odoo for an inventory adjustment receipt of a consumable (C17, measured by test).
+- Hypotheses, to be confirmed by tests: validating a purchase receipt in superuser mode
+  keeps the purchase / bill matching of phase 1; Odoo's backorder of a linked picking
+  does not copy the link (`copy=False`) and is then received by a next operation;
+  `address_id` of stock_location_address can be set on creation; `stop()` keeps the
+  invoiced periods.
 
 ## Open decisions for the owner
 
-- O1: who runs the wizards: stock users who are also equipment managers (proposed), or
-  only the ownership managers.
-- O2: purchase branch without wizard, equipment created at receipt (proposed), or a
-  mandatory wizard for purchases too (an ordinary « Validate » would then have to be
-  refused for maintainable products).
-- O3: restitution stops every open contract line of the equipment, insurance and
-  maintenance included (proposed), or only loan / rental.
-- O4: off-site stock created automatically per third party under the parent setting
-  (proposed), or chosen by hand among existing ones.
+None blocking. To confirm: the operator group implies only « Inventory / User »
+(proposed), and consumables keep the standard receipt in addition to the assistant.

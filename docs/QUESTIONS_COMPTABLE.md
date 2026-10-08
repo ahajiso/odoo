@@ -29,6 +29,8 @@ production).
 | C10 | Compte des loyers de matériel ? | 613500 Locations mobilières ; une facture sur ce compte doit être liée à une ligne de contrat | Réglage société prévu en phase 1 (`equipment_rent_account_id`) | Prévu (phase 1) |
 | C11 | Valeur d'inventaire d'un bien emprunté ou loué : valeur de remplacement ? | Valeur de remplacement datée, saisie sur l'équipement | Saisie par équipement | Oui (par équipement) |
 | C16 | Compte des loyers de matériel facturés aux clients (matériel prêté contre loyer) ? | 708300 Locations diverses, porté par le produit « Location de matériel (facturée) » | Compte de revenus du produit, ou autre produit dans le réglage « Rent product (received) » (prévu en phase 2) | Prévu (phase 2) |
+| C17 | Acquisition sans achat (don, apport, régularisation) : contrepartie comptable et immobilisation ? | Réception depuis l'emplacement d'ajustement d'inventaire ; consommables : écriture de valorisation standard d'Odoo (comptes mesurés par test) ; équipement d'une catégorie d'immobilisation : aucune écriture ni immobilisation automatique, le comptable crée l'immobilisation et la lie à l'équipement | Réglage « Source of acquisitions without purchase » (prévu en phase 2) ; immobilisation saisie à la main | Prévu (phase 2) |
+| C18 | Vente, mise au rebut ou perte d'un équipement immobilisé : sortie de l'immobilisation (assistant de cession OCA), comptes de plus ou moins-value ? | Sortie de la société bloquée provisoirement, sauf gestionnaires de la propriété ; opération de cession dans une phase ultérieure | À définir selon la réponse | Non (en attente) |
 
 ## Devises
 
