@@ -1,6 +1,6 @@
 # Phase 2 plan – equipment operations (receiving, exit, return, restitution)
 
-Status: revision 4 for audit (08/10/2026). Revision 3 was audited: two corrections
+Status: revision 4, development authorised by the audit (08/10/2026). Revision 3 was audited: two corrections
 here (purchase order confirmed before its receipt is taken over; approval separated
 from the physical execution, with an `approved` state), plus the free-loan rule and the
 contribution nature of C17. No code written yet.
@@ -346,6 +346,19 @@ destinations.
   contributions wait for C9.
 - Consumable count corrections stay standard (Inventory / Administrator), never for
   serialised equipment.
+
+## Criteria for the code audit (green light of 08/10/2026)
+
+- The approval covers a complete snapshot of the commitments: partner, products,
+  maximum quantities, prices, taxes, currencies, acquisition values, contract and
+  dates. Any change, through the lines or the API included, invalidates it. The
+  quantity actually received may be lower than the approved one: both are distinct
+  fields.
+- An existing loan contract accepts a new line from an operator alone only if it is
+  active, a supplier contract, of the right company and owner, without incompatible
+  overlap.
+- Tests use four profiles: operator only, approver only, both roles, Inventory user
+  without either group.
 
 ## Open decisions for the owner
 
