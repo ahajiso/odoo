@@ -10,11 +10,15 @@ Through JSON-RPC, on the running server (old code still loaded):
   number: --apply is refused while one remains (fix them first: serial tracking,
   archive or delete).
 
+With --after-update (run once the modules are updated): flags the category
+« All / Fixed Assets » (created in phase 0) as fixed assets tracked in stock; the module
+then checks its accounting setup and that its storable products are serialised.
+
 Dry run by default; --apply only on artdubati_test; all checks before any write.
 
 Usage (credentials from the environment, never stored):
     ODOO_URL=https://erp.lartdubati.com ODOO_DB=artdubati_test \
-    ODOO_LOGIN=... ODOO_PASSWORD=... python3 setup_phase1.py [--apply]
+    ODOO_LOGIN=... ODOO_PASSWORD=... python3 setup_phase1.py [--after-update] [--apply]
 Use an administrator outside the group « Stock Monitor Investor ».
 """
 import http.cookiejar
@@ -25,6 +29,7 @@ import urllib.request
 
 ALLOWED_DB = "artdubati_test"
 APPLY = "--apply" in sys.argv
+AFTER_UPDATE = "--after-update" in sys.argv
 URL, DB = os.environ["ODOO_URL"], os.environ["ODOO_DB"]
 if APPLY and DB != ALLOWED_DB:
     raise SystemExit(f"Refusing to modify any database except {ALLOWED_DB}")
@@ -60,6 +65,25 @@ except RuntimeError:
 groups = call("res.users", "read", [session["uid"]], ["groups_id"])[0]["groups_id"]
 if investor and investor in groups:
     raise SystemExit("This account is in « Stock Monitor Investor »: use another administrator.")
+
+if AFTER_UPDATE:
+    all_categ = call("ir.model.data", "check_object_reference", "product", "product_category_all")[1]
+    categs = call("product.category", "search_read",
+                  [("name", "=", "Fixed Assets"), ("parent_id", "=", all_categ)],
+                  ["complete_name", "is_fixed_asset_stock"])
+    if len(categs) != 1:
+        raise SystemExit(f"category All / Fixed Assets: expected exactly one, found {categs}")
+    categ = categs[0]
+    print(f"category {categ['complete_name']} (id {categ['id']}): "
+          f"is_fixed_asset_stock={categ['is_fixed_asset_stock']}")
+    if categ["is_fixed_asset_stock"]:
+        print("Nothing to do.")
+    elif not APPLY:
+        print("WOULD  flag it as fixed assets tracked in stock\n\nDry run only.")
+    else:
+        call("product.category", "write", [categ["id"]], {"is_fixed_asset_stock": True})
+        print("APPLY  flagged (the module checked its accounting setup)\nDone.")
+    sys.exit(0)
 
 # 1. Equipment and their maintenance requests -----------------------------------------
 fields = call("maintenance.equipment", "fields_get", [], attributes=["type"])
