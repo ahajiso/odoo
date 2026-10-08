@@ -8,4 +8,8 @@ source of project instructions is CLAUDE.md; read it first, then:
   update procedure, required for every Odoo change;
 - lartdubati_manual/tools/README.md: manual tools (refresh.py, check.py).
 
+Working method (detail in CLAUDE.md, Rules): Claude Code develops and proposes; the
+auditing agent (ChatGPT) reviews and criticises, with the code, the database or the
+sources as evidence; the owner decides disagreements and runs everything on the server.
+
 Do not duplicate rules here: change CLAUDE.md instead.

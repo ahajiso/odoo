@@ -75,6 +75,12 @@
 - UI checks: Playwright from the session can log in to https://erp.lartdubati.com
   (db=artdubati_test) with a non-admin test user given by the owner; never store its password.
 - Small commits, clear messages. Propose a plan before coding each phase.
+- Working method: Claude Code develops and proposes; ChatGPT audits and criticises; the
+  owner decides disagreements and runs everything on the server. Each proposal states
+  what was verified, what could not be (server-side checks) and the open hypotheses.
+  Each audit point is answered: fixed if right, argued with code or sources if
+  disputable, sent to the owner if it needs a decision. Nothing is run on the server
+  before the audit, and nothing is called done without saying so explicitly.
 
 ## Decisions
 Revision 2 of docs/DEFINITIONS.md (07/10/2026) replaces the decisions of 04/10/2026
