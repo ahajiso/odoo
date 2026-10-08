@@ -4,37 +4,60 @@ Revision 2 of `docs/DEFINITIONS.md`. Run by the owner on the server, in this ord
 Already done before: consumable categories 11-17 at average cost; Consignment
 (owner on stock) enabled.
 
-## 1. OCA modules (server)
+Order: backup, OCA modules, dry run without error, `--apply`, control dry run.
+Run the shell blocks with bash; `set -o pipefail` makes a failed Odoo command fail
+the pipeline instead of being hidden by `tee`, and the full logs stay in
+`/opt/odoo/logs/`.
 
-Only `stock_location_address` needs a new clone; the other modules come from OCA
-repositories already cloned for installed modules (maintenance, contract).
+## 1. Backup of artdubati_test (server)
 
 ```bash
-cd /opt/odoo/addons
-git clone --depth 1 -b 18.0 https://github.com/OCA/stock-logistics-transport.git stock-logistics-transport-18
-ls maintenance-18/maintenance_equipment_usage maintenance-18/maintenance_request_purchase contract-18/contract_line_successor
+set -o pipefail
+mkdir -p /opt/odoo/backups /opt/odoo/logs
+docker exec odoo_db pg_dump -U odoo -Fc artdubati_test \
+  > /opt/odoo/backups/artdubati_test_$(date +%F_%H%M)_phase0.dump && echo BACKUP OK
+ls -lh /opt/odoo/backups | tail -3
 ```
 
-If the `ls` fails, the folder name differs: look for the OCA maintenance and contract
-clones with `grep addons_path /opt/odoo/config/odoo.conf` and adapt the path.
+Restore if needed (database only; the test filestore is not touched by phase 0):
+`docker exec -i odoo_db pg_restore -U odoo -d artdubati_test --clean --if-exists < <file>.dump`
+with Odoo stopped (`docker stop odoo_web`, then `docker start odoo_web`).
+
+## 2. OCA modules (server)
+
+State observed on artdubati_test: `purchase` installed; `contract_line_successor`,
+`maintenance_equipment_usage`, `maintenance_request_purchase` available, not
+installed; `stock_location_address` not in the module list (new repository needed);
+`maintenance_equipment_contract` installed, kept until phase 3 (the current stock
+monitor reports use it).
+
+```bash
+set -o pipefail
+cd /opt/odoo/addons
+git clone --depth 1 -b 18.0 https://github.com/OCA/stock-logistics-transport.git stock-logistics-transport-18
+ls -d stock-logistics-transport-18/stock_location_address
+```
 
 Add the new clone to `addons_path` in `/opt/odoo/config/odoo.conf`, using the path as
 seen from inside the container (same form as the other OCA entries of that line), then:
 
 ```bash
+set -o pipefail
+LOG=/opt/odoo/logs/phase0_install_$(date +%F_%H%M).log
 docker restart odoo_web
-docker exec -i odoo_web odoo -d artdubati_test -u base --stop-after-init 2>&1 | tail -3   # refreshes the module list
-docker exec -i odoo_web odoo -d artdubati_test \
-  -i contract_line_successor,maintenance_equipment_usage,maintenance_request_purchase,stock_location_address \
-  --stop-after-init 2>&1 | grep -E " (ERROR|CRITICAL|WARNING) " | head -20
+docker exec -i odoo_web odoo -d artdubati_test -u base --stop-after-init 2>&1 | tee "$LOG.base" \
+  && docker exec -i odoo_web odoo -d artdubati_test \
+     -i contract_line_successor,maintenance_equipment_usage,maintenance_request_purchase,stock_location_address \
+     --stop-after-init 2>&1 | tee "$LOG" \
+  && echo "INSTALL COMMAND OK"
+grep -E " (ERROR|CRITICAL) " "$LOG.base" "$LOG" && echo "ERRORS FOUND: do not continue" || echo "no ERROR/CRITICAL line"
 docker restart odoo_web
 ```
 
-`maintenance_request_purchase` installs the Purchase application if it is not there
-yet. `maintenance_equipment_contract` stays installed until phase 3 (the current stock
-monitor reports use it).
+Continue only with "INSTALL COMMAND OK" and "no ERROR/CRITICAL line". Check in
+**Applications** (filter removed) that the four modules show as installed.
 
-## 2. Configuration script
+## 3. Configuration script
 
 From any machine with Python 3 (no dependency), with an administrator account of
 artdubati_test:
@@ -43,16 +66,22 @@ artdubati_test:
 cd docs/phase0
 export ODOO_URL=https://erp.lartdubati.com ODOO_DB=artdubati_test ODOO_LOGIN=<admin login>
 read -s ODOO_PASSWORD && export ODOO_PASSWORD
-python3 setup_phase0.py            # dry run: shows what it found and would do
-python3 setup_phase0.py --apply    # after checking the dry run output
+python3 setup_phase0.py            # dry run: must end without error
+python3 setup_phase0.py --apply    # only after a clean dry run
+python3 setup_phase0.py            # control: everything found, nothing left to do
 ```
 
-The dry run stops with a clear message if an account code (exact codes of the Odoo 18
-French chart: 215400, 281500, 681120), the miscellaneous journal
-or the location `Chez tiers` is not found exactly once. Paste its output to Claude if
-anything is unexpected.
+- `--apply` refuses any database other than artdubati_test.
+- An existing asset profile, category or account link is never changed (shown as
+  KEEP), so a rerun does not undo the accountant's changes. To reset them to the
+  values of the script: `--apply --force-update`.
+- The dry run stops with a clear message if an account code (exact codes of the Odoo
+  18 French chart: 215400, 281500, 681120), the miscellaneous journal (code `OD` or
+  `MISC`), the warehouse (`Bg`, « Bougival 1 ») or a single `Chez tiers` location
+  cannot be found, or if a duplicate exists. `Chez tiers` is created under the
+  warehouse root if it does not exist.
 
-## 3. Accounting choices (test only)
+## 4. Accounting choices (test only)
 
 Chosen for artdubati_test so that development and integration tests can run. **They
 are not validated by the accountant** and can be changed by the accountant at any
@@ -63,7 +92,7 @@ time; nothing in the code depends on the values below, only on their existence.
 | Fixed-asset account (tools and equipment) | 215400 Matériels industriels | Constants `ASSET_ACCOUNT`, `DEPRECIATION_ACCOUNT`, `EXPENSE_ACCOUNT` of `setup_phase0.py` then rerun, or in Odoo the profile's accounts and the category's expense account (below) |
 | Depreciation account | 281500 Amortissements installations, matériel et outillage industriels | Profile: **Compte de dépréciation** |
 | Depreciation expense account | 681120 Dotations aux amortissements des immobilisations corporelles | Profile: **Compte de dépréciation (charge)** |
-| Asset profile | « Matériel et outillage (test) », journal OD (opérations diverses) | **Facturation → Configuration → Immobilisations → Catégories d'immobilisation** |
+| Asset profile | « Matériel et outillage (test) », journal MISC (opérations diverses) | **Facturation → Configuration → Immobilisations → Catégories d'immobilisation** |
 | Depreciation method | Linear, 5 years, yearly lines, prorata temporis | Same profile: **Méthode de calcul**, **Nombre d'années**, **Prorata temporis** |
 | Draft assets | Assets created from a bill stay in draft until confirmed | Same profile: **Sauter l'état brouillon** (tick to confirm automatically) |
 | One asset per unit | Enabled (required by the design: one asset per serial number) | Same profile: **Créer une immobilisation par article** (keep ticked) |
@@ -75,10 +104,11 @@ Another depreciation duration per kind of equipment = another profile on another
 class 21 account (for example 215500 Outillage industriel), and another product category
 pointing to it. The script only creates the first one.
 
-## 4. Third-party location
+## 5. Third-party location
 
-The existing `WH/Chez tiers` is a child of the warehouse view location `WH`, not of
-`WH/Stock`, so ordinary deliveries do not reserve what is there: it already meets the
-design and no new location tree is created. The script only checks it. One child
-location per third party (e.g. `WH/Chez tiers/Client A`) is created when needed, with
-its address (field from `stock_location_address`, phase 1).
+`Chez tiers` must be a child of the warehouse root location (shown as `WH`, warehouse
+« Bougival 1 », code `Bg`), not of its stock location `Bg/Stock`, so that ordinary
+deliveries never reserve what is there. The script checks it and creates it there if
+it does not exist; no other location tree is created. One child location per third
+party is created when needed, with its address (field from `stock_location_address`,
+phase 1).
