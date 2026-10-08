@@ -184,3 +184,19 @@ class TestAuditFixes(EquipmentCommon):
         ).create({"name": "Other company", "company_id": other.id})
         with self.assertRaises(ValidationError):
             equipment.asset_id = asset
+
+    def test_archived_unserialised_product_does_not_block_category(self):
+        categ = self.env["product.category"].create({
+            "name": "Fixed Assets 2", "property_cost_method": "average",
+            "property_valuation": "manual_periodic",
+            "property_account_expense_categ_id": self.acc_asset.id,
+        })
+        product = self.env["product.template"].create({
+            "name": "Old saw", "type": "consu", "is_storable": True, "tracking": "none",
+            "categ_id": categ.id,
+        })
+        with self.assertRaises(ValidationError):
+            categ.is_fixed_asset_stock = True
+        product.active = False
+        categ.is_fixed_asset_stock = True
+        self.assertTrue(categ.is_fixed_asset_stock)

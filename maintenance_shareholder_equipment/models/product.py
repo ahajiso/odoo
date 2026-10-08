@@ -48,7 +48,9 @@ class ProductCategory(models.Model):
             errors.append(_("the asset profile must create one asset per unit"))
         elif account.asset_profile_id.company_id != self.env.company:
             errors.append(_("the asset profile belongs to another company"))
-        unserialised = self.env["product.template"].with_context(active_test=False).search([
+        # Archived products are ignored: archiving is one of the choices offered for a
+        # product that cannot be serialised (docs/phase1/setup_phase1.py).
+        unserialised = self.env["product.template"].search([
             ("categ_id", "=", self.id), ("is_storable", "=", True), ("tracking", "!=", "serial"),
         ])
         if unserialised:
