@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-08 19:25+0000\n"
-"PO-Revision-Date: 2026-10-08 19:25+0000\n"
+"POT-Creation-Date: 2026-10-08 19:50+0000\n"
+"PO-Revision-Date: 2026-10-08 19:50+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -65,11 +65,11 @@ msgstr "%(name)s est déjà lié à une autre ligne de facture fournisseur."
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product.py:0
 msgid ""
-"%(name)s is an equipment kept in stock: it must be tracked by unique serial "
-"number."
+"%(name)s is an equipment or a fixed asset kept in stock: it must be tracked "
+"by unique serial number."
 msgstr ""
-"%(name)s est un équipement gardé en stock : il doit être suivi par numéro de"
-" série unique."
+"%(name)s est un équipement ou une immobilisation gardé en stock : il doit "
+"être suivi par numéro de série unique."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -93,12 +93,37 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "%(name)s: the fixed asset belongs to another company."
+msgstr "%(name)s : l'immobilisation appartient à une autre société."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid ""
+"%(name)s: the location must be an active internal stock of the same company."
+msgstr ""
+"%(name)s : l'emplacement doit être un stock interne actif de la même "
+"société."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid ""
 "%(name)s: the owner on stock (%(stock_owner)s) does not match the ownership "
 "(%(status)s)."
 msgstr ""
 "%(name)s : le propriétaire en stock (%(stock_owner)s) ne correspond pas à la"
 " propriété (%(status)s)."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid ""
+"%(name)s: the return location must be an active internal physical stock of "
+"the same company."
+msgstr ""
+"%(name)s : l'emplacement de retour doit être un stock interne physique actif"
+" de la même société."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -111,6 +136,16 @@ msgstr "%(name)s : le numéro de série appartient à une autre société."
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid "%(name)s: the serial number belongs to another product."
 msgstr "%(name)s : le numéro de série appartient à un autre article."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid ""
+"%(product)s %(lot)s belongs to %(owner)s (%(status)s equipment): the stock "
+"move must carry that owner."
+msgstr ""
+"%(product)s %(lot)s appartient à %(owner)s (équipement %(status)s) : le "
+"mouvement de stock doit porter ce propriétaire."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -160,6 +195,21 @@ msgstr ""
 "contrat de location d'un équipement avant comptabilisation."
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid ""
+"A supplier refund cannot carry equipment (%s): returns of equipment go "
+"through the stock return."
+msgstr ""
+"Un avoir fournisseur ne peut pas porter d'équipement (%s) : les retours "
+"d'équipement passent par le retour de stock."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_account_account
+msgid "Account"
+msgstr "Compte"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__acquisition_mode
 msgid "Acquisition Mode (obsolete)"
 msgstr "Mode d'acquisition (obsolète)"
@@ -184,6 +234,11 @@ msgstr ""
 #: code:addons/maintenance_shareholder_equipment/models/contract.py:0
 msgid "An insurance line belongs to a supplier contract."
 msgstr "Une ligne d'assurance appartient à un contrat fournisseur."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_account_asset_profile
+msgid "Asset profile"
+msgstr "Catégorie d'immobilisation"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -951,6 +1006,12 @@ msgstr "sans fin"
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid "replacement value, currency and date"
 msgstr "valeur de remplacement, devise et date"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product.py:0
+msgid "storable products must be tracked by serial number: %s"
+msgstr "les articles stockables doivent être suivis par numéro de série : %s"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python

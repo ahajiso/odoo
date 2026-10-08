@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-08 19:25+0000\n"
-"PO-Revision-Date: 2026-10-08 19:25+0000\n"
+"POT-Creation-Date: 2026-10-08 19:50+0000\n"
+"PO-Revision-Date: 2026-10-08 19:50+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -63,11 +63,11 @@ msgstr "%(name)s از قبل به سطر دیگری از صورتحساب تأم
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product.py:0
 msgid ""
-"%(name)s is an equipment kept in stock: it must be tracked by unique serial "
-"number."
+"%(name)s is an equipment or a fixed asset kept in stock: it must be tracked "
+"by unique serial number."
 msgstr ""
-"%(name)s تجهیزی است که در انبار نگهداری می‌شود: باید با شماره سریال یکتا "
-"ردیابی شود."
+"%(name)s تجهیز یا دارایی ثابتی است که در انبار نگهداری می‌شود: باید با شماره"
+" سریال یکتا ردیابی شود."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -91,12 +91,33 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "%(name)s: the fixed asset belongs to another company."
+msgstr "%(name)s: دارایی ثابت متعلق به شرکت دیگری است."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid ""
+"%(name)s: the location must be an active internal stock of the same company."
+msgstr "%(name)s: مکان باید انبار داخلی فعال از همان شرکت باشد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid ""
 "%(name)s: the owner on stock (%(stock_owner)s) does not match the ownership "
 "(%(status)s)."
 msgstr ""
 "%(name)s: مالک در انبار (%(stock_owner)s) با وضعیت مالکیت (%(status)s) "
 "مطابقت ندارد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid ""
+"%(name)s: the return location must be an active internal physical stock of "
+"the same company."
+msgstr "%(name)s: مکان بازگشت باید انبار داخلی فیزیکی فعال از همان شرکت باشد."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -109,6 +130,16 @@ msgstr "%(name)s: شماره سریال متعلق به شرکت دیگری اس
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid "%(name)s: the serial number belongs to another product."
 msgstr "%(name)s: شماره سریال متعلق به محصول دیگری است."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid ""
+"%(product)s %(lot)s belongs to %(owner)s (%(status)s equipment): the stock "
+"move must carry that owner."
+msgstr ""
+"%(product)s %(lot)s متعلق به %(owner)s است (تجهیز %(status)s): جابه‌جایی "
+"انبار باید همین مالک را داشته باشد."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -157,6 +188,21 @@ msgstr ""
 "یک تجهیز پیوند داده شود."
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid ""
+"A supplier refund cannot carry equipment (%s): returns of equipment go "
+"through the stock return."
+msgstr ""
+"برگشت از خرید نمی‌تواند تجهیز داشته باشد (%s): بازگرداندن تجهیز از طریق "
+"برگشت انبار انجام می‌شود."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_account_account
+msgid "Account"
+msgstr "حساب"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__acquisition_mode
 msgid "Acquisition Mode (obsolete)"
 msgstr "نحوه تحصیل (منسوخ)"
@@ -180,6 +226,11 @@ msgstr ""
 #: code:addons/maintenance_shareholder_equipment/models/contract.py:0
 msgid "An insurance line belongs to a supplier contract."
 msgstr "سطر بیمه متعلق به قرارداد تأمین‌کننده است."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_account_asset_profile
+msgid "Asset profile"
+msgstr "دسته‌بندی دارایی"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -930,6 +981,12 @@ msgstr "بدون پایان"
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid "replacement value, currency and date"
 msgstr "ارزش جایگزینی، ارز و تاریخ"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product.py:0
+msgid "storable products must be tracked by serial number: %s"
+msgstr "محصولات انبارشدنی باید با شماره سریال ردیابی شوند: %s"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
