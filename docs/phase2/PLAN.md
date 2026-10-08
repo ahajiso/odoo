@@ -1,10 +1,9 @@
 # Phase 2 plan – equipment operations (receiving, exit, return, restitution)
 
-Status: revision 3 for audit (08/10/2026). Revision 2 was audited: the persistent
-`equipment.operation`, the protected link and the third-party sites are kept; five
-structural corrections are made here (order of validation, approval of financial
-commitments, consumables through the operation too, no direct exit for anyone, missing
-data). No code written yet.
+Status: revision 4 for audit (08/10/2026). Revision 3 was audited: two corrections
+here (purchase order confirmed before its receipt is taken over; approval separated
+from the physical execution, with an `approved` state), plus the free-loan rule and the
+contribution nature of C17. No code written yet.
 Scope: `maintenance_shareholder_equipment` 18.0.3.0.0. Builds on phase 1. The monitor is
 phase 3, the manual phase 5. DEFINITIONS.md (« Receiving (one wizard, four branches) »)
 is updated once this plan is validated.
@@ -32,11 +31,23 @@ is updated once this plan is validated.
 
 ## 1. The business document `equipment.operation`
 
-Persistent model, guided form, one « Validate » button.
+Persistent model, guided form, buttons « Submit », « Approve », « Execute ».
 - Types: **Receipt**, **Exit to a third party**, **Return from a third party**,
   **Restitution to the owner**. Sequence reference.
-- States: `draft` → (`to_approve`) → `done`; `cancelled` from `draft` or `to_approve`.
-  `processing` is an internal state, set only during validation (section 3).
+- States: `draft` → `to_approve` → `approved` → `processing` → `done`; `cancelled`
+  from `draft`, `to_approve` or `approved`. `processing` is internal, set only during
+  the execution (section 3). An operation without commitment goes from `draft` to
+  execution directly.
+- Approval and physical reality are separate: the approver authorises the commercial
+  and legal conditions, with no stock movement; the operator executes the operation
+  when the physical event happens. A user with both roles approves and executes in one
+  click. **Prior approval is mandatory**: an operation needing approval cannot be
+  executed before it (goods arrived without approval are not received until then).
+- Once approved, the commitment fields (partner, order, products and quantities
+  ordered, prices, rents, contract, dates of the contract, nature) are read-only;
+  changing one sends the operation back to `draft` for a new approval. Physical fields
+  (serial numbers, condition, photos, responsible, received quantities within the
+  approved ones) stay editable until execution.
 - Common fields: company, date of the operation, requester (`res.users`), operator
   (creator, read-only), approver (read-only), note, common documents (attachments).
 - Lines: one per unit for equipment (serial number), one per product and quantity for
@@ -57,37 +68,41 @@ Persistent model, guided form, one « Validate » button.
 - Section 8 accepts the stock moves governed by this phase only when their picking is
   linked to an operation of the matching type in state `processing`.
 
-## 3. Validation: order, transaction, concurrency
+## 3. Approval and execution: order, transaction, concurrency
 
-« Validate », in one database transaction:
-1. lock the operation row (`SELECT … FOR UPDATE NOWAIT`, read lock only, no SQL write)
-   and re-read its state: anything else than `draft` / `to_approve` → error « already
-   validated or being validated », nothing done;
-2. check every value (section 6) and the user's rights (section 7); if the operation
-   carries a commitment the user may not take → state `to_approve`, approvers get an
-   activity, **nothing else is done**; stop here;
-3. state `processing` (superuser mode);
-4. create the serial numbers (`stock.lot`) not yet existing;
-5. create or complete the equipment with their **target** ownership (status and owner
-   through `_set_ownership()`, reason = the operation), and all their data; integration
-   state still `draft`;
-6. create or take over the picking, link it, set move lines (serial numbers, owner for
-   borrowed / rented, unit value for acquisitions without purchase), validate it:
-   phase 1's owner check now finds the borrowed / rented equipment of that owner;
-7. `action_finalize_integration()` on each equipment (checks completeness and the owner
-   on stock);
-8. contractual and accounting documents: purchase order confirmation when created by
-   the operation, draft supplier bill, contract lines, stops (section 5);
-9. final consistency check (each equipment: status, owner, quant owner, location type,
-   contract lines), cross-links in the chatters, state `done`.
-Any failure rolls back the whole transaction: no lot, equipment, move, contract or bill
-remains, and the operation is back in its previous state. A second call on a `done`
-operation does nothing and raises (idempotence); two concurrent calls: the second one
-fails on the lock.
+**« Approve »** (approver; state `to_approve` → `approved`): lock, checks of section 6,
+rights; records approver and date; no other write. Approvers get an activity when an
+operation is submitted.
 
-Physical date: when an operation waits for approval, the stock moves are recorded at
-approval; the operation keeps the date of the physical event and the picking's
-scheduled date is set to it.
+**« Execute »** (operator; from `draft` without commitment, or from `approved`), in one
+database transaction:
+1. lock the operation row (`SELECT … FOR UPDATE NOWAIT`, read lock, no SQL write) and
+   re-read its state: anything else than `draft` / `approved` → error « already
+   executed or being executed », nothing done; checks of section 6 again (the data may
+   have changed since approval) and rights; a `draft` operation that needs approval →
+   state `to_approve`, nothing else (or approved at once if the user is also approver);
+   then state `processing`;
+2. purchase order created by the operation: created and confirmed;
+3. receipt: the picking generated by that confirmation, or the open receipt of the
+   existing order, is taken over and linked (a new incoming picking only for the
+   branches without order); never a second receipt for the same order line;
+4. serial numbers (`stock.lot`) created; equipment created or completed (draft
+   equipment of the order line reused) with their **target** ownership through
+   `_set_ownership()` (reason = the operation) and all their data, integration still
+   `draft`;
+5. move lines set (serial numbers, owner for borrowed / rented, unit value for
+   acquisitions without purchase) and the picking validated: phase 1's owner check
+   finds the borrowed / rented equipment of that owner; the stock date is the
+   execution date (no back-dating);
+6. `action_finalize_integration()` on each equipment;
+7. draft supplier bill, contract lines, stops (section 5);
+8. final consistency check (status, owner, quant owner, location type, contract lines),
+   cross-links in the chatters, state `done`.
+Any failure rolls back the whole transaction: no order, lot, equipment, move, contract
+or bill remains, and the operation is back in its previous state. A second call on a
+`done` operation does nothing and raises (idempotence); two concurrent calls: the
+second one fails on the lock. Exit, return and restitution follow the same steps
+without 2 and 3 (their picking is created by the operation).
 
 ## 4. Receipt: five branches
 
@@ -101,10 +116,10 @@ Header by branch:
 | Field | Purchase | Without purchase | Borrowed | Rented |
 |---|---|---|---|---|
 | Partner | vendor | donor / contributor (mandatory for gift and contribution, optional for regularisation) | owner | lessor |
-| Nature | – | gift / contribution / regularisation (mandatory) | – | – |
+| Nature | – | gift / contribution to a shareholder current account / regularisation (mandatory) | – | – |
 | Order | existing confirmed order (its open receipt is taken over) or created | – | – | – |
 | Bill | none, existing, or draft created: vendor reference, bill date and PDF mandatory then | – | – | – |
-| Contract | – | – | loan line, new supplier contract | rental line, existing supplier contract of the lessor or new |
+| Contract | – | – | loan line, existing supplier loan contract of the owner or new | rental line, existing supplier contract of the lessor or new |
 | Contract data | – | – | start, planned end (or « open-ended » ticked), contract documents | start, planned end (or open-ended), rent, periodicity, contract documents |
 
 Always: requester, receipt picking type (`warehouse_id` never used), destination stock
@@ -116,7 +131,9 @@ the order line, a new number, or « no manufacturer serial number » from
 `stock.lot.serial`); for equipment: name, responsible / holder, warranty and insurance
 status (category defaults, shown, editable), replacement value / currency / date
 (mandatory for borrowed / rented), condition, photos; unit value for acquisitions
-without purchase (mandatory, default product cost; see C17).
+without purchase (mandatory, default product cost; see C17). For a contribution to a
+shareholder current account, the value and date entered are also written to the
+equipment's `handover_value` and `handover_value_date` (information only, C9).
 
 Purchase details:
 - bill posted before receipt: the draft equipment created by `maintenance_account`
@@ -182,21 +199,21 @@ user (`check_access('read')` on each referenced record, then explicit rules):
 
 ## 7. Rights and approval
 
-- **« Equipment operator »** (implies only `stock.group_stock_user`): creates operations
-  and validates those without financial commitment.
-- **« Equipment operations approver »** (new): validates operations carrying a
-  financial commitment, i.e. any of: confirmation of a purchase order created by the
-  operation, creation of a supplier bill, creation of a rental line (supplier or
-  customer), creation of a customer contract (free loan included), stop of a rental
-  line, acquisition without purchase (accounting entry, C17). A user with both roles
-  validates in one action.
-- Without commitment (operator alone): receipt on an existing confirmed order without
-  bill creation, borrowed receipt (loan line on a supplier contract, never invoiced),
-  return of a free loan, restitution of a borrowed item.
-- Elevation: superuser mode only inside the private validation steps of section 3,
-  after sections 6 and 7; never posting a bill or invoice, never confirming or changing
-  an asset, never writing an existing order's prices or lines. The operator and the
-  approver are named in every chatter message.
+- **« Equipment operator »** (implies only `stock.group_stock_user`): prepares
+  operations, submits them, executes them (without commitment, or once approved).
+- **« Equipment operations approver »** (new): approves. Approval is required for any
+  of: a purchase order created by the operation, a supplier bill, a rental line
+  (supplier or customer), a customer contract (free loan included), a **new** supplier
+  loan contract, the stop of a rental line, an acquisition without purchase
+  (accounting entry, C17). A user with both roles approves and executes in one click.
+- Operator alone: receipt on an existing confirmed order without bill creation;
+  borrowed receipt on an **existing** loan contract of the owner (a new loan line is
+  added to it); return or restitution of a free loan (no financial consequence); return
+  of a free lent-out item.
+- Elevation: superuser mode only inside the private execution steps of section 3, after
+  sections 6 and 7; never posting a bill or invoice, never confirming or changing an
+  asset, never writing an existing order's prices or lines. Operator and approver are
+  named in every chatter message.
 - Manual ownership corrections: « Equipment ownership managers » (phase 1), without
   stock movement.
 
@@ -205,9 +222,10 @@ user (`check_access('read')` on each referenced record, then explicit rules):
 - Supplier receipts (incoming picking type, source supplier location) and acquisitions
   (source = one of the acquisition locations of section 9): only in a picking linked to
   a Receipt operation in `processing`, **consumables included**.
-- Inventory adjustments: a serial number of a maintainable product can never appear or
-  disappear through them (an equipment comes in only by an operation); consumables keep
-  the standard physical inventory for count corrections.
+- Inventory adjustments: consumables keep the standard physical inventory for count
+  corrections, with Odoo's standard rights (Inventory / Administrator) and
+  traceability; a serial number of a maintainable product can never appear or
+  disappear through them, for anyone (an equipment comes in only by an operation).
 - Equipment serial numbers: entering or leaving a `lent_out` location, receiving with a
   third-party owner, leaving the internal locations (borrowed / rented): only in a
   picking linked to an operation of the matching type in `processing`.
@@ -224,7 +242,7 @@ Company settings (block « Equipment », Invoicing settings):
   (received) » (income 708300, C16): service products, not maintainable;
 - acquisition locations, one per nature (inventory usage, each with its
   `valuation_out_account_id`, C17): « Acquisitions / Gift » 778000, « Acquisitions /
-  Contribution » 455100, « Acquisitions / Regularisation » 603200;
+  Shareholder current account » 455100, « Acquisitions / Regularisation » 603200;
 - off-site parents: the boolean on locations.
 
 `docs/phase2/setup_phase2.py` (dry run, `--apply` only on artdubati_test): looks up or
@@ -244,7 +262,10 @@ destinations.
   (mandatory, default the product cost), used as the move's unit cost (average cost
   updated). Entry for automatically valued categories: debit the category's stock
   valuation account, credit the acquisition location's account: gift 778000,
-  contribution 455100 (to be read with C9), regularisation 603200. Fixed-asset
+  contribution to a shareholder current account 455100 (an advance in current account,
+  not a capital contribution; other forms of contribution wait for C9), regularisation
+  603200. For equipment, value and date also go to `handover_value` /
+  `handover_value_date`. Fixed-asset
   categories (manual valuation): no entry, no automatic asset; the accountant creates
   the asset and links it (`asset_id`). Change: accounts of the three locations, or other
   locations in the settings.
@@ -256,11 +277,16 @@ destinations.
 
 - Order of validation: borrowed receipt passes phase 1's owner check; a failure at each
   step (lot, equipment, picking, integration, contract) leaves nothing behind.
-- Idempotence and concurrency: second « Validate » refused without effect; two cursors
+- Idempotence and concurrency: second « Execute » refused without effect; two cursors
   validating the same operation: one succeeds, the other fails on the lock.
 - Approval: an operator alone gets `to_approve` for each commitment of section 7 and
-  nothing is created; the approver validates; a user with both roles validates at once;
-  an operator alone validates the operations without commitment.
+  nothing is created; approval creates nothing either (no order, no move); the operator
+  then executes; a user with both roles approves and executes at once; execution
+  before approval refused; changing a commitment field after approval returns to
+  `draft`; borrowed receipt on an existing loan contract by the operator alone, on a
+  new contract refused without approval.
+- Purchase order created by the operation: exactly one receipt, taken over (no second
+  picking), stock date = execution date.
 - Server-side checks: partner of another company, existing order of another vendor,
   negative price, sale tax on a supplier line, non-configured contract product, order
   line quantity exceeded: refused.
@@ -272,7 +298,8 @@ destinations.
   physical inventory count correction of a consumable accepted; inventory adjustment
   creating a maintainable serial refused.
 - Acquisition without purchase: each nature, partner rule, consumable entry measured
-  (accounts and value), fixed-asset equipment without entry.
+  (accounts and value), fixed-asset equipment without entry, handover value and date
+  filled for a shareholder current account contribution.
 - Borrowed / rented: no valuation layer; loan never invoiced; draft rent bills on 613500
   passing phase 1's rent check.
 - Exit / return: sites proposed per third party; creation from the assistant; two sites
@@ -310,9 +337,17 @@ destinations.
   `stop()` keeps the invoiced periods; the move's `price_unit` drives the acquisition
   valuation as read in the code.
 
+## Decisions taken (audit of revision 3, owner)
+
+- Prior approval mandatory; `approved` state separate from execution.
+- Free loan: existing approved loan contract → operator alone; new loan contract →
+  approver; return / restitution of a free loan → operator alone.
+- C17: nature « contribution to a shareholder current account » (455100); other
+  contributions wait for C9.
+- Consumable count corrections stay standard (Inventory / Administrator), never for
+  serialised equipment.
+
 ## Open decisions for the owner
 
-- The list of commitments requiring approval (section 7), in particular: is the receipt
-  of a borrowed item (free loan, no invoice) left to the operator alone (proposed)?
 - Members of the two new groups on artdubati_test (to give before the tests in the
   interface).
