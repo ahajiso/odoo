@@ -44,17 +44,16 @@ seen from inside the container (same form as the other OCA entries of that line)
 ```bash
 set -o pipefail
 LOG=/opt/odoo/logs/phase0_install_$(date +%F_%H%M).log
-docker restart odoo_web
-docker exec -i odoo_web odoo -d artdubati_test -u base --stop-after-init 2>&1 | tee "$LOG.base" \
-  && docker exec -i odoo_web odoo -d artdubati_test \
+docker exec -i odoo_web odoo -d artdubati_test \
      -i contract_line_successor,maintenance_equipment_usage,maintenance_request_purchase,stock_location_address \
      --stop-after-init 2>&1 | tee "$LOG" \
   && echo "INSTALL COMMAND OK"
-grep -E " (ERROR|CRITICAL) " "$LOG.base" "$LOG" && echo "ERRORS FOUND: do not continue" || echo "no ERROR/CRITICAL line"
+grep -E " (ERROR|CRITICAL) " "$LOG" && echo "ERRORS FOUND: do not continue" || echo "no ERROR/CRITICAL line"
 docker restart odoo_web
 ```
 
-Continue only with "INSTALL COMMAND OK" and "no ERROR/CRITICAL line". Check in
+With `-i`, Odoo refreshes the module list itself (no `-u base`, which would update
+every installed module). Continue only with "INSTALL COMMAND OK" and "no ERROR/CRITICAL line". Check in
 **Applications** (filter removed) that the four modules show as installed.
 
 ## 3. Configuration script
