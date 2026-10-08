@@ -1,6 +1,6 @@
 # Phase 1 plan – data model (revision 2 after audit)
 
-Status: proposal, revised after the fourth audit (08/10/2026). No code written yet.
+Status: proposal, revised after the fifth audit (08/10/2026). No code written yet.
 Scope: `maintenance_shareholder_equipment` 18.0.2.0.0 and the parts of
 `lartdubati_investor_home` that conflict with it. Wizards are phase 2, the monitor phase 3.
 
@@ -86,30 +86,33 @@ OCA field `equipment_ids` has no `copy=False`: the refund lines would start with
 original bill's equipment and break the constraints below. Our module redeclares the
 inherited field with `copy=False`, so a reversal starts with no equipment.
 
-What `account_asset_management` does with refunds (read in its `account_move.py`):
-- reversal of a bill that created assets (`_reverse_move_vals`): the asset created by
-  that bill is **deleted** and the refund line gets no asset profile, so no new asset;
-  `equipment.asset_id` (many2one, set null on delete) becomes empty;
-- reset of a supplier bill to draft (`button_draft`): its assets are deleted, and new
-  ones are created at the next posting; `asset_id` is filled again then (section 2,
-  after `super()`);
-- a refund entered by hand on the fixed-asset account (not a reversal) gets the
-  account's asset profile and creates a **negative** asset at posting. This is OCA
-  behaviour. Test choice: left as is. Made configurable in phase 1: company setting
-  « Forbid manual refunds on fixed-asset accounts » (default off); when on, posting a
-  supplier refund that is not a reversal with a line on an account carrying an asset
-  profile is refused (question C8 of docs/QUESTIONS_COMPTABLE.md).
+**Supplier refunds and fixed assets: behaviour to measure, blocked by default.**
+Static reading (to be confirmed by test, not acquired):
+- Odoo 18 `account.move._reverse_moves()` builds the refund with `copy()` and never
+  calls `_reverse_move_vals()`; the asset deletion that `account_asset_management`
+  puts in `_reverse_move_vals()` is therefore not executed in this version;
+- on the refund line, `asset_id` is `copy=False`, but `asset_profile_id` is recomputed
+  from the account (`_compute_asset_profile`): a refund line on 215400 gets the profile
+  and should create a **negative** asset at posting, whether the refund comes from
+  « Extourner » or is entered by hand; the original asset should stay;
+- reset of a supplier bill to draft (`button_draft` of the OCA module): its assets are
+  deleted, and new ones are created at the next posting; `asset_id` is filled again then
+  (section 2, after `super()`).
 
-Tests with real posted documents: reversal (« Extourner », standard wizard) of a bill
-that has equipment and assets: refund posted, no equipment left on it, no new
-`account.asset`, the original asset deleted and the equipment's `asset_id` empty;
-refund by hand of a `maintenance_ok` service-account line, with and without purchase
-line: no equipment afterwards; refund by hand on 215400: records the negative asset
-created by OCA (documented behaviour).
+Test choice (question C8 of docs/QUESTIONS_COMPTABLE.md), made configurable in phase 1:
+company setting « Allow supplier refunds on fixed-asset accounts », **off by default**.
+When off, posting a supplier refund (manual or reversal) with a line on an account that
+carries an asset profile is refused, with a message telling to ask the accountant.
 
-**At receipt** (phase 2 wizard and receipt validation), for each serial number of P:
-reuse a `draft` equipment of P without lot (bill already posted), oldest first;
-otherwise create the equipment.
+First integration test (run with the setting on, to observe): bill with equipment and
+asset, then the standard « Extourner » wizard, then a manual refund on 215400. Measured
+before and after: number of `account.asset`, their purchase value and state, the
+original asset, `equipment.asset_id`, the equipment linked to the refund. The behaviour
+is documented only from this result; if the static reading is confirmed, an explicit
+treatment (or keeping the block) is proposed for audit, according to the accountant's
+answer to C8. Other refund tests (setting off): the refund on 215400 is refused; a
+refund of a `maintenance_ok` line on another account, with and without purchase line,
+is posted and leaves no equipment.
 
 **One equipment, one bill line, both sides checked.** The two relations of
 `maintenance_account` are independent: `account.move.line.equipment_ids` (many2many)
@@ -329,6 +332,9 @@ Order on the server: backup, script dry run, product corrections, `psql` check,
 - Verified in code (third audit): `is_purchase_document()` includes `in_refund` and is
   used 8 times in Odoo's `account_move.py`; `create_invoice_visibility` depends only on
   `recurring_next_date`.
+- Verified in code (fifth audit): Odoo 18 `_reverse_moves()` uses `copy()` and never
+  calls `_reverse_move_vals()`; `asset_profile_id` of a bill line is recomputed from
+  the account. The effect on assets is a hypothesis until the first refund test.
 - Not verified: other database views reading removed columns (`psql` check of 12).
 - Hypotheses: the four of CLAUDE.md, to be confirmed by the tests.
 
