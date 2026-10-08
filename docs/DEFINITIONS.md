@@ -105,17 +105,35 @@ the status; moves are used to check physical consistency.
 The former fields owner_type, acquisition_mode and accounting_ownership are removed in
 favour of `ownership_status` and `owner_partner_id`.
 
-## Receiving (one wizard, four branches)
-The wizard starts from the ownership status; stock, family and status are mandatory.
-- Purchase (owned): purchase order, receipt (lots), supplier bill, equipment, asset,
-  links lot / equipment / asset.
-- Borrowed: owner = third party, receipt with owner and no bill, equipment, lot,
-  replacement value, loan contract line (no invoicing), no asset.
-- Rented: owner = lessor, receipt with owner, equipment, lot, replacement value,
-  supplier contract line with periodic bills booked as expenses, no asset.
-- Lent out (exit): owner stays the company, move to an off-site stock, equipment and
-  asset kept, customer contract line (periodic customer invoices if rented out, no
-  invoice if free).
+## Equipment operations (receipt, exit, return, restitution)
+Every entry, exit, return and restitution goes through a persistent business document
+`equipment.operation` (revision of 08/10/2026, docs/phase2/PLAN.md), with its requester,
+operator, approver, documents, per-line condition and photos, and the records it
+created. Approval and physical execution are separate: the approver authorises the
+commitments (snapshot invalidated by any later change of them), the operator executes
+when the physical event happens; the stock is recorded on the execution date.
+- Receipt, five branches: purchase (existing order, or order created and confirmed by
+  the operation; optional draft bill with reference, date and PDF), acquisition
+  without purchase (gift, contribution to a shareholder current account,
+  regularisation; unit value mandatory, C17), borrowed (loan line, existing loan
+  contract of the owner or new one), rented (rental line, draft bills), consumables
+  (purchase and acquisition only, owned in v1). A validated receipt never leaves an
+  equipment « to complete ».
+- Exit to a third party (lent out): owner stays the company, move to an off-site stock
+  (chosen among the third party's sites or created under the off-site parent), equipment
+  and asset kept, customer contract line (draft invoices if rented out, none if free);
+  the stock each item left from is recorded on the operation for its return.
+- Return from a third party: back to the recorded origin, status owned, customer line
+  stopped.
+- Restitution to the owner: move to the owner, possession lines stopped, insurance and
+  maintenance lines stopped only if the user confirms it, equipment archived.
+- Supplier receipts and acquisitions, consumables included, are validated only through
+  an operation; an equipment never enters or leaves the company, nor an off-site stock,
+  without its operation; owned equipment cannot leave the company until the disposal
+  operation exists (C18).
+- Rights: « Equipment Operator » prepares and executes; « Equipment Operations
+  Approver » approves orders, bills, rental lines, customer contracts, new loan
+  contracts and acquisitions.
 
 Equipment is created once, at receipt (the lot exists then; borrowed and rented items
 have no purchase bill). When the supplier bill is posted, the equipment is linked to

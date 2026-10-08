@@ -94,7 +94,7 @@ class EquipmentOperation(models.Model):
         "res.partner", string="Site Address",
         help="Address of the third party where the equipment is held.",
     )
-    picking_type_id = fields.Many2one("stock.picking.type", string="Operation Type",
+    picking_type_id = fields.Many2one("stock.picking.type", string="Transfer Type",
                                       check_company=True)
     location_dest_id = fields.Many2one(
         "stock.location", string="Destination Stock", check_company=True,
@@ -1076,6 +1076,8 @@ class EquipmentOperationLine(models.Model):
         for vals in vals_list:
             op = self.env["equipment.operation"].browse(vals.get("operation_id"))
             self._check_editable(op)
+            if not self.env.su and ({"lot_id", "origin_location_id"} & set(vals)):
+                raise AccessError(_("This field is set by the operation itself."))
         lines = super().create(vals_list)
         lines._fill_defaults()
         lines.operation_id._attach_documents()
@@ -1316,7 +1318,7 @@ class EquipmentOperationStop(models.Model):
         return self.mandatory or self.to_stop
 
     def write(self, vals):
-        if "mandatory" in vals and not self.env.su:
+        if {"mandatory", "contract_line_id", "operation_id"} & set(vals) and not self.env.su:
             raise AccessError(_("This field is set by the operation itself."))
         if not self.env.su and any(op.state in ("processing", "done", "cancel")
                                    for op in self.operation_id):

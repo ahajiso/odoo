@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# Update the two modules on artdubati_test and run their tests, with odoo_web
+# STOPPED. odoo_web serves every database of the server: acceptable only while there is
+# no real production (see docs/deployment/investor_home.md, section 0).
+#
+# Usage: bash deploy_modules.sh <backup.dump> <expected number of tests> <label, e.g. phase2>
+#
+# Stops at the first failure and leaves odoo_web STOPPED: Odoo commits after each
+# module, so a failure can leave the database partly updated. Then follow
+# the « Rollback » section of the phase README (restore the backup, previous code).
+# The file holding odoo_web's environment (database credentials) is always removed.
+set -euo pipefail
+
+DB=artdubati_test
+MODULES=maintenance_shareholder_equipment,lartdubati_investor_home
+TAGS=/maintenance_shareholder_equipment,/lartdubati_investor_home
+EXPECTED_TESTS=${2:-}
+LOGDIR=/opt/odoo/logs
+LABEL=${3:-update}
+STAMP=$(date +%F_%H%M)
+LOG="$LOGDIR/${LABEL}_update_$STAMP.log"
+LOGT="$LOGDIR/${LABEL}_tests_$STAMP.log"
+BACKUP=${1:-}
+
+fail() {
+  echo
+  echo "FAILED: $1"
+  echo "odoo_web is left STOPPED. Logs: $LOG $LOGT"
+  echo "Next: the « Rollback » section of the phase README, then send the logs to Claude."
+  exit 1
+}
+
+[ -n "$BACKUP" ] && [ -s "$BACKUP" ] || {
+  echo "Give the backup of step 1 as first argument (non-empty file)."; exit 1; }
+[[ "$EXPECTED_TESTS" =~ ^[0-9]+$ ]] || {
+  echo "Give the expected number of tests as second argument."; exit 1; }
+mkdir -p "$LOGDIR"
+
+IMG=$(docker inspect -f '{{.Config.Image}}' odoo_web)
+NETS=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' odoo_web)
+read -r -a NETA <<< "$NETS"
+[ -n "$IMG" ] || { echo "Cannot read the image of odoo_web."; exit 1; }
+[ "${#NETA[@]}" -eq 1 ] || {
+  echo "odoo_web must be on exactly one Docker network, found: '${NETS}'. Send this to Claude."; exit 1; }
+NET=${NETA[0]}
+ENVF=$(mktemp)
+trap 'rm -f "$ENVF"' EXIT
+chmod 600 "$ENVF"
+docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' odoo_web > "$ENVF"
+
+run_odoo() {
+  docker run --rm --network "$NET" --volumes-from odoo_web --env-file "$ENVF" "$IMG" odoo "$@"
+}
+
+echo "Backup: $BACKUP"
+echo "Image: $IMG, network: $NET"
+echo "Stopping odoo_web (every database unavailable until the end)..."
+docker stop odoo_web > /dev/null || {
+  echo "FAILED: docker stop odoo_web. Nothing was changed; check « docker ps -a »."; exit 1; }
+
+echo "Updating $MODULES on $DB..."
+if ! run_odoo -d "$DB" -u "$MODULES" --stop-after-init > "$LOG" 2>&1; then
+  fail "module update (exit code), see $LOG"
+fi
+if grep -E " (ERROR|CRITICAL) " "$LOG"; then
+  fail "module update logged errors"
+fi
+echo "UPDATE OK"
+
+echo "Running the tests..."
+if ! run_odoo -d "$DB" -u "$MODULES" --test-enable --test-tags "$TAGS" \
+     --log-level=test --workers 0 --stop-after-init > "$LOGT" 2>&1; then
+  grep -E "tests when|FAIL:|ERROR:" "$LOGT" || true
+  fail "tests (exit code)"
+fi
+if ! grep -q "0 failed, 0 error(s) of $EXPECTED_TESTS tests" "$LOGT"; then
+  grep -E "tests when|FAIL:|ERROR:" "$LOGT" || true
+  fail "tests: expected « 0 failed, 0 error(s) of $EXPECTED_TESTS tests »"
+fi
+echo "TESTS OK: 0 failed, 0 error(s) of $EXPECTED_TESTS tests"
+
+docker start odoo_web > /dev/null || {
+  echo "FAILED: docker start odoo_web, although update and tests passed."
+  echo "Run « docker start odoo_web » and « docker logs --tail 50 odoo_web », send them to Claude."
+  exit 1; }
+echo "odoo_web started. Update $LABEL done."

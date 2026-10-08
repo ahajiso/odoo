@@ -190,8 +190,15 @@ tests on artdubati_test (47 passing, 08/10/2026).
    product set to serial tracking), update and 47 tests passing on the server
    (deploy_phase1.sh), category All / Fixed Assets flagged, monitor views unchanged,
    interface checks done. Phase 1 done. Manual: rewritten at the end of phase 5.
-2. Receiving and exit wizards: four branches, return from a third party, restitution
-   to the owner, tests (including free loan producing no invoice).
+2. Equipment operations (docs/phase2/PLAN.md, revision 4 authorised on 08/10/2026):
+   persistent `equipment.operation` with approval separated from execution, receipt in
+   five branches (purchase, acquisition without purchase, borrowed, rented,
+   consumables), exit, return, restitution; groups « Equipment Operator » and
+   « Equipment Operations Approver »; protected link to pickings and moves; stock rules
+   (supplier receipts and acquisitions only through an operation, no direct exit of
+   equipment). Code on branch claude/clever-rubin-z76iba (not on main until audited):
+   79 tests passing locally, update rehearsed from phase 1 with the monitor views
+   (docs/phase2/README.md).
 3. Stock monitor on revision 2 (SQL view, access rules) and rework of the existing code.
 4. Home page and investor user setup (review the existing configuration).
 5. Translations, manual rewrite for all phases (cards citing removed or changed fields,

@@ -592,6 +592,11 @@ class TestStockRules(TestOperationCommon):
                 {"equipment_operation_id": op.id})
         with self.assertRaises(AccessError):
             op.with_user(self.user_operator).write({"state": "processing"})
+        lot = self.env["stock.lot"].create({"name": "PL-LOT", "product_id": self.drill.id,
+                                            "company_id": self.company.id})
+        with self.assertRaises(AccessError):
+            op.with_user(self.user_operator).write({"line_ids": [Command.create({
+                "product_id": self.drill.id, "lot_id": lot.id})]})
         # a forged context key changes nothing
         picking = po.picking_ids.with_context(equipment_operation_running=True,
                                               bypass_equipment_operation=True)

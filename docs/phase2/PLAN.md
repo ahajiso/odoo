@@ -360,6 +360,30 @@ destinations.
 - Tests use four profiles: operator only, approver only, both roles, Inventory user
   without either group.
 
+## Implementation notes (code of 08/10/2026, for the audit)
+
+- Code: `models/equipment_operation.py` (operation, lines, contract lines to stop),
+  `models/stock.py` (protected link on pickings and moves, `_check_equipment_operation`),
+  `models/res_company.py` (settings), `security/`, `views/equipment_operation_views.xml`;
+  tests `tests/test_operation.py` (32 new tests; phase 1 receipts now go through a
+  purchase operation). 79 tests with `lartdubati_investor_home`.
+- Buttons: « Submit for Approval » (operator), « Approve » (approver), « Execute »
+  (operator; approves first when the user has both roles). Physical fields (serial
+  numbers, condition, photos, responsible, executed quantity) are outside the snapshot.
+- Deviations: a same-day re-lending is refused with a message naming the first
+  possible day, instead of proposing it automatically; the approver group does not
+  imply the operator group (four distinct test profiles); operators and approvers get
+  read access to purchase orders, contracts and every equipment of their companies
+  (record rule), needed to choose and check them in the form.
+- Concurrency: the lock (`FOR UPDATE NOWAIT`) is tested by simulating PostgreSQL's
+  refusal (a test transaction is never committed, so a second real cursor cannot see
+  the operation); idempotence is tested directly.
+- Not covered: receipts in two or three steps (input then stock): the operation sends
+  the supplier move straight to its destination stock; to check if such a route is
+  ever configured.
+- Server: `docs/deploy_modules.sh` (phase 1 script made generic: backup, expected
+  count, label), `docs/phase2/setup_phase2.py`, `docs/phase2/README.md`.
+
 ## Open decisions for the owner
 
 - Members of the two new groups on artdubati_test (to give before the tests in the
