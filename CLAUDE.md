@@ -141,9 +141,9 @@ the home page (web_quick_start_screen configuration versus a client action).
 - Tests in lartdubati_investor_home/tests/ to update accordingly; access profile tests
   stay valid.
 
-## Hypotheses of phase 1 (results of the local integration tests, 08/10/2026)
-Local Odoo 18 + OCA heads, see docs/phase1/CHARACTERISATION.md; to be confirmed by the
-same tests on artdubati_test (docs/phase1/README.md, step 6).
+## Hypotheses of phase 1 (results of the integration tests, 08/10/2026)
+Local Odoo 18 + OCA heads, see docs/phase1/CHARACTERISATION.md; confirmed by the same
+tests on artdubati_test (47 passing, 08/10/2026).
 - Our `action_post()` runs after maintenance_account and account_asset_management:
   confirmed (asset_id filled from the bill line after posting).
 - `asset_product_item` keeps the purchase / bill matching: FALSE in the standard
@@ -184,9 +184,12 @@ same tests on artdubati_test (docs/phase1/README.md, step 6).
    central status method and "Equipment ownership managers" group, `action_post()`
    integration (equipment to bill line, asset_id fill), contract line on supplier bill
    lines with posting lock. Integration tests for the hypotheses above.
-   Code on branch claude/clever-rubin-z76iba (not on main until audited): 47 tests
-   passing locally, migration rehearsed from the previous versions with the real
-   monitor queries (docs/phase1/README.md). Manual: rewritten at the end of phase 5.
+   Audited, merged into main and deployed on artdubati_test on 08/10/2026
+   (docs/phase1/README.md): preparation script applied (6 test equipment deleted,
+   Bg/TEST Lent out archived after moving its 5 cement bags to Bg/Stock, table saw
+   product set to serial tracking), update and 47 tests passing on the server
+   (deploy_phase1.sh), category All / Fixed Assets flagged, monitor views unchanged,
+   interface checks done. Phase 1 done. Manual: rewritten at the end of phase 5.
 2. Receiving and exit wizards: four branches, return from a third party, restitution
    to the owner, tests (including free loan producing no invoice).
 3. Stock monitor on revision 2 (SQL view, access rules) and rework of the existing code.
