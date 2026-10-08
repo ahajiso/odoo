@@ -148,6 +148,9 @@ the home page (web_quick_start_screen configuration versus a client action).
    All / Fixed Assets with manual valuation), changeable by the accountant; Chez tiers
    under the warehouse root (Bougival 1, code Bg), outside Bg/Stock, checked or created.
    Order: backup, modules, dry run, --apply, control dry run.
+   Script applied on 08/10/2026, control dry run clean: Lots & Serial Numbers on; asset
+   profile id 4 « Matériel et outillage (test) » set on account 215400; category
+   All / Fixed Assets id 19; internal location WH/Chez tiers created under the root.
 1. Data model in maintenance_shareholder_equipment: delete the six test equipment
    records, remove obsolete fields (equipment and maintenance request), add the kept
    fields (see DEFINITIONS.md), stock.location currency / return location,
