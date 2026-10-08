@@ -60,7 +60,9 @@ Continue only with "INSTALL COMMAND OK" and "no ERROR/CRITICAL line". Check in
 ## 3. Configuration script
 
 From any machine with Python 3 (no dependency), with an administrator account of
-artdubati_test:
+artdubati_test that is **not** in the group « Stock Monitor Investor » (the global rule
+of lartdubati_investor_home hides internal locations from that group, administrators
+included; the script refuses such an account):
 
 ```bash
 cd docs/phase0
@@ -73,8 +75,13 @@ python3 setup_phase0.py            # control: everything found, nothing left to 
 
 - `--apply` refuses any database other than artdubati_test.
 - An existing asset profile, category or account link is never changed (shown as
-  KEEP), so a rerun does not undo the accountant's changes. To reset them to the
-  values of the script: `--apply --force-update`.
+  KEEP), so a rerun does not undo the accountant's changes. Its structural values
+  (accounts, journal, method, one asset per unit, valuation, cost method) are compared
+  with the test choices and each difference is shown as DIFF, with a summary at the
+  end. To reset them to the values of the script: `--apply --force-update`.
+- Before any write, the script proves it can read the warehouse root and stock
+  locations, and checks that an existing `Chez tiers` is internal, active and directly
+  under the warehouse root.
 - The dry run stops with a clear message if an account code (exact codes of the Odoo
   18 French chart: 215400, 281500, 681120), the miscellaneous journal (code `OD` or
   `MISC`), the warehouse (`Bg`, « Bougival 1 ») or a single `Chez tiers` location
