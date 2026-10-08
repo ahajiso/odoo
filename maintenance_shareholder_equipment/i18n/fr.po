@@ -4,210 +4,232 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 18.0-20260908\n"
+"Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-08 19:25+0000\n"
+"PO-Revision-Date: 2026-10-08 19:25+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
-"Language: fr\n"
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__accounting_depreciation_active
-msgid "Accounting Depreciation Active"
-msgstr "Amortissement comptable actif"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid ""
+"%(equipment)s already has a %(nature)s line from %(start)s to %(end)s "
+"(%(contract)s)."
+msgstr ""
+"%(equipment)s a déjà une ligne %(nature)s du %(start)s au %(end)s "
+"(%(contract)s)."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__accounting_ownership
-msgid "Accounting Ownership"
-msgstr "Propriété comptable"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "%(name)s cannot be integrated, missing: %(missing)s"
+msgstr "%(name)s ne peut pas être intégré, il manque : %(missing)s"
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__assigned_employee
-msgid "Assigned to Employee"
-msgstr "Affecté à un employé"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid "%(name)s cannot be its own return location."
+msgstr "%(name)s ne peut pas être son propre emplacement de retour."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__assigned_project
-msgid "Assigned to Project"
-msgstr "Affecté à un chantier"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid ""
+"%(name)s has a serial number in stock: its location comes from the stock, "
+"the non-stock location must stay empty."
+msgstr ""
+"%(name)s a un numéro de série en stock : son emplacement vient du stock, "
+"l'emplacement hors stock doit rester vide."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__closed
-msgid "Closed"
-msgstr "Clôturé"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid "%(name)s is a lent-out stock: its return location is required."
+msgstr ""
+"%(name)s est un stock chez un tiers : son emplacement de retour est "
+"obligatoire."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__accounting_ownership__company
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__company
-msgid "Company"
-msgstr "Entreprise"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "%(name)s is already linked to another supplier bill line."
+msgstr "%(name)s est déjà lié à une autre ligne de facture fournisseur."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__compensation_paid
-msgid "Compensation Paid"
-msgstr "Indemnisation payée"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product.py:0
+msgid ""
+"%(name)s is an equipment kept in stock: it must be tracked by unique serial "
+"number."
+msgstr ""
+"%(name)s est un équipement gardé en stock : il doit être suivi par numéro de"
+" série unique."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__compensation_payable
-msgid "Compensation Payable"
-msgstr "Indemnisation à payer"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "%(name)s is integrated and must keep: %(missing)s"
+msgstr "%(name)s est intégré et doit conserver : %(missing)s"
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__damaged
-msgid "Damaged"
-msgstr "Endommagé"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "%(name)s: a borrowed or rented item belongs to a third party."
+msgstr "%(name)s : un bien emprunté ou loué appartient à un tiers."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__handover_date
-msgid "Handover Date"
-msgstr "Date de remise"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "%(name)s: an owned or lent-out item belongs to the company."
+msgstr ""
+"%(name)s : un bien détenu ou confié à un tiers appartient à l'entreprise."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__handover_value
-msgid "Handover Value"
-msgstr "Valeur de remise"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid ""
+"%(name)s: the owner on stock (%(stock_owner)s) does not match the ownership "
+"(%(status)s)."
+msgstr ""
+"%(name)s : le propriétaire en stock (%(stock_owner)s) ne correspond pas à la"
+" propriété (%(status)s)."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__in_company_use
-msgid "In Company Use"
-msgstr "En usage dans l'entreprise"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "%(name)s: the serial number belongs to another company."
+msgstr "%(name)s : le numéro de série appartient à une autre société."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__in_warehouse
-msgid "In Warehouse"
-msgstr "En entrepôt"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "%(name)s: the serial number belongs to another product."
+msgstr "%(name)s : le numéro de série appartient à un autre article."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__initial_condition
-msgid "Initial Condition"
-msgstr "État initial"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid ""
+"%(product)s %(lot)s: an owner other than the company is only allowed for a "
+"serial number of a borrowed or rented equipment of that owner (%(owner)s)."
+msgstr ""
+"%(product)s %(lot)s : un propriétaire autre que l'entreprise n'est autorisé "
+"que pour le numéro de série d'un équipement emprunté ou loué à ce "
+"propriétaire (%(owner)s)."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__lost
-msgid "Lost"
-msgstr "Perdu"
+#: model:ir.model.constraint,message:maintenance_shareholder_equipment.constraint_maintenance_equipment_asset_uniq
+msgid "A fixed asset can belong to one equipment only."
+msgstr "Une immobilisation ne peut appartenir qu'à un seul équipement."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model,name:maintenance_shareholder_equipment.model_maintenance_equipment
-msgid "Maintenance Equipment"
-msgstr "Équipement de maintenance"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid ""
+"A new equipment is created as owned by the company and to complete. Use the "
+"receiving actions to create borrowed or rented equipment."
+msgstr ""
+"Un nouvel équipement est créé détenu par l'entreprise et à compléter. "
+"Utilisez les actions de réception pour créer un équipement emprunté ou loué."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model,name:maintenance_shareholder_equipment.model_maintenance_request
-msgid "Maintenance Request"
-msgstr "Demande de maintenance"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "A reason is required to change the ownership."
+msgstr "Un motif est obligatoire pour changer la propriété."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__owner_partner_id
-msgid "Owner (Third Party)"
-msgstr "Propriétaire (tiers)"
+#: model:ir.model.constraint,message:maintenance_shareholder_equipment.constraint_maintenance_equipment_stock_lot_uniq
+msgid "A serial number can belong to one equipment only."
+msgstr "Un numéro de série ne peut appartenir qu'à un seul équipement."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__ownership_state
-msgid "Ownership Status"
-msgstr "Statut de propriété"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__owner_type
-msgid "Ownership Type"
-msgstr "Type de propriété"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__physical_wear_active
-msgid "Physical Wear Tracking Active"
-msgstr "Suivi de l'usure physique actif"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_request__repair_cost
-#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_request_form_repair_cost
-msgid "Repair Cost"
-msgstr "Coût de réparation"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_request__repair_invoice_ref
-msgid "Repair Invoice Reference"
-msgstr "Référence facture de réparation"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_request__repairer
-msgid "Repairer"
-msgstr "Réparateur"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__replaced_for_owner
-msgid "Replaced for Owner"
-msgstr "Remplacé pour le propriétaire"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__replacement_value
-msgid "Replacement Value"
-msgstr "Valeur de remplacement"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__return_obligation
-msgid "Return Obligation"
-msgstr "Obligation de restitution"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__returned_to_owner
-msgid "Returned to Owner"
-msgstr "Restitué au propriétaire"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__shareholder
-msgid "Shareholder"
-msgstr "Actionnaire"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__stolen
-msgid "Stolen"
-msgstr "Volé"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__accounting_ownership__third_party
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__third_party
-msgid "Third Party"
-msgstr "Tiers"
-
-#. module: maintenance_shareholder_equipment
-#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
-msgid "Third-Party Ownership (Shareholder)"
-msgstr "Propriété tierce (actionnaire)"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_state__under_maintenance
-msgid "Under Maintenance"
-msgstr "En maintenance"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__current_location_id
-msgid "Current Location"
-msgstr "Localisation actuelle"
-
-#. module: maintenance_shareholder_equipment
-#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
-msgid "Location"
-msgstr "Localisation"
-
-#. module: maintenance_shareholder_equipment
-#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
-msgid "Fleet Management (Acquisition)"
-msgstr "Gestion du parc (acquisition)"
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_res_company__equipment_rent_account_id
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_res_config_settings__equipment_rent_account_id
+msgid ""
+"A supplier bill line on this account must be linked to the rental contract "
+"line of an equipment before posting."
+msgstr ""
+"Une ligne de facture fournisseur sur ce compte doit être liée à la ligne de "
+"contrat de location d'un équipement avant comptabilisation."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__acquisition_mode
-msgid "Acquisition Mode"
-msgstr "Mode d'acquisition"
+msgid "Acquisition Mode (obsolete)"
+msgstr "Mode d'acquisition (obsolète)"
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__acquisition_mode__purchase
-msgid "Purchase"
-msgstr "Achat"
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_res_company__allow_asset_supplier_refund
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_res_config_settings__allow_asset_supplier_refund
+msgid "Allow Supplier Refunds on Fixed-Asset Accounts"
+msgstr "Autoriser les avoirs fournisseurs sur comptes d'immobilisation"
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__acquisition_mode__rental
-msgid "Rental"
-msgstr "Location"
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid ""
+"An equipment linked to bill line %s cannot be removed from it directly."
+msgstr ""
+"Un équipement lié à la ligne de facture %s ne peut pas en être retiré "
+"directement."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "An insurance line belongs to a supplier contract."
+msgstr "Une ligne d'assurance appartient à un contrat fournisseur."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid "Bill line %(line)s lists equipment linked to another line: %(eq)s"
+msgstr ""
+"La ligne de facture %(line)s liste des équipements liés à une autre ligne : "
+"%(eq)s"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid "Bill line %(line)s: %(n)s equipment for %(units)s units."
+msgstr ""
+"Ligne de facture %(line)s : %(n)s équipement(s) pour %(units)s unité(s)."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid ""
+"Bill line %(line)s: an equipment is already listed by another bill line."
+msgstr ""
+"Ligne de facture %(line)s : un équipement est déjà listé par une autre ligne"
+" de facture."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid ""
+"Bill line %s: an equipment line must have a whole, positive number of units."
+msgstr ""
+"Ligne de facture %s : une ligne d'équipement doit avoir un nombre entier et "
+"positif d'unités."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid "Bill line %s: equipment links are inconsistent."
+msgstr ""
+"Ligne de facture %s : les liens avec les équipements sont incohérents."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_ownership_correction__ownership_status__borrowed
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_status__borrowed
+msgid "Borrowed"
+msgstr "Emprunté"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__acquisition_mode__borrowed
@@ -215,16 +237,754 @@ msgid "Borrowed from Third Party"
 msgstr "Emprunté à un tiers"
 
 #. module: maintenance_shareholder_equipment
+#: model:res.groups,comment:maintenance_shareholder_equipment.group_equipment_ownership_manager
+msgid ""
+"Can correct the ownership status and the legal owner of an equipment, with a"
+" mandatory reason."
+msgstr ""
+"Peut corriger le statut de propriété et le propriétaire juridique d'un "
+"équipement, avec un motif obligatoire."
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_ownership_correction_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product.py:0
+msgid "Category %(categ)s, company %(company)s: %(errors)s"
+msgstr "Catégorie %(categ)s, société %(company)s : %(errors)s"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_res_company
+msgid "Companies"
+msgstr "Sociétés"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__company
+msgid "Company"
+msgstr "Entreprise"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__company_currency_id
+msgid "Company Currency"
+msgstr "Devise de la société"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_res_config_settings
+msgid "Config Settings"
+msgstr "Paramètres de configuration"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_contract_contract
+msgid "Contract"
+msgstr "Contrat"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_contract_line
+msgid "Contract Line"
+msgstr "Ligne de contrat"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "Contract line %(name)s: equipment and equipment relation go together."
+msgstr ""
+"Ligne de contrat %(name)s : l'équipement et la nature de la relation vont "
+"ensemble."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid ""
+"Contract line %(name)s: use a service product that is not an equipment "
+"(otherwise its bills would create equipment)."
+msgstr ""
+"Ligne de contrat %(name)s : utilisez un article de type service qui n'est "
+"pas un équipement (sinon ses factures créeraient des équipements)."
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_ownership_correction_form
+msgid "Correct"
+msgstr "Corriger"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.actions.act_window,name:maintenance_shareholder_equipment.action_equipment_ownership_correction
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_ownership_correction_form
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
+msgid "Correct Ownership"
+msgstr "Corriger la propriété"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_equipment_ownership_correction
+msgid "Correct the ownership of an equipment"
+msgstr "Corriger la propriété d'un équipement"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_category__default_insurance_status
+msgid "Default Insurance Status"
+msgstr "Statut d'assurance par défaut"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_category__default_warranty_status
+msgid "Default Warranty Status"
+msgstr "Statut de garantie par défaut"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_contract_line__equipment_nature
+msgid ""
+"Direction comes from the contract type: rental on a supplier contract = rent"
+" paid, on a customer contract = rent received. A loan line is never "
+"invoiced."
+msgstr ""
+"Le sens vient du type de contrat : location sur un contrat fournisseur = "
+"loyer payé, sur un contrat client = loyer perçu. Une ligne de prêt n'est "
+"jamais facturée."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__display_name
+msgid "Display Name"
+msgstr "Nom d'affichage"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__equipment_id
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.contract_line_form_view_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_category_form_fixed_asset
+msgid "Equipment"
+msgstr "Équipement"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.res_config_settings_view_form_equipment
+msgid "Equipment (test choices, see the accountant)"
+msgstr "Équipements (choix de test, à valider par le comptable)"
+
+#. module: maintenance_shareholder_equipment
+#: model:res.groups,name:maintenance_shareholder_equipment.group_equipment_ownership_manager
+msgid "Equipment Ownership Manager"
+msgstr "Gestionnaire de la propriété du matériel"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_nature
+msgid "Equipment Relation"
+msgstr "Nature de la relation"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_res_company__equipment_rent_account_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_res_config_settings__equipment_rent_account_id
+msgid "Equipment Rental Expense Account"
+msgstr "Compte de charges des loyers de matériel"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid "Equipment linked to this bill but not listed by its line: %s"
+msgstr "Équipements liés à cette facture mais non listés par leur ligne : %s"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid "Equipment released from line %(line)s: %(eq)s"
+msgstr "Équipements libérés de la ligne %(line)s : %(eq)s"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.res_config_settings_view_form_equipment
+msgid "Equipment rental account"
+msgstr "Compte des loyers de matériel"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.actions.server,name:maintenance_shareholder_equipment.ir_cron_equipment_ownership_check_ir_actions_server
+msgid "Equipment: check ownership against stock"
+msgstr "Équipements : contrôle de la propriété par rapport au stock"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_account_move_line__equipment_ids
+msgid "Equipments"
+msgstr "Équipements"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_maintenance_equipment__asset_id
+msgid ""
+"Filled from the supplier bill line when empty; can be set by hand for a "
+"contribution without bill."
+msgstr ""
+"Rempli depuis la ligne de facture fournisseur s'il est vide ; peut être "
+"saisi à la main pour un apport sans facture."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__asset_id
+msgid "Fixed Asset"
+msgstr "Immobilisation"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_category__is_fixed_asset_stock
+msgid "Fixed Assets Tracked in Stock"
+msgstr "Immobilisations suivies en stock"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__handover_value
+msgid "Handover Value"
+msgstr "Valeur de remise"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__handover_value_date
+msgid "Handover Value Date"
+msgstr "Date de la valeur de remise"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__id
+msgid "ID"
+msgstr "ID"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_nature__insurance
+msgid "Insurance"
+msgstr "Assurance"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__insurance_status
+msgid "Insurance Status"
+msgstr "Statut d'assurance"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__insurance_status__insured
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_category__default_insurance_status__insured
+msgid "Insured"
+msgstr "Assuré"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
+msgid "Integrate"
+msgstr "Intégrer"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__integration_state__done
+msgid "Integrated"
+msgstr "Intégré"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "Integrated by %s."
+msgstr "Intégré par %s."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__integration_state
+msgid "Integration"
+msgstr "Intégration"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_stock_location
+msgid "Inventory Locations"
+msgstr "Emplacements de l'inventaire"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_category__is_fixed_asset_stock
+msgid ""
+"Items of this category are fixed assets: quantity and location come from "
+"stock, value from the fixed asset. Requires, for each company: manual "
+"valuation, an expense account of class 21 with an asset profile creating one"
+" asset per unit."
+msgstr ""
+"Les articles de cette catégorie sont des immobilisations : quantité et "
+"emplacement viennent du stock, valeur de l'immobilisation. Exige, pour "
+"chaque société : valorisation manuelle, compte de charges de classe 21 "
+"portant une catégorie d'immobilisation qui crée une immobilisation par "
+"unité."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_account_move
+msgid "Journal Entry"
+msgstr "Pièce comptable"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_account_move_line
+msgid "Journal Item"
+msgstr "Écriture comptable"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_maintenance_equipment__handover_value
+msgid ""
+"Kept for information until the accountant decides its meaning; never used in"
+" accounting."
+msgstr ""
+"Conservée pour information jusqu'à la décision du comptable sur sa "
+"signification ; jamais utilisée en comptabilité."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__owner_partner_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__owner_partner_id
+msgid "Legal Owner"
+msgstr "Propriétaire juridique"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_maintenance_equipment__ownership_status
+msgid ""
+"Legal relationship with the item. Changed only by business actions (receipt,"
+" handover, return) or by the ownership correction wizard."
+msgstr ""
+"Relation juridique avec le bien. Modifiée uniquement par les actions métier "
+"(réception, mise à disposition, retour) ou par l'assistant de correction de "
+"la propriété."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_ownership_correction__ownership_status__lent_out
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_status__lent_out
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__stock_location__place_type__lent_out
+msgid "Lent Out"
+msgstr "Prêté"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_stock_location__place_type
+msgid "Lent Out: the stock that lent-out items belong to and return to."
+msgstr ""
+"Prêté : le stock auquel appartiennent les biens prêtés et où ils reviennent."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid ""
+"Line %(line)s is an equipment rent (account %(account)s): link it to the "
+"rental contract line of the equipment before posting."
+msgstr ""
+"La ligne %(line)s est un loyer de matériel (compte %(account)s) : liez-la à "
+"la ligne de contrat de location de l'équipement avant comptabilisation."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid ""
+"Line %(line)s: the contract line must be an equipment rental line of a "
+"supplier contract of %(partner)s in %(company)s."
+msgstr ""
+"Ligne %(line)s : la ligne de contrat doit être une ligne de location "
+"d'équipement d'un contrat fournisseur de %(partner)s dans %(company)s."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_nature__loan
+msgid "Loan (free)"
+msgstr "Prêt (gratuit)"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__acquisition_mode__loaned_out
 msgid "Loaned to Third Party"
 msgstr "Prêté à un tiers"
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__rental_counterparty_id
-msgid "Rental / Loan Counterparty"
-msgstr "Partenaire de location / prêt"
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__current_location_id
+msgid "Location (Non-Stock Equipment)"
+msgstr "Emplacement (équipement hors stock)"
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__rental_end_date
-msgid "Rental / Loan End Date"
-msgstr "Date de fin de location / prêt"
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_nature__maintenance
+msgid "Maintenance"
+msgstr "Maintenance"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_maintenance_equipment
+msgid "Maintenance Equipment"
+msgstr "Équipement de maintenance"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__warranty_status__no_warranty
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_category__default_warranty_status__no_warranty
+msgid "No Warranty"
+msgstr "Sans garantie"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__insurance_status__not_applicable
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__warranty_status__not_applicable
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_category__default_insurance_status__not_applicable
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_category__default_warranty_status__not_applicable
+msgid "Not Applicable"
+msgstr "Non applicable"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__insurance_status__not_insured
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_category__default_insurance_status__not_insured
+msgid "Not Insured"
+msgstr "Non assuré"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_res_company__allow_asset_supplier_refund
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_res_config_settings__allow_asset_supplier_refund
+msgid ""
+"Off: a supplier refund (manual or reversal) with a line on an account "
+"carrying an asset profile is refused, because the asset module would create "
+"a negative asset and keep the original one."
+msgstr ""
+"Désactivé : un avoir fournisseur (manuel ou extourne) avec une ligne sur un "
+"compte portant une catégorie d'immobilisation est refusé, car le module "
+"d'immobilisations créerait une immobilisation négative et garderait "
+"l'originale."
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.res_config_settings_view_form_equipment
+msgid "Off: supplier refunds on fixed-asset accounts are refused."
+msgstr ""
+"Désactivé : les avoirs fournisseurs sur comptes d'immobilisation sont "
+"refusés."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "Only equipment managers can integrate an equipment."
+msgstr "Seuls les gestionnaires d'équipement peuvent intégrer un équipement."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "Only equipment ownership managers can change the ownership."
+msgstr ""
+"Seuls les gestionnaires de la propriété du matériel peuvent changer la "
+"propriété."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_maintenance_equipment__current_location_id
+msgid ""
+"Only for equipment not managed in stock (vehicle, fixed installation). Must "
+"be empty when the equipment has a serial number in stock."
+msgstr ""
+"Uniquement pour un équipement non géré en stock (véhicule, installation "
+"fixe). Doit rester vide si l'équipement a un numéro de série en stock."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_ownership_correction__ownership_status__owned
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_status__owned
+msgid "Owned"
+msgstr "En propriété"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
+msgid "Ownership"
+msgstr "Propriété"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__ownership_status
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__ownership_status
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_search_integration
+msgid "Ownership Status"
+msgstr "Statut de propriété"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__owner_type
+msgid "Ownership Type (obsolete)"
+msgstr "Type de propriété (obsolète)"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
+msgid "Ownership and Stock"
+msgstr "Propriété et stock"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid ""
+"Ownership and integration are changed only through the business actions or "
+"the ownership correction wizard."
+msgstr ""
+"La propriété et l'intégration ne changent que par les actions métier ou "
+"l'assistant de correction de la propriété."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid ""
+"Ownership changed by %(user)s from %(old_status)s (%(old_owner)s) to "
+"%(status)s (%(owner)s). Reason: %(reason)s"
+msgstr ""
+"Propriété modifiée par %(user)s de %(old_status)s (%(old_owner)s) à "
+"%(status)s (%(owner)s). Motif : %(reason)s"
+
+#. module: maintenance_shareholder_equipment
+#: model:mail.activity.type,name:maintenance_shareholder_equipment.mail_activity_ownership_check
+msgid "Ownership to check"
+msgstr "Propriété à vérifier"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__stock_location__place_type__physical
+msgid "Physical"
+msgstr "Physique"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_stock_location__place_type
+msgid "Place Type"
+msgstr "Type de lieu"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_product_template
+msgid "Product"
+msgstr "Article"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_product_category
+msgid "Product Category"
+msgstr "Catégorie d'articles"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_stock_move_line
+msgid "Product Moves (Stock Move Line)"
+msgstr "Mouvements de produit (Ligne de mouvement de stock)"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__acquisition_mode__purchase
+msgid "Purchase"
+msgstr "Achat"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__reason
+msgid "Reason"
+msgstr "Motif"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_nature__rental
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__acquisition_mode__rental
+msgid "Rental"
+msgstr "Location"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_ownership_correction__ownership_status__rented
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_status__rented
+msgid "Rented"
+msgstr "Loué"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__replacement_value
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
+msgid "Replacement Value"
+msgstr "Valeur de remplacement"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__replacement_currency_id
+msgid "Replacement Value Currency"
+msgstr "Devise de la valeur de remplacement"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__replacement_value_date
+msgid "Replacement Value Date"
+msgstr "Date de la valeur de remplacement"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
+msgid "Responsible / Holder"
+msgstr "Responsable / détenteur"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_stock_location__return_location_id
+msgid "Return Location"
+msgstr "Emplacement de retour"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__stock_lot_id
+msgid "Serial Number (Stock)"
+msgstr "Numéro de série (stock)"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_maintenance_equipment__stock_lot_id
+msgid ""
+"Serial number of the item in stock. Location and owner on stock come from "
+"it."
+msgstr ""
+"Numéro de série du bien en stock. L'emplacement et le propriétaire en stock "
+"en découlent."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__shareholder
+msgid "Shareholder"
+msgstr "Actionnaire"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_location_form_place_type
+msgid "Stock Monitor"
+msgstr "Suivi des stocks"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
+msgid "Stock and Asset"
+msgstr "Stock et immobilisation"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_stock_location__return_location_id
+msgid ""
+"Stock in a real warehouse where items held by the third party come back."
+msgstr ""
+"Stock d'un véritable entrepôt où reviennent les biens détenus par le tiers."
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.res_config_settings_view_form_equipment
+msgid "Supplier bill lines on this account need a rental contract line."
+msgstr ""
+"Les lignes de facture fournisseur sur ce compte exigent une ligne de contrat"
+" de location."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid ""
+"Supplier refund %(move)s has lines on a fixed-asset account (%(accounts)s). "
+"Its treatment of the fixed asset must be decided by the accountant; refunds "
+"on these accounts are not allowed by the company settings."
+msgstr ""
+"L'avoir fournisseur %(move)s a des lignes sur un compte d'immobilisation "
+"(%(accounts)s). Son traitement de l'immobilisation doit être décidé par le "
+"comptable ; les avoirs sur ces comptes ne sont pas autorisés par les "
+"paramètres de la société."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_maintenance_equipment__owner_partner_id
+msgid "The company for owned and lent-out items, the third party otherwise."
+msgstr ""
+"L'entreprise pour les biens détenus ou confiés à un tiers, le tiers sinon."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid ""
+"The owner of the serial number on stock differs from the equipment's "
+"ownership. Check the stock or correct the ownership."
+msgstr ""
+"Le propriétaire du numéro de série en stock diffère de la propriété de "
+"l'équipement. Vérifiez le stock ou corrigez la propriété."
+
+#. module: maintenance_shareholder_equipment
+#: model:mail.activity.type,summary:maintenance_shareholder_equipment.mail_activity_ownership_check
+msgid "The owner on stock differs from the equipment's ownership"
+msgstr "Le propriétaire en stock diffère de la propriété de l'équipement"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__third_party
+msgid "Third Party"
+msgstr "Tiers"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__integration_state__draft
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_search_integration
+msgid "To Complete"
+msgstr "À compléter"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_maintenance_equipment__integration_state
+msgid ""
+"To Complete: created automatically (supplier bill, import) and not yet "
+"checked. Integrated: all required information is present."
+msgstr ""
+"À compléter : créé automatiquement (facture fournisseur, import) et pas "
+"encore contrôlé. Intégré : toutes les informations requises sont présentes."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__warranty_status__under_warranty
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_category__default_warranty_status__under_warranty
+msgid "Under Warranty"
+msgstr "Sous garantie"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__stock_location__place_type__virtual
+msgid "Virtual"
+msgstr "Virtuel"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__warranty_status
+msgid "Warranty Status"
+msgstr "Statut de garantie"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
+msgid "Warranty and Insurance"
+msgstr "Garantie et assurance"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_ownership_correction_form
+msgid "Why the ownership is corrected"
+msgstr "Pourquoi la propriété est corrigée"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid ""
+"a serial number in stock or a location for non-stock equipment (exactly one "
+"of them)"
+msgstr ""
+"un numéro de série en stock ou un emplacement pour un équipement hors stock "
+"(exactement l'un des deux)"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "company"
+msgstr "entreprise"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "insurance status"
+msgstr "statut d'assurance"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "no end"
+msgstr "sans fin"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "replacement value, currency and date"
+msgstr "valeur de remplacement, devise et date"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product.py:0
+msgid "the asset profile belongs to another company"
+msgstr "la catégorie d'immobilisation appartient à une autre société"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product.py:0
+msgid "the asset profile must create one asset per unit"
+msgstr "la catégorie d'immobilisation doit créer une immobilisation par unité"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product.py:0
+msgid "the expense account must be a class 21 fixed-asset account"
+msgstr ""
+"le compte de charges doit être un compte d'immobilisation de classe 21"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product.py:0
+msgid "the expense account must carry an asset profile"
+msgstr "le compte de charges doit porter une catégorie d'immobilisation"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product.py:0
+msgid "valuation must be manual"
+msgstr "la valorisation doit être manuelle"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "warranty status"
+msgstr "statut de garantie"

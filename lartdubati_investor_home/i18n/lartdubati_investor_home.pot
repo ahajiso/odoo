@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 18.0-20260908\n"
+"Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-04 16:42+0000\n"
-"PO-Revision-Date: 2026-10-04 16:42+0000\n"
+"POT-Creation-Date: 2026-10-08 19:27+0000\n"
+"PO-Revision-Date: 2026-10-08 19:27+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -119,13 +119,6 @@ msgid "Each ownership type can only exist once."
 msgstr ""
 
 #. module: lartdubati_investor_home
-#. odoo-python
-#: code:addons/lartdubati_investor_home/models/maintenance_equipment.py:0
-msgid ""
-"Equipment %(name)s must have a Current Location that is an internal stock."
-msgstr ""
-
-#. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
 msgid ""
 "How amounts are converted into the currency of a stock located in another "
@@ -137,11 +130,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__id
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__id
 msgid "ID"
-msgstr ""
-
-#. module: lartdubati_investor_home
-#: model:ir.model,name:lartdubati_investor_home.model_stock_location
-msgid "Inventory Locations"
 msgstr ""
 
 #. module: lartdubati_investor_home
@@ -192,19 +180,8 @@ msgstr ""
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_ownership_type__code__lent_out
-#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__stock_location__place_type__lent_out
 #: model:lartdubati.ownership.type,name:lartdubati_investor_home.ownership_lent_out
 msgid "Lent Out"
-msgstr ""
-
-#. module: lartdubati_investor_home
-#: model:ir.model.fields,help:lartdubati_investor_home.field_stock_location__place_type
-msgid "Lent Out: the stock that lent-out items belong to and return to."
-msgstr ""
-
-#. module: lartdubati_investor_home
-#: model:ir.model,name:lartdubati_investor_home.model_maintenance_equipment
-msgid "Maintenance Equipment"
 msgstr ""
 
 #. module: lartdubati_investor_home
@@ -235,16 +212,6 @@ msgstr ""
 #. module: lartdubati_investor_home
 #: model:ir.model,name:lartdubati_investor_home.model_lartdubati_ownership_type
 msgid "Ownership Type"
-msgstr ""
-
-#. module: lartdubati_investor_home
-#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__stock_location__place_type__physical
-msgid "Physical"
-msgstr ""
-
-#. module: lartdubati_investor_home
-#: model:ir.model.fields,field_description:lartdubati_investor_home.field_stock_location__place_type
-msgid "Place Type"
 msgstr ""
 
 #. module: lartdubati_investor_home
@@ -298,7 +265,6 @@ msgstr ""
 
 #. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
-#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_location_form_investor
 msgid "Stock Monitor"
 msgstr ""
 
@@ -338,11 +304,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__user_ids
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_access_form
 msgid "Users"
-msgstr ""
-
-#. module: lartdubati_investor_home
-#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__stock_location__place_type__virtual
-msgid "Virtual"
 msgstr ""
 
 #. module: lartdubati_investor_home
