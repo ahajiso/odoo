@@ -299,7 +299,8 @@ def link_menus(fragment, lang):
         return (f'<a class="screen" href="{ODOO_BASE}{xmlid}" target="_blank"'
                 f' rel="noopener"><strong>{inner}</strong></a>')
 
-    return re.sub(r"<strong>(.*?)</strong>", repl, fragment, flags=re.S)
+    # (?<!…) : un menu déjà relié (page éditée puis rafraîchie) n'est pas relié deux fois.
+    return re.sub(r'(?<!rel="noopener">)<strong>(.*?)</strong>', repl, fragment, flags=re.S)
 
 
 def render(md_text):

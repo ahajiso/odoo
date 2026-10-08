@@ -2,12 +2,14 @@
 
 Lit lartdubati_manual/manual/<lang>/*.html (les fiches s'éditent dans ces
 fichiers) et signale : fiche manquante ou en trop, fiche sur une autre page,
-renvois REF-xx… différents, nombres différents (comptes comptables…), nombre
-d'étapes différent, renvoi vers un code inexistant. Le français fait référence.
+renvois REF-xx… différents, nombres différents (comptes comptables… ; les dates
+JJ/MM/AAAA sont ignorées), nombre d'étapes différent, renvoi vers un code
+inexistant. Le français fait référence. Code de sortie 1 s'il reste un écart.
 
 Usage : python3 check.py
 """
 import collections
+import sys
 import html
 import os
 import re
@@ -37,13 +39,15 @@ def load(lang):
             m = CODE.search(head)
             key = m.group(0) if m else f"p{i}:{head[:30]}"
             plain = text(rest)
+            dates = re.sub(r"\b\d{1,2}/\d{1,2}/\d{4}\b", " ", plain)  # dates differ by language
             data[key] = dict(page=i, refs=sorted(set(c.group(0) for c in CODE.finditer(plain))),
-                             nums=sorted(set(re.findall(r"(?<![\d.])\d{3,6}(?![\d.])", plain))),
+                             nums=sorted(set(re.findall(r"(?<![\d.])\d{3,6}(?![\d.])", dates))),
                              steps=len(re.findall(r"<li\b", "".join(re.findall(r"<ol>.*?</ol>", rest, re.S)))))
     return data
 
 
 D = {l: load(l) for l in LANGS}
+problems = 0
 codes = sorted(set().union(*[{k for k in D[l] if CODE.match(k)} for l in D]))
 for c in codes:
     issues = []
@@ -64,6 +68,7 @@ for c in codes:
         if a["steps"] != b["steps"]:
             issues.append(f"{l} steps {b['steps']}≠{a['steps']}")
     if issues:
+        problems += 1
         print(c, "|", "; ".join(issues))
 for l in D:
     order = collections.defaultdict(list)
@@ -74,4 +79,7 @@ for l in D:
     for k, v in D[l].items():
         for r in v["refs"]:
             if r not in D[l]:
+                problems += 1
                 print("DANGLING", l, k, "->", r)
+print("OK: no difference" if not problems else f"{problems} problem(s)")
+sys.exit(1 if problems else 0)

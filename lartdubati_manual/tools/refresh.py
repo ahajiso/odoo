@@ -14,13 +14,12 @@ import os
 import re
 import sys
 
-from build_site import UI, link_menus, plain, write_pages
+from build_site import UI, plain, write_pages
 
 MANUAL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "manual")
 CARD_RE = re.compile(r'<div class="card"><h1>(.*?)</h1>(?:<div class="toc">.*?</div>)?(.*)</div></main>', re.S)
 H2_RE = re.compile(r'<h2 id="([^"]+)">(.*?)</h2>', re.S)
 CODE_H2_RE = re.compile(r'^<span class="code">((?:REF|ADM|PARC|CPT|CH|INV)-\d{2})</span>(.*)$', re.S)
-SCREEN_LINK_RE = re.compile(r'<a class="screen"[^>]*>.*?</a>', re.S)
 
 
 def read_page(path):
@@ -39,18 +38,6 @@ def read_page(path):
     return title, fiches, body
 
 
-def protect_screen_links(body):
-    """Évite que link_menus ne relie une seconde fois un menu déjà lié."""
-    saved = []
-
-    def keep(m):
-        saved.append(m.group(0))
-        return f"\x00{len(saved) - 1}\x00"
-
-    body = SCREEN_LINK_RE.sub(keep, body)
-    return body, saved
-
-
 def refresh(lang):
     rendered = {}
     for key, _src, label in UI[lang]["pages"]:
@@ -61,21 +48,7 @@ def refresh(lang):
         rendered[key] = (title, fiches, body, label)
     if not rendered:
         raise SystemExit(f"Aucune page trouvée pour {lang} dans {MANUAL}")
-    # link_menus est appliqué par write_pages : on masque les liens existants
-    # pendant l'écriture puis on les remet en place.
-    saved_per_key = {}
-    for key, (title, fiches, body, label) in list(rendered.items()):
-        body, saved = protect_screen_links(body)
-        saved_per_key[key] = saved
-        rendered[key] = (title, fiches, body, label)
     write_pages(lang, MANUAL, rendered)
-    for key, saved in saved_per_key.items():
-        path = os.path.join(MANUAL, lang, key + ".html")
-        with open(path, encoding="utf-8") as f:
-            page = f.read()
-        page = re.sub("\x00(\\d+)\x00", lambda m: saved[int(m.group(1))], page)
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(page)
 
 
 if __name__ == "__main__":
