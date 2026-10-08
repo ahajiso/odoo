@@ -37,6 +37,18 @@ class StockLocation(models.Model):
                 raise ValidationError(
                     _("%(name)s cannot be its own return location.", name=location.complete_name)
                 )
+            ret = location.return_location_id
+            if not (
+                ret.active
+                and ret.usage == "internal"
+                and ret.place_type == "physical"
+                and (not ret.company_id or not location.company_id
+                     or ret.company_id == location.company_id)
+            ):
+                raise ValidationError(
+                    _("%(name)s: the return location must be an active internal physical "
+                      "stock of the same company.", name=location.complete_name)
+                )
 
 
 class StockMoveLine(models.Model):
@@ -48,25 +60,44 @@ class StockMoveLine(models.Model):
         return res
 
     def _check_third_party_owner(self):
-        """A third-party owner on stock only for a serial number linked to exactly one
-        borrowed or rented equipment of that owner. Consumables are owned only (v1)."""
+        """Owner on stock and equipment ownership must agree, in both directions:
+        - a line with an owner other than the company needs a serial number linked to
+          exactly one borrowed or rented equipment of that owner (consumables are owned
+          only, v1);
+        - a line carrying the serial number of an equipment needs the owner expected by
+          that equipment: the third party for borrowed / rented, none for owned /
+          lent-out."""
         Equipment = self.env["maintenance.equipment"].sudo().with_context(active_test=False)
         # Called right after super()._action_done(): the move itself is set to done
         # only afterwards, so the line state cannot be used as a filter here.
-        for line in self.filtered("owner_id"):
-            equipments = Equipment.search([("stock_lot_id", "=", line.lot_id.id)]) if line.lot_id else Equipment
-            ok = (
-                line.product_id.tracking == "serial"
-                and line.lot_id
-                and len(equipments) == 1
-                and equipments.ownership_status in THIRD_PARTY_OWNED
-                and equipments.owner_partner_id == line.owner_id
-            )
-            if not ok:
+        lots = self.lot_id
+        by_lot = {}
+        if lots:
+            for equipment in Equipment.search([("stock_lot_id", "in", lots.ids)]):
+                by_lot.setdefault(equipment.stock_lot_id.id, equipment)
+        for line in self:
+            equipment = by_lot.get(line.lot_id.id) if line.lot_id else None
+            if line.owner_id:
+                ok = (
+                    line.product_id.tracking == "serial"
+                    and equipment
+                    and Equipment.search_count([("stock_lot_id", "=", line.lot_id.id)]) == 1
+                    and equipment.ownership_status in THIRD_PARTY_OWNED
+                    and equipment.owner_partner_id == line.owner_id
+                )
+                if not ok:
+                    raise ValidationError(
+                        _("%(product)s %(lot)s: an owner other than the company is only "
+                          "allowed for a serial number of a borrowed or rented equipment "
+                          "of that owner (%(owner)s).",
+                          product=line.product_id.display_name, lot=line.lot_id.name or "",
+                          owner=line.owner_id.display_name)
+                    )
+            elif equipment and equipment.ownership_status in THIRD_PARTY_OWNED:
                 raise ValidationError(
-                    _("%(product)s %(lot)s: an owner other than the company is only "
-                      "allowed for a serial number of a borrowed or rented equipment of "
-                      "that owner (%(owner)s).",
-                      product=line.product_id.display_name, lot=line.lot_id.name or "",
-                      owner=line.owner_id.display_name)
+                    _("%(product)s %(lot)s belongs to %(owner)s (%(status)s equipment): "
+                      "the stock move must carry that owner.",
+                      product=line.product_id.display_name, lot=line.lot_id.name,
+                      owner=equipment.owner_partner_id.display_name,
+                      status=equipment.ownership_status)
                 )

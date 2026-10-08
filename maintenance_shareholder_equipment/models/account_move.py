@@ -116,6 +116,15 @@ class AccountMove(models.Model):
         self._check_asset_supplier_refunds()
         self._check_rent_lines()
         refund_lines = self._equipment_refund_lines()
+        linked_refunds = self.filtered(lambda m: m.move_type == "in_refund").invoice_line_ids.filtered(
+            "equipment_ids"
+        )
+        if linked_refunds:
+            raise UserError(
+                _("A supplier refund cannot carry equipment (%s): returns of equipment go "
+                  "through the stock return.",
+                  ", ".join(linked_refunds.equipment_ids.mapped("display_name")))
+            )
         refund_before = {line.id: line.equipment_ids for line in refund_lines}
         for move in self.filtered(lambda m: m.move_type == "in_invoice"):
             move._reconcile_equipment()
@@ -181,14 +190,17 @@ class AccountMove(models.Model):
         line._link_equipment(equipments)
 
     def _release_excess(self, line, linked, count):
-        """Bill reset to draft and quantity lowered: draft equipment without serial number
-        first (archived), then received equipment (link removed, equipment kept), newest
-        first."""
-        drafts = linked.filtered(lambda e: not e.stock_lot_id).sorted("id", reverse=True)
-        received = linked.filtered("stock_lot_id").sorted("id", reverse=True)
-        to_release = (drafts + received)[:count]
+        """Bill reset to draft and quantity lowered. Released first: equipment still to
+        complete without serial number (created for the bill, archived); then any other
+        equipment (received or integrated: link removed only, equipment kept, never
+        archived); newest first in each group."""
+        drafts = linked.filtered(
+            lambda e: e.integration_state == "draft" and not e.stock_lot_id
+        ).sorted("id", reverse=True)
+        others = (linked - drafts).sorted("id", reverse=True)
+        to_release = (drafts + others)[:count]
         line._unlink_equipment(to_release)
-        to_release.filtered(lambda e: not e.stock_lot_id).sudo().write({"active": False})
+        (to_release & drafts).sudo().write({"active": False})
         self.message_post(
             body=_("Equipment released from line %(line)s: %(eq)s",
                    line=line.display_name, eq=", ".join(to_release.mapped("display_name")))
@@ -255,25 +267,31 @@ class AccountMove(models.Model):
 
     def _check_rent_lines(self):
         """Server-side check of contract_line_id (not only the screen domain), and the
-        lock on the equipment rental account (C10)."""
+        lock on the equipment rental account (C10): a line on that account needs an
+        equipment rental line of a supplier contract of the same partner and company."""
         for move in self.filtered(lambda m: m.move_type in ("in_invoice", "in_refund")):
             rent_account = move.company_id.equipment_rent_account_id
             for line in move.invoice_line_ids.filtered(lambda ln: ln.display_type == "product"):
-                if rent_account and line.account_id == rent_account and not line.contract_line_id:
-                    raise UserError(
-                        _("Line %(line)s is an equipment rent (account %(account)s): link it "
-                          "to the rental contract line of the equipment before posting.",
-                          line=line.display_name, account=rent_account.code)
-                    )
                 cl = line.contract_line_id
-                if not cl or not cl.equipment_id:
+                on_rent_account = rent_account and line.account_id == rent_account
+                if not cl:
+                    if on_rent_account:
+                        raise UserError(
+                            _("Line %(line)s is an equipment rent (account %(account)s): "
+                              "link it to the rental contract line of the equipment before "
+                              "posting.", line=line.display_name, account=rent_account.code)
+                        )
                     continue
+                if not (on_rent_account or cl.equipment_id):
+                    continue  # ordinary contract line, outside the equipment rules
                 contract = cl.contract_id
-                if (
-                    contract.contract_type != "purchase"
-                    or contract.company_id != move.company_id
-                    or contract.partner_id.commercial_partner_id != move.partner_id.commercial_partner_id
-                    or cl.equipment_nature != "rental"
+                if not (
+                    cl.equipment_id
+                    and cl.equipment_nature == "rental"
+                    and contract.contract_type == "purchase"
+                    and contract.company_id == move.company_id
+                    and contract.partner_id.commercial_partner_id
+                    == move.partner_id.commercial_partner_id
                 ):
                     raise UserError(
                         _("Line %(line)s: the contract line must be an equipment rental line "

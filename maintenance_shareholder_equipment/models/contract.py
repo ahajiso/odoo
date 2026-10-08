@@ -36,7 +36,7 @@ class ContractLine(models.Model):
             if line.equipment_nature == "insurance" and line.contract_id.contract_type != "purchase":
                 raise ValidationError(_("An insurance line belongs to a supplier contract."))
             product = line.product_id
-            if product and (product.type != "service" or product.maintenance_ok):
+            if not product or product.type != "service" or product.maintenance_ok:
                 raise ValidationError(
                     _("Contract line %(name)s: use a service product that is not an "
                       "equipment (otherwise its bills would create equipment).",

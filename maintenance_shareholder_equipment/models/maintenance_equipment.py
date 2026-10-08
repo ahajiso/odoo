@@ -133,6 +133,13 @@ class MaintenanceEquipment(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            # The default owner is the partner of the equipment's company, not of the
+            # company the user is currently working in.
+            if "owner_partner_id" not in vals and vals.get("company_id"):
+                vals["owner_partner_id"] = (
+                    self.env["res.company"].browse(vals["company_id"]).partner_id.id
+                )
         if not self.env.su:
             for vals in vals_list:
                 self._check_create_protected(vals)
@@ -205,6 +212,7 @@ class MaintenanceEquipment(models.Model):
                     _("%(name)s cannot be integrated, missing: %(missing)s",
                       name=equipment.display_name, missing=", ".join(missing))
                 )
+            equipment._check_stock_owner_consistency(raise_error=True)
         self.sudo().write({"integration_state": "done"})
         for equipment in self:
             equipment.message_post(body=_("Integrated by %s.", self.env.user.name))
@@ -275,6 +283,30 @@ class MaintenanceEquipment(models.Model):
                 raise ValidationError(
                     _("%(name)s has a serial number in stock: its location comes from the "
                       "stock, the non-stock location must stay empty.",
+                      name=equipment.display_name)
+                )
+
+    @api.constrains("current_location_id", "company_id")
+    def _check_non_stock_location(self):
+        """The location of a non-stock equipment is a stock the monitor follows: active,
+        internal, same company (any place type: a vehicle lent to a third party sits in
+        a lent-out stock)."""
+        for equipment in self.filtered("current_location_id"):
+            loc = equipment.current_location_id
+            if not (loc.active and loc.usage == "internal") or (
+                loc.company_id and equipment.company_id and loc.company_id != equipment.company_id
+            ):
+                raise ValidationError(
+                    _("%(name)s: the location must be an active internal stock of the same "
+                      "company.", name=equipment.display_name)
+                )
+
+    @api.constrains("asset_id", "company_id")
+    def _check_asset_company(self):
+        for equipment in self.filtered("asset_id"):
+            if equipment.company_id and equipment.asset_id.company_id != equipment.company_id:
+                raise ValidationError(
+                    _("%(name)s: the fixed asset belongs to another company.",
                       name=equipment.display_name)
                 )
 

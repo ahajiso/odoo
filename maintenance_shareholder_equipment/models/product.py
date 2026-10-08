@@ -48,17 +48,53 @@ class ProductCategory(models.Model):
             errors.append(_("the asset profile must create one asset per unit"))
         elif account.asset_profile_id.company_id != self.env.company:
             errors.append(_("the asset profile belongs to another company"))
+        unserialised = self.env["product.template"].with_context(active_test=False).search([
+            ("categ_id", "=", self.id), ("is_storable", "=", True), ("tracking", "!=", "serial"),
+        ])
+        if unserialised:
+            errors.append(_("storable products must be tracked by serial number: %s",
+                            ", ".join(unserialised.mapped("display_name"))))
         return errors
+
+    @api.model
+    def _recheck_fixed_asset_categories(self, accounts):
+        """Re-run the category checks when an account or an asset profile they rely on
+        changes, so that the guarantees stay true after configuration."""
+        for company in self.env.companies.filtered("chart_template"):
+            categs = self.with_company(company).search([
+                ("is_fixed_asset_stock", "=", True),
+                ("property_account_expense_categ_id", "in", accounts.ids),
+            ])
+            categs._check_fixed_asset_stock()
 
 
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
-    @api.constrains("maintenance_ok", "is_storable", "tracking")
+    @api.constrains("maintenance_ok", "is_storable", "tracking", "categ_id")
     def _check_equipment_serial(self):
         for template in self:
-            if template.maintenance_ok and template.is_storable and template.tracking != "serial":
+            if not template.is_storable or template.tracking == "serial":
+                continue
+            if template.maintenance_ok or template.categ_id.is_fixed_asset_stock:
                 raise ValidationError(
-                    _("%(name)s is an equipment kept in stock: it must be tracked by "
-                      "unique serial number.", name=template.display_name)
+                    _("%(name)s is an equipment or a fixed asset kept in stock: it must be "
+                      "tracked by unique serial number.", name=template.display_name)
                 )
+
+
+class AccountAccount(models.Model):
+    _inherit = "account.account"
+
+    @api.constrains("asset_profile_id", "code")
+    def _check_fixed_asset_categories(self):
+        self.env["product.category"]._recheck_fixed_asset_categories(self)
+
+
+class AccountAssetProfile(models.Model):
+    _inherit = "account.asset.profile"
+
+    @api.constrains("asset_product_item", "company_id", "account_asset_id")
+    def _check_fixed_asset_categories(self):
+        accounts = self.env["account.account"].search([("asset_profile_id", "in", self.ids)])
+        self.env["product.category"]._recheck_fixed_asset_categories(accounts)
