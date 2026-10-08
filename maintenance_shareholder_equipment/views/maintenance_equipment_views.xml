@@ -25,7 +25,7 @@
                         <group string="Ownership">
                             <field name="ownership_status"/>
                             <field name="owner_partner_id"/>
-                            <field name="handover_value"/>
+                            <field name="handover_value" widget="monetary" options="{'currency_field': 'company_currency_id'}"/>
                             <field name="handover_value_date"/>
                             <field name="company_currency_id" invisible="1"/>
                         </group>
@@ -37,7 +37,7 @@
                             <field name="move_line_id" readonly="1"/>
                         </group>
                         <group string="Replacement Value">
-                            <field name="replacement_value"/>
+                            <field name="replacement_value" widget="monetary" options="{'currency_field': 'replacement_currency_id'}"/>
                             <field name="replacement_currency_id"/>
                             <field name="replacement_value_date"/>
                         </group>

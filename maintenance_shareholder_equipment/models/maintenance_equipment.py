@@ -79,9 +79,11 @@ class MaintenanceEquipment(models.Model):
     company_currency_id = fields.Many2one(
         related="company_id.currency_id", string="Company Currency"
     )
-    replacement_value = fields.Monetary(
-        currency_field="replacement_currency_id", tracking=True
-    )
+    # Float without digits, as before: Monetary or digits would change the column
+    # type (double precision -> numeric), and Odoo drops every SQL view reading a
+    # column whose type it converts, the stock monitor reports included.
+    # Shown with its currency by the monetary widget.
+    replacement_value = fields.Float(tracking=True)
     replacement_currency_id = fields.Many2one(
         "res.currency",
         string="Replacement Value Currency",
@@ -90,8 +92,7 @@ class MaintenanceEquipment(models.Model):
     replacement_value_date = fields.Date(string="Replacement Value Date")
     warranty_status = fields.Selection(WARRANTY_STATUS, tracking=True)
     insurance_status = fields.Selection(INSURANCE_STATUS, tracking=True)
-    handover_value = fields.Monetary(
-        currency_field="company_currency_id",
+    handover_value = fields.Float(
         help="Kept for information until the accountant decides its meaning; never "
         "used in accounting.",
     )
