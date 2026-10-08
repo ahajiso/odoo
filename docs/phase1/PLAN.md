@@ -1,6 +1,6 @@
 # Phase 1 plan – data model (revision 2 after audit)
 
-Status: proposal, revised after the first audit (08/10/2026). No code written yet.
+Status: proposal, revised after the second audit (08/10/2026). No code written yet.
 Scope: `maintenance_shareholder_equipment` 18.0.2.0.0 and the parts of
 `lartdubati_investor_home` that conflict with it. Wizards are phase 2, the monitor phase 3.
 
@@ -15,7 +15,9 @@ Scope: `maintenance_shareholder_equipment` 18.0.2.0.0 and the parts of
 - D3 (revised): an equipment in stock is identified by its serial number, not by
   `maintenance_ok` alone (see 4).
 - D4 (revised): warranty and insurance are not required columns, but are required by
-  the central finalisation method (see 2), not only by a screen.
+  the central finalisation method (see 1), not only by a screen.
+- O1 (owner, audit): `integration_state` accepted.
+- O2 (owner, audit): `Bg/TEST Lent out` is archived by the phase 1 script.
 
 ## 1. Two states of integration
 
@@ -40,39 +42,63 @@ This answers the audit's point 1: a bill posted before the receipt creates draft
 equipment through `maintenance_account` (unchanged behaviour), and posting never fails
 on the completion rules.
 
-## 2. Receipt and bill, in either order
+## 2. Receipt and bill: exact reconciliation, partial flows included
 
-Matching key: the purchase order line (`purchase.order.line`), reachable from the
-stock move (`purchase_line_id`) and from the bill line (`purchase_line_id`).
+`maintenance_account` skips a bill line as soon as it has at least one equipment
+(`not x.equipment_ids`). Linking some units and letting it create the rest is therefore
+impossible: our code reconciles each line completely itself.
 
-- Bill before receipt: `maintenance_account` creates one draft equipment per unit
-  (lines already split to quantity 1 by `asset_product_item` for fixed-asset accounts;
-  otherwise its own loop per unit). At receipt (phase 2 wizard / receipt validation),
-  each serial number is given to a draft equipment of the same purchase line without
-  lot, instead of creating a new one.
-- Receipt before bill: the receipt creates the equipment. Before `super()` of
-  `action_post()`, our override links each bill line to the received equipment of the
-  same purchase line, filling **both** relations kept by `maintenance_account`:
-  `account.move.line.equipment_ids` and `maintenance.equipment.move_line_id`; a line
-  that already has equipment is skipped by `maintenance_account`, so no duplicate.
-- After `super()`: `asset_id` is filled from `move_line_id.asset_id` when empty.
-- Tests: both orders; both relations consistent (`equipment.move_line_id ∈ line` ⇔
-  `equipment ∈ line.equipment_ids`); no duplicate; one asset per unit; purchase / bill
-  matching quantities unchanged.
+Matching key: the purchase order line P (`purchase_line_id` on the stock move and on
+the bill line). No new field: the equipment of P are found through
+- received equipment: their lot is on a done stock move line of P;
+- draft equipment created from a bill: `move_line_id.purchase_line_id = P`.
+
+**At bill posting**, before `super()` of `action_post()`, for each line L of a supplier
+bill (`in_invoice` only) with a `maintenance_ok` product and a purchase line P:
+1. the quantity must be a whole number of units (error otherwise);
+2. `needed` = quantity of L;
+3. `free` = equipment of P not linked to any bill line of a posted or draft bill,
+   received ones (with a lot) first, in receipt order;
+4. link `min(needed, free)` of them to L, filling **both** relations of
+   `maintenance_account`: `L.equipment_ids` and `equipment.move_line_id`;
+5. create the `needed - linked` missing ones as `draft` equipment, with the values of
+   `maintenance_account` (`_prepare_equipment_vals`), linked the same way.
+L then has all its equipment and `maintenance_account` skips it. Bill lines without a
+purchase line keep the standard behaviour of `maintenance_account` (equipment created
+as `draft`). Supplier refunds (`in_refund`) never create or link equipment: returns are
+handled in phase 2.
+
+**At receipt** (phase 2 wizard and receipt validation), for each serial number of P:
+reuse a `draft` equipment of P without lot (bill already posted), oldest first;
+otherwise create the equipment.
+
+**One equipment, one bill line**: an equipment already linked to a line of a
+non-cancelled bill is never a candidate again; a constraint on the equipment refuses a
+second link. A cancelled bill releases its links (both relations); the draft equipment
+it created without a lot are archived, not deleted.
+
+**After `super()`**: `asset_id` filled from `move_line_id.asset_id` when empty.
+
+**Tests**: bill then receipt; receipt then bill; order 3, receive 1, bill 3 (1 linked,
+2 draft created, then reused by the next receipts); order 3, bill 1 then bill 2;
+receive 3, bill 2 then 1; same equipment never linked twice; cancelled bill releases
+its links; both relations always consistent; one asset per unit; purchase / bill
+quantities unchanged; refund creates nothing.
 
 ## 3. Write protection (model level, API included)
 
 `ownership_status`, `owner_partner_id`, `integration_state`:
-- `write()` refuses them unless the environment is superuser (`env.su`, only reachable
-  from server code: the central methods) or the user is in the group « Equipment
-  ownership managers » (manual correction, logged with a reason). A context key is not
-  used, because a context can be sent by any API caller.
-- `create()` by a non-manager accepts only `owned` with the company partner and
-  `draft`; other values go through the central methods.
-- Central methods: `_set_ownership(status, owner, reason)`,
-  `action_finalize_integration()`; they check the caller's group or business right,
-  write with `sudo()` limited to these fields, and post the real author and the reason
-  in the chatter.
+- `write()` refuses them unless the environment is superuser (`env.su`), which only
+  server code can reach. Nobody writes them directly, managers included: a direct write
+  cannot carry a reliable reason. A context key is not used, because any API caller can
+  send a context.
+- `create()` without superuser accepts only `owned`, the company partner and `draft`.
+- Central methods, the only writers: `_set_ownership(status, owner, reason)` and
+  `action_finalize_integration()`. They check the caller's right (business action of
+  the phase 2 wizards, or the group « Equipment ownership managers » for a correction),
+  write with `sudo()` limited to these fields and post the real author and the reason
+  in the chatter. Corrections by a manager go through a small wizard « Correct
+  ownership » (status, owner, mandatory reason) calling `_set_ownership`.
 
 ## 4. Third-party owner on stock (D3 revised)
 
@@ -130,11 +156,20 @@ manual valuation; expense account of class 21 with an asset profile; that profil
 - No overlapping periods `[date_start, date_end]` per equipment, nature and contract
   type (purchase / sale); empty end = open-ended; cancelled lines ignored.
 - `insurance` only on supplier contracts; product = service, not `maintenance_ok`.
-- Free loan: `_can_be_invoiced()` (the single filter used by
-  `contract._get_lines_to_invoice()`) returns False for `loan` lines, so they keep a
-  `recurring_next_date` (required by `_check_recurring_next_date_recurring_invoices`)
-  but never produce an invoice, not even at zero. Test: a contract with only a loan
-  line, then with a loan and a rental line: only the rental line is invoiced.
+- Free loan, two overrides (both verified in OCA contract 18.0):
+  - `contract.line._can_be_invoiced()` (the single filter of
+    `contract._get_lines_to_invoice()`) returns False for `loan` lines: they keep a
+    `recurring_next_date` (required by `_check_recurring_next_date_recurring_invoices`)
+    but never produce an invoice line, not even at zero;
+  - `contract.contract._compute_recurring_next_date()`: OCA takes the earliest date of
+    all non-cancelled lines, and falls back to a computed date when it finds none. After
+    `super()`, our override recomputes it from the non-`loan` lines only, and sets it
+    empty when the contract has no other invoiceable line. A loan-only contract is
+    then never selected by the invoicing job (`recurring_next_date <= today`), and in a
+    mixed contract the loan date no longer holds the next date back.
+  - Tests: run the invoicing job several times over several periods; a loan-only
+    contract is never selected and produces no invoice; a mixed contract invoices only
+    the rental line, and its next date follows the rental line.
 
 ## 9. Supplier bills
 
@@ -148,9 +183,9 @@ manual valuation; expense account of class 21 with an asset profile; that profil
 
 ## 10. stock.location
 
-`place_type` moved (D2). `return_location_id`, required when `place_type = lent_out`.
-Existing data: `Bg/TEST Lent out` is `lent_out` without return location; the phase 1
-script lists it and the owner chooses (decision O2 below). Currency and the change of
+`place_type` moved (D2). `return_location_id`, required when `place_type = lent_out`
+on an active location (archived locations ignored). `Bg/TEST Lent out` is archived by
+the phase 1 script after checking it holds no stock (O2). Currency and the change of
 meaning of `place_type` (only on monitor stocks) stay in phase 3.
 
 ## 11. lartdubati_investor_home
@@ -161,14 +196,43 @@ meaning of `place_type` (only on monitor stocks) stay in phase 3.
   a bill is `draft`, `owned`, company partner.
 - Tests updated; the rest waits for phase 3.
 
-## 12. Phase 1 script (`docs/phase1/`, dry run by default, artdubati_test only)
+## 12. Phase 1 script and server procedure (`docs/phase1/`, artdubati_test only)
 
-Lists then, with `--apply`, deletes the six test equipment records through the API.
-The dry run shows for each one its bill line (`move_line_id`, `equipment_ids`),
-contracts (`maintenance_equipment_contract`), lot, asset and maintenance requests
-(none found by the audit). Lists `lent_out` locations without return location.
-Order on the server: backup, script dry run, `--apply`, module update of both modules,
-tests, control dry run.
+Script (JSON-RPC, dry run by default, `--apply` only on artdubati_test, all checks
+before any write):
+- lists, then deletes the six test equipment records; the dry run shows for each one
+  its bill line (`move_line_id`, `equipment_ids`), contracts
+  (`maintenance_equipment_contract`), lot, asset and maintenance requests;
+- archives `Bg/TEST Lent out` after checking it holds no quant;
+- lists every storable `maintenance_ok` product not tracked by serial number (one
+  known: « 1800W corded table saw, 254mm blade, with wheeled stand »), with its
+  quantity on hand. A Python constraint does not fix existing data: the module update
+  is not run until each of them is corrected (serial tracking), archived or deleted
+  by the owner; the script refuses `--apply` while one remains.
+
+Database check before the update, with `psql` (the Odoo API cannot see PostgreSQL
+dependencies): views depending on the columns removed in phase 1.
+
+```sql
+SELECT DISTINCT v.relname AS view_name, t.relname AS table_name, a.attname AS column_name
+FROM pg_depend d
+JOIN pg_rewrite r ON r.oid = d.objid
+JOIN pg_class v ON v.oid = r.ev_class
+JOIN pg_class t ON t.oid = d.refobjid
+JOIN pg_attribute a ON a.attrelid = d.refobjid AND a.attnum = d.refobjsubid
+WHERE d.classid = 'pg_rewrite'::regclass
+  AND t.relname IN ('maintenance_equipment', 'maintenance_request')
+  AND a.attname IN ('accounting_ownership', 'ownership_state', 'rental_counterparty_id',
+                    'rental_end_date', 'accounting_depreciation_active',
+                    'physical_wear_active', 'return_obligation', 'initial_condition',
+                    'repairer', 'repair_invoice_ref', 'repair_cost')
+ORDER BY 1, 3;
+```
+
+Expected: no row. Any row stops the procedure (the view would be dropped by CASCADE).
+
+Order on the server: backup, script dry run, product corrections, `psql` check,
+`--apply`, update of both modules together, tests, control dry run.
 
 ## 13. Tests, translations, manual
 
@@ -187,13 +251,13 @@ tests, control dry run.
   `recurring_next_date` constraint of OCA contract.
 - Verified by the audit on the database: six equipment, no maintenance request, one
   linked to a bill, one to a contract; `Bg/TEST Lent out` is `lent_out`.
-- Not verified: other views or reports reading removed fields (the script's dry run
-  lists the database views depending on `maintenance_equipment` columns).
+- Verified in code (second audit): `maintenance_account` skips a line with any
+  equipment; `contract._compute_recurring_next_date()` uses all non-cancelled lines
+  and falls back to a computed date.
+- Not verified: other database views reading removed columns (`psql` check of 12).
 - Hypotheses: the four of CLAUDE.md, to be confirmed by the tests.
 
 ## Open decisions for the owner
 
-- O1: the `draft` / `done` integration state (section 1) – this adds one status field,
-  limited to completeness, not the global status refused earlier. Accept?
-- O2: `Bg/TEST Lent out`: archive it (test data), give it a return location, or set it
-  back to `physical`?
+None left for phase 1. For each non-serialised maintainable product listed by the
+script, the owner chooses: serial tracking, archive or delete.
