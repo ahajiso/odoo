@@ -139,8 +139,9 @@ the home page (web_quick_start_screen configuration versus a client action).
 0. Configuration on artdubati_test (docs/phase0/: server commands and setup_phase0.py,
    run by the owner): install the OCA modules to add; Lots & Serial Numbers; accounting
    choices for the test (asset profile with `asset_product_item` on 215400, category
-   All / Fixed Assets with manual valuation), changeable by the accountant; WH/Chez tiers
-   checked outside WH/Stock (no new location tree).
+   All / Fixed Assets with manual valuation), changeable by the accountant; Chez tiers
+   under the warehouse root (Bougival 1, code Bg), outside Bg/Stock, checked or created.
+   Order: backup, modules, dry run, --apply, control dry run.
 1. Data model in maintenance_shareholder_equipment: delete the six test equipment
    records, remove obsolete fields (equipment and maintenance request), add the kept
    fields (see DEFINITIONS.md), stock.location currency / return location,

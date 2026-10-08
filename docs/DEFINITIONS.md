@@ -17,15 +17,15 @@ is set. Attributes:
   where items go back.
 
 Off-site stocks are internal locations of the company, placed OUTSIDE the warehouse
-stock location, so that ordinary reservations never pick them. The existing
-`WH/Chez tiers` (child of the warehouse view location WH, not of WH/Stock) is that
-place; one child location per third party:
+stock location, so that ordinary reservations never pick them: `Chez tiers`, child of
+the warehouse root location, not of its stock location; one child location per third
+party. On artdubati_test (warehouse « Bougival 1 », code Bg, root shown as WH):
 
-    WH (view)
-    ├── WH/Stock
-    └── WH/Chez tiers
-        ├── WH/Chez tiers/Customer A
-        └── WH/Chez tiers/Partner B
+    WH (warehouse root, view)
+    ├── Bg/Stock
+    └── Chez tiers
+        ├── Customer A
+        └── Partner B
 
 Each quant belongs to the nearest ancestor location that has a place type.
 An employee is not a third party: equipment entrusted to an employee stays `owned`, in
