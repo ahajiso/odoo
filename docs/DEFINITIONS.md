@@ -17,15 +17,15 @@ is set. Attributes:
   where items go back.
 
 Off-site stocks are internal locations of the company, placed OUTSIDE the warehouse
-stock tree, so that ordinary reservations never pick them:
+stock location, so that ordinary reservations never pick them. The existing
+`WH/Chez tiers` (child of the warehouse view location WH, not of WH/Stock) is that
+place; one child location per third party:
 
-    L'Art du Bâti
-    ├── Warehouses
-    │   └── WH/Stock
-    └── Off-site
-        └── At third parties
-            ├── Customer A
-            └── Partner B
+    WH (view)
+    ├── WH/Stock
+    └── WH/Chez tiers
+        ├── WH/Chez tiers/Customer A
+        └── WH/Chez tiers/Partner B
 
 Each quant belongs to the nearest ancestor location that has a place type.
 An employee is not a third party: equipment entrusted to an employee stays `owned`, in
@@ -130,6 +130,11 @@ Warranty status (under warranty / no warranty / not applicable) and insurance st
 explicitly configured on the product category. No silent default.
 
 ## Fixed assets tracked in stock (accountant)
+Test choices (artdubati_test, not validated by the accountant, changeable at any
+time; values and where to change them in docs/phase0/README.md): category
+"All / Fixed Assets", average cost, manual valuation, expense account 215400; asset
+profile "Matériel et outillage (test)" on 215400 / 281500 / 681120, linear 5 years,
+prorata temporis, one asset per unit; rental expense account 613500.
 Product categories flagged `is_fixed_asset_stock`. The flag is a declaration checked
 per company, it changes nothing by itself:
 - manual (periodic) valuation, so no stock journal entry at receipt;
@@ -162,7 +167,8 @@ contracts. One contract may hold several equipment, one line each, with its own 
   reports the supplier's reference, attaches the PDF, checks and posts. A bill entered
   manually must let the user pick the contract line (`account.move.line.contract_line_id`,
   displayed by our module, filtered on supplier and company). Any bill line on the
-  equipment rental account (6135, accountant) cannot be posted without a contract line.
+  equipment rental account (613500, test choice, accountant) cannot be posted without a
+  contract line.
 - Insurance: insurer = contract partner, policy number = contract reference, dates,
   premiums, attachments, renewals. `insurance_status` stays on the equipment to tell
   "not insured" from "not applicable".
