@@ -56,10 +56,88 @@
     <!-- Operators and approvers choose and check any equipment of their companies (the
          standard rule only shows the equipment a user follows). Read only. -->
     <record id="rule_equipment_read_operation_users" model="ir.rule">
-        <field name="name">Equipment: read by equipment operators and approvers</field>
+        <field name="name">Equipment: read by equipment operators, approvers and accounting administrators</field>
         <field name="model_id" ref="maintenance.model_maintenance_equipment"/>
         <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(4, ref('group_equipment_operator')), (4, ref('group_equipment_approver'))]"/>
+        <!-- accounting administrators correct equipment costs (phase 2f, D7) -->
+        <field name="groups" eval="[(4, ref('group_equipment_operator')), (4, ref('group_equipment_approver')), (4, ref('account.group_account_manager'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <!-- Phase 2f (D8): an approver without any other right on these models reads only
+         the documents equipment operations refer to. Global rules (no groups): group
+         rules would be ORed with other groups; for every other user the domain is
+         always true (res.users._equipment_approver_domain). -->
+    <record id="rule_approver_scope_purchase_order" model="ir.rule">
+        <field name="name">Purchase orders: equipment approver scope</field>
+        <field name="model_id" ref="purchase.model_purchase_order"/>
+        <field name="domain_force">user._equipment_approver_domain('purchase.order')</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_approver_scope_purchase_order_line" model="ir.rule">
+        <field name="name">Purchase order lines: equipment approver scope</field>
+        <field name="model_id" ref="purchase.model_purchase_order_line"/>
+        <field name="domain_force">user._equipment_approver_domain('purchase.order.line')</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_approver_scope_stock_picking" model="ir.rule">
+        <field name="name">Transfers: equipment approver scope</field>
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="domain_force">user._equipment_approver_domain('stock.picking')</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_approver_scope_stock_move" model="ir.rule">
+        <field name="name">Stock moves: equipment approver scope</field>
+        <field name="model_id" ref="stock.model_stock_move"/>
+        <field name="domain_force">user._equipment_approver_domain('stock.move')</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_approver_scope_stock_lot" model="ir.rule">
+        <field name="name">Serial numbers: equipment approver scope</field>
+        <field name="model_id" ref="stock.model_stock_lot"/>
+        <field name="domain_force">user._equipment_approver_domain('stock.lot')</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_approver_scope_contract_contract" model="ir.rule">
+        <field name="name">Contracts: equipment approver scope</field>
+        <field name="model_id" ref="contract.model_contract_contract"/>
+        <field name="domain_force">user._equipment_approver_domain('contract.contract')</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_approver_scope_contract_line" model="ir.rule">
+        <field name="name">Contract lines: equipment approver scope</field>
+        <field name="model_id" ref="contract.model_contract_line"/>
+        <field name="domain_force">user._equipment_approver_domain('contract.line')</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_approver_scope_account_move" model="ir.rule">
+        <field name="name">Bills: equipment approver scope</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="domain_force">user._equipment_approver_domain('account.move')</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>

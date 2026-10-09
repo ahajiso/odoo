@@ -101,6 +101,9 @@ class AccountMoveLine(models.Model):
     def _equipment_units(self):
         self.ensure_one()
         qty = self.quantity
+        if self.product_uom_id and self.product_uom_id != self.product_id.uom_id:
+            # one equipment per unit of the product, also for a bill in packs
+            qty = self.product_uom_id._compute_quantity(qty, self.product_id.uom_id)
         if float_compare(qty, float_round(qty, precision_digits=0), precision_digits=6) or qty <= 0:
             raise UserError(
                 _("Bill line %s: an equipment line must have a whole, positive number of "
@@ -139,6 +142,7 @@ class AccountMove(models.Model):
         posted = self.filtered(lambda m: m.move_type == "in_invoice" and m.state == "posted")
         posted._check_equipment_counts()
         posted._fill_equipment_assets()
+        posted._fill_equipment_costs()
         return res
 
     # ------------------------------------------------------------- reconciliation
@@ -199,6 +203,8 @@ class AccountMove(models.Model):
         ).sorted("id", reverse=True)
         others = (linked - drafts).sorted("id", reverse=True)
         to_release = (drafts + others)[:count]
+        # the cost is explained before the link to the bill disappears (not a cancellation)
+        to_release.sudo()._cost_after_bill_unlink(self, "bill_released")
         line._unlink_equipment(to_release)
         (to_release & drafts).sudo().write({"active": False})
         self.message_post(
@@ -230,6 +236,34 @@ class AccountMove(models.Model):
                     _("Equipment linked to this bill but not listed by its line: %s",
                       ", ".join(orphans.mapped("display_name")))
                 )
+
+    def _fill_equipment_costs(self):
+        """Real cost from the posted bill line (phase 2f): untaxed company-currency
+        balance per unit of the product, at the accounting date; it replaces the
+        estimate of the order."""
+        for move in self:
+            for line in move.invoice_line_ids.filtered(
+                lambda ln: ln.display_type == "product" and ln.equipment_ids
+            ):
+                qty = line.quantity
+                if line.product_uom_id and line.product_id and \
+                        line.product_uom_id != line.product_id.uom_id:
+                    qty = line.product_uom_id._compute_quantity(qty, line.product_id.uom_id)
+                if qty <= 0:
+                    continue
+                line.equipment_ids.sudo()._set_cost(
+                    abs(line.balance) / qty, move.date, False, "bill", move.name)
+
+    def button_draft(self):
+        """A bill reset to draft makes the cost it gave provisional again, until it is
+        posted again."""
+        for move in self.filtered(lambda m: m.move_type == "in_invoice" and m.state == "posted"):
+            equipment = move.invoice_line_ids.equipment_ids.sudo().filtered(
+                lambda e: e.cost_known and e.cost_source == "bill"
+                and e.cost_reference == move.name and not e.cost_provisional)
+            for item in equipment:
+                item._set_cost(item.cost, item.cost_date, True, "bill", move.name)
+        return super().button_draft()
 
     def _fill_equipment_assets(self):
         for line in self.invoice_line_ids.filtered("asset_id"):
@@ -308,6 +342,8 @@ class AccountMove(models.Model):
         for move in self.filtered(lambda m: m.move_type == "in_invoice"):
             for line in move.invoice_line_ids.filtered("equipment_ids"):
                 linked = line.equipment_ids
+                # recorded before the link disappears
+                linked.sudo()._cost_after_bill_unlink(move, "bill_cancelled")
                 line._unlink_equipment(linked)
                 linked.filtered(
                     lambda e: not e.stock_lot_id and e.integration_state == "draft"

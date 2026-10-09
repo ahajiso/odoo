@@ -171,6 +171,10 @@
                                     <field name="lot_name" column_invisible="parent.operation_type != 'receipt'"/>
                                     <field name="warranty_status" column_invisible="parent.operation_type != 'receipt'"/>
                                     <field name="insurance_status" column_invisible="parent.operation_type != 'receipt'"/>
+                                    <field name="responsible_user_id" column_invisible="parent.operation_type != 'receipt'" optional="show"/>
+                                    <field name="needs_no_asset_confirmation" column_invisible="1"/>
+                                    <field name="no_asset_confirmed" column_invisible="parent.operation_type != 'receipt'"
+                                           invisible="not needs_no_asset_confirmation" optional="show"/>
                                     <field name="dest_location_id" column_invisible="parent.operation_type != 'return'"/>
                                 </list>
                                 <form>
@@ -193,6 +197,13 @@
                                             <field name="equipment_name"/>
                                             <field name="responsible_user_id"/>
                                         </group>
+                                    </group>
+                                    <group string="Accounting Treatment" name="treatment" invisible="not accounting_treatment">
+                                        <field name="needs_no_asset_confirmation" invisible="1"/>
+                                        <div colspan="2" role="status" class="alert alert-info mb-0">
+                                            <field name="accounting_treatment" nolabel="1"/>
+                                        </div>
+                                        <field name="no_asset_confirmed" invisible="not needs_no_asset_confirmation"/>
                                     </group>
                                     <group>
                                         <group string="Values" invisible="parent.operation_type != 'receipt' and not (parent.operation_type == 'exit' and parent.exit_nature == 'rental')">

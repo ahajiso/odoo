@@ -5,7 +5,12 @@ import psycopg2
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
-from .maintenance_equipment import INSURANCE_STATUS, THIRD_PARTY_OWNED, WARRANTY_STATUS
+from .maintenance_equipment import (
+    INSURANCE_STATUS,
+    THIRD_PARTY_OWNED,
+    WARRANTY_STATUS,
+    valid_responsible,
+)
 
 OPERATION_TYPES = [
     ("receipt", "Receipt"),
@@ -57,6 +62,8 @@ class EquipmentOperation(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "id desc"
     _check_company_auto = True
+    # the approver reads the operation only (phase 2f) and still posts in its chatter
+    _mail_post_access = "read"
 
     name = fields.Char(readonly=True, copy=False, default="/")
     company_id = fields.Many2one(
@@ -235,7 +242,9 @@ class EquipmentOperation(models.Model):
         commands = [Command.clear()]
         for pol in order.order_line.filtered(lambda pl: not pl.display_type):
             product = pol.product_id
-            left = pol.product_qty - pol.qty_received
+            # operation lines count in the product's unit (an order may buy packs)
+            left = pol.product_uom._compute_quantity(pol.product_qty - pol.qty_received,
+                                                     product.uom_id)
             if left <= 0 or (product.type == "service" and not product.maintenance_ok):
                 continue
             base = {"product_id": product.id, "purchase_line_id": pol.id,
@@ -353,7 +362,8 @@ class EquipmentOperation(models.Model):
                      line.purchase_line_id.id, line.purchase_line_id.price_unit,
                      ids(line.purchase_line_id.taxes_id), line.unit_value, line.replacement_value,
                      line.replacement_currency_id.id, str(line.replacement_value_date or ""),
-                     line.rent_amount, line.equipment_id.id if op.operation_type != "receipt" else 0]
+                     line.rent_amount, line.equipment_id.id if op.operation_type != "receipt" else 0,
+                     line.no_asset_confirmed, line.responsible_user_id.id]
                     for line in op.line_ids
                 ],
                 key=lambda row: json.dumps(row),
@@ -361,15 +371,42 @@ class EquipmentOperation(models.Model):
             "stops": sorted(
                 [[stop.contract_line_id.id, stop._will_stop()] for stop in op.stop_line_ids]
             ),
+            # planned accounting treatment of each line (phase 2f): a change of account,
+            # asset profile, valuation, category or fiscal position cancels the approval
+            "treatments": {str(line.id): line._treatment_signature() for line in op.line_ids},
         }
         return json.dumps(data, sort_keys=True)
+
+    def _changed_treatments(self):
+        """Lines whose planned accounting treatment differs from the approved one."""
+        self.ensure_one()
+        try:
+            approved = json.loads(self.sudo().approval_snapshot or "{}").get("treatments") or {}
+        except ValueError:
+            approved = {}
+        changed = []
+        for line in self.line_ids:
+            before = approved.get(str(line.id))
+            now = line._treatment_signature()
+            if before is not None and before != now:
+                changed.append((line, before, now))
+        return changed
 
     def _invalidate_changed_approvals(self):
         for op in self.filtered(lambda o: o.state == "approved"):
             if op._commitment_snapshot() != op.sudo().approval_snapshot:
+                details = [
+                    _("%(line)s: planned accounting treatment changed (%(before)s → %(now)s)",
+                      line=line._label(), before=line._signature_label(before),
+                      now=line._signature_label(now))
+                    for line, before, now in op._changed_treatments()
+                ]
                 op.sudo().write({"state": "draft", "approver_id": False,
                                  "approval_date": False, "approval_snapshot": False})
-                op.message_post(body=_("Approval cancelled: the commitments changed."))
+                body = _("Approval cancelled: the commitments changed.")
+                if details:
+                    body += " " + "; ".join(details)
+                op.message_post(body=body)
 
     def _is_operator(self):
         return self.env.su or self.env.user.has_group(OPERATOR_GROUP)
@@ -387,6 +424,7 @@ class EquipmentOperation(models.Model):
             op._ensure_picking_type()
             op._refresh_stop_lines()
             op._check_values()
+            op._check_user_access()
             if not op._needs_approval():
                 raise UserError(_("%s needs no approval: execute it.", op.name))
             op.sudo().write({"state": "to_approve"})
@@ -403,12 +441,14 @@ class EquipmentOperation(models.Model):
             op._ensure_picking_type()
             op._refresh_stop_lines()
             op._check_values()
+            op._check_user_access()
             op.sudo().write({
                 "state": "approved", "approver_id": self.env.user.id,
                 "approval_date": fields.Datetime.now(),
                 "approval_snapshot": op._commitment_snapshot(),
             })
-            op.activity_unlink(["mail.mail_activity_data_todo"])
+            # the approver reads the operation only: activities are closed for them
+            op.sudo().activity_unlink(["mail.mail_activity_data_todo"])
             op.message_post(body=_("Approved by %s.", self.env.user.name))
         return True
 
@@ -481,7 +521,10 @@ class EquipmentOperation(models.Model):
                     continue
                 op.action_approve()
             if op.state == "approved" and op._commitment_snapshot() != op.sudo().approval_snapshot:
-                raise UserError(_("%s changed since its approval.", op.name))
+                # e.g. the account or asset profile of a line changed in the configuration:
+                # back to draft, to be approved again (no error, so that it is kept)
+                op._invalidate_changed_approvals()
+                continue
             op.sudo()._execute()
         return True
 
@@ -548,9 +591,14 @@ class EquipmentOperation(models.Model):
             key = (line.product_id.id, line.price_unit, tuple(sorted(line.tax_ids.ids)))
             groups.setdefault(key, self.env["equipment.operation.line"])
             groups[key] |= line
+        # the vendor's fiscal position, as the order form sets it (the planned
+        # accounting treatment of the lines is computed with it, phase 2f)
+        fiscal = self.env["account.fiscal.position"].with_company(self.company_id)._get_fiscal_position(
+            self.partner_id)
         order = self.env["purchase.order"].create({
             "partner_id": self.partner_id.id,
             "company_id": self.company_id.id,
+            "fiscal_position_id": fiscal.id,
             "currency_id": self.currency_id.id,
             "picking_type_id": self.picking_type_id.id,
             "origin": self.name,
@@ -641,7 +689,8 @@ class EquipmentOperation(models.Model):
                 "move_id": move.id, "picking_id": picking.id, "product_id": line.product_id.id,
                 "lot_id": (line.lot_id or line.equipment_id.stock_lot_id).id or False,
                 "quantity": qty,
-                "product_uom_id": move.product_uom.id,
+                # operation quantities are in the product's unit, whatever the order's
+                "product_uom_id": line.product_id.uom_id.id,
                 "location_id": line._source_location(move).id,
                 "location_dest_id": line._destination_location(move).id,
                 "owner_id": picking.owner_id.id or False,
@@ -662,7 +711,9 @@ class EquipmentOperation(models.Model):
         order = self._purchase()
         bill_lines = []
         for pol in lines.purchase_line_id:
-            executed = sum(ln._qty_executed() for ln in lines if ln.purchase_line_id == pol)
+            executed = pol.product_id.uom_id._compute_quantity(
+                sum(ln._qty_executed() for ln in lines if ln.purchase_line_id == pol),
+                pol.product_uom)
             basis = pol.qty_received if pol.product_id.purchase_method == "receive" \
                 else pol.product_qty
             qty = min(executed, basis - pol.qty_invoiced)
@@ -935,6 +986,12 @@ class EquipmentOperation(models.Model):
             if line.family in ("equipment", "non_stock"):
                 need(line.warranty_status, _("%s: warranty status", label))
                 need(line.insurance_status, _("%s: insurance status", label))
+                need(valid_responsible(line.responsible_user_id, self.company_id),
+                     _("%s: responsible (active internal user of the company)", label))
+                if line._needs_no_asset_confirmation():
+                    need(line.no_asset_confirmed,
+                         _("%s: confirmation that it will not create a fixed asset "
+                           "automatically", label))
                 if third_party:
                     need(line.replacement_value and line.replacement_currency_id
                          and line.replacement_value_date, _("%s: replacement value, currency and date", label))
@@ -966,7 +1023,8 @@ class EquipmentOperation(models.Model):
                                                 line.product_id.display_name))
                 for pol in self.line_ids.purchase_line_id:
                     lines = self.line_ids.filtered(lambda ln: ln.purchase_line_id == pol)
-                    left = pol.product_qty - pol.qty_received
+                    left = pol.product_uom._compute_quantity(pol.product_qty - pol.qty_received,
+                                                             pol.product_id.uom_id)
                     if sum(lines.mapped("quantity")) > left + 1e-6:
                         raise ValidationError(_("%(product)s: more than the %(left)s left to "
                                                 "receive.", product=pol.product_id.display_name,
@@ -1101,8 +1159,11 @@ class EquipmentOperation(models.Model):
             return
         records = [self.partner_id, self.site_partner_id, self.picking_type_id,
                    self.location_dest_id, self.purchase_id, self.contract_id,
-                   self.offsite_location_id, self.line_ids.product_id,
-                   self.line_ids.equipment_id, self.line_ids.dest_location_id]
+                   self.offsite_location_id, self.new_location_parent_id, self.currency_id,
+                   self.purchase_id.currency_id, self.line_ids.product_id,
+                   self.line_ids.equipment_id, self.line_ids.dest_location_id,
+                   self.line_ids.tax_ids, self.line_ids.purchase_line_id,
+                   self.line_ids.responsible_user_id, self.line_ids.replacement_currency_id]
         for record in records:
             if record:
                 record.check_access("read")
@@ -1194,7 +1255,19 @@ class EquipmentOperationLine(models.Model):
     equipment_id = fields.Many2one("maintenance.equipment", string="Equipment",
                                    check_company=True)
     equipment_name = fields.Char()
-    responsible_user_id = fields.Many2one("res.users", string="Responsible / Holder")
+    responsible_user_id = fields.Many2one(
+        "res.users", string="Responsible / Holder",
+        domain="[('share', '=', False), ('company_ids', 'in', company_id)]",
+        help="Required for equipment: an active internal user of the company.")
+    accounting_treatment = fields.Char(
+        compute="_compute_accounting_treatment",
+        help="Planned under the current configuration: the account the supplier bill line "
+        "will use, computed by Odoo on a bill that is not saved.")
+    needs_no_asset_confirmation = fields.Boolean(compute="_compute_accounting_treatment")
+    no_asset_confirmed = fields.Boolean(
+        string="Confirmed: no fixed asset",
+        help="Company property whose planned treatment creates no fixed asset: the operator "
+        "confirms it. Part of the approval.")
     warranty_status = fields.Selection(WARRANTY_STATUS)
     insurance_status = fields.Selection(INSURANCE_STATUS)
     replacement_value = fields.Float()
@@ -1297,6 +1370,120 @@ class EquipmentOperationLine(models.Model):
         position = (list(lines).index(self) + 1) if self in lines else "?"
         return _("line %(n)s (%(product)s)", n=position,
                  product=(self.product_id or self.equipment_id).display_name or "-")
+
+    # ------------------------------------------------------- accounting treatment
+
+    def _company_property_receipt(self):
+        """Purchase or acquisition without purchase: the company becomes the owner."""
+        op = self.operation_id
+        return op.operation_type == "receipt" and op.receipt_branch in ("purchase", "acquisition")
+
+    def _planned_bill_account(self):
+        """Account and fiscal position the future supplier bill line will use, computed
+        by Odoo itself (`_compute_account_id`, fiscal position, stock input account of
+        stock_account) on an in-memory bill: nothing is saved. Superuser mode only for
+        this computation; the result exposes the account code, which every internal
+        user may read."""
+        self.ensure_one()
+        line = self.sudo()
+        op = line.operation_id
+        company = op.company_id
+        pol = line.purchase_line_id
+        partner = pol.order_id.partner_id if pol else op.partner_id
+        Fiscal = self.env["account.fiscal.position"].sudo().with_company(company)
+        if pol:
+            fpos = pol.order_id.fiscal_position_id
+            vals = pol._prepare_account_move_line()
+        else:
+            fpos = Fiscal._get_fiscal_position(partner) if partner else Fiscal
+            vals = {"display_type": "product", "product_id": line.product_id.id,
+                    "quantity": 1.0, "price_unit": line.price_unit}
+        move = self.env["account.move"].sudo().with_company(company).new({
+            "move_type": "in_invoice", "company_id": company.id,
+            "partner_id": partner.id, "fiscal_position_id": fpos.id,
+            "invoice_line_ids": [Command.create(vals)],
+        })
+        return move.invoice_line_ids[:1].account_id, fpos
+
+    def _treatment(self):
+        """Planned treatment of a line of company property, under the current
+        configuration: kind (asset, stock, account, acquisition) and what decides it."""
+        self.ensure_one()
+        if not (self.product_id and self._company_property_receipt()):
+            return {}
+        product = self.product_id.sudo()
+        company = self.operation_id.company_id
+        base = {
+            "valuation": product.with_company(company).valuation,
+            "categ": product.categ_id.id,
+            "product_account": product.with_company(company).property_account_expense_id.id,
+            "anglo_saxon": bool(company.anglo_saxon_accounting),
+        }
+        if self.operation_id.receipt_branch == "acquisition":
+            return dict(base, kind="acquisition", account=False, profile=False, fpos=False)
+        account, fpos = self._planned_bill_account()
+        profile = account.asset_profile_id
+        if profile:
+            kind = "asset"
+        elif product.is_storable and base["valuation"] == "real_time":
+            kind = "stock"
+        else:
+            kind = "account"
+        return dict(base, kind=kind, account=account.id, profile=profile.id, fpos=fpos.id)
+
+    def _treatment_signature(self):
+        """What the approval freezes (phase 2f, correction 2)."""
+        treatment = self._treatment()
+        if not treatment:
+            return []
+        return [treatment["kind"], treatment["account"], treatment["profile"],
+                treatment["valuation"], treatment["categ"], treatment["product_account"],
+                treatment["fpos"], treatment["anglo_saxon"]]
+
+    def _signature_label(self, signature):
+        if not signature:
+            return "-"
+        account = self.env["account.account"].sudo().browse(signature[1]).exists()
+        return "%s %s" % (signature[0], account.code or "")
+
+    @api.depends("product_id", "purchase_line_id", "operation_id.receipt_branch",
+                 "operation_id.operation_type", "operation_id.partner_id",
+                 "operation_id.company_id", "price_unit", "family")
+    @api.depends_context("uid")
+    def _compute_accounting_treatment(self):
+        can_read_profiles = self.env["account.asset.profile"].has_access("read")
+        prefix = _("Planned treatment under the current configuration:")
+        for line in self:
+            treatment = line._treatment() if line.product_id else {}
+            kind = treatment.get("kind")
+            text = False
+            if kind == "acquisition":
+                text = _("no bill: if this equipment must be capitalised, the fixed asset is "
+                         "created manually by the accountant.")
+            elif kind:
+                account = self.env["account.account"].sudo().browse(treatment["account"])
+                if kind == "asset":
+                    profile = self.env["account.asset.profile"].sudo().browse(treatment["profile"])
+                    text = _("posting the bill will create a fixed asset (account %s)", account.code)
+                    if can_read_profiles:
+                        text += " – " + _("profile %s", profile.name)
+                elif kind == "stock":
+                    text = _("value carried by the stock (account %s); no fixed asset.",
+                             account.code)
+                else:
+                    text = _("the bill line will use account %s; no fixed asset will be "
+                             "created automatically.", account.code or "-")
+            line.accounting_treatment = "%s %s" % (prefix, text) if text else False
+            line.needs_no_asset_confirmation = line._needs_no_asset_confirmation(treatment)
+
+    def _needs_no_asset_confirmation(self, treatment=None):
+        """Company property (purchase, acquisition) whose planned treatment creates no
+        fixed asset; never for borrowed, rented or consumable lines."""
+        self.ensure_one()
+        if self.family not in ("equipment", "non_stock") or not self._company_property_receipt():
+            return False
+        treatment = self._treatment() if treatment is None else treatment
+        return bool(treatment) and treatment.get("kind") != "asset"
 
     def _transfer_type(self):
         """Transfer type of the warehouse holding this equipment for an exit or a
@@ -1428,11 +1615,24 @@ class EquipmentOperationLine(models.Model):
             vals["category_id"] = self._equipment_category().id
             equipment = self.env["maintenance.equipment"].create(vals)
         self.write({"equipment_id": equipment.id})
+        self._set_receipt_cost(equipment)
         if op.receipt_branch in THIRD_PARTY_OWNED:
             equipment._set_ownership(op.receipt_branch, op.partner_id, _("%s (receipt)", op.name))
         else:
             equipment.message_post(body=_("Received by %s.", op._get_html_link()))
         self._post_on_equipment()
+
+    def _set_receipt_cost(self, equipment):
+        """Phase 2f: purchase → order estimate, provisional until the bill is posted
+        (a real cost already given by a bill posted before the receipt is kept);
+        acquisition → unit value of entry, final. Borrowed or rented: no cost."""
+        op = self.operation_id
+        equipment = equipment.sudo()
+        if op.receipt_branch == "purchase" and self.purchase_line_id:
+            equipment._set_cost_from_order(self.purchase_line_id, op._today)
+        elif op.receipt_branch == "acquisition" and self.unit_value:
+            # the unit value is entered in company currency, as the stock move valuing it
+            equipment._set_cost(self.unit_value, op._today, False, "acquisition", op.name)
 
     def _post_on_equipment(self):
         equipment = self.equipment_id
