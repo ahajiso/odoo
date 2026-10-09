@@ -327,3 +327,62 @@ phase 3.
   - whether Anglo-Saxon accounting is enabled on the company (it decides the stock
     input account);
   - the asset profiles on accounts other than 215400.
+
+## 8. Implementation notes (09/10/2026), for the code audit
+
+Departures from the plan, each with its reason:
+- **Units of measure, beyond the cost.** The test « discount and pack unit together »
+  showed that a pack unit also broke the counts:
+  - OCA `maintenance_account` creates `int(quantity)` equipment without converting;
+  - phase 1 counted the equipment of a bill line in the line's unit;
+  - phase 2 compared quantities in the product's unit with the order's.
+  The rule is now that **operation lines and equipment count in the product's unit**:
+  - the order line is converted when the form fills the lines and when the remaining
+    quantity is checked;
+  - transfer move lines use the product's unit;
+  - the draft bill converts back into the order's unit;
+  - `_equipment_units()` converts the bill line.
+- **Acquisition cost**: `unit_value` is taken in **company currency**, as the stock move
+  of phase 2 already values it, rather than « converted from the operation currency ».
+  The operation's currency only serves a new purchase order.
+- **Fiscal position of an order created by the operation**: it was empty. The order
+  form sets it from the vendor; the code now does the same
+  (`_get_fiscal_position(partner)`). Without it, the real bill would not have used the
+  announced account (found by `test_new_order_uses_the_partner_fiscal_position`).
+- **Execution after a change since approval**: the operation goes back to draft and the
+  message names the line and the old and new treatment, without an error. Before, a
+  UserError rolled everything back and left the operation « approved ».
+- **Accounting administrators** (D7) are added to the existing equipment **read** rule.
+  Otherwise they could not open the equipment whose cost they correct. They get no
+  write right; the history message is posted as superuser with the real user as
+  author.
+- **Approver scope**: global read rules on 8 models (orders, order lines, transfers,
+  moves, lots, contracts, contract lines, bills).
+  - Their domain comes from `res.users._equipment_approver_domain()`.
+  - It is always true for a user who has any other read right on the model. This
+    avoids group rules, which Odoo ORs with those of the user's other groups.
+  - Bills are included because the operation form shows them (`bill_ids`) once
+    executed.
+- **Interface tests**: two tours (HttpCase).
+  - They need Chrome and the Python module `websocket-client`. Locally they ran and
+    passed.
+  - On the server, if `odoo_web` lacks either, they are counted as **skipped**, not
+    failed, so the expected total stays 130. The interface checks of README §8 then
+    cover them.
+
+Verified locally:
+- 130 tests (Odoo 18, local OCA heads), the two tours included;
+- full rehearsal of the deployment on a database made with the phase 2 code (2345e7e):
+  - the precheck fails on the 3 integrated equipment without a responsible and the open
+    receipt;
+  - `setup_phase2f.py` dry run, then `--apply` (on the copy only);
+  - the precheck becomes clean;
+  - the update to 18.0.3.1.0 / 18.0.1.6.0 runs without an error;
+  - the migration gives the saw (like 484) 329 € provisional from its order, the drill
+    billed before receipt 520 € from its bill, and the acquisition 250 €.
+
+Not verified (server):
+- Chrome and `websocket-client` in `odoo_web`;
+- the filestore path `/var/lib/odoo/filestore`;
+- Anglo-Saxon accounting on the company;
+- the real data of D1 to D5.

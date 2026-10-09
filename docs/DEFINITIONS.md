@@ -244,6 +244,19 @@ Accounting value, original value, depreciation, rent paid and accounting entries
 `groups=` restricted to the accounting group; cost is visible to the store group.
 
 ## Custom fields kept (everything else comes from standard or OCA)
+- maintenance.equipment (phase 2f, 09/10/2026):
+  - cost: `cost` (company currency) is meaningful only when `cost_known` is set;
+  - `cost_date`, `cost_provisional`, `cost_source` (order, bill, bill_cancelled,
+    bill_released, acquisition, migration, manual) and `cost_reference`;
+  - order estimate (after discount, per product unit) at receipt, provisional; real cost
+    `abs(balance) / quantity` at bill posting; corrected only through the wizard of
+    Accounting / Administrator;
+  - responsible (`owner_user_id`) required for an integrated equipment: an active
+    internal user of the company, no « not assigned ».
+- equipment operations (phase 2f): the approval freezes the planned accounting
+  treatment of each line (account of the future bill line, asset profile, valuation,
+  category, fiscal position). The approver reads only the operation and the documents
+  it refers to.
 - maintenance.equipment: ownership_status, owner_partner_id, stock_lot_id, asset_id,
   replacement_value, replacement_currency_id, replacement_value_date, warranty_status,
   insurance_status, monitor location for non-stock assets (former current_location_id,

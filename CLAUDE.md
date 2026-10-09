@@ -211,9 +211,11 @@ tests on artdubati_test (47 passing, 08/10/2026).
    docs/phase2f/PLAN.md, revision 3 (equipment cost with `cost_known`, date, provisional
    flag and source; treatment from the real bill account, frozen in the approval;
    approver's read scope limited to referenced documents; deployment order fetch →
-   setup → precheck → stop → update). P9, P10, P13 and D6 accepted by the audit on
-   09/10/2026; green light announced once these corrections are in, then audit of the
-   code; deployed before phase 3.
+   setup → precheck → stop → update). P9, P10, P13, D6, D7 and D8 accepted; development
+   authorised on 09/10/2026 (audit of 24d9027). Developed on the branch: 130 tests
+   passing locally (2 interface tours included), deployment rehearsed on a database
+   made with the phase 2 code (docs/phase2f/README.md, PLAN.md §8). Pending: audit of
+   the code, then deployment by the owner; deployed before phase 3.
 3. Stock monitor on revision 2 (SQL view, OWL dashboard, access rules) and rework of the
    existing code: docs/phase3/PLAN.md revision 5 (mock-up's visual direction validated
    on 09/10/2026; rates mirrored from `_get_rates` inside the view, no PostgreSQL
