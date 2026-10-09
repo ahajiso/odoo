@@ -197,13 +197,13 @@ tests on artdubati_test (47 passing, 08/10/2026).
    « Equipment Operations Approver »; protected link to pickings and moves; stock rules
    (supplier receipts and acquisitions only through an operation, no direct exit of
    equipment).
-   Audited and merged into main (5ab6c36); deployed on artdubati_test on 09/10/2026
-   (89 tests passing on the server, settings script applied, monitor views unchanged).
-   Fix of the groups (own categories, 91 tests) deployed on 09/10/2026. Pending audit:
-   menu under Transfers and form helpers (owner's remarks), corrected after the audit
-   of 890a178 (transfer type per warehouse), 95 tests, deployed on 09/10/2026.
-   Receipt form after the owner's first use (97 tests) deployed on 09/10/2026; first
-   purchase receipt executed by the owner. Pending audit: path in stock refusals (98 tests).
+   Audited, merged into main and deployed on artdubati_test on 09/10/2026 (5ab6c36, then
+   fixes up to 2345e7e: groups in their own categories, menu under Transfers, guided
+   form, transfer type per warehouse, line sheets, messages naming the line and the
+   path): 98 tests passing on the server, settings script applied, monitor views
+   unchanged; first purchase receipt executed by the owner (order created, receipt done
+   on Bg/Stock, equipment integrated, draft bill), standard « Validate » refused with the
+   path to the operations. Phase 2 done.
 3. Stock monitor on revision 2 (SQL view, access rules) and rework of the existing code.
 4. Home page and investor user setup (review the existing configuration).
 5. Translations, manual rewrite for all phases (cards citing removed or changed fields,
