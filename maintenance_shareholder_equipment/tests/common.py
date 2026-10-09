@@ -134,6 +134,8 @@ class EquipmentCommon(TransactionCase):
         cls.user_approver = user("eq_approver", [approver])
         cls.user_both = user("eq_both", [operator, approver])
         cls.user_stock = user("eq_stock", [stock_user])
+        # responsible of the equipment received in the tests (phase 2f)
+        cls.user_responsible = user("eq_responsible", [])
 
     @classmethod
     def _product(cls, name, categ, storable):
@@ -182,7 +184,10 @@ class EquipmentCommon(TransactionCase):
             "receipt": {"location_dest_id": self.stock.id},  # transfer type computed
             "exit": {}, "return": {}, "restitution": {},  # type per warehouse, per line
         }[operation_type]
-        line_defaults = {"warranty_status": "no_warranty", "insurance_status": "insured"}
+        line_defaults = {"warranty_status": "no_warranty", "insurance_status": "insured",
+                         "responsible_user_id": self.user_responsible.id,
+                         # tests of the confirmation itself set it to False (phase 2f)
+                         "no_asset_confirmed": True}
         Operation = self.env["equipment.operation"]
         if user:
             Operation = Operation.with_user(user)

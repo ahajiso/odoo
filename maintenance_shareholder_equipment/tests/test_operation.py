@@ -626,6 +626,7 @@ class TestApprovalAndRights(TestOperationCommon):
         op.with_user(self.user_operator).write({"line_ids": [Command.create({
             "product_id": self.drill.id, "lot_name": "AP2", "rent_amount": 1.0,
             "warranty_status": "no_warranty", "insurance_status": "insured",
+            "responsible_user_id": self.user_responsible.id,
             "replacement_value": 1.0, "replacement_value_date": fields.Date.today()})]})
         self.assertEqual(op.state, "draft", "a new line cancels the approval")
         op.with_user(self.user_approver).action_approve()

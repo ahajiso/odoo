@@ -26,7 +26,8 @@ class TestEquipment(EquipmentCommon):
         })
 
     def _equipment(self, **vals):
-        return self.env["maintenance.equipment"].create(dict({"name": "Eq"}, **vals))
+        return self.env["maintenance.equipment"].create(
+            dict({"name": "Eq", "owner_user_id": self.user_responsible.id}, **vals))
 
     # -------------------------------------------------------------- protection
 

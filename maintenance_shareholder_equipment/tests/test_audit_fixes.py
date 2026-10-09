@@ -53,13 +53,13 @@ class TestAuditFixes(EquipmentCommon):
     def test_finalize_checks_stock_owner(self):
         equipment = self._borrowed("NB2")
         equipment.write({"warranty_status": "no_warranty", "insurance_status": "insured",
-                         "replacement_value": 900.0,
+                         "replacement_value": 900.0, "owner_user_id": self.user_responsible.id,
                          "replacement_value_date": fields.Date.today()})
         # A quant of the serial number owned by the company (inconsistent with borrowed).
         self.env["stock.quant"].sudo()._update_available_quantity(
             self.drill, self.stock, 1, lot_id=equipment.stock_lot_id
         )
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(ValidationError, "owner on stock"):
             equipment.action_finalize_integration()
         self.assertEqual(equipment.integration_state, "draft")
 
@@ -89,7 +89,8 @@ class TestAuditFixes(EquipmentCommon):
         bill = self._bill(po)
         equipment = self._equipment_of(bill)
         equipment.write({"current_location_id": self.stock.id,
-                         "warranty_status": "no_warranty", "insurance_status": "insured"})
+                         "warranty_status": "no_warranty", "insurance_status": "insured",
+                         "owner_user_id": self.user_responsible.id})
         equipment.action_finalize_integration()
         bill.button_draft()
         bill.invoice_line_ids[:1].quantity = 1
