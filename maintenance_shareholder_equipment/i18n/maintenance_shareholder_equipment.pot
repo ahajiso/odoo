@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 16:28+0000\n"
-"PO-Revision-Date: 2026-10-09 16:28+0000\n"
+"POT-Creation-Date: 2026-10-09 21:17+0000\n"
+"PO-Revision-Date: 2026-10-09 21:17+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -66,6 +66,12 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid "%(name)s is a lent-out stock: it must be a monitor stock."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
 msgid "%(name)s is a lent-out stock: its return location is required."
 msgstr ""
 
@@ -97,8 +103,26 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid "%(name)s: a monitor stock needs a currency."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid "%(name)s: a monitor stock needs an address with a city and a country."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid "%(name)s: an owned or lent-out item belongs to the company."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid "%(name)s: only an internal location can be a monitor stock."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -324,6 +348,14 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid ""
+"%s: a contract with an equipment line cannot have a line with an automatic "
+"price (price list)."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s: choose a line of the purchase order."
 msgstr ""
@@ -396,6 +428,14 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid ""
+"%s: the site address needs a city and a country (it becomes the address of "
+"the new off-site stock, a monitor stock)."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/res_company.py:0
 msgid "%s: the source of acquisitions must be an inventory location."
 msgstr ""
@@ -449,6 +489,14 @@ msgid "A serial number can belong to one equipment only."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_stock_location__is_monitor_stock
+msgid ""
+"A stock of the stock monitor: the items in it and in its sub-locations are "
+"reported under it. Requires an address with a city and a country, and a "
+"currency."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_res_company__equipment_rent_account_id
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_res_config_settings__equipment_rent_account_id
 msgid ""
@@ -473,11 +521,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__accounting_treatment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Accounting Treatment"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__acquisition_mode
-msgid "Acquisition Mode (obsolete)"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -698,11 +741,6 @@ msgid "Borrowed"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__acquisition_mode__borrowed
-msgid "Borrowed from Third Party"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
 #: model:res.groups,comment:maintenance_shareholder_equipment.group_equipment_ownership_manager
 msgid ""
 "Can correct the ownership status and the legal owner of an equipment, with a"
@@ -753,7 +791,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__company_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__company_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__company_id
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__company
 msgid "Company"
 msgstr ""
 
@@ -816,6 +853,11 @@ msgstr ""
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__contract_id
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Contract"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_contract__equipment_currency_id
+msgid "Contract Currency (stored)"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -999,6 +1041,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "Currency %s is not active."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_stock_location__monitor_currency_id
+msgid "Currency in which the stock monitor reports this stock."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -1623,11 +1670,6 @@ msgid "Loan or rental of possession: always stopped."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__acquisition_mode__loaned_out
-msgid "Loaned to Third Party"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__current_location_id
 msgid "Location (Non-Stock Equipment)"
 msgstr ""
@@ -1680,6 +1722,11 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__cost_source__migration
 msgid "Migration (receipt value)"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_stock_location__is_monitor_stock
+msgid "Monitor Stock"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -1982,11 +2029,6 @@ msgid "Ownership Status"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__owner_type
-msgid "Ownership Type (obsolete)"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
 msgid "Ownership and Stock"
 msgstr ""
@@ -2125,7 +2167,6 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__receipt_branch__purchase
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__acquisition_mode__purchase
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Purchase"
 msgstr ""
@@ -2248,7 +2289,6 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_nature__rental
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__acquisition_mode__rental
 msgid "Rental"
 msgstr ""
 
@@ -2412,11 +2452,6 @@ msgid ""
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__shareholder
-msgid "Shareholder"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__site_partner_id
 msgid "Site Address"
 msgstr ""
@@ -2469,6 +2504,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "Stock"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_stock_location__monitor_currency_id
+msgid "Stock Currency"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2694,7 +2734,6 @@ msgid "The transfer %s could not be validated."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__third_party
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Third Party"
 msgstr ""

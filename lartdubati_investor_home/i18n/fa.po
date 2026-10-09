@@ -6,14 +6,129 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 13:30+0000\n"
-"PO-Revision-Date: 2026-10-09 13:30+0000\n"
+"POT-Creation-Date: 2026-10-09 21:17+0000\n"
+"PO-Revision-Date: 2026-10-09 21:17+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "(no end)"
+msgstr "(بدون پایان)"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "(rate of"
+msgstr "(نرخ"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid ", later rate: none before that date"
+msgstr "، نرخ بعدی: هیچ نرخی پیش از این تاریخ نیست"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid ", outside the totals."
+msgstr "، خارج از جمع‌ها."
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
+msgid ""
+"A replacement value older than this number of months is flagged « to check "
+"»."
+msgstr "ارزش جایگزینی قدیمی‌تر از این تعداد ماه «برای بررسی» علامت می‌خورد."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__depreciated_value
+msgid "Accumulated Depreciation"
+msgstr "استهلاک انباشته"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__depreciated_value_known
+msgid "Accumulated Depreciation – Known"
+msgstr "استهلاک انباشته – معلوم"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__depreciated_value_rate_fallback
+msgid "Accumulated Depreciation – Later Rate Used"
+msgstr "استهلاک انباشته – نرخ بعدی به کار رفت"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__depreciated_value_rate
+msgid "Accumulated Depreciation – Rate"
+msgstr "استهلاک انباشته – نرخ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__depreciated_value_rate_date
+msgid "Accumulated Depreciation – Rate Date"
+msgstr "استهلاک انباشته – تاریخ نرخ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__depreciated_value_rate_missing
+msgid "Accumulated Depreciation – Rate Missing"
+msgstr "استهلاک انباشته – نرخ موجود نیست"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__depreciated_value_source_amount
+msgid "Accumulated Depreciation – Source Amount"
+msgstr "استهلاک انباشته – مبلغ مبدأ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__depreciated_value_source_currency_id
+msgid "Accumulated Depreciation – Source Currency"
+msgstr "استهلاک انباشته – ارز مبدأ"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "Active rentals, monthly equivalent"
+msgstr "اجاره‌های فعال، معادل ماهانه"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_count
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_form
+msgid "Alerts"
+msgstr "هشدارها"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Alerts and anomalies"
+msgstr "هشدارها و ناهنجاری‌ها"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "All"
+msgstr "همه"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "All cities"
+msgstr "همه شهرها"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "All countries"
+msgstr "همه کشورها"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "All stocks"
+msgstr "همه انبارها"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__country_ids
@@ -36,25 +151,119 @@ msgid "Allowed Stocks"
 msgstr "انبارهای مجاز"
 
 #. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
+msgid "Amount Not Converted"
+msgstr "مبلغ تبدیل‌نشده"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_rate_missing
+msgid ""
+"An amount could not be converted into the stock's currency: it stays in its "
+"own currency, outside the totals."
+msgstr "مبلغی به ارز انبار تبدیل نشد: در ارز خود و خارج از جمع‌ها می‌ماند."
+
+#. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_access_form
 msgid "An empty list means no restriction on that criterion."
 msgstr "فهرست خالی یعنی هیچ محدودیتی برای این معیار وجود ندارد."
 
 #. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_no_responsible
+msgid "An integrated equipment needs a responsible."
+msgstr "تجهیز یکپارچه‌شده باید مسئول داشته باشد."
+
+#. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_item_family__code__asset
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__family__asset
 msgid "Asset"
 msgstr "تجهیزات"
 
 #. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__asset_state
+msgid "Asset State"
+msgstr "وضعیت دارایی ثابت"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
 #: model:lartdubati.item.family,name:lartdubati_investor_home.family_asset
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
 msgid "Assets"
 msgstr "تجهیزات"
 
 #. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Blocking:"
+msgstr "مسدودکننده:"
+
+#. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_ownership_type__code__borrowed
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__ownership_status__borrowed
 #: model:lartdubati.ownership.type,name:lartdubati_investor_home.ownership_borrowed
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
 msgid "Borrowed"
 msgstr "امانی"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "Carried by the stock valuation; fixed assets count 0"
+msgstr "در ارزش‌گذاری انبار ثبت می‌شود؛ دارایی‌های ثابت صفر حساب می‌شوند"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Category"
+msgstr "دسته"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_no_asset
+msgid "Category without fixed asset: expensed, no accounting value."
+msgstr "دسته بدون دارایی ثابت: هزینه شده، بدون ارزش حسابداری."
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Change or clear the filters."
+msgstr "پالایه‌ها را تغییر دهید یا پاک کنید."
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__city
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
+msgid "City"
+msgstr "شهر"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Clear all"
+msgstr "پاک کردن همه"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Clear the filters"
+msgstr "پاک کردن پالایه‌ها"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__asset_state__close
+msgid "Close"
+msgstr "بستن"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Close (Escape)"
+msgstr "بستن (Escape)"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Close the detail"
+msgstr "بستن جزئیات"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__code
@@ -68,19 +277,96 @@ msgid "Companies"
 msgstr "شرکت‌ها"
 
 #. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__company_id
+msgid "Company"
+msgstr "شرکت"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_cost_missing
+msgid "Company equipment without a fixed asset and without a known cost."
+msgstr "تجهیز شرکت بدون دارایی ثابت و بدون هزینه معلوم."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_lent_uninsured
+msgid "Company property held by a third party, not insured."
+msgstr "دارایی شرکت نزد شخص ثالث، بیمه‌نشده."
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "Company property only"
+msgstr "فقط دارایی‌های شرکت"
+
+#. module: lartdubati_investor_home
 #: model:ir.model,name:lartdubati_investor_home.model_res_config_settings
 msgid "Config Settings"
 msgstr "تنظیمات پیکربندی"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_item_family__code__consumable
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__family__consumable
 msgid "Consumable"
 msgstr "مصرفی"
 
 #. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Consumable quantities: per product (different units)"
+msgstr "مقدار مصرفی‌ها: برای هر کالا (واحدهای متفاوت)"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
 #: model:lartdubati.item.family,name:lartdubati_investor_home.family_consumable
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
 msgid "Consumables"
 msgstr "اقلام مصرفی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_res_partner
+msgid "Contact"
+msgstr "مخاطب"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "Control"
+msgstr "کنترل"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Controls outside the monitor:"
+msgstr "کنترل‌های خارج از پایشگر:"
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_form
+msgid "Conversion"
+msgstr "تبدیل"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Conversions"
+msgstr "تبدیل‌ها"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_cost_missing
+msgid "Cost Missing"
+msgstr "هزینه موجود نیست"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__country_name
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
+msgid "Country"
+msgstr "کشور"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__country_id
+msgid "Country (record)"
+msgstr "کشور (رکورد)"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__create_uid
@@ -97,16 +383,43 @@ msgid "Created on"
 msgstr "ایجاد شده در"
 
 #. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
+msgid "Currency"
+msgstr "ارز"
+
+#. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
 msgid "Currency Conversion"
 msgstr "تبدیل ارز"
 
 #. module: lartdubati_investor_home
+#: model:ir.ui.menu,name:lartdubati_investor_home.menu_stock_monitor_dashboard
+msgid "Dashboard"
+msgstr "داشبورد"
+
+#. module: lartdubati_investor_home
+#: model:ir.ui.menu,name:lartdubati_investor_home.menu_stock_monitor_analysis
+msgid "Detailed Analysis"
+msgstr "تحلیل تفصیلی"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Detailed analysis"
+msgstr "تحلیل تفصیلی"
+
+#. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__display_name
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__display_name
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__display_name
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__display_name
 msgid "Display Name"
 msgstr "نام نمایشی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__asset_state__draft
+msgid "Draft"
+msgstr "پیش‌نویس"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.constraint,message:lartdubati_investor_home.constraint_lartdubati_item_family_code_unique
@@ -119,6 +432,56 @@ msgid "Each ownership type can only exist once."
 msgstr "هر دسته مالکیت فقط یک بار می‌تواند وجود داشته باشد."
 
 #. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__equipment_name
+msgid "Equipment"
+msgstr "تجهیز"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__equipment_id
+msgid "Equipment (record)"
+msgstr "تجهیز (رکورد)"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "Everything physically in the stock, whoever owns it"
+msgstr "هر آنچه فیزیکی در انبار است، مالک هر که باشد"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__family
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
+msgid "Family"
+msgstr "خانواده"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Figures on"
+msgstr "ارقام در تاریخ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_asset_missing
+msgid "Fixed Asset Missing"
+msgstr "دارایی ثابت موجود نیست"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_asset_removed
+msgid "Fixed Asset Removed"
+msgstr "دارایی ثابت خارج‌شده"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_asset_missing
+msgid "Fixed-asset category without a fixed asset (bill not posted yet)."
+msgstr "دسته دارایی ثابت بدون دارایی ثابت (صورتحساب هنوز ثبت نشده)."
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
+msgid "Group By"
+msgstr "گروه‌بندی بر اساس"
+
+#. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
 msgid ""
 "How amounts are converted into the currency of a stock located in another "
@@ -129,13 +492,104 @@ msgstr "نحوه تبدیل مبالغ به ارز انباری که در کشو
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__id
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__id
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_access__id
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__id
 msgid "ID"
 msgstr "شناسه"
 
 #. module: lartdubati_investor_home
-#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
-msgid "Inventory value of borrowed or rented consumables."
-msgstr "ارزش موجودی اقلام مصرفی امانی یا اجاره‌ای."
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Identity"
+msgstr "شناسه"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__insurance_status
+msgid "Insurance Status"
+msgstr "وضعیت بیمه"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__insurance_status__insured
+msgid "Insured"
+msgstr "بیمه‌شده"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_integrity
+msgid "Integrity"
+msgstr "یکپارچگی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_outside_stock
+msgid "Internal location without any monitor stock above it."
+msgstr "مکان داخلی که هیچ انبار پایشگری بالای آن نیست."
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Internal locations without monitor stock"
+msgstr "مکان‌های داخلی بدون انبار پایشگر"
+
+#. module: lartdubati_investor_home
+#. odoo-python
+#: code:addons/lartdubati_investor_home/models/stock_monitor.py:0
+msgid "Invalid dashboard filter: %s"
+msgstr "پالایه نامعتبر داشبورد: %s"
+
+#. module: lartdubati_investor_home
+#. odoo-python
+#: code:addons/lartdubati_investor_home/models/stock_monitor.py:0
+msgid "Invalid dashboard filters."
+msgstr "پالایه‌های داشبورد نامعتبرند."
+
+#. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_stock_location
+msgid "Inventory Locations"
+msgstr "مکان های انبارداری"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__inventory_value
+msgid "Inventory Value (excl. tax)"
+msgstr "ارزش موجودی (بدون مالیات)"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__inventory_value_known
+msgid "Inventory Value (excl. tax) – Known"
+msgstr "ارزش موجودی (بدون مالیات) – معلوم"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__inventory_value_rate_fallback
+msgid "Inventory Value (excl. tax) – Later Rate Used"
+msgstr "ارزش موجودی (بدون مالیات) – نرخ بعدی به کار رفت"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__inventory_value_rate
+msgid "Inventory Value (excl. tax) – Rate"
+msgstr "ارزش موجودی (بدون مالیات) – نرخ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__inventory_value_rate_date
+msgid "Inventory Value (excl. tax) – Rate Date"
+msgstr "ارزش موجودی (بدون مالیات) – تاریخ نرخ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__inventory_value_rate_missing
+msgid "Inventory Value (excl. tax) – Rate Missing"
+msgstr "ارزش موجودی (بدون مالیات) – نرخ موجود نیست"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__inventory_value_source_amount
+msgid "Inventory Value (excl. tax) – Source Amount"
+msgstr "ارزش موجودی (بدون مالیات) – مبلغ مبدأ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__inventory_value_source_currency_id
+msgid "Inventory Value (excl. tax) – Source Currency"
+msgstr "ارزش موجودی (بدون مالیات) – ارز مبدأ"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Inventory value"
+msgstr "ارزش موجودی"
 
 #. module: lartdubati_investor_home
 #: model:ir.module.category,name:lartdubati_investor_home.module_category_investor
@@ -143,9 +597,29 @@ msgid "Investor"
 msgstr "سرمایه‌گذار"
 
 #. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_form
+msgid "Item"
+msgstr "قلم"
+
+#. module: lartdubati_investor_home
 #: model:ir.model,name:lartdubati_investor_home.model_lartdubati_item_family
 msgid "Item Family"
 msgstr "خانواده اقلام"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__asset_count
+msgid "Items"
+msgstr "اقلام"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Items of the monitor; Enter opens the detail, Escape closes it."
+msgstr "اقلام پایشگر؛ Enter جزئیات را باز و Escape آن را می‌بندد."
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__write_uid
@@ -167,19 +641,91 @@ msgid "Latest Rate"
 msgstr "آخرین نرخ"
 
 #. module: lartdubati_investor_home
-#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
-msgid ""
-"Latest Rate: today's rate. Rate on Entry Date: the rate of the day the\n"
-"                            item entered the stock. No Conversion: everything in the company currency."
-msgstr ""
-"آخرین نرخ: نرخ امروز. نرخ در تاریخ ورود: نرخ روزی که قلم وارد انبار شد. بدون"
-" تبدیل: همه مبالغ به ارز شرکت."
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__owner_partner_id
+msgid "Legal Owner"
+msgstr "مالک قانونی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__owner_name
+msgid "Legal Owner Name"
+msgstr "نام مالک قانونی"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_ownership_type__code__lent_out
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__ownership_status__lent_out
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__place_type__lent_out
 #: model:lartdubati.ownership.type,name:lartdubati_investor_home.ownership_lent_out
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
 msgid "Lent Out"
 msgstr "امانت داده شده"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_lent_uninsured
+msgid "Lent Out Uninsured"
+msgstr "امانت‌داده‌شده بیمه‌نشده"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Loading the figures…"
+msgstr "در حال بارگذاری ارقام…"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__location_name
+msgid "Location"
+msgstr "مکان"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__location_id
+msgid "Location (record)"
+msgstr "مکان (رکورد)"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_replacement_missing
+msgid "Mandatory for a borrowed or rented item."
+msgstr "برای قلم امانت‌گرفته یا اجاره‌ای الزامی است."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_monthly
+msgid "Monthly Rent (excl. tax)"
+msgstr "اجاره ماهانه (بدون مالیات)"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_monthly_known
+msgid "Monthly Rent (excl. tax) – Known"
+msgstr "اجاره ماهانه (بدون مالیات) – معلوم"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_monthly_rate_fallback
+msgid "Monthly Rent (excl. tax) – Later Rate Used"
+msgstr "اجاره ماهانه (بدون مالیات) – نرخ بعدی به کار رفت"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_monthly_rate
+msgid "Monthly Rent (excl. tax) – Rate"
+msgstr "اجاره ماهانه (بدون مالیات) – نرخ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_monthly_rate_date
+msgid "Monthly Rent (excl. tax) – Rate Date"
+msgstr "اجاره ماهانه (بدون مالیات) – تاریخ نرخ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_monthly_rate_missing
+msgid "Monthly Rent (excl. tax) – Rate Missing"
+msgstr "اجاره ماهانه (بدون مالیات) – نرخ موجود نیست"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_monthly_source_amount
+msgid "Monthly Rent (excl. tax) – Source Amount"
+msgstr "اجاره ماهانه (بدون مالیات) – مبلغ مبدأ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_monthly_source_currency_id
+msgid "Monthly Rent (excl. tax) – Source Currency"
+msgstr "اجاره ماهانه (بدون مالیات) – ارز مبدأ"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__name
@@ -189,9 +735,117 @@ msgid "Name"
 msgstr "نام"
 
 #. module: lartdubati_investor_home
-#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__res_company__stock_monitor_currency_mode__none
-msgid "No Conversion"
-msgstr "بدون تبدیل"
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_negative_quantity
+msgid "Negative Quantity"
+msgstr "مقدار منفی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_negative_quantity
+msgid "Negative quantity on hand, valued as the stock valuation does."
+msgstr "موجودی منفی، به همان شیوه ارزش‌گذاری انبار ارزش‌گذاری شده."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__accounting_value
+msgid "Net Book Value"
+msgstr "ارزش دفتری خالص"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__accounting_value_known
+msgid "Net Book Value – Known"
+msgstr "ارزش دفتری خالص – معلوم"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__accounting_value_rate_fallback
+msgid "Net Book Value – Later Rate Used"
+msgstr "ارزش دفتری خالص – نرخ بعدی به کار رفت"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__accounting_value_rate
+msgid "Net Book Value – Rate"
+msgstr "ارزش دفتری خالص – نرخ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__accounting_value_rate_date
+msgid "Net Book Value – Rate Date"
+msgstr "ارزش دفتری خالص – تاریخ نرخ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__accounting_value_rate_missing
+msgid "Net Book Value – Rate Missing"
+msgstr "ارزش دفتری خالص – نرخ موجود نیست"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__accounting_value_source_amount
+msgid "Net Book Value – Source Amount"
+msgstr "ارزش دفتری خالص – مبلغ مبدأ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__accounting_value_source_currency_id
+msgid "Net Book Value – Source Currency"
+msgstr "ارزش دفتری خالص – ارز مبدأ"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Net book value"
+msgstr "ارزش دفتری خالص"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_no_asset
+msgid "No Fixed Asset (Expensed)"
+msgstr "بدون دارایی ثابت (هزینه‌شده)"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_no_position
+msgid "No Position"
+msgstr "بدون مکان"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_no_responsible
+msgid "No Responsible"
+msgstr "بدون مسئول"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__warranty_status__no_warranty
+msgid "No Warranty"
+msgstr "بدون ضمانت"
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.actions.act_window,help:lartdubati_investor_home.action_stock_monitor_analysis
+msgid "No item in the stocks you may see."
+msgstr "هیچ قلمی در انبارهایی که می‌توانید ببینید نیست."
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "No item matches."
+msgstr "هیچ قلمی مطابقت ندارد."
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid ""
+"No stock is visible with your access profile. Contact the administrator if "
+"this is unexpected."
+msgstr ""
+"با نمایه دسترسی شما هیچ انباری قابل مشاهده نیست. اگر انتظارش را نداشتید با "
+"مدیر تماس بگیرید."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__insurance_status__not_applicable
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__warranty_status__not_applicable
+msgid "Not Applicable"
+msgstr "قابل اعمال نیست"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__insurance_status__not_insured
+msgid "Not Insured"
+msgstr "بیمه‌نشده"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_replacement_old
+msgid "Older than the validity set in the settings."
+msgstr "قدیمی‌تر از اعتبار تعیین‌شده در تنظیمات."
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,help:lartdubati_investor_home.field_res_users__stock_access_id
@@ -203,10 +857,88 @@ msgstr ""
 " ندارد هیچ انباری نمی‌بیند."
 
 #. module: lartdubati_investor_home
+#: model:ir.actions.server,name:lartdubati_investor_home.action_server_stock_monitor
+msgid "Open the Stock Monitor"
+msgstr "باز کردن پایشگر انبار"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Open the equipment form"
+msgstr "باز کردن فرم تجهیز"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__original_value
+msgid "Original Value (excl. tax)"
+msgstr "ارزش اولیه (بدون مالیات)"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__original_value_known
+msgid "Original Value (excl. tax) – Known"
+msgstr "ارزش اولیه (بدون مالیات) – معلوم"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__original_value_rate_fallback
+msgid "Original Value (excl. tax) – Later Rate Used"
+msgstr "ارزش اولیه (بدون مالیات) – نرخ بعدی به کار رفت"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__original_value_rate
+msgid "Original Value (excl. tax) – Rate"
+msgstr "ارزش اولیه (بدون مالیات) – نرخ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__original_value_rate_date
+msgid "Original Value (excl. tax) – Rate Date"
+msgstr "ارزش اولیه (بدون مالیات) – تاریخ نرخ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__original_value_rate_missing
+msgid "Original Value (excl. tax) – Rate Missing"
+msgstr "ارزش اولیه (بدون مالیات) – نرخ موجود نیست"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__original_value_source_amount
+msgid "Original Value (excl. tax) – Source Amount"
+msgstr "ارزش اولیه (بدون مالیات) – مبلغ مبدأ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__original_value_source_currency_id
+msgid "Original Value (excl. tax) – Source Currency"
+msgstr "ارزش اولیه (بدون مالیات) – ارز مبدأ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_outside_stock
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
+msgid "Outside Any Monitor Stock"
+msgstr "خارج از هر انبار پایشگر"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Outside any monitor stock"
+msgstr "خارج از هر انبار پایشگر"
+
+#. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_ownership_type__code__owned
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__ownership_status__owned
 #: model:lartdubati.ownership.type,name:lartdubati_investor_home.ownership_owned
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
 msgid "Owned"
 msgstr "ملکی"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
+msgid "Ownership"
+msgstr "مالکیت"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__ownership_status
+msgid "Ownership Status"
+msgstr "وضعیت مالکیت"
 
 #. module: lartdubati_investor_home
 #: model:ir.model,name:lartdubati_investor_home.model_lartdubati_ownership_type
@@ -214,36 +946,368 @@ msgid "Ownership Type"
 msgstr "دسته مالکیت"
 
 #. module: lartdubati_investor_home
-#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__res_company__stock_monitor_replacement_price__cost
-msgid "Product Cost"
-msgstr "بهای تمام‌شده محصول"
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Period"
+msgstr "دوره"
 
 #. module: lartdubati_investor_home
-#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__res_company__stock_monitor_currency_mode__entry_date
-msgid "Rate on Entry Date"
-msgstr "نرخ در تاریخ ورود"
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__place_type__physical
+msgid "Physical"
+msgstr "فیزیکی"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_form
+msgid "Place"
+msgstr "محل"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__place_type
+msgid "Place Type"
+msgstr "نوع محل"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__lot_quant_count
+msgid "Positions of the Serial Number"
+msgstr "مکان‌های شماره سریال"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "Posted bills, refunds deducted"
+msgstr "صورتحساب‌های ثبت‌شده، برگشتی‌ها کسر شده"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__product_name
+msgid "Product"
+msgstr "کالا"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__product_id
+msgid "Product (record)"
+msgstr "کالا (رکورد)"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__category_name
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
+msgid "Product Category"
+msgstr "دسته کالا"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__inventory_provisional
+msgid "Provisional Inventory Value"
+msgstr "ارزش موجودی موقت"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__accounting_provisional
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
+msgid "Provisional Net Book Value"
+msgstr "ارزش دفتری خالص موقت"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Qty"
+msgstr "مقدار"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__quantity
+msgid "Quantity"
+msgstr "مقدار"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_rate_missing
+msgid "Rate Missing"
+msgstr "نرخ موجود نیست"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__res_company__stock_monitor_currency_mode__historical
+msgid "Rate at Each Amount's Date"
+msgstr "نرخ در تاریخ هر مبلغ"
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
+msgid ""
+"Rate at Each Amount's Date: each amount at the rate of its own date\n"
+"                            (fixed asset start, cost, replacement value, rent start, bill).\n"
+"                            Latest Rate: today's rate for every amount."
+msgstr ""
+"نرخ در تاریخ هر مبلغ: هر مبلغ با نرخ تاریخ خودش (آغاز دارایی ثابت، هزینه، "
+"ارزش جایگزینی، آغاز اجاره، صورتحساب). آخرین نرخ: نرخ امروز برای همه مبالغ."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__asset_state__removed
+msgid "Removed"
+msgstr "خارج‌شده"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_form
+msgid "Rent"
+msgstr "اجاره"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_currency_id
+msgid "Rent Currency"
+msgstr "ارز اجاره"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_end
+msgid "Rent End"
+msgstr "پایان اجاره"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_interval
+msgid "Rent Interval"
+msgstr "فاصله اجاره"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_paid
+msgid "Rent Paid (excl. tax)"
+msgstr "اجاره‌های پرداخت‌شده (بدون مالیات)"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_paid_source_amount
+msgid "Rent Paid (excl. tax, company currency)"
+msgstr "اجاره‌های پرداخت‌شده (بدون مالیات، ارز شرکت)"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_paid_known
+msgid "Rent Paid – Known"
+msgstr "اجاره‌های پرداخت‌شده – معلوم"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_paid_rate_fallback
+msgid "Rent Paid – Later Rate Used"
+msgstr "اجاره‌های پرداخت‌شده – نرخ بعدی به کار رفت"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_paid_rate_missing
+msgid "Rent Paid – Rate Missing"
+msgstr "اجاره‌های پرداخت‌شده – نرخ موجود نیست"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_rule_type
+msgid "Rent Periodicity"
+msgstr "دوره‌ی اجاره"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_rent_period_unsupported
+msgid "Rent Periodicity Unsupported"
+msgstr "دوره‌ی اجاره پشتیبانی نمی‌شود"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_start
+msgid "Rent Start"
+msgstr "آغاز اجاره"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_amount
+msgid "Rent per Period (excl. tax)"
+msgstr "اجاره در هر دوره (بدون مالیات)"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Rental"
+msgstr "اجاره"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_rental_ended
+msgid "Rental Ended"
+msgstr "اجاره پایان یافته"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_ownership_type__code__rented
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__ownership_status__rented
 #: model:lartdubati.ownership.type,name:lartdubati_investor_home.ownership_rented
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
 msgid "Rented"
 msgstr "اجاره‌ای"
 
 #. module: lartdubati_investor_home
-#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
-msgid "Replacement Price"
-msgstr "قیمت جایگزینی"
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__replacement_value
+msgid "Replacement Value (excl. tax)"
+msgstr "ارزش جایگزینی (بدون مالیات)"
 
 #. module: lartdubati_investor_home
-#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__res_company__stock_monitor_replacement_price__list_price
-msgid "Sales Price"
-msgstr "قیمت فروش"
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__replacement_value_known
+msgid "Replacement Value (excl. tax) – Known"
+msgstr "ارزش جایگزینی (بدون مالیات) – معلوم"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__replacement_value_rate_fallback
+msgid "Replacement Value (excl. tax) – Later Rate Used"
+msgstr "ارزش جایگزینی (بدون مالیات) – نرخ بعدی به کار رفت"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__replacement_value_rate
+msgid "Replacement Value (excl. tax) – Rate"
+msgstr "ارزش جایگزینی (بدون مالیات) – نرخ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__replacement_value_rate_date
+msgid "Replacement Value (excl. tax) – Rate Date"
+msgstr "ارزش جایگزینی (بدون مالیات) – تاریخ نرخ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__replacement_value_rate_missing
+msgid "Replacement Value (excl. tax) – Rate Missing"
+msgstr "ارزش جایگزینی (بدون مالیات) – نرخ موجود نیست"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__replacement_value_source_amount
+msgid "Replacement Value (excl. tax) – Source Amount"
+msgstr "ارزش جایگزینی (بدون مالیات) – مبلغ مبدأ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__replacement_value_source_currency_id
+msgid "Replacement Value (excl. tax) – Source Currency"
+msgstr "ارزش جایگزینی (بدون مالیات) – ارز مبدأ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__replacement_value_date
+msgid "Replacement Value Date"
+msgstr "تاریخ ارزش جایگزینی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_replacement_missing
+msgid "Replacement Value Missing"
+msgstr "ارزش جایگزینی موجود نیست"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_replacement_old
+msgid "Replacement Value Too Old"
+msgstr "ارزش جایگزینی بسیار قدیمی"
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
+msgid "Replacement Value Validity"
+msgstr "اعتبار ارزش جایگزینی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_res_company__stock_monitor_replacement_max_age
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_res_config_settings__stock_monitor_replacement_max_age
+msgid "Replacement Value Validity (months)"
+msgstr "اعتبار ارزش جایگزینی (ماه)"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__responsible_name
+msgid "Responsible"
+msgstr "مسئول"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Retry"
+msgstr "تلاش دوباره"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__asset_state__open
+msgid "Running"
+msgstr "جاری"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Search"
+msgstr "جستجو"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Search a product, a serial number, a location…"
+msgstr "جستجوی کالا، شماره سریال، مکان…"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Selection and filters"
+msgstr "انتخاب و پالایه‌ها"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_item_family__sequence
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__sequence
 msgid "Sequence"
 msgstr "دنباله"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__serial
+msgid "Serial Number"
+msgstr "شماره سریال"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__lot_id
+msgid "Serial Number (record)"
+msgstr "شماره سریال (رکورد)"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Serial number"
+msgstr "شماره سریال"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_no_position
+msgid ""
+"Serial number without any positive quant in an internal location, or non-"
+"stock equipment without a location."
+msgstr ""
+"شماره سریال بدون هیچ موجودی مثبت در مکان داخلی، یا تجهیز غیرانباری بدون "
+"مکان."
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid ""
+"Several currencies in the selection: totals are given per currency, never "
+"added together."
+msgstr ""
+"چند ارز در انتخاب: جمع‌ها برای هر ارز جداگانه داده می‌شوند و هرگز با هم جمع "
+"نمی‌شوند."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_integrity
+msgid ""
+"Several positive internal quants for one serial number, or a consumable held"
+" for a third party: one row, values counted once."
+msgstr ""
+"چند موجودی داخلی مثبت برای یک شماره سریال، یا مصرفی نگهداری‌شده برای شخص "
+"ثالث: یک سطر، ارزش‌ها یک بار شمرده می‌شوند."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__state_name
+msgid "State"
+msgstr "استان"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__state_id
+msgid "State (record)"
+msgstr "استان (رکورد)"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Status"
+msgstr "وضعیت"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__stock_name
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
+msgid "Stock"
+msgstr "انبار"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__stock_id
+msgid "Stock (record)"
+msgstr "انبار (رکورد)"
 
 #. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_users_form_stock_access
@@ -263,7 +1327,22 @@ msgid "Stock Access Profiles"
 msgstr "پروفایل‌های دسترسی انبار"
 
 #. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__currency_id
+msgid "Stock Currency"
+msgstr "ارز انبار"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+#: model:ir.actions.client,name:lartdubati_investor_home.action_stock_monitor
+#: model:ir.model,name:lartdubati_investor_home.model_lartdubati_stock_monitor
+#: model:ir.ui.menu,name:lartdubati_investor_home.menu_stock_monitor_root
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_form
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_graph
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_list
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_pivot
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
 msgid "Stock Monitor"
 msgstr "پایش انبار"
 
@@ -279,10 +1358,51 @@ msgid "Stock Monitor Investor"
 msgstr "سرمایه‌گذار پایش انبار"
 
 #. module: lartdubati_investor_home
-#: model:ir.model.fields,field_description:lartdubati_investor_home.field_res_company__stock_monitor_replacement_price
-#: model:ir.model.fields,field_description:lartdubati_investor_home.field_res_config_settings__stock_monitor_replacement_price
-msgid "Stock Monitor Replacement Price"
-msgstr "قیمت جایگزینی پایش انبار"
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+#: model:ir.actions.act_window,name:lartdubati_investor_home.action_stock_monitor_analysis
+msgid "Stock Monitor – Detailed Analysis"
+msgstr "پایشگر انبار – تحلیل تفصیلی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__stock_value
+msgid "Stock Value (excl. tax)"
+msgstr "ارزش انبار (بدون مالیات)"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__stock_value_known
+msgid "Stock Value (excl. tax) – Known"
+msgstr "ارزش انبار (بدون مالیات) – معلوم"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__stock_value_rate_fallback
+msgid "Stock Value (excl. tax) – Later Rate Used"
+msgstr "ارزش انبار (بدون مالیات) – نرخ بعدی به کار رفت"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__stock_value_rate
+msgid "Stock Value (excl. tax) – Rate"
+msgstr "ارزش انبار (بدون مالیات) – نرخ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__stock_value_rate_date
+msgid "Stock Value (excl. tax) – Rate Date"
+msgstr "ارزش انبار (بدون مالیات) – تاریخ نرخ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__stock_value_rate_missing
+msgid "Stock Value (excl. tax) – Rate Missing"
+msgstr "ارزش انبار (بدون مالیات) – نرخ موجود نیست"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__stock_value_source_amount
+msgid "Stock Value (excl. tax) – Source Amount"
+msgstr "ارزش انبار (بدون مالیات) – مبلغ مبدأ"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__stock_value_source_currency_id
+msgid "Stock Value (excl. tax) – Source Currency"
+msgstr "ارزش انبار (بدون مالیات) – ارز مبدأ"
 
 #. module: lartdubati_investor_home
 #: model:res.groups,comment:lartdubati_investor_home.group_stock_investor
@@ -290,9 +1410,77 @@ msgid "Stock access restricted by the user's Stock Access Profile."
 msgstr "دسترسی انبار محدود به پروفایل دسترسی انبار کاربر."
 
 #. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Stocks"
+msgstr "انبارها"
+
+#. module: lartdubati_investor_home
 #: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_access__location_ids
 msgid "Sub-locations of an allowed stock are allowed too."
 msgstr "زیرمکان‌های یک انبار مجاز نیز مجاز هستند."
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Summary"
+msgstr "خلاصه"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "The figures could not be loaded."
+msgstr "ارقام بارگذاری نشدند."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_asset_removed
+msgid "The fixed asset is removed but the item is still in stock."
+msgstr "دارایی ثابت خارج شده اما قلم هنوز در انبار است."
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "The item could not be loaded."
+msgstr "قلم بارگذاری نشد."
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_rental_ended
+msgid "The rental contract has ended but the item is still in stock."
+msgstr "قرارداد اجاره پایان یافته اما قلم هنوز در انبار است."
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid ""
+"The server did not answer. No figure is shown rather than outdated ones."
+msgstr "سرور پاسخ نداد. به جای ارقام قدیمی، هیچ رقمی نمایش داده نمی‌شود."
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "To check:"
+msgstr "برای بررسی:"
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_list
+msgid "Total"
+msgstr "جمع"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__warranty_status__under_warranty
+msgid "Under Warranty"
+msgstr "دارای ضمانت"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__uom_name
+msgid "Unit"
+msgstr "واحد"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "Updating…"
+msgstr "در حال به‌روزرسانی…"
 
 #. module: lartdubati_investor_home
 #: model:ir.model,name:lartdubati_investor_home.model_res_users
@@ -306,6 +1494,207 @@ msgid "Users"
 msgstr "کاربران"
 
 #. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_form
+msgid "Values"
+msgstr "ارزش‌ها"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__place_type__virtual
+msgid "Virtual"
+msgstr "مجازی"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__warranty_status
+msgid "Warranty Status"
+msgstr "وضعیت ضمانت"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_rent_period_unsupported
+msgid ""
+"Weekly or daily rent: no monthly equivalent, left out of the current rents."
+msgstr ""
+"اجاره هفتگی یا روزانه: معادل ماهانه ندارد و از اجاره‌های جاری کنار گذاشته "
+"می‌شود."
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
+msgid "With Alerts"
+msgstr "دارای هشدار"
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.actions.act_window,help:lartdubati_investor_home.action_stock_monitor_analysis
+msgid ""
+"Your access profile decides which stocks, families and ownership statuses\n"
+"                you see."
+msgstr ""
+"نمایه دسترسی شما تعیین می‌کند کدام انبارها، خانواده‌ها و وضعیت‌های مالکیت را"
+" می‌بینید."
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "alert(s)"
+msgstr "هشدار"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "assets"
+msgstr "تجهیز"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "assets ·"
+msgstr "تجهیز ·"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "consumable lines"
+msgstr "سطر مصرفی"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "day"
+msgstr "روز"
+
+#. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_access_form
 msgid "e.g. Investor - France"
 msgstr "مثلاً سرمایه‌گذار - فرانسه"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "equipment to complete (outside the monitor, not counted)"
+msgstr "تجهیز برای تکمیل (خارج از پایشگر، شمرده نمی‌شود)"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "filter on"
+msgstr "پالایه فعال"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "from"
+msgstr "از"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "item(s)"
+msgstr "قلم"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "locations"
+msgstr "مکان"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "month"
+msgstr "ماه"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "month (last day)"
+msgstr "ماه (روز آخر)"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "no monthly equivalent"
+msgstr "بدون معادل ماهانه"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "not converted"
+msgstr "تبدیل‌نشده"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "not converted, outside the total"
+msgstr "تبدیل‌نشده، خارج از جمع"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "not set"
+msgstr "تعیین نشده"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "of which"
+msgstr "از جمله"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "on"
+msgstr "در"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "provisional"
+msgstr "موقت"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "quarter"
+msgstr "فصل"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "semester"
+msgstr "نیم‌سال"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "serial numbers in stock without equipment (outside the monitor)"
+msgstr "شماره سریال در انبار بدون تجهیز (خارج از پایشگر)"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "to"
+msgstr "تا"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "week"
+msgstr "هفته"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "year"
+msgstr "سال"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "· amounts in the currency of each stock"
+msgstr "· مبالغ به ارز هر انبار"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
+msgid "— no rate on"
+msgstr "— نرخی موجود نیست در"

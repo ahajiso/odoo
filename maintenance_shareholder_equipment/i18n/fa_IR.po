@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 16:28+0000\n"
-"PO-Revision-Date: 2026-10-09 16:28+0000\n"
+"POT-Creation-Date: 2026-10-09 21:17+0000\n"
+"PO-Revision-Date: 2026-10-09 21:17+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -73,6 +73,12 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid "%(name)s is a lent-out stock: it must be a monitor stock."
+msgstr "%(name)s انبار نزد شخص ثالث است: باید انبار پایشگر باشد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
 msgid "%(name)s is a lent-out stock: its return location is required."
 msgstr "%(name)s انبار نزد شخص ثالث است: مکان بازگشت آن الزامی است."
 
@@ -106,10 +112,28 @@ msgstr "%(name)s: کالای امانی یا اجاره‌ای متعلق به �
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid "%(name)s: a monitor stock needs a currency."
+msgstr "%(name)s: انبار پایشگر باید ارز داشته باشد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid "%(name)s: a monitor stock needs an address with a city and a country."
+msgstr "%(name)s: انبار پایشگر باید نشانی با شهر و کشور داشته باشد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid "%(name)s: an owned or lent-out item belongs to the company."
 msgstr ""
 "%(name)s: کالای متعلق به شرکت یا سپرده‌شده نزد شخص ثالث متعلق به شرکت است."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/stock.py:0
+msgid "%(name)s: only an internal location can be a monitor stock."
+msgstr "%(name)s: فقط مکان داخلی می‌تواند انبار پایشگر باشد."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -347,6 +371,16 @@ msgstr "%s نیازی به تأیید ندارد: آن را اجرا کنید."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid ""
+"%s: a contract with an equipment line cannot have a line with an automatic "
+"price (price list)."
+msgstr ""
+"%s: قراردادی که سطر تجهیز دارد نمی‌تواند سطری با قیمت خودکار (فهرست قیمت) "
+"داشته باشد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s: choose a line of the purchase order."
 msgstr "%s: یک سطر از سفارش خرید انتخاب کنید."
@@ -419,6 +453,16 @@ msgstr "%s: شماره سریال"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid ""
+"%s: the site address needs a city and a country (it becomes the address of "
+"the new off-site stock, a monitor stock)."
+msgstr ""
+"%s: نشانی محل باید شهر و کشور داشته باشد (نشانی انبار جدید نزد شخص ثالث "
+"می‌شود که انبار پایشگر است)."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/res_company.py:0
 msgid "%s: the source of acquisitions must be an inventory location."
 msgstr "%s: مبدأ تحصیل‌ها باید مکان موجودی باشد."
@@ -474,6 +518,16 @@ msgid "A serial number can belong to one equipment only."
 msgstr "یک شماره سریال فقط می‌تواند به یک تجهیز تعلق داشته باشد."
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_stock_location__is_monitor_stock
+msgid ""
+"A stock of the stock monitor: the items in it and in its sub-locations are "
+"reported under it. Requires an address with a city and a country, and a "
+"currency."
+msgstr ""
+"انبار پایشگر انبار: اقلام آن و زیرمکان‌هایش زیر آن گزارش می‌شوند. به نشانی "
+"با شهر و کشور و یک ارز نیاز دارد."
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_res_company__equipment_rent_account_id
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_res_config_settings__equipment_rent_account_id
 msgid ""
@@ -503,11 +557,6 @@ msgstr "حساب"
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Accounting Treatment"
 msgstr "رفتار حسابداری"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__acquisition_mode
-msgid "Acquisition Mode (obsolete)"
-msgstr "نحوه تحصیل (منسوخ)"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__acquisition_nature
@@ -736,11 +785,6 @@ msgid "Borrowed"
 msgstr "امانی"
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__acquisition_mode__borrowed
-msgid "Borrowed from Third Party"
-msgstr "قرض‌گرفته‌شده از شخص ثالث"
-
-#. module: maintenance_shareholder_equipment
 #: model:res.groups,comment:maintenance_shareholder_equipment.group_equipment_ownership_manager
 msgid ""
 "Can correct the ownership status and the legal owner of an equipment, with a"
@@ -793,7 +837,6 @@ msgstr "شرکت‌ها"
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__company_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__company_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__company_id
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__company
 msgid "Company"
 msgstr "شرکت"
 
@@ -859,6 +902,11 @@ msgstr "مصرفی"
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Contract"
 msgstr "قرارداد"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_contract__equipment_currency_id
+msgid "Contract Currency (stored)"
+msgstr "ارز قرارداد (ذخیره‌شده)"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__contract_attachment_ids
@@ -974,7 +1022,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__cost
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
 msgid "Cost (excl. tax)"
-msgstr "هزینه (بدون مالیات)"
+msgstr "هزینه"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__cost_date
@@ -1047,6 +1095,11 @@ msgstr "ارز"
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "Currency %s is not active."
 msgstr "ارز %s فعال نیست."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_stock_location__monitor_currency_id
+msgid "Currency in which the stock monitor reports this stock."
+msgstr "ارزی که پایشگر انبار این انبار را با آن گزارش می‌کند."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__date
@@ -1700,11 +1753,6 @@ msgid "Loan or rental of possession: always stopped."
 msgstr "قرض یا اجارهٔ مربوط به تصرف: همیشه متوقف می‌شود."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__acquisition_mode__loaned_out
-msgid "Loaned to Third Party"
-msgstr "قرض‌داده‌شده به شخص ثالث"
-
-#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__current_location_id
 msgid "Location (Non-Stock Equipment)"
 msgstr "مکان (تجهیز خارج از انبار)"
@@ -1758,6 +1806,11 @@ msgstr "پیام‌ها"
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__cost_source__migration
 msgid "Migration (receipt value)"
 msgstr "مهاجرت (ارزش دریافت)"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_stock_location__is_monitor_stock
+msgid "Monitor Stock"
+msgstr "انبار پایشگر"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__periodicity__monthly
@@ -2067,11 +2120,6 @@ msgid "Ownership Status"
 msgstr "وضعیت مالکیت"
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__owner_type
-msgid "Ownership Type (obsolete)"
-msgstr "نوع مالکیت (منسوخ)"
-
-#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
 msgid "Ownership and Stock"
 msgstr "مالکیت و انبار"
@@ -2218,7 +2266,6 @@ msgstr "موقت"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__receipt_branch__purchase
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__acquisition_mode__purchase
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Purchase"
 msgstr "خرید"
@@ -2341,11 +2388,10 @@ msgstr "محصول اجاره (دریافتی)"
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__rent_amount
 msgid "Rent per Period (excl. tax)"
-msgstr "اجاره در هر دوره (بدون مالیات)"
+msgstr "اجاره در هر دوره"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_nature__rental
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__acquisition_mode__rental
 msgid "Rental"
 msgstr "اجاره"
 
@@ -2371,7 +2417,7 @@ msgstr "ارز جایگزینی"
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__replacement_value
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
 msgid "Replacement Value (excl. tax)"
-msgstr "ارزش جایگزینی (بدون مالیات)"
+msgstr "ارزش جایگزینی"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__replacement_currency_id
@@ -2512,11 +2558,6 @@ msgstr ""
 "ارسال برای استرداد."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__shareholder
-msgid "Shareholder"
-msgstr "سهامدار"
-
-#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__site_partner_id
 msgid "Site Address"
 msgstr "نشانی محل"
@@ -2576,6 +2617,11 @@ msgstr ""
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "Stock"
 msgstr "انبار"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_stock_location__monitor_currency_id
+msgid "Stock Currency"
+msgstr "ارز انبار"
 
 #. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_location_form_place_type
@@ -2814,7 +2860,6 @@ msgid "The transfer %s could not be validated."
 msgstr "انتقال %s تأیید نشد."
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__third_party
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Third Party"
 msgstr "شخص ثالث"
@@ -2893,12 +2938,12 @@ msgstr "دارای گارانتی"
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__price_unit
 msgid "Unit Price (excl. tax)"
-msgstr "قیمت واحد (بدون مالیات)"
+msgstr "قیمت واحد"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__unit_value
 msgid "Unit Value (excl. tax, company currency)"
-msgstr "ارزش واحد (بدون مالیات، ارز شرکت)"
+msgstr "ارزش واحد"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_cost_correction__cost
