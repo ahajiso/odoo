@@ -130,6 +130,7 @@ test("first display: fields_get, aggregates and one page of the list", async () 
         calls.push(method);
         if (method === "web_search_read") {
             expect(kwargs.limit).toBe(25);
+            expect(kwargs.count_limit).toBe(1);
             expect(Object.keys(kwargs.specification)).not.toInclude("accounting_value");
         }
     });

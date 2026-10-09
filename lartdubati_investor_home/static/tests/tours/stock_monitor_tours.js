@@ -39,3 +39,17 @@ registry.category("web_tour.tours").add("stock_monitor_accountant_tour", {
         ...commonSteps(),
     ],
 });
+
+// Performance (P13, C5): the time from the action to the cards and the list rendered is
+// logged by the tour itself (performance.now at the first and last step).
+registry.category("web_tour.tours").add("stock_monitor_perf_tour", {
+    steps: () => [
+        { content: "start", trigger: "body", run: () => (window.__smmStart = performance.now()) },
+        { content: "cards and list rendered", trigger: ".o_smm_card_inventory_value .o_smm_card_big" },
+        {
+            content: "list rendered",
+            trigger: ".o_smm_row",
+            run: () => console.log(`monitor_perf browser render: ${Math.round(performance.now() - window.__smmStart)} ms`),
+        },
+    ],
+});

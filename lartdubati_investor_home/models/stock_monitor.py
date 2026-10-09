@@ -59,49 +59,40 @@ ALERTS = {
 }
 
 
-def _company_dependent(column, model, field, company, cast):
-    """Value of a company-dependent jsonb column for `company`, with the fallback
-    Odoo uses (ir.default of the company, then the global one: _get_model_defaults)."""
-    return f"""COALESCE(
-        ({column} ->> ({company})::text)::{cast},
-        (SELECT (d.json_value::jsonb #>> '{{}}')::{cast}
+def _company_default(model, field, company, cast):
+    """Fallback Odoo uses for a company-dependent field without a value for `company`
+    (ir.default of the company, then the global one: _get_model_defaults)."""
+    return f"""(SELECT (d.json_value::jsonb #>> '{{}}')::{cast}
            FROM ir_default d JOIN ir_model_fields f ON f.id = d.field_id
           WHERE f.model = '{model}' AND f.name = '{field}' AND d.user_id IS NULL
-            AND d.condition IS NULL AND (d.company_id = ({company}) OR d.company_id IS NULL)
-          ORDER BY d.company_id NULLS LAST, d.id LIMIT 1))"""
+            AND d.condition IS NULL AND (d.company_id = {company} OR d.company_id IS NULL)
+          ORDER BY d.company_id NULLS LAST, d.id LIMIT 1)"""
 
 
-def _rate_joins(alias, currency, date, root, skip):
-    """The two rate rows `_get_rates` looks at for `currency` on `date`: the last one on
-    or before the date, else the earliest later one (company rows first). `skip` is a
-    condition under which no lookup is needed (same currency on both sides)."""
-    return f"""
-    LEFT JOIN LATERAL (
-        SELECT r.rate FROM res_currency_rate r
-         WHERE NOT ({skip}) AND r.currency_id = {currency} AND r.name <= {date}
-           AND (r.company_id IS NULL OR r.company_id = {root})
-         ORDER BY r.company_id, r.name DESC LIMIT 1) {alias}_b ON TRUE
-    LEFT JOIN LATERAL (
-        SELECT r.rate FROM res_currency_rate r
-         WHERE NOT ({skip}) AND {alias}_b.rate IS NULL AND r.currency_id = {currency}
-           AND (r.company_id IS NULL OR r.company_id = {root})
-         ORDER BY r.company_id, r.name ASC LIMIT 1) {alias}_a ON TRUE"""
+def _rate_join(alias, currency, date, root):
+    """Join the rate point of `currency` on `date` (computed once in point_rates)."""
+    return (f"\n      LEFT JOIN point_rates {alias} ON {alias}.currency = {currency} "
+            f"AND {alias}.date = {date} AND {alias}.root = {root}")
 
 
 def _conversion(alias, amount, source, target, company_currency):
     """Converted amount, factor and flags of one measure, as `_convert` would compute
-    them, except that a currency other than the company's without any rate gives NULL
-    and a missing flag instead of Odoo's silent 1.0."""
+    them (rate(target) / rate(source), rates as `_get_rates` finds them), except that a
+    currency other than the company's without any rate gives NULL and a missing flag
+    instead of Odoo's silent 1.0. `{alias}_s` and `{alias}_t` are the rate points of
+    the source and target currencies."""
     same = f"({source} = {target})"
-    sb, sa, tb, ta = (f"{alias}_s_b", f"{alias}_s_a", f"{alias}_t_b", f"{alias}_t_a")
-    s_none = f"({sb}.rate IS NULL AND {sa}.rate IS NULL)"
-    t_none = f"({tb}.rate IS NULL AND {ta}.rate IS NULL)"
+    s, t = f"{alias}_s", f"{alias}_t"
+    s_none = f"({s}.rate_before IS NULL AND {s}.rate_after IS NULL)"
+    t_none = f"({t}.rate_before IS NULL AND {t}.rate_after IS NULL)"
     missing = (f"(NOT {same} AND (({s_none} AND {source} <> {company_currency}) "
                f"OR ({t_none} AND {target} <> {company_currency})))")
-    rate = f"(COALESCE({tb}.rate, {ta}.rate, 1.0) / COALESCE({sb}.rate, {sa}.rate, 1.0))"
+    rate = (f"(COALESCE({t}.rate_before, {t}.rate_after, 1.0) "
+            f"/ COALESCE({s}.rate_before, {s}.rate_after, 1.0))")
     factor = f"(CASE WHEN {same} THEN 1.0 WHEN {missing} THEN NULL ELSE {rate} END)"
-    fallback = (f"(NOT {same} AND NOT {missing} AND (({sb}.rate IS NULL AND {sa}.rate IS NOT "
-                f"NULL) OR ({tb}.rate IS NULL AND {ta}.rate IS NOT NULL)))")
+    fallback = (f"(NOT {same} AND NOT {missing} AND (({s}.rate_before IS NULL AND "
+                f"{s}.rate_after IS NOT NULL) OR ({t}.rate_before IS NULL AND "
+                f"{t}.rate_after IS NOT NULL)))")
     return {
         "value": f"(CASE WHEN {amount} = 0 THEN 0 ELSE {amount} * {factor} END)",
         "rate": f"(CASE WHEN {amount} IS NULL THEN NULL ELSE {factor} END)",
@@ -109,6 +100,7 @@ def _conversion(alias, amount, source, target, company_currency):
         "missing": f"(CASE WHEN COALESCE({amount}, 0) <> 0 AND {missing} THEN 1 ELSE 0 END)",
         "fallback": f"(CASE WHEN COALESCE({amount}, 0) <> 0 AND {fallback} THEN 1 ELSE 0 END)",
     }
+
 
 def _measure(label, groups=None):
     """The columns of one converted measure (§3.3): converted amount, source amount,
@@ -249,6 +241,8 @@ class StockMonitor(models.Model):
                                            readonly=True, groups=ACCOUNTANTS)
     rent_paid_rate_missing = fields.Integer(string="Rent Paid – Rate Missing", readonly=True,
                                             groups=ACCOUNTANTS)
+    rent_paid_known = fields.Integer(string="Rent Paid – Known", readonly=True,
+                                     groups=ACCOUNTANTS)
     rent_paid_rate_fallback = fields.Integer(string="Rent Paid – Later Rate Used",
                                              readonly=True, groups=ACCOUNTANTS)
 
@@ -305,18 +299,26 @@ class StockMonitor(models.Model):
     # ------------------------------------------------------------------ SQL
 
     def _query(self):
-        avco = _company_dependent("pp.standard_price", "product.product", "standard_price",
-                                  "src.company_id", "numeric")
-        valuation = _company_dependent("pc.property_valuation", "product.category",
-                                       "property_valuation", "src.company_id", "text")
-        joins, selects, missing = [], [], []
+        # company-dependent values (jsonb by company), with their fallbacks computed once
+        # per company in company_defaults
+        avco = ("COALESCE((pp.standard_price ->> src.company_id::text)::numeric, "
+                "(SELECT cd.avco_default FROM company_defaults cd "
+                "WHERE cd.company_id = src.company_id))")
+        valuation = ("COALESCE(pc.property_valuation ->> src.company_id::text, "
+                     "(SELECT cd.valuation_default FROM company_defaults cd "
+                     "WHERE cd.company_id = src.company_id))")
+        joins, selects, missing, points = [], [], [], []
         for name, short in MEASURES.items():
             amount = f"b.{short}_amount"
             source, date = f"b.{short}_currency", f"b.{short}_date"
-            skip = f"{source} IS NULL OR {source} = b.target_currency"
-            joins.append(_rate_joins(f"{short}_s", source, date, "b.root_company", skip))
-            joins.append(_rate_joins(f"{short}_t", "b.target_currency", date,
-                                     "b.root_company", skip))
+            # the rate points a conversion needs: none when no amount or same currency
+            needed = f"COALESCE({amount}, 0) <> 0 AND {source} <> b.target_currency"
+            points.append(f"SELECT {source}, {date}, b.root_company FROM b WHERE {needed}")
+            points.append(f"SELECT b.target_currency, {date}, b.root_company FROM b "
+                          f"WHERE {needed}")
+            joins.append(_rate_join(f"{short}_s", source, date, "b.root_company"))
+            joins.append(_rate_join(f"{short}_t", "b.target_currency", date,
+                                    "b.root_company"))
             conv = _conversion(short, amount, source, "b.target_currency",
                                "b.company_currency")
             missing.append(conv["missing"])
@@ -330,12 +332,40 @@ class StockMonitor(models.Model):
            {conv['missing']} AS {name}_rate_missing,
            {conv['fallback']} AS {name}_rate_fallback,
            (CASE WHEN {conv['value']} IS NULL THEN 0 ELSE 1 END) AS {name}_known""")
-        alert_sum = " + ".join(f"alerts.{name}" for name in ALERTS)
+        # rent paid: each bill line at its own date
+        rent_needed = "b.company_currency <> b.target_currency"
+        points.append(f"SELECT b.company_currency, rl.date, b.root_company FROM rent_lines rl "
+                      f"JOIN b ON b.id = rl.row_id WHERE {rent_needed}")
+        points.append(f"SELECT b.target_currency, rl.date, b.root_company FROM rent_lines rl "
+                      f"JOIN b ON b.id = rl.row_id WHERE {rent_needed}")
+        rent_conv = _conversion("rp", "rl.balance", "b.company_currency", "b.target_currency",
+                                "b.company_currency")
+        alert_sum = " + ".join(ALERTS)
         return f"""
-WITH stocks AS (
+WITH company_defaults AS MATERIALIZED (
+    -- fallbacks of the company-dependent fields, computed once per company and read
+    -- through scalar subqueries (a join on a materialized CTE spoils the row estimates)
+    SELECT c.id AS company_id,
+           {_company_default("product.product", "standard_price", "c.id", "numeric")}
+               AS avco_default,
+           {_company_default("product.category", "property_valuation", "c.id", "text")}
+               AS valuation_default
+      FROM res_company c
+),
+stocks AS (
     SELECT l.id, l.parent_path, l.complete_name, l.monitor_currency_id, l.address_id
       FROM stock_location l
      WHERE l.is_monitor_stock AND l.active AND l.usage = 'internal'
+),
+location_stock AS MATERIALIZED (
+    -- nearest monitor stock of every internal location (longest parent_path prefix),
+    -- resolved once per location rather than once per row
+    SELECT DISTINCT ON (loc.id) loc.id AS location_id, st.id AS stock_id,
+           st.complete_name AS stock_name, st.monitor_currency_id, st.address_id
+      FROM stock_location loc
+      JOIN stocks st ON loc.parent_path LIKE st.parent_path || '%'
+     WHERE loc.usage = 'internal'
+     ORDER BY loc.id, length(st.parent_path) DESC
 ),
 lot_position AS (
     -- one position per serial: the largest positive internal quant, then the lowest id
@@ -414,7 +444,7 @@ source_rows AS (
 ),
 placed AS (
     -- stock = nearest monitor stock at or above the location (parent_path prefix)
-    SELECT src.*, s.id AS stock_id, s.complete_name AS stock_name,
+    SELECT src.*, s.stock_id, s.stock_name,
            loc.complete_name AS location_name, loc.place_type,
            c.currency_id AS company_currency,
            split_part(c.parent_path, '/', 1)::integer AS root_company,
@@ -428,10 +458,7 @@ placed AS (
       FROM source_rows src
       JOIN res_company c ON c.id = src.company_id
       LEFT JOIN stock_location loc ON loc.id = src.location_id
-      LEFT JOIN LATERAL (
-          SELECT st.* FROM stocks st
-           WHERE loc.parent_path LIKE st.parent_path || '%'
-           ORDER BY length(st.parent_path) DESC LIMIT 1) s ON TRUE
+      LEFT JOIN location_stock s ON s.location_id = src.location_id
       LEFT JOIN res_partner addr ON addr.id = s.address_id
       LEFT JOIN product_product pp ON pp.id = src.product_id
       LEFT JOIN product_template pt ON pt.id = pp.product_tmpl_id
@@ -459,8 +486,9 @@ valued AS (
       LEFT JOIN rental rl ON rl.equipment_id = p.equipment_id
       LEFT JOIN last_rental lr ON lr.equipment_id = p.equipment_id
 ),
-b AS (
-    -- source amount, currency and date of each measure (§3.4, §3.5)
+b AS MATERIALIZED (
+    -- source amount, currency and date of each measure (§3.4, §3.5); materialized:
+    -- read again by the rate points and the rent lines
     SELECT v.*,
         (v.company_asset AND v.raw_asset_id IS NOT NULL) AS with_asset,
         (CASE WHEN v.family = 'consumable' THEN v.quantity * v.avco
@@ -470,13 +498,14 @@ b AS (
         (CASE WHEN v.third_party_asset THEN v.raw_replacement_currency
               ELSE v.company_currency END) AS inventory_currency,
         (CASE WHEN v.latest_mode OR v.family = 'consumable' THEN CURRENT_DATE
-              WHEN v.company_asset AND v.raw_asset_id IS NOT NULL THEN v.asset_date
-              WHEN v.company_asset THEN v.raw_cost_date
-              ELSE v.replacement_value_date END) AS inventory_date,
+              WHEN v.company_asset AND v.raw_asset_id IS NOT NULL
+                   THEN COALESCE(v.asset_date, CURRENT_DATE)
+              WHEN v.company_asset THEN COALESCE(v.raw_cost_date, CURRENT_DATE)
+              ELSE COALESCE(v.replacement_value_date, CURRENT_DATE) END) AS inventory_date,
         v.raw_replacement AS replacement_amount,
         v.raw_replacement_currency AS replacement_currency,
-        (CASE WHEN v.latest_mode THEN CURRENT_DATE ELSE v.replacement_value_date END)
-            AS replacement_date,
+        (CASE WHEN v.latest_mode THEN CURRENT_DATE
+              ELSE COALESCE(v.replacement_value_date, CURRENT_DATE) END) AS replacement_date,
         (CASE WHEN v.family = 'consumable' AND v.automated_valuation
                    THEN v.quantity * v.avco
               WHEN v.company_asset AND v.raw_asset_id IS NULL AND NOT v.fixed_asset_category
@@ -486,11 +515,12 @@ b AS (
         (CASE WHEN v.company_asset AND v.raw_asset_id IS NOT NULL THEN v.purchase_value END)
             AS original_amount,
         v.company_currency AS original_currency,
-        (CASE WHEN v.latest_mode THEN CURRENT_DATE ELSE v.asset_date END) AS original_date,
+        (CASE WHEN v.latest_mode THEN CURRENT_DATE ELSE COALESCE(v.asset_date, CURRENT_DATE) END)
+            AS original_date,
         (CASE WHEN v.company_asset AND v.raw_asset_id IS NOT NULL
               THEN COALESCE(v.value_depreciated, 0) END) AS depreciated_amount,
         v.company_currency AS depreciated_currency,
-        (CASE WHEN v.latest_mode THEN CURRENT_DATE ELSE v.asset_date END)
+        (CASE WHEN v.latest_mode THEN CURRENT_DATE ELSE COALESCE(v.asset_date, CURRENT_DATE) END)
             AS depreciated_date,
         -- net book value: purchase value minus depreciation (the salvage value stays)
         (CASE WHEN v.family = 'consumable' AND v.automated_valuation
@@ -503,11 +533,57 @@ b AS (
               ELSE 0 END) AS accounting_amount,
         v.company_currency AS accounting_currency,
         (CASE WHEN NOT v.latest_mode AND v.company_asset AND v.raw_asset_id IS NOT NULL
-              THEN v.asset_date ELSE CURRENT_DATE END) AS accounting_date,
+              THEN COALESCE(v.asset_date, CURRENT_DATE) ELSE CURRENT_DATE END) AS accounting_date,
         (v.rent_amount / v.rent_months) AS rent_m_amount,
         v.rent_currency_id AS rent_m_currency,
-        (CASE WHEN v.latest_mode THEN CURRENT_DATE ELSE v.rent_start END) AS rent_m_date
+        (CASE WHEN v.latest_mode THEN CURRENT_DATE ELSE COALESCE(v.rent_start, CURRENT_DATE) END)
+            AS rent_m_date
       FROM valued v
+),
+rent_lines AS MATERIALIZED (
+    -- rent paid (§3.6): posted supplier bill and refund product lines linked to a rental
+    -- line of the equipment on a supplier contract
+    SELECT b.id AS row_id, aml.balance,
+           (CASE WHEN b.latest_mode THEN CURRENT_DATE ELSE aml.date END) AS date
+      FROM b
+      JOIN contract_line cl ON cl.equipment_id = b.equipment_id
+      JOIN contract_contract cc ON cc.id = cl.contract_id
+      JOIN account_move_line aml ON aml.contract_line_id = cl.id
+      JOIN account_move am ON am.id = aml.move_id
+     WHERE cl.equipment_nature = 'rental' AND cc.contract_type = 'purchase'
+       AND aml.parent_state = 'posted' AND aml.display_type = 'product'
+       AND am.move_type IN ('in_invoice', 'in_refund')
+),
+points AS (
+    -- the (currency, date) pairs the conversions need, each looked up once
+    SELECT DISTINCT * FROM ({" UNION ALL ".join(points)}) p (currency, date, root)
+),
+point_rates AS MATERIALIZED (
+    -- as res.currency._get_rates: the last rate on or before the date (company rows
+    -- first), else the earliest later one; none found: both NULL
+    SELECT p.currency, p.date, p.root, rb.rate AS rate_before, ra.rate AS rate_after
+      FROM points p
+      LEFT JOIN LATERAL (
+          SELECT r.rate FROM res_currency_rate r
+           WHERE r.currency_id = p.currency AND r.name <= p.date
+             AND (r.company_id IS NULL OR r.company_id = p.root)
+           ORDER BY r.company_id, r.name DESC LIMIT 1) rb ON TRUE
+      LEFT JOIN LATERAL (
+          SELECT r.rate FROM res_currency_rate r
+           WHERE rb.rate IS NULL AND r.currency_id = p.currency
+             AND (r.company_id IS NULL OR r.company_id = p.root)
+           ORDER BY r.company_id, r.name ASC LIMIT 1) ra ON TRUE
+),
+rent_paid AS (
+    SELECT rl.row_id, SUM(rl.balance) AS source_amount,
+           (CASE WHEN bool_or({rent_conv['missing']} = 1) THEN NULL
+                 ELSE SUM({rent_conv['value']}) END) AS converted,
+           max({rent_conv['missing']}) AS missing, max({rent_conv['fallback']}) AS fallback
+      FROM rent_lines rl
+      JOIN b ON b.id = rl.row_id
+      {_rate_join("rp_s", "b.company_currency", "rl.date", "b.root_company")}
+      {_rate_join("rp_t", "b.target_currency", "rl.date", "b.root_company")}
+     GROUP BY rl.row_id
 ),
 measured AS (
     SELECT b.*, b.target_currency AS currency_id,
@@ -515,13 +591,15 @@ measured AS (
            rp.converted AS rent_paid, rp.source_amount AS rent_paid_source_amount,
            COALESCE(rp.missing, 0) AS rent_paid_rate_missing,
            COALESCE(rp.fallback, 0) AS rent_paid_rate_fallback,
+           (CASE WHEN rp.converted IS NULL THEN 0 ELSE 1 END) AS rent_paid_known,
            (CASE WHEN ({" + ".join(missing)}) + COALESCE(rp.missing, 0) > 0
                  THEN 1 ELSE 0 END) AS any_rate_missing
       FROM b
       {"".join(joins)}
-      {self._rent_paid_join()}
-)
-SELECT m.*,
+      LEFT JOIN rent_paid rp ON rp.row_id = b.id
+),
+alerted AS (
+    SELECT m.*,
        country.name AS country_name, state.name AS state_name, uom.name AS uom_name,
        owner.name AS owner_name, responsible.name AS responsible_name,
        (CASE WHEN m.company_asset THEN m.raw_asset_state END) AS asset_state,
@@ -529,17 +607,6 @@ SELECT m.*,
            AS accounting_provisional,
        (CASE WHEN m.company_asset AND m.raw_asset_id IS NULL AND m.cost_known
                   AND m.cost_provisional THEN 1 ELSE 0 END) AS inventory_provisional,
-       alerts.*,
-       ({alert_sum}) AS alert_count
-  FROM measured m
-  LEFT JOIN res_country country ON country.id = m.country_id
-  LEFT JOIN res_country_state state ON state.id = m.state_id
-  LEFT JOIN uom_uom uom ON uom.id = m.uom_id
-  LEFT JOIN res_partner owner ON owner.id = m.owner_partner_id
-  LEFT JOIN res_users ru ON ru.id = m.owner_user_id
-  LEFT JOIN res_partner responsible ON responsible.id = ru.partner_id
-  JOIN res_company co ON co.id = m.company_id
-  CROSS JOIN LATERAL (SELECT
        m.any_rate_missing AS alert_rate_missing,
        (CASE WHEN m.lot_quant_count > 1 OR m.third_party_quant THEN 1 ELSE 0 END)
            AS alert_integrity,
@@ -572,33 +639,18 @@ SELECT m.*,
        (CASE WHEN m.company_asset AND m.raw_asset_id IS NULL AND NOT m.fixed_asset_category
                   AND NOT m.automated_valuation THEN 1 ELSE 0 END) AS alert_no_asset,
        (CASE WHEN m.family = 'asset' AND m.owner_user_id IS NULL THEN 1 ELSE 0 END)
-           AS alert_no_responsible) alerts
+           AS alert_no_responsible
+      FROM measured m
+      LEFT JOIN res_country country ON country.id = m.country_id
+      LEFT JOIN res_country_state state ON state.id = m.state_id
+      LEFT JOIN uom_uom uom ON uom.id = m.uom_id
+      LEFT JOIN res_partner owner ON owner.id = m.owner_partner_id
+      LEFT JOIN res_users ru ON ru.id = m.owner_user_id
+      LEFT JOIN res_partner responsible ON responsible.id = ru.partner_id
+      JOIN res_company co ON co.id = m.company_id
+)
+SELECT a.*, ({alert_sum}) AS alert_count FROM alerted a
 """
-
-    def _rent_paid_join(self):
-        """Rent paid: posted supplier bill and refund product lines linked to a rental
-        line of the equipment on a supplier contract, each converted at its own date."""
-        date = "(CASE WHEN b.latest_mode THEN CURRENT_DATE ELSE aml.date END)"
-        skip = "b.company_currency = b.target_currency"
-        conv = _conversion("rp", "aml.balance", "b.company_currency", "b.target_currency",
-                           "b.company_currency")
-        return f"""
-  LEFT JOIN LATERAL (
-      SELECT SUM(aml.balance) AS source_amount,
-             (CASE WHEN bool_or({conv['missing']} = 1) THEN NULL
-                   ELSE SUM({conv['value']}) END) AS converted,
-             max({conv['missing']}) AS missing, max({conv['fallback']}) AS fallback
-        FROM account_move_line aml
-        JOIN account_move am ON am.id = aml.move_id
-        JOIN contract_line cl ON cl.id = aml.contract_line_id
-        JOIN contract_contract cc ON cc.id = cl.contract_id
-        {_rate_joins("rp_s", "b.company_currency", date, "b.root_company", skip)}
-        {_rate_joins("rp_t", "b.target_currency", date, "b.root_company", skip)}
-       WHERE b.equipment_id IS NOT NULL AND cl.equipment_id = b.equipment_id
-         AND cl.equipment_nature = 'rental' AND cc.contract_type = 'purchase'
-         AND aml.parent_state = 'posted' AND aml.display_type = 'product'
-         AND am.move_type IN ('in_invoice', 'in_refund')
-       HAVING count(*) > 0) rp ON TRUE"""
 
     # ------------------------------------------------------------------ dashboard
 
@@ -651,105 +703,148 @@ SELECT m.*,
     def get_dashboard_data(self, filters=None):
         """Every aggregate of the dashboard in one call (§4.3), under the user's rights
         and record rules, without sudo. Only the fields the user may read are summed or
-        returned. The list page is read separately with the returned domain."""
+        returned. The list page is read separately with the returned domain.
+
+        One fine-grained read_group (by country, city, stock, place, currency, family
+        and ownership, without the filters) gives the choices, the stock cards, the
+        family and ownership counts, the alert counts and, without alert or text
+        filter, the totals: the groups are filtered here instead of querying the view
+        once per block. Further queries only when needed: totals with an alert or text
+        filter, unconverted amounts, provisional net book value."""
         filters = filters or {}
         domain = self._dashboard_domain(filters)
         measures = self._readable(list(MEASURES))
+        rent_paid = self._readable(["rent_paid"])
         alerts = self._dashboard_alerts()
         staff = self._fields["stock_id"].is_accessible(self.env)
+        accountant = "accounting_value" in measures
 
-        def by_currency(rows, key="currency_id"):
-            return [{"currency_id": currency.id, "amount": amount}
-                    for currency, amount in rows if currency]
+        dims = ["country_name", "city", "stock_name", "place_type", "currency_id", "family",
+                "ownership_status"]
+        sums = ["asset_count"] + measures + [f"{m}_rate_missing" for m in measures] + [
+            f"{m}_known" for m in measures] + alerts
+        if rent_paid:
+            sums += ["rent_paid", "rent_paid_rate_missing", "rent_paid_known"]
+        if accountant:
+            sums.append("accounting_provisional")
+        if self._readable(["alert_count"]):
+            sums.append("alert_count")
+        aggregates = ["__count"] + [f"{name}:sum" for name in sums]
+        groups = []
+        for row in self._read_group([], dims, aggregates):
+            group = dict(zip(dims, row[:len(dims)]))
+            group["currency_id"] = group["currency_id"].id
+            group.update(zip(["count"] + sums, row[len(dims):]))
+            groups.append(group)
 
-        # 1. totals per currency, provisional and missing counts
-        # « known » counts: a currency whose amounts are all unknown has no total line
-        # (read_group returns 0, not NULL, for a sum of NULLs)
-        aggregates = ["__count", "asset_count:sum"] + [f"{m}:sum" for m in measures] + [
-            f"{m}_rate_missing:sum" for m in measures] + [f"{m}_known:sum" for m in measures]
-        if "rent_paid" in self._readable(["rent_paid"]):
-            aggregates += ["rent_paid:sum", "rent_paid_rate_missing:sum"]
-        if "accounting_value" in measures:
-            aggregates.append("accounting_provisional:sum")
-        totals = {name: {"lines": [], "missing": [], "provisional": []}
-                  for name in measures + self._readable(["rent_paid"])}
-        count = assets = 0
-        missing_counts = {}
-        provisional_count = 0
-        for currency, *values in self._read_group(domain, ["currency_id"], aggregates):
-            result = dict(zip(aggregates, values))
-            count += result["__count"]
-            assets += result["asset_count:sum"] or 0
-            for name in totals:
-                known = result.get(f"{name}_known:sum", 1)  # rent_paid: per bill line
-                if name == "rent_paid":
-                    known = result.get("rent_paid:sum") is not None and (
-                        result["__count"] > (result.get("rent_paid_rate_missing:sum") or 0))
-                if currency and known and result.get(f"{name}:sum") is not None:
-                    totals[name]["lines"].append(
-                        {"currency_id": currency.id, "amount": result[f"{name}:sum"]})
-                missing_counts[name] = (missing_counts.get(name, 0)
-                                        + (result.get(f"{name}_rate_missing:sum") or 0))
-            provisional_count += result.get("accounting_provisional:sum") or 0
-        # unconverted amounts, in their source currency (only when some are missing)
-        for name, missing in missing_counts.items():
-            if not missing:
+        stock_filter = set(filters.get("stocks") or [])
+
+        def match(group, skip=()):
+            checks = {
+                "countries": group["country_name"] or "",
+                "cities": group["city"] or "",
+                "families": group["family"],
+                "ownerships": group["ownership_status"],
+            }
+            for key, value in checks.items():
+                if key not in skip and filters.get(key) and value not in filters[key]:
+                    return False
+            if "stocks" not in skip and stock_filter and (
+                    group["stock_name"] or OUTSIDE_STOCK) not in stock_filter:
+                return False
+            return True
+
+        def total(name, rows):
+            by_currency = {}
+            for group in rows:
+                if group.get(f"{name}_known", 1) and group.get(name) is not None:
+                    by_currency[group["currency_id"]] = (
+                        by_currency.get(group["currency_id"], 0.0) + (group[name] or 0.0))
+            return [{"currency_id": currency, "amount": amount}
+                    for currency, amount in by_currency.items()]
+
+        # 1. totals per currency (never added across currencies)
+        names = measures + rent_paid
+        if filters.get("alert") or (filters.get("search") or "").strip():
+            rows = []
+            for row in self._read_group(domain, ["currency_id"], aggregates):
+                group = {"currency_id": row[0].id}
+                group.update(zip(["count"] + sums, row[1:]))
+                rows.append(group)
+        else:
+            rows = [group for group in groups if match(group)]
+        totals = {name: {"lines": total(name, rows), "missing": [], "provisional": []}
+                  for name in names}
+        count = sum(group["count"] for group in rows)
+        assets = sum(group["asset_count"] or 0 for group in rows)
+        # unconverted amounts, in their source currency, and provisional net book value
+        for name in names:
+            if not sum(group.get(f"{name}_rate_missing") or 0 for group in rows):
                 continue
             if name == "rent_paid":
-                rows = self._read_group(domain + [("rent_paid_rate_missing", "=", 1)],
-                                        ["currency_id"], ["rent_paid_source_amount:sum"])
+                amount = self._read_group(domain + [("rent_paid_rate_missing", "=", 1)], [],
+                                          ["rent_paid_source_amount:sum"])[0][0]
                 totals[name]["missing"] = [
-                    {"currency_id": self.env.company.currency_id.id, "amount": amount}
-                    for _currency, amount in rows]
+                    {"currency_id": self.env.company.currency_id.id, "amount": amount}]
                 continue
-            rows = self._read_group(domain + [(f"{name}_rate_missing", "=", 1)],
-                                    [f"{name}_source_currency_id"],
-                                    [f"{name}_source_amount:sum"])
-            totals[name]["missing"] = by_currency(rows)
-        if provisional_count:
-            rows = self._read_group(domain + [("accounting_provisional", "=", 1)],
-                                    ["currency_id"], ["accounting_value:sum"])
-            totals["accounting_value"]["provisional"] = by_currency(rows)
+            totals[name]["missing"] = [
+                {"currency_id": currency.id, "amount": amount}
+                for currency, amount in self._read_group(
+                    domain + [(f"{name}_rate_missing", "=", 1)],
+                    [f"{name}_source_currency_id"], [f"{name}_source_amount:sum"])
+                if currency]
+        if accountant and sum(group.get("accounting_provisional") or 0 for group in rows):
+            totals["accounting_value"]["provisional"] = [
+                {"currency_id": currency.id, "amount": amount}
+                for currency, amount in self._read_group(
+                    domain + [("accounting_provisional", "=", 1)], ["currency_id"],
+                    ["accounting_value:sum"])]
 
         # 2. stock cards: the selection's geography, family and ownership, every stock
-        card_domain = self._dashboard_domain(filters, skip=("stocks", "alert", "search"))
-        card_aggregates = ["__count", "asset_count:sum", "inventory_value:sum",
-                           "inventory_value_rate_missing:sum"]
-        if self._readable(["alert_count"]):
-            card_aggregates.append("alert_count:sum")
-        stocks = []
-        for name, city, country, place, currency, *values in self._read_group(
-                card_domain, ["stock_name", "city", "country_name", "place_type", "currency_id"],
-                card_aggregates):
-            result = dict(zip(card_aggregates, values))
-            stocks.append({
-                "name": name or OUTSIDE_STOCK, "city": city or "", "country": country or "",
-                "place_type": place or "", "currency_id": currency.id,
-                "count": result["__count"], "assets": result["asset_count:sum"] or 0,
-                "inventory_value": result["inventory_value:sum"] or 0.0,
-                "missing": result["inventory_value_rate_missing:sum"] or 0,
-                "alerts": result.get("alert_count:sum") or 0,
+        cards = {}
+        for group in groups:
+            if not match(group, skip=("stocks",)):
+                continue
+            key = (group["stock_name"] or OUTSIDE_STOCK, group["currency_id"])
+            card = cards.setdefault(key, {
+                "name": key[0], "city": group["city"] or "",
+                "country": group["country_name"] or "", "place_type": group["place_type"] or "",
+                "currency_id": group["currency_id"], "count": 0, "assets": 0,
+                "inventory_value": 0.0, "missing": 0, "alerts": 0,
             })
+            card["count"] += group["count"]
+            card["assets"] += group["asset_count"] or 0
+            if group["inventory_value_known"]:
+                card["inventory_value"] += group["inventory_value"] or 0.0
+            card["missing"] += group["inventory_value_rate_missing"] or 0
+            card["alerts"] += group.get("alert_count") or 0
+        stocks = sorted(cards.values(), key=lambda card: (card["name"] == OUTSIDE_STOCK,
+                                                          card["name"]))
 
         # 3. alert counts: the selection without the alert filter and the search
-        alert_counts = {}
-        if alerts:
-            alert_domain = self._dashboard_domain(filters, skip=("alert", "search"))
-            values = self._read_group(alert_domain, [], [f"{a}:sum" for a in alerts])[0]
-            alert_counts = {a: value or 0 for a, value in zip(alerts, values)}
+        alert_counts = dict.fromkeys(alerts, 0)
+        for group in groups:
+            if match(group):
+                for name in alerts:
+                    alert_counts[name] += group.get(name) or 0
 
         # 4. counts of the family segment and the ownership chips
-        segment_domain = self._dashboard_domain(
-            filters, skip=("families", "ownerships", "alert", "search"))
+        segment_counts = {}
+        for group in groups:
+            if match(group, skip=("families", "ownerships")):
+                key = (group["family"], group["ownership_status"])
+                segment_counts[key] = segment_counts.get(key, 0) + group["count"]
         segments = [{"family": family, "ownership": ownership, "count": number}
-                    for family, ownership, number in self._read_group(
-                        segment_domain, ["family", "ownership_status"], ["__count"])]
+                    for (family, ownership), number in segment_counts.items()]
 
         # 5. choices of the selectors: every stock the user may see
-        choices = [{"country": country or "", "city": city or "",
-                    "stock": name or OUTSIDE_STOCK, "currency_id": currency.id}
-                   for country, city, name, currency, _count in self._read_group(
-                       [], ["country_name", "city", "stock_name", "currency_id"], ["__count"])]
+        seen = {}
+        for group in groups:
+            key = (group["country_name"] or "", group["city"] or "",
+                   group["stock_name"] or OUTSIDE_STOCK, group["currency_id"])
+            seen[key] = True
+        choices = [{"country": country, "city": city, "stock": stock, "currency_id": currency}
+                   for country, city, stock, currency in seen]
 
         # 6. controls outside the monitor (point 14), staff only, under their own rights
         controls = {}

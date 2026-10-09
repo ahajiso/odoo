@@ -162,6 +162,9 @@ export class StockMonitorDashboard extends Component {
                 limit: PAGE,
                 offset: this.state.offset,
                 order: this.order,
+                // the total comes from get_dashboard_data: count_limit 1 skips the second
+                // count web_search_read would make (its `length` is not used)
+                count_limit: 1,
             });
             if (loadId !== this.loadId) {
                 return;
@@ -186,6 +189,7 @@ export class StockMonitorDashboard extends Component {
                 limit: PAGE,
                 offset: this.state.offset,
                 order: this.order,
+                count_limit: 1,
             });
             if (loadId === this.loadId) {
                 Object.assign(this.state, { rows: page.records, selected: null, detail: null });
