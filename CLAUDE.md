@@ -208,10 +208,14 @@ tests on artdubati_test (47 passing, 08/10/2026).
    path to the operations. Phase 2 done.
 2f. Corrections to phase 2 from the general audit of 09/10/2026 (responsible required,
    accounting treatment shown in the receipt, read-only approver, data to prepare):
-   docs/phase2f/PLAN.md, revision 1 pending audit; deployed before phase 3.
+   docs/phase2f/PLAN.md, revision 2 (adds the equipment cost with date and provisional
+   flag, the treatment from the real bill account, the approver's minimal read rights);
+   green light announced once the audit's corrections are in, then audit of the code;
+   deployed before phase 3.
 3. Stock monitor on revision 2 (SQL view, OWL dashboard, access rules) and rework of the
-   existing code: docs/phase3/PLAN.md revision 3 pending audit (answers the eight
-   blocking corrections and points 12-15); mock-up iteration 2 in docs/phase3/mockup/.
+   existing code: docs/phase3/PLAN.md revision 4 (mock-up's visual direction validated
+   on 09/10/2026; rates mirrored from `_get_rates`, one aggregated dashboard method,
+   negative quants); mock-up in docs/phase3/mockup/. Starts after 2f.
    No business code before the green light.
 4. Home page and investor user setup (review the existing configuration).
 5. Translations, manual rewrite for all phases (cards citing removed or changed fields,

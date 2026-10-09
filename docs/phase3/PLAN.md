@@ -1,7 +1,11 @@
 # Phase 3 plan – stock monitor on revision 2
 
-Status: revision 3 (09/10/2026), for a new audit. No business code written, none
-before the green light of this plan.
+Status: revision 4 (09/10/2026). No business code written.
+- The audit of revision 3 validated the mock-up's visual direction and the answers to
+  the eight blockers. It asked for four corrections and five complements, answered in
+  section 1b.
+- Once they are integrated: green light for phase 2f, then a new audit of its code
+  before deployment. Phase 3 starts afterwards, in the planned order.
 - Revision 1 was audited by ChatGPT: eight blocking corrections.
 - Revision 2 recorded the owner's choice of an OWL dashboard and a first mock-up. Its
   audit was validated in principle, with the eight corrections still due, plus
@@ -12,7 +16,8 @@ before the green light of this plan.
 
 Scope:
 - `maintenance_shareholder_equipment` 18.0.4.0.0: stock attributes, contract currency,
-  equipment cost, removal of the obsolete fields;
+  removal of the obsolete fields (the equipment cost, its date and its provisional
+  flag come from phase 2f);
 - `lartdubati_investor_home` 18.0.2.0.0: monitor, dashboard, access.
 
 It builds on phases 1, 2 and 2f. Home page: phase 4 (only its Financial button is
@@ -76,6 +81,18 @@ Odoo and the existing code:
   (test_stock_access.py), which real investors must not have.
 - Odoo serves the RTL bundle unmirrored when the `rtlcss` command is missing (found
   with the mock-up).
+- Currency rates (odoo/addons/base/models/res_currency.py):
+  - `_get_rates` (line 121) takes for each currency the rate dated on or before the date
+    with `company_id` in (NULL, the root company), ordered by `company_id` then
+    `name DESC`. A company rate is therefore always preferred to a global one,
+    whatever their dates.
+  - When there is no rate before the date, it takes the **earliest later** rate; when
+    there is no rate at all, **1.0**.
+  - `_get_conversion_rate` (line 266) = rate(target) / rate(source) at the same date and
+    for the same company; `_convert` multiplies by it (line 290).
+- The equipment received before its bill is linked to the bill line at posting by
+  `_reconcile_equipment()` (maintenance_shareholder_equipment/models/account_move.py:146),
+  before `_fill_equipment_assets()`.
 
 ## 1. Answers to the audit, point by point
 
@@ -89,13 +106,27 @@ Odoo and the existing code:
 | 6 | Real investors have no Inventory group. Investors read **text labels denormalised in the view**: `product_name`, `category_name`, `equipment_name`, `serial`, `stock_name`, `location_name`, `country_name`, `state_name`, `city`, `uom_name` (translatable jsonb where the source is). The many2one fields carry `groups=` for staff only. Rules filter on ids at SQL level, which needs no right on the co-model. The location filter by country follows the descendants of a stock whose root alone carries the address. | Investor with `base.group_user` + investor only: dashboard, read_group, analysis views and form work, and no co-model is read. The current tests are fixed (no stock group). A sub-location without `address_id` under a Bg/Stock-like stock is visible by country. | — |
 | 7 | Migration order: (a) a precheck before the update (`docs/phase3/precheck.sh`, psql read-only), whose non-zero exit stops the deployment; (b) a post-migration script of 18.0.4.0.0 fills `is_monitor_stock` and the currency before anyone can edit, and refuses to continue if a candidate has no address; (c) after the update, a check that the monitor view exists and that no view depends on a removed column. | Migration rehearsal on the local copy with the old views: precheck failing while the reports exist, then passing; post-migration on Bg/Stock-like and lent_out data; a candidate without address stops the update. | — |
 | 8 | Rent paid and monthly equivalent, defined in §3.6: posted bills only, product lines only, signed `balance` (HT, company currency), refunds deducted (full and partial), each bill converted at its accounting date. P8 formula as proposed by the audit; daily and weekly give NULL and `alert_rent_period_unsupported`, never an approximation. | Bill, partial refund, full refund, draft bill ignored, tax line ignored, bill in a foreign currency, unsupported periodicity, interval 2. | C21 (accountant: HT, non-recoverable VAT) |
-| 9-11 | Corrective phase 2f, planned separately: `docs/phase2f/PLAN.md` (responsible user, accounting treatment shown in the receipt, read-only approver). Must be deployed before phase 3. | In the 2f plan. | In the 2f plan. |
+| 9-11 | Corrective phase 2f, planned separately: `docs/phase2f/PLAN.md` (responsible user, accounting treatment shown in the receipt, read-only approver with minimal read rights, equipment cost with date and provisional flag). Must be deployed before phase 3. | In the 2f plan. | In the 2f plan. |
 | 12 | No full load in the browser: the list uses `web_search_read` (domain, limit, offset, order); cards, stock cards, alerts and counts use `read_group` / `search_count`. Target: initial load under 2 s of server time and under 15 RPCs on 10,000 monitor rows. | Performance test tagged `monitor_perf` (not in the default run) on 10,000 generated rows: time and query counts. Hoot test checking that no RPC asks for more than one page. | P13: target accepted? |
 | 13 | Allowed fields from `fields_get`, which omits fields the user's groups do not allow. The dashboard never asks for an absent field. The analysis views, pivot, export and form use the same model, so the same `groups=` apply. | AccessError for an investor on `read`, `read_group` and `export_data` of a staff field. Hoot test: no column or card for a field absent from `fields_get`. Tour: the analysis view and export with an investor. | — |
 | 14 | Equipment to complete (`integration_state != done`) stays **out of the monitor**: no row, no value. It is counted in a separate « controls outside the monitor » block for staff only, by `search_count` under the user's own rights; serial numbers in stock without equipment are counted the same way. The mock-up shows it this way (screenshot 01). | Draft equipment: no row, counted in the control. Investor: no control. | — |
 | 15 | Accessibility and ergonomics, worked into the mock-up and required of the module (§4.5): keyboard, contrast (AA), information not carried by colour alone, large amounts, 1024 px and tablet, full RTL, closable panel with focus restored, states for loading, no result and RPC error. | Hoot tests: Enter opens, Escape closes, focus restored, aria attributes. Screenshots in fr_FR, en_US and fa_IR at 1440, 1024 and 768 px. | — |
 | Data | Data to prepare before phase 3 (address of Bougival, equipment « Test », receipt Bg/IN/00004, user with both Investor and Inventory, old monitor totals): read-only queries and owner decisions in `docs/phase2f/PLAN.md` §5. | — | D1-D4 in the 2f plan. |
 | Deployment | Pinned OCA commits, dbfilter / `list_db = False`, rewritten production procedure, database and filestore backup: added to `docs/deployment/investor_home.md` §0 (prerequisites before production). The production procedure is rewritten in phase 5. | — | — |
+
+## 1b. Answers to the audit of revision 3
+
+| # | Correction retained | Test planned | Owner decision |
+|---|---|---|---|
+| A1 | Equipment cost with a stored date, provisional flag and source. Moved into **phase 2f** (`docs/phase2f/PLAN.md` §2), because it is set by the receipt and by bill posting; phase 3 only reads it. Receipt before bill: order price, receipt date, provisional. Bill before receipt: `abs(balance) / quantity`, accounting date, final. Bill posted after receipt: the estimate is replaced, through `_reconcile_equipment()`. Acquisition without purchase: unit value, execution date. No cost found: NULL and `alert_cost_missing`, never 0. The view no longer uses `quant.in_date`. | In 2f: order price ≠ bill price, bill before and after receipt, foreign currency, partial bill, acquisition, bill reset to draft. | — |
+| A2 | Accounting treatment in the 2f receipt computed from the account the future bill line will actually use (in-memory bill line: fiscal position, `stock_account` input account); message « planned treatment under the current configuration ». Confirmation for company property only (purchase, and acquisition without purchase with its own message), never for borrowed or rented. | In 2f §3. | — |
+| A3 | Independent approver: minimal **read** ACLs on what an operation references (orders, order lines, lots, transfers, moves, contracts, contract lines), no Inventory group, no write. A real interface test (tour) with an approver-only user opening and approving a complete operation. | In 2f §4. | — |
+| A4 | Rates exactly as `_get_rates` / `_get_conversion_rate` (§3.5): same company / global priority, same fallback, factor = rate(target) / rate(source) at the same date and company. `m_rate` holds this effective factor. Odoo's silent fallbacks are flagged instead of hidden: 1.0 → NULL and `m_rate_missing`; later rate → same factor as Odoo plus `m_rate_fallback`. | SQL compared with `res.currency._convert()`: company → stock, foreign → company, foreign A → foreign B, company rate versus global rate, missing on the source side, missing on the target side, later-rate fallback. | — |
+| C1 | `alert_negative_quantity` for negative quants: the row stays visible and is valued as the stock valuation does (negative quantity × AVCO), flagged as an anomaly. | Negative quant: row, signed value, alert. | — |
+| C2 | D2 covers every candidate monitor stock: `Bg/Stock`, `TBER/Stock`, `TIST/Stock` and every `lent_out` location (2f §6). | — | D2 |
+| C3 | 2f: the correction of existing equipment is **mandatory before deployment**. The 2f precheck refuses to deploy while an integrated equipment has no valid responsible, because `@api.constrains` only runs when its trigger fields change. | Precheck blocking on a database with such an equipment. | D1 |
+| C4 | Alert counts and every aggregate of the first display come from **one** ORM method, `get_dashboard_data(domain)`, on the monitor model (§4.3). It runs `read_group` under the user's environment, without sudo, and returns only the fields the user may read. A first display is 2 RPCs. | Query count, groups (an investor gets no staff key), record rules. | — |
+| C5 | Performance measured in the browser too: time from opening the menu to cards and list rendered (Playwright), plus server time. | `monitor_perf` test on 10,000 rows, both measures recorded. | — |
 
 ## 2. Decisions for the owner
 
@@ -111,7 +142,7 @@ Odoo and the existing code:
 | P8 | Monthly equivalent of a rent | Audit's formula (§3.6); daily and weekly are unsupported and raise an anomaly. |
 | P9 | Conversion mode | `historical` by default, `latest` as an option, `none` removed (C12). |
 | P10 | Equipment to complete | Outside the monitor, counted in the staff controls (audit point 14, first option). |
-| P13 | Performance target | Under 2 s of server time and under 15 RPCs for the first display on 10,000 rows. |
+| P13 | Performance target | Under 2 s in the browser (and on the server) and under 15 RPCs for the first display on 10,000 rows; the design needs 2 RPCs (C4). |
 
 ## 3. The view `lartdubati.stock.monitor`
 
@@ -174,10 +205,11 @@ bill, so its `m_rate` and `m_rate_date` are empty; the detail lists the bills.
 | Borrowed / rented | replacement value (NULL and `alert_replacement_missing` if none) | 0 | 0 |
 | Non-stock equipment (vehicle) | as owned, with its asset or cost | 0 | as owned |
 
-- **Equipment `cost`**: the phase 2 receipt sets it at execution to the unit value of
-  the receipt in company currency: the purchase line price, converted at the receipt
-  date, or the `unit_value` of an acquisition. The post-migration fills it for the
-  equipment already integrated, from its receipt move (`price_unit`).
+- **Equipment cost** (phase 2f): `cost` (company currency), `cost_date`,
+  `cost_provisional` and `cost_source` (order, bill, acquisition, manual). A provisional
+  cost makes the inventory value provisional (`inventory_provisional`, shown with the
+  « provisional » tag). With no cost, the inventory value is NULL and
+  `alert_cost_missing` is raised, never a silent 0.
 - **AVCO** is the company's `standard_price` of the product.
 - **C19** is split. Test choice: the inventory value of equipment without an asset is
   its purchase cost; its accounting value is what the books carry (stock valuation if
@@ -190,16 +222,29 @@ uses the last rate.
 | Measure | Source currency | Date (`historical`) |
 |---|---|---|
 | asset values (original, depreciated, accounting, inventory) | company | asset `date_start` |
-| equipment `cost` (inventory value without asset) | company | lot `in_date` of the position quant; non-stock equipment: `create_date` of the equipment |
+| equipment `cost` (inventory value without asset) | company | `cost_date` (phase 2f) |
 | AVCO values (consumables, stock value) | company | date of the monitor (current values) |
 | replacement value | `replacement_currency_id` | `replacement_value_date` |
 | current rent | `equipment_currency_id` of the contract | `date_start` of the active line |
 | rent paid | company (`balance`) | accounting `date` of each bill line |
 
-- The rate is the latest `res.currency.rate` of the company, or without company, dated
-  on or before the date.
-- The company currency without a rate row counts as 1. Any other currency without a
-  rate gives NULL, `m_rate_missing` and `alert_rate_missing`.
+- The rate of each currency is computed exactly as `_get_rates` does (correction A4):
+  - candidate rows have `company_id` NULL or the root company, ordered by
+    `company_id` (the company row first) then `name DESC`, and dated on or before the
+    date;
+  - without such a row, the earliest later row;
+  - without any row, 1.0.
+- `m_rate` = rate(stock currency) / rate(source currency), both at the same date for
+  the same company: the effective factor, as in `_get_conversion_rate`. `m` =
+  `m_source_amount × m_rate`, unrounded in the view; the dashboard rounds with the
+  currency.
+- Deviations from Odoo's silent behaviour, flagged rather than hidden:
+  - a non-company currency without any rate row gets NULL (not 1.0), with
+    `m_rate_missing` and `alert_rate_missing`;
+  - when the earliest later rate is used, the factor is Odoo's, with `m_rate_fallback`.
+  - The company currency without a rate row is 1.0, as in Odoo.
+- Implemented as a SQL function per company and date in the view definition, written
+  to mirror `_get_rates` line by line.
 
 ### 3.6 Rent (point 8)
 - **Active rental line**:
@@ -233,6 +278,9 @@ uses the last rate.
 | `alert_rate_missing` (per measure, through `m_rate_missing`) | blocking | whoever sees the measure |
 | `alert_integrity` (several positive quants for one serial; consumable quant with a third-party owner) | blocking | staff |
 | `alert_no_position` (integrated serial with no positive internal quant) | blocking | staff |
+| `alert_negative_quantity` (negative quant; the row stays, valued as the stock valuation does) | blocking | staff |
+| `alert_cost_missing` (owned equipment without asset and without cost) | blocking | staff |
+| `m_rate_fallback` (a later rate used, as Odoo does) | to check | whoever sees the measure |
 | `alert_outside_stock` | blocking | staff |
 | `alert_rental_ended` (latest rental line ended, item still in an internal stock) | blocking | staff |
 | `alert_asset_removed`, `alert_asset_missing` | blocking | accountants |
@@ -242,9 +290,12 @@ uses the last rate.
 | `alert_no_asset` | to check | staff |
 | `alert_no_responsible` (phase 2f) | to check | staff |
 | `accounting_provisional` (draft asset) | to check | accountants |
+| `inventory_provisional` (provisional cost, phase 2f) | to check | staff |
 
 Investors see only the rate alerts of the measures they see (`inventory_value_rate_missing`,
 `replacement_value_rate_missing`).
+Alert columns are integers 0/1 with the `sum` aggregator, so that a single `read_group`
+counts them all (C4).
 
 ## 4. Interface
 
@@ -287,22 +338,34 @@ Action `lartdubati_investor_home.action_stock_monitor_analysis` on the same mode
   works for investors too.
 Exports go through the standard export, limited to the fields from `fields_get`.
 
-### 4.3 Data access (points 12 and 13)
-- `fields_get` first; only the allowed fields are requested.
-- Cards and stock cards: `read_group` on `currency_id` (and `stock_name`), summing the
-  converted measures. SQL `SUM` ignores NULL.
-- Unconverted amounts: `read_group` with domain `m_rate_missing = True`, grouped by
-  `m_source_currency_id`.
-- Alerts: `read_group` on the alert booleans.
-- Staff controls: `search_count` on maintenance.equipment and stock.quant, only if
-  `check_access_rights` allows it.
-- List: `web_search_read` with domain, limit, offset and order. Detail: `web_read` of
-  the row.
-- Selection lists: `read_group` on `country_name`, `city` and `stock_name`.
-- All calls go through the ORM with the user's environment. No controller, no
+### 4.3 Data access (points 12 and 13, complement C4)
+- **One aggregated method** `get_dashboard_data(domain)` on `lartdubati.stock.monitor`
+  (public, no sudo). It runs, under the user's environment and therefore under the
+  record rules:
+  - one `read_group` grouped by `currency_id`, summing the converted measures (SQL
+    `SUM` ignores NULL);
+  - one `read_group` grouped by `stock_name`, `currency_id` (stock cards);
+  - one `read_group` per visible measure on `m_rate_missing = 1`, grouped by
+    `m_source_currency_id` (unconverted amounts, at most six);
+  - one `read_group` with no grouping summing every alert column (counts);
+  - one `read_group` grouped by `country_name`, `city`, `stock_name` (selection lists);
+  - for staff only, `search_count` on maintenance.equipment and stock.quant (controls
+    outside the monitor), only if `check_access_rights` allows it.
+- Fields not readable by the user (`_has_field_access` / `fields_get` of the user) are
+  left out of every aggregate, so the method never returns or computes a figure the
+  user could not read directly.
+- First display: 1 RPC for the aggregates and 1 RPC for the list page
+  (`web_search_read` with domain, limit 25, offset, order), plus the `fields_get` the
+  client action needs. Each filter change: the same 2 RPCs. Detail: `web_read` of the
+  row.
+- Everything goes through the ORM with the user's environment. No controller, no
   `sudo()`, no raw SQL in Python: the only SQL is the view definition.
 - RPC errors are caught: a banner with « Retry » is shown and the previous figures are
   never kept as if current.
+- Performance (P13, C5), measured on 10,000 generated rows:
+  - server time of `get_dashboard_data` plus the list page;
+  - time in the browser from opening the menu to the cards and the list being rendered
+    (Playwright), with the local and the server figures recorded in the test report.
 
 ### 4.4 Mock-up (iteration 2, for the owner's validation)
 `docs/phase3/mockup/`:
@@ -365,7 +428,6 @@ It prints the lists in every case.
 ### 6.2 Post-migration `maintenance_shareholder_equipment/migrations/18.0.4.0.0/post-migrate.py`
 - Flags the candidates `is_monitor_stock`.
 - Sets their currency to the company currency.
-- Fills `equipment.cost` for the integrated equipment from its receipt move.
 - Moves `stock_monitor_currency_mode = none` to `latest`.
 - Writes through the ORM, so the constraints run. A candidate without an address
   raises, the update fails and the deployment script stops (backup restore documented,
@@ -404,6 +466,12 @@ The tests of section 1, plus:
   - a monitor stock without address is refused;
   - a lent_out location that is not a monitor stock is refused;
   - an equipment line on a contract with `automatic_price` is refused;
+- conversions compared with `res.currency._convert()`, on the cases of A4;
+- `get_dashboard_data`:
+  - query count;
+  - an investor gets no staff or accountant key;
+  - totals restricted by the access profile;
+- negative quant (C1);
 - the 98 tests of phases 1-2 and those of 2f still pass.
 
 ## 8. Order of work (small commits)
@@ -411,7 +479,7 @@ The tests of section 1, plus:
 2. Audit of this plan (revision 3) and of the 2f plan. No business code before their
    green light.
 3. Phase 2f (its own plan), deployed before phase 3.
-4. stock.location, contract currency, equipment cost, constraints, migration, with
+4. stock.location, contract currency, constraints, migration, with
    tests.
 5. SQL view and model (§3), with tests.
 6. Access (§5), with tests.
