@@ -28,16 +28,16 @@ APPROVER_SCOPE = {
                       ("contract_id.equipment_operation_created_ids", "!=", False),
                       ("equipment_operation_stop_ids", "!=", False)],
     "account.move": [("equipment_operation_ids", "!=", False)],
-    # lines of the documents above: their forms load them
+    # lines of the documents above: their forms load them. Move lines need nothing:
+    # standard stock gives every internal user read access to all of them
+    # (access_stock_move_line_all), the approver included.
     "account.move.line": [("move_id.equipment_operation_ids", "!=", False)],
-    "stock.move.line": ["|", ("move_id.equipment_operation_id", "!=", False),
-                        ("picking_id.equipment_operation_id", "!=", False)],
     # the contract form loads its modification history (OCA contract)
     "contract.modification": ["|", ("contract_id.equipment_operation_ids", "!=", False),
                               ("contract_id.equipment_operation_created_ids", "!=", False)],
+    # the bill form loads the name of its journal: only the journals of those bills
+    "account.journal": [("equipment_move_ids.equipment_operation_ids", "!=", False)],
 }
-# Read without scope (configuration, not business documents): account.journal, whose
-# name the bill form loads.
 
 
 class ResUsers(models.Model):
@@ -107,3 +107,10 @@ class AccountMove(models.Model):
     equipment_operation_ids = fields.Many2many(
         "equipment.operation", "account_move_equipment_operation_rel",
         "account_move_id", "equipment_operation_id")
+
+
+class AccountJournal(models.Model):
+    _inherit = "account.journal"
+
+    # reverse of account.move.journal_id, for the approver's read rule only (D8)
+    equipment_move_ids = fields.One2many("account.move", "journal_id", string="Journal Entries")

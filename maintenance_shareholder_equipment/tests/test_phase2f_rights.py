@@ -251,9 +251,19 @@ class TestPhase2fApprover(EquipmentCommon):
             ("stock.move", op.picking_ids.move_ids, other_picking.move_ids),
             ("stock.lot", op.line_ids.lot_id, other_lot),
             ("account.move", op.bill_ids, False),
+            ("account.move.line", op.bill_ids.line_ids, False),
+            # move lines: standard stock lets every internal user read them all
+            # (access_stock_move_line_all), so not narrowed
+            ("stock.move.line", op.picking_ids.move_line_ids, False),
+            # journals: only those of the referenced bills (D8, audit of 6cdc8b9)
+            ("account.journal", op.bill_ids.journal_id,
+             self.env["account.journal"].create({"name": "Unrelated (test)", "code": "UNRT",
+                                                 "type": "general",
+                                                 "company_id": self.company.id})),
         ]
         for model, referenced, other in checks:
             with self.subTest(model=model):
+                self.assertTrue(referenced)
                 Model = self.env[model].with_user(approver)
                 self.assertEqual(Model.search([("id", "in", referenced.ids)]).ids, referenced.ids)
                 if other:

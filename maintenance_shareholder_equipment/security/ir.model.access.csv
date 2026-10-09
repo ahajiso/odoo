@@ -26,6 +26,5 @@ access_stock_move_equipment_approver,stock.move equipment approver,stock.model_s
 access_account_move_equipment_approver,account.move equipment approver,account.model_account_move,group_equipment_approver,1,0,0,0
 access_equipment_cost_correction,equipment.cost.correction,model_equipment_cost_correction,account.group_account_manager,1,1,1,1
 access_account_move_line_equipment_approver,account.move.line equipment approver,account.model_account_move_line,group_equipment_approver,1,0,0,0
-access_stock_move_line_equipment_approver,stock.move.line equipment approver,stock.model_stock_move_line,group_equipment_approver,1,0,0,0
 access_contract_modification_equipment_approver,contract.modification equipment approver,contract.model_contract_modification,group_equipment_approver,1,0,0,0
 access_account_journal_equipment_approver,account.journal equipment approver,account.model_account_journal,group_equipment_approver,1,0,0,0
