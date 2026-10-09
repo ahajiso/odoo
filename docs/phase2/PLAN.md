@@ -438,6 +438,11 @@ operator independent). Test `test_user_groups_view.py` (fails on 5ab6c36): both 
 give a visible `sel_groups_*` field, the Maintenance section is a drop-down list again.
 Also: setup_phase2.py says « WILL » instead of « WOULD » with --apply. 91 tests.
 
+## Fix of 09/10/2026 (2): menu position
+
+« Equipment Operations » moved from a direct child of Inventory → Operations (level of
+the sections) to the first item of Inventory → Operations → Transfers. Owner's remark.
+
 ## Open decisions for the owner
 
 - Members of the two new groups on artdubati_test (to give before the tests in the

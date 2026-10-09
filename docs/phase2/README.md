@@ -146,7 +146,7 @@ neither.
 
 ## 8. Checks in the interface
 
-- **Inventory → Operations → Equipment Operations**: the list opens; « New » shows the
+- **Inventory → Operations → Transfers → Equipment Operations**: the list opens; « New » shows the
   form with the statuses Draft / To Approve / Approved / Done.
 - **Settings → Invoicing**, block « Equipment »: the three contract products and the
   three acquisition sources are filled.
@@ -181,3 +181,20 @@ Rollback after a FAILED: as in 4b, with `phase2b_previous_commit` and this backu
 Check: **Settings → Users → <user>**, section Manufacturing: « Maintenance »,
 « Equipment Operations — Execution » and « — Approval » are drop-down lists, without
 developer mode.
+
+## Fix of 09/10/2026 (2): menu position
+
+The menu « Equipment Operations » was a direct child of Inventory → Operations, at the
+level of the sections (Transfers, Adjustments, Procurement). It is now the first item of
+**Inventory → Operations → Transfers**, before Receipts. Data only (menu), no model
+change. Same procedure as the previous fix, with the label `phase2c` and 91 tests:
+
+```bash
+set -o pipefail
+docker exec odoo_db pg_dump -U odoo -Fc artdubati_test \
+  > /opt/odoo/backups/artdubati_test_$(date +%F_%H%M)_phase2c.dump && echo BACKUP OK
+ls -l /opt/odoo/backups/*phase2c.dump
+cd /opt/odoo/addons/custom && git rev-parse HEAD > /opt/odoo/logs/phase2_previous_commit
+git pull && git log --oneline -1
+bash /opt/odoo/addons/custom/docs/deploy_modules.sh /opt/odoo/backups/<file shown by ls>.dump 91 phase2c
+```

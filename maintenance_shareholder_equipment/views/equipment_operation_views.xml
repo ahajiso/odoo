@@ -205,8 +205,9 @@
         </field>
     </record>
 
+    <!-- Inventory → Operations → Transfers, first: supplier receipts go through it. -->
     <menuitem id="menu_equipment_operation_stock" action="action_equipment_operation"
-              parent="stock.menu_stock_warehouse_mgmt" sequence="3"
+              parent="stock.menu_stock_transfers" sequence="0"
               groups="group_equipment_operator,group_equipment_approver"/>
     <menuitem id="menu_equipment_operation_maintenance" action="action_equipment_operation"
               parent="maintenance.menu_maintenance_title" sequence="15"
