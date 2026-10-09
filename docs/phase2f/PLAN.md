@@ -367,7 +367,7 @@ Departures from the plan, each with its reason:
   - They need Chrome and the Python module `websocket-client`. Locally they ran and
     passed.
   - On the server, if `odoo_web` lacks either, they are counted as **skipped**, not
-    failed, so the expected total stays 133. The interface checks of README §8 then
+    failed, so the expected total stays 136. The interface checks of README §8 then
     cover them.
 
 Corrections after the audit of bad8e9f (09/10/2026):
@@ -376,27 +376,50 @@ Corrections after the audit of bad8e9f (09/10/2026):
    `_compute_quantity(..., round=False)`, unit price with `_compute_price()`. The
    operation lines and the equipment still count in the product's unit; the receipt
    and the draft bill convert back without rounding.
-   **Decision for a quantity that is not a whole number of purchase units** (for
-   example 3 pieces with a purchase unit « pair »): refused at the checks, with a
-   message naming the product, the quantity and the purchase unit; never rounded,
-   because rounding would order or bill a quantity that is not received. The test is
-   made with the rounding of the purchase unit. Tests: `TestPhase2fPurchaseUnit`
-   (2 pieces → 1 pair at 120 on the order, received 1, 2 equipment at 60 provisional,
-   bill line in pairs, cost 60 final; 3 pieces refused).
-2. **Approver's access to the lines.** Global read rules added on `account.move.line`
-   (lines of a bill linked to an operation), `stock.move.line` (lines of a move or
-   transfer of an operation) and `contract.modification` (history of a contract of an
-   operation), with the approver's read ACLs. `account.journal` gets an approver read
-   ACL without a rule: configuration, its name is shown on the bill. New tour test
-   `test_approver_alone_opens_every_document_after_execution`: after approval and
-   execution, the approver alone opens the order (with lines), the receipt and the
+   **Quantity that is not a whole number of purchase units** (decision validated in
+   the audit of 6cdc8b9): refused, never rounded. The check and the creation share
+   `_purchase_groups()`, the grouping of the future order lines (product, unit price,
+   taxes): each future order line must be a whole number of its purchase unit's
+   rounding, and the message names the product, the price, the quantity and the
+   purchase unit. Tests `TestPhase2fPurchaseUnit`:
+   - 2 pieces → 1 pair at 120 on the order, received 1, 2 equipment at 60 provisional,
+     bill line in pairs, cost 60 final;
+   - 3 pieces refused;
+   - 2 pieces at 60 and 70 (1 pair in total, but two order lines of half a pair)
+     refused; same with two different taxes;
+   - 6 pieces in three (price, tax) pairs → three order lines of 1 pair each, each
+     operation line linked to its own order line.
+2. **Approver's access to the lines.** Global read rules and approver read ACLs on:
+   - `account.move.line`: lines of a bill linked to an operation;
+   - `contract.modification`: history of a contract of an operation;
+   - `account.journal`: only the journals of those bills (D8; audit of 6cdc8b9: no
+     global access). Through a reverse relation `account.journal.equipment_move_ids`
+     (moves of the journal), used only by this rule.
+   Not narrowed: `stock.move.line`. Standard stock gives every internal user read,
+   write, create and delete on all move lines (`stock/security/ir.model.access.csv`,
+   `access_stock_move_line_all`, group `base.group_user`); the approver has it as an
+   internal user, so a rule from our module could not narrow it without narrowing a
+   standard right of every internal user. The ACL and rule drafted for it were
+   removed. To be kept in mind for the investors (phase 3: they are internal users).
+   Tour test `test_approver_alone_opens_every_document_after_execution`: after approval
+   and execution, the approver alone opens the order (with lines), the receipt and the
    detailed operations of its move (serial number shown), the lot, the bill (with
    lines) and the contract of a borrowed equipment (with lines), each without an
    error dialog. The test enables « Lots & Serial Numbers » for internal users, as on
-   artdubati_test (phase 0); without it the serial column is hidden.
+   artdubati_test (phase 0); without it the serial column is hidden. The scope test
+   also checks the bill lines, the move lines and the journals (the bill's journal
+   readable, an unrelated journal refused).
 3. **`setup_phase2f.py`**: `--responsible ID=login` is refused unless ID is in the D1
    list (integrated equipment without a responsible) and `--archive-equipment ID`
-   unless ID is in the D3 list; both before any write, in dry run too.
+   unless ID is in the D3 list; both before any write, in dry run too. Run for real
+   (`check_setup_phase2f.py`, local only) through JSON-RPC against a local Odoo serving
+   the phase 2 code (2345e7e) on a local database with the rehearsal data (D1 = 1, 2,
+   3; D3 = 4; equipment 5 in neither list), state read before and after each case:
+   unchanged script refusing --apply on another database; valid D1 and D3 targets
+   (dry run); target outside D1, outside D3 refused; valid D1 + invalid D3 and invalid
+   D1 + valid D3 with --apply: nothing written; valid D1 and D3 with --apply: both
+   written, equipment 5 untouched. 8/8 OK. For the --apply cases the harness replaces,
+   in memory, the `ALLOWED_DB` constant by the local database name.
 4. **Currency of the acquisition value**: label « Unit Value (excl. tax, company
    currency) » and monetary widget with the company currency symbol on the line.
 5. **Owner's rule « (HT) » (09/10/2026)**: every price or cost label says it is
@@ -408,7 +431,8 @@ Corrections after the audit of bad8e9f (09/10/2026):
    only).
 
 Verified locally:
-- 133 tests (Odoo 18, local OCA heads), the three tours included;
+- 136 tests (Odoo 18, local OCA heads), the three tour tests included, executed and
+  not skipped (each of their 7 tours reaches its last step in the log);
 - full rehearsal of the deployment on a database made with the phase 2 code (2345e7e):
   - the precheck fails on the 3 integrated equipment without a responsible and the open
     receipt;

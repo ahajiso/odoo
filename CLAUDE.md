@@ -216,8 +216,8 @@ tests on artdubati_test (47 passing, 08/10/2026).
    flag and source; treatment from the real bill account, frozen in the approval;
    approver's read scope limited to referenced documents; deployment order fetch →
    setup → precheck → stop → update). P9, P10, P13, D6, D7 and D8 accepted; development
-   authorised on 09/10/2026 (audit of 24d9027). Developed on the branch: 130 tests
-   passing locally (2 interface tours included), deployment rehearsed on a database
+   authorised on 09/10/2026 (audit of 24d9027). Developed on the branch: 136 tests
+   passing locally (3 interface tour tests included), deployment rehearsed on a database
    made with the phase 2 code (docs/phase2f/README.md, PLAN.md §8). Pending: audit of
    the code, then deployment by the owner; deployed before phase 3.
 3. Stock monitor on revision 2 (SQL view, OWL dashboard, access rules) and rework of the
