@@ -14,7 +14,7 @@ Expected tests: **141 tests** (both modules), including the 3 interface tours. T
 counted even when skipped: the tours need Chrome, which the `odoo_web` image may not
 have.
 
-**Run nothing before the audit of the code and the owner's go.**
+**Deployed on artdubati_test on 09/10/2026 (main 8c71b35): see CLAUDE.md, phase 2f.**
 
 **Fetching the code is not deploying it.** Steps 2 to 4 run while the current version
 keeps serving; the modules change only at step 6.

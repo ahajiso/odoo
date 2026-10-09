@@ -216,10 +216,18 @@ tests on artdubati_test (47 passing, 08/10/2026).
    flag and source; treatment from the real bill account, frozen in the approval;
    approver's read scope limited to referenced documents; deployment order fetch →
    setup → precheck → stop → update). P9, P10, P13, D6, D7 and D8 accepted; development
-   authorised on 09/10/2026 (audit of 24d9027). Developed on the branch: 141 tests
-   passing locally (3 interface tour tests included), deployment rehearsed on a database
-   made with the phase 2 code (docs/phase2f/README.md, PLAN.md §8). Pending: audit of
-   the code, then deployment by the owner; deployed before phase 3.
+   authorised on 09/10/2026 (audit of 24d9027). Audited (corrections up to 4908235,
+   precheck --keep-receipt 5b968de), merged into main (8c71b35) and deployed on
+   artdubati_test on 09/10/2026 (docs/phase2f/README.md): backups (database, filestore
+   at /var/lib/odoo/.local/share/Odoo/filestore), D1 and D3 clean, D4 none open
+   (Bg/IN/00004 received through EQOP/2026/0437), D5 investor group removed from
+   f.i.1@febitmail.com, PRECHECK OK, update OK, 141 tests 0 failed (the 3 tour tests
+   skipped: no websocket-client / Chrome in odoo_web; covered by the interface checks),
+   migration: 1 cost from its order (equipment 484, 15 € HT provisional, P00165),
+   0 unknown; functional checks validated by the audit. Phase 2f done.
+   Open: the saw's draft bill (P00165, account 607000, no fixed asset) is not posted
+   until it is decided whether it is capitalised (C19); stock addresses of Bg/Stock,
+   TBER/Stock, TIST/Stock (at least city and country) before phase 3.
 3. Stock monitor on revision 2 (SQL view, OWL dashboard, access rules) and rework of the
    existing code: docs/phase3/PLAN.md revision 5 (mock-up's visual direction validated
    on 09/10/2026; rates mirrored from `_get_rates` inside the view, no PostgreSQL
