@@ -1,0 +1,392 @@
+// Stock monitor dashboard (phase 3, from the validated mock-up). Odoo backend variables
+// only, no external font.
+// Text colours reach WCAG AA (4.5:1) on their background; logical properties for RTL.
+$smm-text: #1f2933;
+$smm-sub: #5f6b7a;
+$smm-owned: #1b5e20;
+$smm-borrowed: #1565c0;
+$smm-rented: #9a4600;
+$smm-lent_out: #7b1fa2;
+$smm-danger: #b71c1c;
+$smm-warning: #8a4500;
+$smm-focus: #1565c0;
+$smm-radius: 12px;
+
+.o_smm {
+    height: 100%;
+    overflow: hidden;
+    background: #f4f5f7;
+    color: $smm-text;
+    font-size: 0.95rem;
+
+    .o_smm_layout {
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        height: 100%;
+        min-height: 0;
+    }
+    .o_smm_scroll {
+        flex: 1 1 auto;
+        overflow: auto;
+        padding: 20px 24px 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-width: 0;
+        > * { flex: none; }
+    }
+    // Visible keyboard focus everywhere.
+    // Chrome does not paint an outline on a table row: the cells carry the focus ring.
+    .o_smm_table tbody tr:focus { outline: none; }
+    .o_smm_table tbody tr:focus-visible td {
+        background: #e3edfb;
+        box-shadow: inset 0 3px 0 $smm-focus, inset 0 -3px 0 $smm-focus;
+    }
+    button:focus-visible, input:focus-visible, select:focus-visible, .o_smm_select:focus-visible {
+        outline: 3px solid $smm-focus !important;
+        outline-offset: 2px;
+    }
+    .o_smm_muted { color: $smm-sub; }
+    .o_smm_text_danger { color: $smm-danger; }
+    .o_smm_text_warning { color: $smm-warning; }
+    .o_smm_item_sub { color: $smm-sub; font-size: 0.82rem; }
+    .o_smm_num { font-variant-numeric: tabular-nums; }
+    // Amounts keep their own direction inside RTL text.
+    bdi, .o_smm_card_big, .o_smm_stock_value { unicode-bidi: plaintext; }
+    .o_smm_count {
+        display: inline-block;
+        min-width: 1.6em;
+        padding: 0 6px;
+        margin-inline-start: 6px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.08);
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-align: center;
+    }
+    .o_smm_tag {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: $smm-sub;
+    }
+    .o_smm_tag_prov { color: $smm-warning; }
+    .o_smm_tag_danger, .o_smm_unconverted { color: $smm-danger; font-weight: 600; }
+
+    // Header ---------------------------------------------------------------------------
+    .o_smm_header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .o_smm_title { font-size: 1.6rem; font-weight: 700; margin: 0; }
+    .o_smm_subtitle { color: $smm-sub; }
+    .o_smm_header_actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+
+    // States -----------------------------------------------------------------------------
+    .o_smm_error {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: $smm-radius;
+        background: #fdecea;
+        color: $smm-danger;
+        border: 1px solid #f5c2c0;
+    }
+    .o_smm_loading { color: $smm-sub; font-weight: 600; }
+    .o_smm_sk {
+        border-radius: 6px;
+        background: linear-gradient(90deg, #e9ecf0 25%, #f4f6f8 50%, #e9ecf0 75%);
+        background-size: 200% 100%;
+        animation: o_smm_shimmer 1.4s infinite;
+    }
+    .o_smm_sk_title { height: 12px; width: 50%; }
+    .o_smm_sk_big { height: 26px; width: 80%; margin-top: 10px; }
+    .o_smm_sk_line { height: 10px; width: 65%; margin-top: 18px; }
+    .o_smm_sk_row { display: flex; gap: 24px; padding: 18px 16px; border-bottom: 1px solid #eef0f3; }
+    .o_smm_sk_cell { height: 14px; flex: 1; }
+    .o_smm_empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        text-align: center;
+        color: $smm-sub;
+        padding: 40px 16px;
+    }
+    .o_smm_empty_title { font-weight: 700; color: $smm-text; }
+
+    // Panels ------------------------------------------------------------------------------
+    .o_smm_panel {
+        background: #fff;
+        border-radius: $smm-radius;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+    }
+    .o_smm_filters { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+    .o_smm_selectors { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+    .o_smm_field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 180px;
+        flex: 1 1 180px;
+        > span { font-size: 0.78rem; font-weight: 600; color: $smm-sub; text-transform: uppercase; letter-spacing: 0.03em; }
+        &.o_smm_field_stock { flex: 2 1 260px; }
+    }
+    .o_smm_select {
+        width: 100%;
+        min-height: 40px;
+        border: 1px solid #c9d1dc !important;
+        border-radius: 8px !important;
+        background: #fff;
+        padding: 6px 10px;
+        font-weight: 600;
+    }
+    .o_smm_toggles { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .o_smm_segment {
+        display: inline-flex;
+        background: #eef0f3;
+        border-radius: 10px;
+        padding: 3px;
+        button {
+            border: 0;
+            background: transparent;
+            padding: 7px 12px;
+            min-height: 36px;
+            border-radius: 8px;
+            color: #3e4856;
+            font-weight: 600;
+            &.active { background: #fff; color: $smm-text; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15); }
+        }
+    }
+    .o_smm_chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .o_smm_chip {
+        border: 1px solid #c9d1dc;
+        background: #fff;
+        border-radius: 20px;
+        padding: 6px 12px;
+        min-height: 36px;
+        font-weight: 600;
+        color: #3e4856;
+        i { margin-inline-end: 6px; font-size: 0.85rem; }
+        &.active { border-width: 2px; }
+    }
+    @each $key, $color in (owned: $smm-owned, borrowed: $smm-borrowed, rented: $smm-rented, lent_out: $smm-lent_out) {
+        .o_smm_chip.o_smm_#{$key} {
+            i { color: $color; }
+            &.active { background: rgba($color, 0.1); border-color: $color; color: $color; }
+        }
+        .o_smm_badge.o_smm_#{$key} { background: rgba($color, 0.1); color: $color; }
+    }
+    .o_smm_badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        white-space: nowrap;
+        i { font-size: 0.75rem; }
+    }
+
+    // Stock cards -----------------------------------------------------------------------
+    .o_smm_stocks {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(220px, 1fr);
+        gap: 12px;
+        overflow-x: auto;
+        padding: 3px 3px 6px;
+    }
+    .o_smm_stock {
+        text-align: start;
+        border: 2px solid transparent;
+        background: #fff;
+        border-radius: $smm-radius;
+        padding: 12px 14px;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        &:hover { border-color: #c9d1dc; }
+        &.active { border-color: $o-brand-primary; background: rgba($o-brand-primary, 0.05); }
+        &.o_smm_stock_outside { border-style: dashed; border-color: #d08a8a; }
+    }
+    .o_smm_stock_head { display: flex; justify-content: space-between; gap: 8px; }
+    .o_smm_stock_name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .o_smm_stock_place { color: $smm-sub; font-size: 0.85rem; i { margin-inline-end: 4px; } }
+    .o_smm_cur { margin-inline-start: 6px; padding: 0 6px; border-radius: 6px; background: #eef0f3; font-size: 0.75rem; font-weight: 700; color: #3e4856; }
+    .o_smm_stock_value { font-size: 1.25rem; font-weight: 700; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+    .o_smm_stock_counts { color: $smm-sub; font-size: 0.82rem; }
+    .o_smm_alert_badge { color: $smm-warning; font-weight: 700; font-size: 0.82rem; white-space: nowrap; }
+
+    // Summary cards ----------------------------------------------------------------------
+    .o_smm_notice {
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: #e8f0fe;
+        color: #1a4fa0;
+        font-size: 0.88rem;
+    }
+    .o_smm_cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+    .o_smm_card {
+        background: #fff;
+        border-radius: $smm-radius;
+        padding: 14px 16px;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+        border-top: 4px solid #9aa5b4;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+    .o_smm_card_inv { border-top-color: $o-brand-primary; }
+    .o_smm_card_stock { border-top-color: #00796b; }
+    .o_smm_card_acct { border-top-color: $smm-owned; }
+    .o_smm_card_rent { border-top-color: $smm-rented; }
+    .o_smm_card_paid { border-top-color: #546e7a; }
+    .o_smm_card_title { font-size: 0.8rem; font-weight: 700; color: $smm-sub; text-transform: uppercase; letter-spacing: 0.03em; }
+    .o_smm_card_big { font-size: 1.3rem; font-weight: 700; color: $smm-text; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+    .o_smm_card_counts .o_smm_card_big { font-size: 1.2rem; }
+    .o_smm_card_missing { color: $smm-danger; font-weight: 600; font-size: 0.88rem; }
+    .o_smm_card_prov { color: $smm-warning; font-weight: 600; font-size: 0.88rem; }
+    .o_smm_card_note { margin-top: auto; color: $smm-sub; font-size: 0.78rem; }
+    .o_smm_skeleton { min-height: 120px; }
+
+    // Alerts --------------------------------------------------------------------------------
+    .o_smm_alerts { padding: 4px 8px 8px; }
+    .o_smm_alerts_head {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        border: 0;
+        background: transparent;
+        padding: 8px;
+        font-weight: 700;
+        color: $smm-text;
+    }
+    .o_smm_alert_total { margin-inline-start: 8px; padding: 0 8px; border-radius: 10px; background: $smm-warning; color: #fff; font-size: 0.8rem; }
+    .o_smm_alerts_list { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 8px 4px; }
+    .o_smm_alert {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        padding: 6px 10px;
+        min-height: 36px;
+        font-size: 0.88rem;
+        text-align: start;
+        &.active { box-shadow: 0 0 0 2px currentColor inset; }
+    }
+    .o_smm_alert_danger { background: #fdecea; color: $smm-danger; }
+    .o_smm_alert_warning { background: #fff4e5; color: $smm-warning; }
+    .o_smm_alert_filtering { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-inline-start: 4px; }
+    .o_smm_controls { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 8px 16px; padding-top: 6px; color: $smm-sub; font-size: 0.88rem; }
+    .o_smm_controls_title { font-weight: 700; }
+
+    // List -----------------------------------------------------------------------------------
+    .o_smm_list { padding: 8px 0 0; }
+    .o_smm_list_bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 4px 16px 10px; }
+    .o_smm_search {
+        position: relative;
+        flex: 1 1 280px;
+        i { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); color: $smm-sub; }
+        input { padding-inline-start: 34px; border-radius: 8px; min-height: 40px; }
+    }
+    .o_smm_list_info { color: $smm-sub; font-size: 0.88rem; }
+    .o_smm_table_wrap { overflow-x: auto; }
+    .o_smm_table {
+        margin: 0;
+        th {
+            position: sticky;
+            top: 0;
+            background: #f8f9fb;
+            white-space: nowrap;
+            border-bottom: 1px solid #e3e7ed;
+            padding: 0;
+        }
+        .o_smm_th {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            padding: 10px 8px;
+            color: $smm-sub;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            text-align: inherit;
+        }
+        td { vertical-align: middle; border-color: #eef0f3; }
+        tbody tr { cursor: pointer; &:hover { background: #f8fafc; } }
+        tr.o_smm_row_selected { background: rgba($o-brand-primary, 0.08) !important; box-shadow: inset 4px 0 0 $o-brand-primary; }
+        th:first-child .o_smm_th, td:first-child { padding-inline-start: 16px; }
+        th:last-child, td:last-child { padding-inline-end: 16px; }
+    }
+    .o_smm_table td .o_smm_tag { display: block; }
+    .o_smm_sort_idle { opacity: 0.45; }
+    .o_smm_item { display: flex; align-items: center; gap: 10px; }
+    .o_smm_fam { width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 8px; background: #eef0f3; color: #3e4856; flex: none; }
+    .o_smm_item_name { font-weight: 600; }
+    .o_smm_col_alert { width: 44px; text-align: center; }
+    .o_smm_row_alert { color: $smm-warning; font-weight: 700; white-space: nowrap; }
+    .o_smm_row_alert_n { font-size: 0.75rem; margin-inline-start: 2px; }
+
+    // Detail panel --------------------------------------------------------------------------
+    .o_smm_detail {
+        flex: 0 0 420px;
+        max-width: 420px;
+        background: #fff;
+        border-inline-start: 1px solid #e3e7ed;
+        display: flex;
+        flex-direction: column;
+        box-shadow: -4px 0 16px rgba(16, 24, 40, 0.08);
+    }
+    .o_smm_detail_head {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 16px 18px 12px;
+        border-bottom: 1px solid #eef0f3;
+        h2 { font-size: 1.2rem; font-weight: 700; margin: 2px 0; }
+    }
+    .o_smm_detail_kind { font-size: 0.78rem; font-weight: 700; color: $smm-sub; text-transform: uppercase; }
+    .o_smm_detail_body {
+        flex: 1 1 auto;
+        overflow: auto;
+        padding: 8px 18px 16px;
+        h3 { font-size: 0.8rem; font-weight: 700; color: $smm-sub; text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 0 6px; }
+        dl { display: grid; grid-template-columns: 44% 56%; margin: 0; row-gap: 6px; }
+        dt { font-weight: 400; color: $smm-sub; }
+        dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+    }
+    .o_smm_detail_alert { padding: 8px 10px; border-radius: 8px; margin-top: 8px; font-size: 0.88rem; }
+    .o_smm_conv, .o_smm_bills { padding-inline-start: 18px; margin: 6px 0 0; font-size: 0.88rem; li { margin-bottom: 4px; } }
+    .o_smm_detail_foot { padding: 12px 18px; border-top: 1px solid #eef0f3; }
+
+    // Tablet ----------------------------------------------------------------------------------
+    @media (max-width: 1199.98px) {
+        .o_smm_detail {
+            position: absolute;
+            top: 0;
+            inset-inline-end: 0;
+            bottom: 0;
+            z-index: 10;
+            width: 92%;
+            max-width: 420px;
+        }
+    }
+    @media (max-width: 991.98px) {
+        .o_smm_scroll { padding: 14px 14px 24px; }
+        .o_smm_col_stock { display: none; }
+    }
+}
+
+@keyframes o_smm_shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}

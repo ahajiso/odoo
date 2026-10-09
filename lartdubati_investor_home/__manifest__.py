@@ -19,6 +19,17 @@
         "views/res_config_settings_views.xml",
         "views/stock_monitor_views.xml",
     ],
+    "assets": {
+        "web.assets_backend": [
+            "lartdubati_investor_home/static/src/stock_monitor/**/*",
+        ],
+        "web.assets_tests": [
+            "lartdubati_investor_home/static/tests/tours/**/*",
+        ],
+        "web.assets_unit_tests": [
+            "lartdubati_investor_home/static/tests/**/*.test.js",
+        ],
+    },
     "installable": True,
     "application": False,
 }

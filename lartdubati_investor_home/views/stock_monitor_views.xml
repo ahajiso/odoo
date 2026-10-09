@@ -244,9 +244,18 @@
         </field>
     </record>
 
+    <!-- Main interface: the OWL dashboard (§4.1). Stable XML id, target of the home
+         page's Financial button. -->
+    <record id="action_stock_monitor" model="ir.actions.client">
+        <field name="name">Stock Monitor</field>
+        <field name="tag">lartdubati_stock_monitor</field>
+    </record>
+
     <menuitem id="menu_stock_monitor_root" name="Stock Monitor"
               groups="lartdubati_investor_home.group_stock_investor,stock.group_stock_user,account.group_account_readonly"
-              sequence="45"/>
+              action="action_stock_monitor" sequence="45"/>
+    <menuitem id="menu_stock_monitor_dashboard" name="Dashboard"
+              parent="menu_stock_monitor_root" action="action_stock_monitor" sequence="10"/>
     <menuitem id="menu_stock_monitor_analysis" name="Detailed Analysis"
               parent="menu_stock_monitor_root" action="action_stock_monitor_analysis"
               sequence="20"/>

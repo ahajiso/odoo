@@ -385,9 +385,9 @@ class TestMonitorLabels(MonitorCommon):
         self.assertEqual(row.uom_name, "Units")
 
 
-@tagged("post_install", "-at_install")
-class TestMonitorAccess(MonitorCommon):
-    """§5 and points 6, 13, 1c-4: access profiles and field groups."""
+class MonitorAccessCommon(MonitorCommon):
+    """An investor without Inventory rights, a store user and an accountant; a French
+    stock with a sub-location without address and a German stock."""
 
     @classmethod
     def setUpClass(cls):
@@ -426,6 +426,12 @@ class TestMonitorAccess(MonitorCommon):
         self.Monitor.invalidate_model()
         return self.Monitor.with_user(user).search(
             [("company_id", "=", self.company.id), *domain])
+
+
+
+@tagged("post_install", "-at_install")
+class TestMonitorAccess(MonitorAccessCommon):
+    """§5 and points 6, 13, 1c-4: access profiles and field groups."""
 
     def test_profile_dimensions(self):
         op = self._borrow("MON-ACC1")
@@ -522,7 +528,7 @@ class TestMonitorAccess(MonitorCommon):
 
 
 @tagged("post_install", "-at_install")
-class TestMonitorDashboardData(TestMonitorAccess):
+class TestMonitorDashboardData(MonitorAccessCommon):
     """§4.3: get_dashboard_data, one call under the user's rights."""
 
     def _data(self, user, filters=None):

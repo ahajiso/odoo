@@ -253,31 +253,49 @@ class StockMonitor(models.Model):
                                              readonly=True, groups=ACCOUNTANTS)
 
     # alerts (§3.7): 0/1 integers, summed by read_group
-    alert_rate_missing = fields.Integer(string="Rate Missing", readonly=True, groups=STAFF)
-    alert_integrity = fields.Integer(string="Integrity", readonly=True, groups=STAFF)
-    alert_no_position = fields.Integer(string="No Position", readonly=True, groups=STAFF)
+    alert_rate_missing = fields.Integer(string="Rate Missing", readonly=True, groups=STAFF,
+        help="An amount could not be converted into the stock's currency: it stays in its own "
+        "currency, outside the totals.")
+    alert_integrity = fields.Integer(string="Integrity", readonly=True, groups=STAFF,
+        help="Several positive internal quants for one serial number, or a consumable held for"
+        " a third party: one row, values counted once.")
+    alert_no_position = fields.Integer(string="No Position", readonly=True, groups=STAFF,
+        help="Serial number without any positive quant in an internal location, or non-stock "
+        "equipment without a location.")
     alert_negative_quantity = fields.Integer(string="Negative Quantity", readonly=True,
-                                             groups=STAFF)
-    alert_cost_missing = fields.Integer(string="Cost Missing", readonly=True, groups=STAFF)
+                                             groups=STAFF,
+        help="Negative quantity on hand, valued as the stock valuation does.")
+    alert_cost_missing = fields.Integer(string="Cost Missing", readonly=True, groups=STAFF,
+        help="Company equipment without a fixed asset and without a known cost.")
     alert_outside_stock = fields.Integer(string="Outside Any Monitor Stock", readonly=True,
-                                         groups=STAFF)
-    alert_rental_ended = fields.Integer(string="Rental Ended", readonly=True, groups=STAFF)
+                                         groups=STAFF,
+        help="Internal location without any monitor stock above it.")
+    alert_rental_ended = fields.Integer(string="Rental Ended", readonly=True, groups=STAFF,
+        help="The rental contract has ended but the item is still in stock.")
     alert_asset_removed = fields.Integer(string="Fixed Asset Removed", readonly=True,
-                                         groups=ACCOUNTANTS)
+                                         groups=ACCOUNTANTS,
+        help="The fixed asset is removed but the item is still in stock.")
     alert_asset_missing = fields.Integer(string="Fixed Asset Missing", readonly=True,
-                                         groups=ACCOUNTANTS)
+                                         groups=ACCOUNTANTS,
+        help="Fixed-asset category without a fixed asset (bill not posted yet).")
     alert_replacement_missing = fields.Integer(string="Replacement Value Missing",
-                                               readonly=True, groups=STAFF)
+                                               readonly=True, groups=STAFF,
+        help="Mandatory for a borrowed or rented item.")
     alert_replacement_old = fields.Integer(string="Replacement Value Too Old",
-                                           readonly=True, groups=STAFF)
+                                           readonly=True, groups=STAFF,
+        help="Older than the validity set in the settings.")
     alert_lent_uninsured = fields.Integer(string="Lent Out Uninsured", readonly=True,
-                                          groups=STAFF)
+                                          groups=STAFF,
+        help="Company property held by a third party, not insured.")
     alert_rent_period_unsupported = fields.Integer(string="Rent Periodicity Unsupported",
-                                                   readonly=True, groups=STAFF)
+                                                   readonly=True, groups=STAFF,
+        help="Weekly or daily rent: no monthly equivalent, left out of the current rents.")
     alert_no_asset = fields.Integer(string="No Fixed Asset (Expensed)", readonly=True,
-                                    groups=STAFF)
+                                    groups=STAFF,
+        help="Category without fixed asset: expensed, no accounting value.")
     alert_no_responsible = fields.Integer(string="No Responsible", readonly=True,
-                                          groups=STAFF)
+                                          groups=STAFF,
+        help="An integrated equipment needs a responsible.")
     alert_count = fields.Integer(string="Alerts", readonly=True, groups=STAFF)
 
     def init(self):
@@ -752,5 +770,8 @@ SELECT m.*,
             "domain": domain, "count": count, "assets": assets, "totals": totals,
             "stocks": stocks, "alerts": alert_counts, "segments": segments,
             "choices": choices, "controls": controls, "staff": staff,
+            # « Open the equipment form » only for users who may read equipment
+            "equipment_access": staff and self.env["maintenance.equipment"].has_access("read"),
             "date": fields.Date.context_today(self),
+            "company_currency_id": self.env.company.currency_id.id,
         }

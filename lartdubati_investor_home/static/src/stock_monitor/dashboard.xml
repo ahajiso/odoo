@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<!-- One amount: converted value, or « unknown », or the source amount not converted. -->
+<t t-name="lartdubati_investor_home.StockMonitorAmount">
+  <t t-if="missing"><span class="o_smm_unconverted"><i class="fa fa-exclamation-circle" aria-hidden="true"/> <bdi t-esc="whole(source, sourceCurrency)"/> <span class="o_smm_tag">not converted</span></span></t>
+  <t t-elif="!known">—</t>
+  <t t-else=""><bdi t-esc="whole(value, currency)"/></t>
+</t>
+
+<t t-name="lartdubati_investor_home.StockMonitorDashboard">
+<div class="o_action o_smm" t-ref="root" t-on-keydown="onKeydown">
+ <div class="o_smm_layout">
+  <div class="o_smm_scroll">
+
+    <header class="o_smm_header">
+      <div>
+        <h1 class="o_smm_title">Stock Monitor</h1>
+        <div class="o_smm_subtitle">Figures on <t t-esc="today"/> · amounts in the currency of each stock</div>
+      </div>
+      <div class="o_smm_header_actions">
+        <button class="btn btn-outline-primary btn-sm o_smm_analysis" t-on-click="openAnalysis">
+          <i class="fa fa-table me-1" aria-hidden="true"/>Detailed analysis
+        </button>
+      </div>
+    </header>
+
+    <div t-if="state.error" class="o_smm_error" role="alert">
+      <i class="fa fa-exclamation-triangle fa-lg" aria-hidden="true"/>
+      <div>
+        <strong>The figures could not be loaded.</strong>
+        <div>The server did not answer. No figure is shown rather than outdated ones.</div>
+      </div>
+      <button class="btn btn-sm btn-danger ms-auto o_smm_retry" t-on-click="retry"><i class="fa fa-repeat me-1" aria-hidden="true"/>Retry</button>
+    </div>
+
+    <section class="o_smm_panel o_smm_filters" aria-label="Selection and filters">
+      <div class="o_smm_selectors">
+        <div class="o_smm_field">
+          <span><i class="fa fa-globe me-1" aria-hidden="true"/>Country</span>
+          <SelectMenu choices="countryChoices" value="single('countries')" onSelect.bind="onCountry" searchable="false" togglerClass="'o_smm_select o_smm_select_country'"/>
+        </div>
+        <div class="o_smm_field">
+          <span><i class="fa fa-map-marker me-1" aria-hidden="true"/>City</span>
+          <SelectMenu choices="cityChoices" value="single('cities')" onSelect.bind="onCity" searchable="false" togglerClass="'o_smm_select o_smm_select_city'"/>
+        </div>
+        <div class="o_smm_field o_smm_field_stock">
+          <span><i class="fa fa-cube me-1" aria-hidden="true"/>Stock</span>
+          <SelectMenu choices="stockChoices" groups="stockGroups" value="single('stocks')" onSelect.bind="onStock" togglerClass="'o_smm_select o_smm_select_stock'"/>
+        </div>
+        <button t-if="hasFilters" class="btn btn-link btn-sm o_smm_reset" t-on-click="resetAll"><i class="fa fa-times me-1" aria-hidden="true"/>Clear all</button>
+      </div>
+      <div class="o_smm_toggles">
+        <div class="o_smm_segment" role="group" aria-label="Family">
+          <button t-att-class="{'active': family === 'all'}" t-att-aria-pressed="family === 'all' ? 'true' : 'false'" t-on-click="() => this.setFamily('all')">All <span class="o_smm_count" t-esc="familyCount('all')"/></button>
+          <button class="o_smm_family_asset" t-att-class="{'active': family === 'asset'}" t-att-aria-pressed="family === 'asset' ? 'true' : 'false'" t-on-click="() => this.setFamily('asset')"><i class="fa fa-wrench me-1" aria-hidden="true"/>Assets <span class="o_smm_count" t-esc="familyCount('asset')"/></button>
+          <button class="o_smm_family_consumable" t-att-class="{'active': family === 'consumable'}" t-att-aria-pressed="family === 'consumable' ? 'true' : 'false'" t-on-click="() => this.setFamily('consumable')"><i class="fa fa-tint me-1" aria-hidden="true"/>Consumables <span class="o_smm_count" t-esc="familyCount('consumable')"/></button>
+        </div>
+        <div class="o_smm_chips" role="group" aria-label="Ownership">
+          <t t-foreach="ownershipKeys" t-as="o" t-key="o.key">
+            <t t-set="pressed" t-value="state.filters.ownerships.includes(o.key)"/>
+            <button class="o_smm_chip" t-att-class="'o_smm_' + o.key + (pressed ? ' active' : '')" t-att-aria-pressed="pressed ? 'true' : 'false'" t-on-click="() => this.toggleOwnership(o.key)">
+              <i t-att-class="'fa ' + (pressed ? 'fa-check' : o.icon)" aria-hidden="true"/>
+              <t t-esc="o.label"/>
+              <span class="o_smm_count" t-esc="ownershipCount(o.key)"/>
+            </button>
+          </t>
+        </div>
+      </div>
+    </section>
+
+    <t t-if="state.loading and !state.data">
+      <div class="o_smm_loading" role="status" aria-live="polite"><i class="fa fa-circle-o-notch fa-spin me-2" aria-hidden="true"/>Loading the figures…</div>
+      <section class="o_smm_cards" aria-hidden="true">
+        <t t-foreach="[1, 2, 3]" t-as="k" t-key="k"><div class="o_smm_card o_smm_skeleton"><div class="o_smm_sk o_smm_sk_title"/><div class="o_smm_sk o_smm_sk_big"/><div class="o_smm_sk o_smm_sk_line"/></div></t>
+      </section>
+    </t>
+
+    <t t-elif="state.data">
+    <div t-if="state.loading" class="o_smm_loading" role="status" aria-live="polite"><i class="fa fa-circle-o-notch fa-spin me-2" aria-hidden="true"/>Updating…</div>
+
+    <section class="o_smm_stocks" aria-label="Stocks">
+      <t t-foreach="stockCards" t-as="c" t-key="c.name + '-' + c.currency_id">
+        <t t-set="active" t-value="single('stocks') === c.name"/>
+        <button class="o_smm_stock" t-att-class="{'active': active, 'o_smm_stock_outside': c.name === OUTSIDE}" t-att-aria-pressed="active ? 'true' : 'false'" t-on-click="() => this.selectStockCard(c)">
+          <div class="o_smm_stock_head">
+            <span class="o_smm_stock_name" t-esc="c.name === OUTSIDE ? 'Outside any monitor stock' : c.name"/>
+            <span t-if="c.alerts" class="o_smm_alert_badge"><i class="fa fa-exclamation-triangle" aria-hidden="true"/> <t t-esc="c.alerts"/><span class="visually-hidden"> alert(s)</span></span>
+          </div>
+          <div class="o_smm_stock_place">
+            <t t-if="c.name !== OUTSIDE">
+              <i t-att-class="c.place_type === 'lent_out' ? 'fa fa-handshake-o' : 'fa fa-building-o'" aria-hidden="true"/>
+              <t t-esc="c.city"/>, <t t-esc="c.country"/>
+            </t>
+            <t t-else="">Internal locations without monitor stock</t>
+          </div>
+          <div class="o_smm_stock_value" t-esc="whole(c.inventory_value, c.currency_id)"/>
+          <div t-if="c.missing" class="o_smm_card_missing"><i class="fa fa-exclamation-circle" aria-hidden="true"/> <t t-esc="c.missing"/> not converted</div>
+          <div class="o_smm_stock_counts"><t t-esc="c.assets"/> assets · <t t-esc="c.count - c.assets"/> consumable lines</div>
+        </button>
+      </t>
+    </section>
+
+    <div t-if="currencyMix" class="o_smm_notice"><i class="fa fa-info-circle me-1" aria-hidden="true"/>Several currencies in the selection: totals are given per currency, never added together.</div>
+    <section class="o_smm_cards" aria-label="Summary">
+      <div class="o_smm_card o_smm_card_count">
+        <div class="o_smm_card_title"><i class="fa fa-cubes" aria-hidden="true"/> Items</div>
+        <div class="o_smm_card_counts">
+          <div><span class="o_smm_card_big" t-esc="countCard.assets"/> assets</div>
+          <div><span class="o_smm_card_big" t-esc="countCard.consumables"/> consumable lines</div>
+        </div>
+        <div class="o_smm_card_note">Consumable quantities: per product (different units)</div>
+      </div>
+      <t t-foreach="cards" t-as="card" t-key="card.key">
+        <div class="o_smm_card" t-att-class="'o_smm_card_' + card.key">
+          <div class="o_smm_card_title"><i t-att-class="'fa ' + card.icon" aria-hidden="true"/> <t t-esc="card.title"/></div>
+          <t t-if="!card.lines.length and !card.missing.length"><div class="o_smm_card_big o_smm_muted">—</div></t>
+          <t t-foreach="card.lines" t-as="line" t-key="line.currency_id">
+            <div class="o_smm_card_line"><span class="o_smm_card_big" t-esc="whole(line.amount, line.currency_id)"/></div>
+          </t>
+          <t t-foreach="card.provisional" t-as="p" t-key="p.currency_id">
+            <div class="o_smm_card_prov"><i class="fa fa-hourglass-half" aria-hidden="true"/> of which <t t-esc="whole(p.amount, p.currency_id)"/> provisional</div>
+          </t>
+          <t t-foreach="card.missing" t-as="m" t-key="m.currency_id">
+            <div class="o_smm_card_missing"><i class="fa fa-exclamation-circle" aria-hidden="true"/> + <t t-esc="whole(m.amount, m.currency_id)"/> not converted, outside the total</div>
+          </t>
+          <div class="o_smm_card_note" t-esc="card.note"/>
+        </div>
+      </t>
+    </section>
+
+    <section t-if="alertTotal or controls.length" class="o_smm_panel o_smm_alerts" aria-label="Alerts and anomalies">
+      <button class="o_smm_alerts_head" t-att-aria-expanded="state.alertsOpen ? 'true' : 'false'" t-on-click="() => this.state.alertsOpen = !state.alertsOpen">
+        <i class="fa fa-bell me-2" aria-hidden="true"/>Alerts and anomalies <span class="o_smm_alert_total" t-esc="alertTotal"/>
+        <i t-att-class="'fa ms-auto ' + (state.alertsOpen ? 'fa-chevron-up' : 'fa-chevron-down')" aria-hidden="true"/>
+      </button>
+      <div t-if="state.alertsOpen" class="o_smm_alerts_list">
+        <t t-foreach="alertSummary" t-as="a" t-key="a.name">
+          <button class="o_smm_alert" t-att-data-alert="a.name" t-att-class="(a.blocking ? 'o_smm_alert_danger' : 'o_smm_alert_warning') + (state.filters.alert === a.name ? ' active' : '')" t-att-aria-pressed="state.filters.alert === a.name ? 'true' : 'false'" t-on-click="() => this.filterAlert(a.name)" t-att-title="a.help">
+            <i t-att-class="a.blocking ? 'fa fa-exclamation-circle' : 'fa fa-exclamation-triangle'" aria-hidden="true"/>
+            <span class="visually-hidden" t-if="a.blocking">Blocking:</span>
+            <span class="visually-hidden" t-else="">To check:</span>
+            <span t-esc="a.label"/>
+            <span class="o_smm_count" t-esc="a.count"/>
+            <span t-if="state.filters.alert === a.name" class="o_smm_alert_filtering">filter on <i class="fa fa-times" aria-hidden="true"/></span>
+          </button>
+        </t>
+        <t t-if="controls.length">
+          <div class="o_smm_controls">
+            <span class="o_smm_controls_title"><i class="fa fa-clipboard me-1" aria-hidden="true"/>Controls outside the monitor:</span>
+            <t t-foreach="controls" t-as="g" t-key="g.key">
+              <span class="o_smm_control"><strong t-esc="g.count"/> <t t-esc="g.text"/></span>
+            </t>
+          </div>
+        </t>
+      </div>
+    </section>
+
+    <section class="o_smm_panel o_smm_list" aria-label="Items">
+      <div class="o_smm_list_bar">
+        <div class="o_smm_search">
+          <i class="fa fa-search" aria-hidden="true"/>
+          <input type="search" class="form-control" aria-label="Search" placeholder="Search a product, a serial number, a location…" t-att-value="state.filters.search" t-on-input="onSearch"/>
+        </div>
+        <div class="o_smm_list_info" aria-live="polite"><t t-esc="state.data.count"/> item(s)</div>
+        <Pager offset="state.offset" limit="limit" total="state.data.count" onUpdate.bind="onPager"/>
+      </div>
+      <div t-if="!state.rows.length" class="o_smm_empty">
+        <i class="fa fa-search fa-2x" aria-hidden="true"/>
+        <div class="o_smm_empty_title">No item matches.</div>
+        <div t-if="!hasFilters">No stock is visible with your access profile. Contact the administrator if this is unexpected.</div>
+        <div t-else="">Change or clear the filters.</div>
+        <button t-if="hasFilters" class="btn btn-outline-primary btn-sm mt-2" t-on-click="resetAll">Clear the filters</button>
+      </div>
+      <div t-else="" class="o_smm_table_wrap">
+        <table class="table o_smm_table">
+          <caption class="visually-hidden">Items of the monitor; Enter opens the detail, Escape closes it.</caption>
+          <thead>
+            <tr>
+              <th t-att-aria-sort="ariaSort('product_name')"><button class="o_smm_th" t-on-click="() => this.sortBy('product_name')">Item <i t-att-class="sortIcon('product_name')" aria-hidden="true"/></button></th>
+              <th class="o_smm_col_stock" t-att-aria-sort="ariaSort('stock_name')"><button class="o_smm_th" t-on-click="() => this.sortBy('stock_name')">Stock <i t-att-class="sortIcon('stock_name')" aria-hidden="true"/></button></th>
+              <th t-att-aria-sort="ariaSort('ownership_status')"><button class="o_smm_th" t-on-click="() => this.sortBy('ownership_status')">Ownership <i t-att-class="sortIcon('ownership_status')" aria-hidden="true"/></button></th>
+              <th class="text-end" t-att-aria-sort="ariaSort('quantity')"><button class="o_smm_th" t-on-click="() => this.sortBy('quantity')">Qty <i t-att-class="sortIcon('quantity')" aria-hidden="true"/></button></th>
+              <th class="text-end" t-att-aria-sort="ariaSort('inventory_value')"><button class="o_smm_th" t-on-click="() => this.sortBy('inventory_value')">Inventory value <i t-att-class="sortIcon('inventory_value')" aria-hidden="true"/></button></th>
+              <th t-if="has('accounting_value')" class="text-end o_smm_col_accounting" t-att-aria-sort="ariaSort('accounting_value')"><button class="o_smm_th" t-on-click="() => this.sortBy('accounting_value')">Net book value <i t-att-class="sortIcon('accounting_value')" aria-hidden="true"/></button></th>
+              <th t-if="has('rent_monthly')" class="text-end o_smm_col_rent" t-att-aria-sort="ariaSort('rent_monthly')"><button class="o_smm_th" t-on-click="() => this.sortBy('rent_monthly')">Rent <i t-att-class="sortIcon('rent_monthly')" aria-hidden="true"/></button></th>
+              <th class="o_smm_col_alert"><span class="visually-hidden">Alerts</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <t t-foreach="state.rows" t-as="row" t-key="row.id">
+              <tr tabindex="0" class="o_smm_row" t-att-data-row-id="row.id" t-att-aria-selected="state.selected === row.id ? 'true' : 'false'" t-on-click="() => this.openRow(row)" t-on-keydown="(ev) => this.onRowKey(ev, row)" t-att-class="{'o_smm_row_selected': state.selected === row.id}">
+                <td>
+                  <div class="o_smm_item">
+                    <i t-att-class="row.family === 'asset' ? 'fa fa-wrench o_smm_fam' : 'fa fa-tint o_smm_fam'" aria-hidden="true"/>
+                    <div>
+                      <div class="o_smm_item_name" t-esc="row.product_name or row.equipment_name"/>
+                      <div class="o_smm_item_sub">
+                        <span class="visually-hidden" t-esc="selectionLabel('family', row.family)"/>
+                        <t t-if="row.serial">№ <t t-esc="row.serial"/></t>
+                        <t t-else="" t-esc="row.category_name"/>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="o_smm_col_stock">
+                  <div t-if="row.stock_name" t-esc="row.stock_name"/>
+                  <div t-else="" class="o_smm_text_danger">Outside any monitor stock</div>
+                  <div class="o_smm_item_sub" t-if="row.lot_quant_count > 1"><i class="fa fa-clone" aria-hidden="true"/> <t t-esc="row.lot_quant_count"/> locations</div>
+                  <div class="o_smm_item_sub" t-elif="row.location_name and row.location_name !== row.stock_name" t-esc="row.location_name"/>
+                </td>
+                <td><span class="o_smm_badge" t-att-class="'o_smm_' + row.ownership_status"><i t-att-class="'fa ' + OWNERSHIP_ICONS[row.ownership_status]" aria-hidden="true"/> <t t-esc="ownershipLabel(row.ownership_status)"/></span></td>
+                <td class="text-end text-nowrap o_smm_num"><bdi><t t-esc="number(row.quantity)"/> <span class="o_smm_item_sub" t-esc="row.uom_name"/></bdi></td>
+                <td class="text-end text-nowrap o_smm_num">
+                  <t t-call="lartdubati_investor_home.StockMonitorAmount">
+                    <t t-set="known" t-value="row.inventory_value_known"/><t t-set="missing" t-value="row.inventory_value_rate_missing"/>
+                    <t t-set="value" t-value="row.inventory_value"/><t t-set="currency" t-value="row.currency_id"/>
+                    <t t-set="source" t-value="row.inventory_value_source_amount"/><t t-set="sourceCurrency" t-value="row.inventory_value_source_currency_id"/>
+                  </t>
+                </td>
+                <td t-if="has('accounting_value')" class="text-end text-nowrap o_smm_num o_smm_col_accounting">
+                  <t t-call="lartdubati_investor_home.StockMonitorAmount">
+                    <t t-set="known" t-value="row.accounting_value_known"/><t t-set="missing" t-value="row.accounting_value_rate_missing"/>
+                    <t t-set="value" t-value="row.accounting_value"/><t t-set="currency" t-value="row.currency_id"/>
+                    <t t-set="source" t-value="row.accounting_value_source_amount"/><t t-set="sourceCurrency" t-value="row.accounting_value_source_currency_id"/>
+                  </t>
+                  <div t-if="row.accounting_provisional" class="o_smm_tag o_smm_tag_prov"><i class="fa fa-hourglass-half" aria-hidden="true"/> provisional</div>
+                </td>
+                <td t-if="has('rent_monthly')" class="text-end text-nowrap o_smm_col_rent o_smm_num">
+                  <t t-if="row.rent_start">
+                    <div><bdi t-esc="rentLabel(row)"/></div>
+                    <div class="o_smm_tag o_smm_tag_danger" t-if="row.rent_monthly_rate_missing"><i class="fa fa-exclamation-circle" aria-hidden="true"/> not converted</div>
+                    <div class="o_smm_tag" t-elif="!row.rent_monthly_known">no monthly equivalent</div>
+                  </t>
+                </td>
+                <td class="o_smm_col_alert">
+                  <t t-set="ra" t-value="rowAlerts(row)"/>
+                  <span t-if="ra.length" class="o_smm_row_alert" t-att-title="ra.map((name) => alertLabel(name)).join(', ')"><i class="fa fa-exclamation-triangle" aria-hidden="true"/><span class="o_smm_row_alert_n" t-esc="ra.length"/><span class="visually-hidden" t-esc="ra.map((name) => alertLabel(name)).join(', ')"/></span>
+                </td>
+              </tr>
+            </t>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    </t>
+  </div>
+
+  <aside t-if="state.detail" class="o_smm_detail" role="dialog" aria-modal="false" t-att-aria-label="state.detail.product_name">
+    <t t-set="r" t-value="state.detail"/>
+    <div class="o_smm_detail_head">
+      <div>
+        <div class="o_smm_detail_kind"><i t-att-class="r.family === 'asset' ? 'fa fa-wrench' : 'fa fa-tint'" aria-hidden="true"/> <t t-esc="selectionLabel('family', r.family)"/></div>
+        <h2 t-esc="r.product_name or r.equipment_name"/>
+        <div class="o_smm_item_sub" t-if="r.equipment_name and r.product_name" t-esc="r.equipment_name"/>
+        <div class="o_smm_item_sub" t-if="r.serial">Serial number <t t-esc="r.serial"/></div>
+      </div>
+      <button class="btn btn-light btn-sm o_smm_close" t-ref="closeButton" t-on-click="closeDetail" title="Close (Escape)" aria-label="Close the detail"><i class="fa fa-times" aria-hidden="true"/></button>
+    </div>
+    <div class="o_smm_detail_body">
+      <t t-foreach="rowAlerts(r)" t-as="name" t-key="name">
+        <div class="o_smm_detail_alert" t-att-class="alertClass(name)">
+          <i class="fa fa-exclamation-triangle me-1" aria-hidden="true"/><strong t-esc="alertLabel(name)"/> — <t t-esc="fields[name].help or ''"/>
+        </div>
+      </t>
+
+      <h3>Ownership</h3>
+      <dl>
+        <dt>Status</dt><dd><span class="o_smm_badge" t-att-class="'o_smm_' + r.ownership_status"><i t-att-class="'fa ' + OWNERSHIP_ICONS[r.ownership_status]" aria-hidden="true"/> <t t-esc="ownershipLabel(r.ownership_status)"/></span></dd>
+        <t t-if="r.owner_name"><dt t-esc="fields.owner_name.string"/><dd t-esc="r.owner_name"/></t>
+        <t t-if="has('responsible_name') and r.family === 'asset'"><dt t-esc="fields.responsible_name.string"/><dd t-if="r.responsible_name" t-esc="r.responsible_name"/><dd t-else="" class="o_smm_text_warning">not set</dd></t>
+      </dl>
+
+      <h3>Place</h3>
+      <dl>
+        <dt>Stock</dt><dd t-esc="r.stock_name or '—'"/>
+        <dt>Location</dt><dd t-esc="r.location_name or '—'"/>
+        <t t-if="r.city"><dt>City</dt><dd><t t-esc="r.city"/><t t-if="r.state_name">, <t t-esc="r.state_name"/></t>, <t t-esc="r.country_name"/></dd></t>
+      </dl>
+
+      <h3>Values</h3>
+      <dl>
+        <dt>Quantity</dt><dd><bdi><t t-esc="number(r.quantity)"/> <t t-esc="r.uom_name"/></bdi></dd>
+        <t t-foreach="detailMeasures" t-as="m" t-key="m.name">
+          <dt t-esc="m.label"/>
+          <dd>
+            <t t-call="lartdubati_investor_home.StockMonitorAmount">
+              <t t-set="known" t-value="m.known"/><t t-set="missing" t-value="m.missing"/>
+              <t t-set="value" t-value="m.value"/><t t-set="currency" t-value="r.currency_id"/>
+              <t t-set="source" t-value="m.source"/><t t-set="sourceCurrency" t-value="m.sourceCurrency"/>
+            </t>
+            <span t-if="m.name === 'replacement_value' and r.replacement_value_date" class="o_smm_item_sub"> on <t t-esc="date(r.replacement_value_date)"/></span>
+            <span t-if="m.name === 'accounting_value' and r.accounting_provisional" class="o_smm_tag o_smm_tag_prov"><i class="fa fa-hourglass-half" aria-hidden="true"/> provisional</span>
+            <span t-if="m.name === 'inventory_value' and r.inventory_provisional" class="o_smm_tag o_smm_tag_prov"><i class="fa fa-hourglass-half" aria-hidden="true"/> provisional</span>
+          </dd>
+        </t>
+        <t t-if="r.asset_state"><dt t-esc="fields.asset_state.string"/><dd t-esc="selectionLabel('asset_state', r.asset_state)"/></t>
+      </dl>
+
+      <t t-if="r.rent_start">
+        <h3>Rental</h3>
+        <dl>
+          <dt>Rent</dt><dd><bdi t-esc="rentLabel(r)"/></dd>
+          <dt>Period</dt><dd>from <t t-esc="date(r.rent_start)"/><t t-if="r.rent_end"> to <t t-esc="date(r.rent_end)"/></t><t t-else=""> (no end)</t></dd>
+          <t t-if="has('rent_paid')"><dt t-esc="fields.rent_paid.string"/><dd><t t-if="r.rent_paid_rate_missing"><span class="o_smm_unconverted"><bdi t-esc="whole(r.rent_paid_source_amount, state.data.company_currency_id)"/> <span class="o_smm_tag">not converted</span></span></t><t t-else="" t-esc="whole(r.rent_paid, r.currency_id)"/></dd></t>
+        </dl>
+      </t>
+
+      <t t-set="conv" t-value="detailMeasures.filter((m) => m.missing or (m.converted and m.known))"/>
+      <t t-if="conv.length">
+        <h3>Conversions</h3>
+        <ul class="o_smm_conv">
+          <t t-foreach="conv" t-as="c" t-key="c.name">
+            <li t-if="c.missing" class="o_smm_text_danger">
+              <i class="fa fa-exclamation-circle me-1" aria-hidden="true"/><t t-esc="c.label"/>: <strong t-esc="money(c.source, c.sourceCurrency)"/> — no rate on <t t-esc="date(c.rateDate)"/>, outside the totals.
+            </li>
+            <li t-else=""><t t-esc="c.label"/>: <t t-esc="money(c.source, c.sourceCurrency)"/> × <t t-esc="rate(c.rate)"/> (rate of <t t-esc="date(c.rateDate)"/><t t-if="c.fallback">, later rate: none before that date</t>)</li>
+          </t>
+        </ul>
+      </t>
+
+      <h3>Identity</h3>
+      <dl>
+        <dt>Category</dt><dd t-esc="r.category_name or '—'"/>
+        <t t-if="r.warranty_status"><dt t-esc="fields.warranty_status.string"/><dd t-esc="selectionLabel('warranty_status', r.warranty_status)"/></t>
+        <t t-if="r.insurance_status"><dt t-esc="fields.insurance_status.string"/><dd t-esc="selectionLabel('insurance_status', r.insurance_status)"/></t>
+      </dl>
+    </div>
+    <div t-if="state.data and state.data.equipment_access and r.equipment_id" class="o_smm_detail_foot">
+      <button class="btn btn-outline-secondary btn-sm o_smm_open_equipment" t-on-click="openEquipment"><i class="fa fa-external-link me-1" aria-hidden="true"/>Open the equipment form</button>
+    </div>
+  </aside>
+ </div>
+</div>
+</t>
+
+</templates>
