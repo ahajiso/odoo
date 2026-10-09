@@ -363,15 +363,52 @@ Departures from the plan, each with its reason:
     avoids group rules, which Odoo ORs with those of the user's other groups.
   - Bills are included because the operation form shows them (`bill_ids`) once
     executed.
-- **Interface tests**: two tours (HttpCase).
+- **Interface tests**: three tours (HttpCase; the third added after the audit of bad8e9f).
   - They need Chrome and the Python module `websocket-client`. Locally they ran and
     passed.
   - On the server, if `odoo_web` lacks either, they are counted as **skipped**, not
-    failed, so the expected total stays 130. The interface checks of README §8 then
+    failed, so the expected total stays 133. The interface checks of README §8 then
     cover them.
 
+Corrections after the audit of bad8e9f (09/10/2026):
+1. **Order created in the purchase unit.** `_create_purchase_order()` writes the order
+   line in the product's purchase unit (`uom_po_id`): quantity converted with
+   `_compute_quantity(..., round=False)`, unit price with `_compute_price()`. The
+   operation lines and the equipment still count in the product's unit; the receipt
+   and the draft bill convert back without rounding.
+   **Decision for a quantity that is not a whole number of purchase units** (for
+   example 3 pieces with a purchase unit « pair »): refused at the checks, with a
+   message naming the product, the quantity and the purchase unit; never rounded,
+   because rounding would order or bill a quantity that is not received. The test is
+   made with the rounding of the purchase unit. Tests: `TestPhase2fPurchaseUnit`
+   (2 pieces → 1 pair at 120 on the order, received 1, 2 equipment at 60 provisional,
+   bill line in pairs, cost 60 final; 3 pieces refused).
+2. **Approver's access to the lines.** Global read rules added on `account.move.line`
+   (lines of a bill linked to an operation), `stock.move.line` (lines of a move or
+   transfer of an operation) and `contract.modification` (history of a contract of an
+   operation), with the approver's read ACLs. `account.journal` gets an approver read
+   ACL without a rule: configuration, its name is shown on the bill. New tour test
+   `test_approver_alone_opens_every_document_after_execution`: after approval and
+   execution, the approver alone opens the order (with lines), the receipt and the
+   detailed operations of its move (serial number shown), the lot, the bill (with
+   lines) and the contract of a borrowed equipment (with lines), each without an
+   error dialog. The test enables « Lots & Serial Numbers » for internal users, as on
+   artdubati_test (phase 0); without it the serial column is hidden.
+3. **`setup_phase2f.py`**: `--responsible ID=login` is refused unless ID is in the D1
+   list (integrated equipment without a responsible) and `--archive-equipment ID`
+   unless ID is in the D3 list; both before any write, in dry run too.
+4. **Currency of the acquisition value**: label « Unit Value (excl. tax, company
+   currency) » and monetary widget with the company currency symbol on the line.
+5. **Owner's rule « (HT) » (09/10/2026)**: every price or cost label says it is
+   untaxed (DEFINITIONS.md, « Taxes in labels »): unit price, unit value, replacement
+   value, rent per period, cost (equipment, correction wizard, form groups). Not
+   changed: the handover value, whose meaning (and tax basis) waits for the
+   accountant (C9); the « Replacement Price » setting of the monitor, a choice of
+   source and not an amount, which phase 3 removes (moot while consumables are owned
+   only).
+
 Verified locally:
-- 130 tests (Odoo 18, local OCA heads), the two tours included;
+- 133 tests (Odoo 18, local OCA heads), the three tours included;
 - full rehearsal of the deployment on a database made with the phase 2 code (2345e7e):
   - the precheck fails on the 3 integrated equipment without a responsible and the open
     receipt;
