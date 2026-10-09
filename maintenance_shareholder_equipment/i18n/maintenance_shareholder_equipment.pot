@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 11:10+0000\n"
-"PO-Revision-Date: 2026-10-09 11:10+0000\n"
+"POT-Creation-Date: 2026-10-09 13:30+0000\n"
+"PO-Revision-Date: 2026-10-09 13:30+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -35,6 +35,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%(label)s %(name)s belongs to another company."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "%(line)s: planned accounting treatment changed (%(before)s → %(now)s)"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -152,6 +158,12 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "%(order)s – %(product)s"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/stock.py:0
 msgid ""
 "%(product)s %(lot)s belongs to %(owner)s (%(status)s equipment): the stock "
@@ -191,6 +203,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/res_company.py:0
 msgid "%(record)s belongs to another company than %(company)s."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "%s (cancelled)"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -239,12 +257,6 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s cannot go back to draft."
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
-#. odoo-python
-#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
-msgid "%s changed since its approval."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -310,6 +322,12 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "%s: confirmation that it will not create a fixed asset automatically"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s: consumables are always owned (v1)."
 msgstr ""
 
@@ -347,6 +365,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s: replacement value, currency and date"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "%s: responsible (active internal user of the company)"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -405,6 +429,12 @@ msgid "A reason is required to change the ownership."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "A reason is required to correct a cost."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.constraint,message:maintenance_shareholder_equipment.constraint_maintenance_equipment_stock_lot_uniq
 msgid "A serial number can belong to one equipment only."
 msgstr ""
@@ -431,6 +461,12 @@ msgid "Account"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__accounting_treatment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Accounting Treatment"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__acquisition_mode
 msgid "Acquisition Mode (obsolete)"
 msgstr ""
@@ -442,6 +478,7 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__receipt_branch__acquisition
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__cost_source__acquisition
 msgid "Acquisition without Purchase"
 msgstr ""
 
@@ -665,6 +702,7 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_cost_correction_form
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_ownership_correction_form
 msgid "Cancel"
 msgstr ""
@@ -672,6 +710,11 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__state__cancel
 msgid "Cancelled"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__cost_source__bill_cancelled
+msgid "Cancelled Bill"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -716,6 +759,13 @@ msgid "Company Partner"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation_line__no_asset_confirmed
+msgid ""
+"Company property whose planned treatment creates no fixed asset: the "
+"operator confirms it. Part of the approval."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__condition
 msgid "Condition"
 msgstr ""
@@ -738,6 +788,11 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__confirmed
 msgid "Confirmed"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__no_asset_confirmed
+msgid "Confirmed: no fixed asset"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -820,8 +875,16 @@ msgid "Contribution to a Shareholder Current Account"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_cost_correction_form
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_ownership_correction_form
 msgid "Correct"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.actions.act_window,name:maintenance_shareholder_equipment.action_equipment_cost_correction
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_cost_correction_form
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
+msgid "Correct Cost"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -832,8 +895,55 @@ msgid "Correct Ownership"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_equipment_cost_correction
+msgid "Correct the cost of an equipment"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_equipment_ownership_correction
 msgid "Correct the ownership of an equipment"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__cost
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__cost
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
+msgid "Cost"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid ""
+"Cost %(cost)s %(currency)s (%(state)s), source: %(origin)s %(ref)s, date "
+"%(date)s, by %(user)s."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__cost_date
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__cost_date
+msgid "Cost Date"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__cost_known
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__cost_known
+msgid "Cost Known"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__cost_provisional
+msgid "Cost Provisional"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__cost_reference
+msgid "Cost Reference"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__cost_source
+msgid "Cost Source"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -852,6 +962,7 @@ msgid "Created Records"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__create_uid
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__create_uid
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__create_uid
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__create_uid
@@ -860,6 +971,7 @@ msgid "Created by"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__create_date
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__create_date
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__create_date
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__create_date
@@ -868,6 +980,7 @@ msgid "Created on"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__currency_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__currency_id
 msgid "Currency"
 msgstr ""
@@ -910,11 +1023,17 @@ msgid ""
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__display_name
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__display_name
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__display_name
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__display_name
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__display_name
 msgid "Display Name"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_maintenance_equipment__cost_reference
+msgid "Document the cost comes from."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -953,9 +1072,11 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__equipment_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__equipment_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__equipment_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__equipment_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_stock_lot__equipment_ids
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.contract_line_form_view_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_search
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_category_form_fixed_asset
@@ -974,14 +1095,31 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_equipment_operation
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_account_bank_statement_line__equipment_operation_ids
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_account_move__equipment_operation_ids
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_contract__equipment_operation_ids
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_purchase_order__equipment_operation_ids
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_stock_move__equipment_operation_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_stock_picking__equipment_operation_id
 msgid "Equipment Operation"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_contract__equipment_operation_created_ids
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_purchase_order__equipment_operation_created_ids
+msgid "Equipment Operation Created"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_equipment_operation_line
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_purchase_order_line__equipment_operation_line_ids
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_stock_lot__equipment_operation_line_ids
 msgid "Equipment Operation Line"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_operation_stop_ids
+msgid "Equipment Operation Stop"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -1064,6 +1202,11 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_account_move_line__equipment_ids
 msgid "Equipments"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_maintenance_equipment__cost_provisional
+msgid "Estimate from the purchase order, until the supplier bill is posted."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -1206,6 +1349,7 @@ msgid "Has Message"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__id
@@ -1336,6 +1480,7 @@ msgid ""
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__write_uid
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__write_uid
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__write_uid
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__write_uid
@@ -1344,6 +1489,7 @@ msgid "Last Updated by"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__write_date
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__write_date
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__write_date
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__write_date
@@ -1472,6 +1618,11 @@ msgid "Lot"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_stock_lot
+msgid "Lot/Serial"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_nature__maintenance
 msgid "Maintenance"
 msgstr ""
@@ -1487,6 +1638,11 @@ msgid "Mandatory"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__cost_source__manual
+msgid "Manual Correction"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation_line__quantity
 msgid "Maximum quantity, part of the approval."
 msgstr ""
@@ -1499,6 +1655,11 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__message_ids
 msgid "Messages"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__cost_source__migration
+msgid "Migration (receipt value)"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -1519,6 +1680,11 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__needs_approval
 msgid "Needs Approval"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__needs_no_asset_confirmation
+msgid "Needs No Asset Confirmation"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -1678,6 +1844,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "One line per equipment unit (quantity 1)."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "Only accounting administrators can correct an equipment cost."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -1878,6 +2050,19 @@ msgid "Planned End"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "Planned treatment under the current configuration:"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation_line__accounting_treatment
+msgid ""
+"Planned under the current configuration: the account the supplier bill line "
+"will use, computed by Odoo on a bill that is not saved."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:res.groups,comment:maintenance_shareholder_equipment.group_equipment_operator
 msgid ""
 "Prepares and executes equipment operations (receipt, exit, return, "
@@ -1914,6 +2099,11 @@ msgid "Product Moves (Stock Move Line)"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__cost_provisional
+msgid "Provisional"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__receipt_branch__purchase
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__acquisition_mode__purchase
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
@@ -1931,8 +2121,19 @@ msgid "Purchase Mode"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_purchase_order
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__purchase_id
 msgid "Purchase Order"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__cost_source__order
+msgid "Purchase Order (estimate)"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_purchase_order_line
+msgid "Purchase Order Line"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -1954,8 +2155,15 @@ msgid "Quarter(s)"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__reason
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__reason
 msgid "Reason"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "Reason: %s"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -1994,6 +2202,11 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__acquisition_nature__regularisation
 msgid "Regularisation"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__cost_source__bill_released
+msgid "Released from a Bill"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2057,6 +2270,11 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__requester_id
 msgid "Requester"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation_line__responsible_user_id
+msgid "Required for equipment: an active internal user of the company."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2265,6 +2483,11 @@ msgid "Submit for Approval"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__cost_source__bill
+msgid "Supplier Bill"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.res_config_settings_view_form_equipment
 msgid "Supplier bill lines on this account need a rental contract line."
 msgstr ""
@@ -2334,6 +2557,20 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "The destination must be an active internal physical stock."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "The equipment cost is set by the business actions."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid ""
+"The equipment cost is set by the receipt, the supplier bill or the cost "
+"correction wizard (Accounting / Administrator)."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2522,6 +2759,21 @@ msgid "Unit Value"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_cost_correction__cost
+msgid "Unit cost in company currency."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_maintenance_equipment__cost
+msgid "Unit cost in company currency; see « Cost Known »."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_res_users
+msgid "User"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Values"
 msgstr ""
@@ -2579,6 +2831,11 @@ msgid "Website communication history"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_cost_correction_form
+msgid "Why the cost is corrected"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_ownership_correction_form
 msgid "Why the ownership is corrected"
 msgstr ""
@@ -2586,6 +2843,12 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__periodicity__yearly
 msgid "Year(s)"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "a responsible (active internal user of the company)"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2716,6 +2979,12 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "final"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "free loan or rented out"
 msgstr ""
@@ -2736,6 +3005,14 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "nature of the acquisition"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid ""
+"no bill: if this equipment must be capitalised, the fixed asset is created "
+"manually by the accountant."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2797,10 +3074,28 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "posting the bill will create a fixed asset (account %s)"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "profile %s"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/stock.py:0
 msgid ""
 "property of a third party: it leaves only through a restitution to its "
 "owner."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "provisional"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2821,6 +3116,12 @@ msgstr ""
 msgid ""
 "receipts from suppliers and acquisitions go through an equipment operation "
 "(Receipt)."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "released from %s"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2861,6 +3162,14 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid ""
+"the bill line will use account %s; no fixed asset will be created "
+"automatically."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product.py:0
 msgid "the expense account must be a class 21 fixed-asset account"
 msgstr ""
@@ -2879,8 +3188,20 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
+msgid "unknown"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product.py:0
 msgid "valuation must be manual"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "value carried by the stock (account %s); no fixed asset."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
