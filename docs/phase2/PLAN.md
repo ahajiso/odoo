@@ -427,6 +427,17 @@ refuses if none is found). Rule kept: at least one bill for the executed lines (
 per executed line would be a new business decision). Test added (fails on 3e7c39a);
 89 tests in all.
 
+## Fix after the deployment of 09/10/2026 (user form)
+
+On artdubati_test the two groups were not visible in the user form, and the Maintenance
+section had disappeared: Odoo shows a category as a drop-down list only when its groups
+form a single chain, otherwise as check boxes reserved to developer mode. Each group now
+has its own category (« Equipment Operations — Execution », « Equipment Operations —
+Approval »); implied groups unchanged (operator implies Inventory / User; approver and
+operator independent). Test `test_user_groups_view.py` (fails on 5ab6c36): both groups
+give a visible `sel_groups_*` field, the Maintenance section is a drop-down list again.
+Also: setup_phase2.py says « WILL » instead of « WOULD » with --apply. 91 tests.
+
 ## Open decisions for the owner
 
 - Members of the two new groups on artdubati_test (to give before the tests in the

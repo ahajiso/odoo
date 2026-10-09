@@ -136,9 +136,11 @@ diff /opt/odoo/logs/views_before_phase2.txt /opt/odoo/logs/views_after_phase2.tx
 
 ## 7. Groups (owner's choice)
 
-**Settings → Users → <user> → Maintenance**: « Equipment Operator » (prepares and
-executes; implies Inventory / User) and/or « Equipment Operations Approver » (approves
-orders, bills, contracts, acquisitions; moves no stock). For the interface tests, four
+**Settings → Users → <user>**, tab Access Rights, section Manufacturing: « Equipment
+Operations — Execution » = Equipment Operator (prepares and executes; implies
+Inventory / User) and/or « Equipment Operations — Approval » = Equipment Operations
+Approver (approves orders, bills, contracts, acquisitions; moves no stock). Shown
+without developer mode since the fix of 09/10/2026 (see the end of this file). For the interface tests, four
 profiles are useful: operator only, approver only, both, and an Inventory user with
 neither.
 
@@ -156,3 +158,26 @@ neither.
 
 Send Claude: the outputs of steps 3, 5 (dry run, apply, control) and 6, and the last
 lines of step 4.
+
+## Fix of 09/10/2026: groups in the user form
+
+Deployed phase 2 (5ab6c36) put the two new groups in the Maintenance category; Odoo
+then showed the whole category as check boxes visible only in developer mode
+(`res_users.py`, `_update_user_groups_view`: a category is a drop-down list only when
+its groups form a single chain). Each group now has its own category (« Equipment
+Operations — Execution », « — Approval »), under Manufacturing; members and implied
+groups are unchanged. 91 tests.
+
+```bash
+set -o pipefail
+docker exec odoo_db pg_dump -U odoo -Fc artdubati_test \
+  > /opt/odoo/backups/artdubati_test_$(date +%F_%H%M)_phase2b.dump && echo BACKUP OK
+cd /opt/odoo/addons/custom && git rev-parse HEAD > /opt/odoo/logs/phase2b_previous_commit
+git pull && git log --oneline -1
+bash /opt/odoo/addons/custom/docs/deploy_modules.sh /opt/odoo/backups/<backup above>.dump 91 phase2b
+```
+
+Rollback after a FAILED: as in 4b, with `phase2b_previous_commit` and this backup.
+Check: **Settings → Users → <user>**, section Manufacturing: « Maintenance »,
+« Equipment Operations — Execution » and « — Approval » are drop-down lists, without
+developer mode.

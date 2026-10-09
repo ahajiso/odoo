@@ -9,16 +9,31 @@
         <field name="comment">Can correct the ownership status and the legal owner of an equipment, with a mandatory reason.</field>
     </record>
 
-    <!-- Phase 2: equipment operations (docs/phase2/PLAN.md, section 7). -->
+    <!-- Phase 2: equipment operations (docs/phase2/PLAN.md, section 7).
+         Each group has its own category: Odoo shows a category as a drop-down list in
+         the user form only when its groups form a single chain; the two roles are
+         independent (the approver does not imply the operator), so sharing a category
+         (or the Maintenance one) would turn it into check boxes visible only in
+         developer mode. -->
+    <record id="module_category_equipment_operation_execution" model="ir.module.category">
+        <field name="name">Equipment Operations — Execution</field>
+        <field name="parent_id" ref="base.module_category_manufacturing"/>
+        <field name="sequence">60</field>
+    </record>
+    <record id="module_category_equipment_operation_approval" model="ir.module.category">
+        <field name="name">Equipment Operations — Approval</field>
+        <field name="parent_id" ref="base.module_category_manufacturing"/>
+        <field name="sequence">61</field>
+    </record>
     <record id="group_equipment_operator" model="res.groups">
         <field name="name">Equipment Operator</field>
-        <field name="category_id" ref="base.module_category_manufacturing_maintenance"/>
+        <field name="category_id" ref="module_category_equipment_operation_execution"/>
         <field name="implied_ids" eval="[(4, ref('stock.group_stock_user'))]"/>
         <field name="comment">Prepares and executes equipment operations (receipt, exit, return, restitution). Commitments need an approver.</field>
     </record>
     <record id="group_equipment_approver" model="res.groups">
         <field name="name">Equipment Operations Approver</field>
-        <field name="category_id" ref="base.module_category_manufacturing_maintenance"/>
+        <field name="category_id" ref="module_category_equipment_operation_approval"/>
         <field name="comment">Approves the commitments of equipment operations (orders, bills, contracts, acquisitions), without moving stock.</field>
     </record>
 

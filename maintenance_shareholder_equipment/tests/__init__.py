@@ -3,3 +3,4 @@ from . import test_purchase_bill
 from . import test_equipment
 from . import test_audit_fixes
 from . import test_operation
+from . import test_user_groups_view

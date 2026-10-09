@@ -34,6 +34,7 @@ APPLY = "--apply" in sys.argv
 URL, DB = os.environ["ODOO_URL"], os.environ["ODOO_DB"]
 if APPLY and DB != ALLOWED_DB:
     raise SystemExit(f"Refusing to modify any database except {ALLOWED_DB}")
+WOULD = "WILL" if APPLY else "WOULD"  # wording of the planned changes
 opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
 
 ACCOUNTS = {"rent_paid": "613500", "rent_received": "708300", "gift": "778000",
@@ -132,9 +133,9 @@ for setting, name, role, account_field in PRODUCTS:
         if account_field and role in accounts:
             vals[account_field] = accounts[role]
         todo.append(("product.product", vals, setting))
-        print(f"product {name!r}: WOULD create")
+        print(f"product {name!r}: {WOULD} create")
     if company[setting] and products.get(setting) and company[setting][0] != products[setting]:
-        print(f"  setting {setting} currently {company[setting]}: WOULD replace")
+        print(f"  setting {setting} currently {company[setting]}: {WOULD} replace")
 print()
 
 # 3. Acquisition locations (C17) ------------------------------------------------------
@@ -160,7 +161,7 @@ for setting, name, role in LOCATIONS:
         if role in accounts:
             vals["valuation_out_account_id"] = accounts[role]
         todo.append(("stock.location", vals, setting))
-        print(f"location {name!r}: WOULD create under Virtual Locations, account {ACCOUNTS[role]}")
+        print(f"location {name!r}: {WOULD} create under Virtual Locations, account {ACCOUNTS[role]}")
 print()
 
 # 4. Parent of off-site stocks ----------------------------------------------------------
@@ -172,7 +173,7 @@ if len(parents) != 1:
     errors.append(f"internal location « Chez tiers »: expected exactly one, found {parents}")
 else:
     parent = parents[0]
-    state = "already flagged" if parent["is_offsite_parent"] else "WOULD flag as parent of off-site stocks"
+    state = "already flagged" if parent["is_offsite_parent"] else f"{WOULD} flag as parent of off-site stocks"
     print(f"location {parent['complete_name']} (id {parent['id']}): {state}\n")
 
 # 5. Receipts in one step only ------------------------------------------------------
