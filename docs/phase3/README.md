@@ -17,6 +17,9 @@ without them in `odoo_web` (the case of the 2f deployment) they are counted as s
 and the interface checks of step 8 cover them. The performance test (`monitor_perf`) is
 not in this count; it runs only on request.
 
+Screenshots on local demo data: `docs/phase3/screenshots/` (en_US, fr_FR, fa_IR at 1440,
+1024 and 768 px, and the detail panel at 1440 px; fa_IR mirrored right to left).
+
 **Run nothing before the audit of the code and the owner's go.**
 
 ## 0. Before the deployment (owner's decisions, the running version keeps serving)

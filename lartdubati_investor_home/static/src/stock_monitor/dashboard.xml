@@ -53,8 +53,8 @@
       <div class="o_smm_toggles">
         <div class="o_smm_segment" role="group" aria-label="Family">
           <button t-att-class="{'active': family === 'all'}" t-att-aria-pressed="family === 'all' ? 'true' : 'false'" t-on-click="() => this.setFamily('all')">All <span class="o_smm_count" t-esc="familyCount('all')"/></button>
-          <button class="o_smm_family_asset" t-att-class="{'active': family === 'asset'}" t-att-aria-pressed="family === 'asset' ? 'true' : 'false'" t-on-click="() => this.setFamily('asset')"><i class="fa fa-wrench me-1" aria-hidden="true"/>Assets <span class="o_smm_count" t-esc="familyCount('asset')"/></button>
-          <button class="o_smm_family_consumable" t-att-class="{'active': family === 'consumable'}" t-att-aria-pressed="family === 'consumable' ? 'true' : 'false'" t-on-click="() => this.setFamily('consumable')"><i class="fa fa-tint me-1" aria-hidden="true"/>Consumables <span class="o_smm_count" t-esc="familyCount('consumable')"/></button>
+          <button class="o_smm_family_asset" t-att-class="{'active': family === 'asset'}" t-att-aria-pressed="family === 'asset' ? 'true' : 'false'" t-on-click="() => this.setFamily('asset')"><i class="fa fa-wrench me-1" aria-hidden="true"/><t t-esc="selectionLabel('family', 'asset')"/> <span class="o_smm_count" t-esc="familyCount('asset')"/></button>
+          <button class="o_smm_family_consumable" t-att-class="{'active': family === 'consumable'}" t-att-aria-pressed="family === 'consumable' ? 'true' : 'false'" t-on-click="() => this.setFamily('consumable')"><i class="fa fa-tint me-1" aria-hidden="true"/><t t-esc="selectionLabel('family', 'consumable')"/> <span class="o_smm_count" t-esc="familyCount('consumable')"/></button>
         </div>
         <div class="o_smm_chips" role="group" aria-label="Ownership">
           <t t-foreach="ownershipKeys" t-as="o" t-key="o.key">
@@ -306,7 +306,7 @@
         </dl>
       </t>
 
-      <t t-set="conv" t-value="detailMeasures.filter((m) => m.missing or (m.converted and m.known))"/>
+      <t t-set="conv" t-value="detailMeasures.filter((m) => m.missing or (m.converted and m.known and m.source))"/>
       <t t-if="conv.length">
         <h3>Conversions</h3>
         <ul class="o_smm_conv">

@@ -45,8 +45,9 @@
    - Home page: one button per main function (Administrative, Financial, Commerce &
      Services, Production); only Financial is implemented, the others are "coming soon".
      Currently configured with OCA web_quick_start_screen (docs/investor_home/).
-   - Financial -> Stock monitor. Currently two OCA bi_sql_editor reports
-     (docs/stock_monitor/).
+   - Financial -> Stock monitor: model `lartdubati.stock.monitor` (one SQL view), OWL
+     dashboard `lartdubati_investor_home.action_stock_monitor` and standard views
+     (phase 3, docs/phase3/; replaces the two OCA bi_sql_editor reports).
 
 ## Stock monitor
 - Choose a stock (combo box) or filter by country / state / city / other attribute.
@@ -136,16 +137,11 @@ configuration versus a client action).
 - Done in phase 1: account_move_line.py no longer sets `current_location_id`;
   maintenance_equipment.py (internal location required) removed; `place_type` moved to
   maintenance_shareholder_equipment.
-- lartdubati_investor_home/models/res_company.py: `stock_monitor_replacement_price`
-  (replacement price of borrowed / rented consumables) → moot while consumables are
-  owned only; `stock_monitor_currency_mode` stays pending the accountant.
-- docs/stock_monitor/*.sql: ownership computed from acquisition_mode / owner_type, rent
-  from maintenance_equipment_contract → rewrite on revision 2.
-- lartdubati_investor_home/models/stock_access.py `_location_domain` and
-  docs/stock_monitor/*.sql: country through `warehouse_id.partner_id` → empty for
-  Bg/Stock; use the stock's own `address_id` (stock_location_address).
-- Tests in lartdubati_investor_home/tests/ to update accordingly; access profile tests
-  stay valid.
+- Done in phase 3 (on the branch, audit pending): `stock_monitor_replacement_price`,
+  `owner_type` and `acquisition_mode` removed; the bi_sql_editor queries replaced by the
+  monitor view; `_location_domain` by the country of the monitor stock's own address;
+  investor tests without Inventory group. `stock_monitor_currency_mode` (historical /
+  latest) stays pending the accountant (C12).
 
 ## Hypotheses of phase 1 (results of the integration tests, 08/10/2026)
 Local Odoo 18 + OCA heads, see docs/phase1/CHARACTERISATION.md; confirmed by the same
@@ -230,10 +226,16 @@ tests on artdubati_test (47 passing, 08/10/2026).
    addresses set on Bg/Stock (Bougival, FR), TIST/Stock (Istanbul, TR) and TBER/Stock
    (DE; its contact's city « PARIS CEDEX 20 » to correct to Berlin before phase 3).
 3. Stock monitor on revision 2 (SQL view, OWL dashboard, access rules) and rework of the
-   existing code: docs/phase3/PLAN.md revision 5 (mock-up's visual direction validated
-   on 09/10/2026; rates mirrored from `_get_rates` inside the view, no PostgreSQL
-   function; aggregated dashboard method with whitelisted filters, 3 RPCs); mock-up in docs/phase3/mockup/. Starts after 2f.
-   No business code before the green light.
+   existing code: docs/phase3/PLAN.md revision 5, green light on 09/10/2026 after 2f.
+   Developed on the branch (steps 4 to 10, implementation notes in PLAN.md §11):
+   monitor stocks (`is_monitor_stock`, `monitor_currency_id`, address required), stored
+   contract currency, view `lartdubati.stock.monitor` (values, set-based conversions as
+   `_convert`, rent, alerts, `groups=` per field), access rules, standard views, OWL
+   dashboard (3 RPCs, Hoot tests, tours), obsolete fields removed, precheck and
+   post-check, translations fr/fa, screenshots. 186 tests passing locally; monitor_perf
+   on 10,000 rows: 0.65-0.74 s server, 1.1 s browser; migration rehearsed on a database
+   made with the 2f code. Pending: audit of the code, then deployment by the owner
+   (docs/phase3/README.md).
 4. Home page and investor user setup (review the existing configuration).
 5. Translations, manual rewrite for all phases (cards citing removed or changed fields,
    new receiving procedures, Investor tab), deployment checklist
