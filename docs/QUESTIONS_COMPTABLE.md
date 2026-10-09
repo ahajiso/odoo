@@ -5,7 +5,7 @@ Liste des choix comptables arrêtés sans avis du comptable. Règle du projet
 paramétrable dès que possible, et on ajoute la question ici. Le comptable peut changer
 chaque choix ; la colonne « Où le changer » indique comment.
 
-État au 08/10/2026. Base concernée : `artdubati_test` (aucun de ces choix n'est en
+État au 09/10/2026. Base concernée : `artdubati_test` (aucun de ces choix n'est en
 production).
 
 ## Immobilisations et stock
@@ -21,6 +21,7 @@ production).
 | C7 | Méthode de coût des consommables ? | Coût moyen (catégories 11 à 17) | Catégories de produits, **Méthode de coût** | Oui |
 | C8 | Avoir fournisseur (saisi à la main ou par « Extourner ») sur une facture d'immobilisation : quel traitement ? Réduction de la valeur d'origine, annulation de l'immobilisation, sortie, autre ? Et si l'immobilisation est déjà validée ou amortie ? (D'après la lecture du code, l'avoir crée une immobilisation négative et laisse l'immobilisation d'origine ; à confirmer par un test.) | Interdit par défaut : un avoir fournisseur portant sur un compte d'immobilisation est refusé à la comptabilisation | Réglage société prévu en phase 1 (« Autoriser les avoirs fournisseurs sur comptes d'immobilisation », désactivé par défaut) | Prévu (phase 1) |
 | C9 | Valeur de remise d'un actionnaire (`handover_value`) : transfert de propriété, apport en nature ou simple mise à disposition ? Date du transfert, compte de contrepartie (capital, 455, autre), TVA, justificatif ? | Conservée comme information, jamais utilisée en comptabilité | À définir selon la réponse | Non (en attente) |
+| C19 | Valeur d'inventaire et valeur comptable d'un équipement suivi en stock dont la catégorie n'est pas immobilisée (pas d'immobilisation) ? | Coût unitaire du produit (coût moyen) au moment de la consultation du moniteur (proposé en phase 3) | Catégorie de produit (**Méthode de coût**), ou passer la catégorie en immobilisations | Oui |
 
 ## Location et prêt
 
@@ -36,7 +37,7 @@ production).
 
 | # | Question | Choix arrêté pour le test | Où le changer | Paramétrable |
 |---|---|---|---|---|
-| C12 | Conversion des valeurs vers la devise de chaque stock : quel taux et quelle date ? | Dernier taux connu | **Paramètres → Inventaire → Stock Monitor → Stock Monitor Currency Conversion** (dernier taux / taux à la date de saisie / sans conversion) | Oui |
+| C12 | Conversion des valeurs vers la devise de chaque stock : quel taux et quelle date ? | Dernier taux connu ; la devise est celle saisie sur le stock (champ prévu en phase 3), non plus celle du pays | **Paramètres → Inventaire → Stock Monitor → Stock Monitor Currency Conversion** (dernier taux / taux à la date de saisie / sans conversion) | Oui |
 
 ## Facturation BTP (questions déjà ouvertes, reprises ici)
 
