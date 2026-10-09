@@ -307,12 +307,20 @@ class TestPhase2fPurchaseUnit(EquipmentCommon):
         cls.paired = cls._product("Paired grinder", cls.categ_tools, storable=True)
         cls.paired.uom_po_id = cls.pair
 
-    def _create_order_op(self, count):
+    def _create_order_op(self, count, prices=None, taxes=None):
+        prices = prices or [60.0] * count
+        taxes = taxes or [[]] * count
         return self._operation(
             "receipt", receipt_branch="purchase", partner_id=self.vendor.id,
             purchase_mode="create", bill_mode="none",
-            lines=[dict(product_id=self.paired.id, lot_name="PO-UOM-%s" % i, price_unit=60.0)
+            lines=[dict(product_id=self.paired.id, lot_name="PO-UOM-%s" % i,
+                        price_unit=prices[i], tax_ids=[Command.set(taxes[i])])
                    for i in range(count)])
+
+    def _purchase_tax(self):
+        return self.env["account.tax"].create({
+            "name": "Purchase 20 (test)", "amount": 20.0, "type_tax_use": "purchase",
+            "company_id": self.env.company.id})
 
     def test_two_pieces_make_one_pair_order_receipt_and_bill(self):
         op = self._create_order_op(2)
@@ -342,3 +350,32 @@ class TestPhase2fPurchaseUnit(EquipmentCommon):
         with self.assertRaisesRegex(ValidationError, "whole number of Pair"):
             op.with_user(self.user_both).action_execute()
         self.assertFalse(op.purchase_created_id)
+
+    def test_each_future_order_line_checked_with_different_prices(self):
+        """Two pieces make one pair in total, but at two prices they make two order
+        lines of half a pair each: refused."""
+        op = self._create_order_op(2, prices=[60.0, 70.0])
+        with self.assertRaisesRegex(ValidationError, r"at (60|70)\.0: 1\.0 .* whole number of Pair"):
+            op.with_user(self.user_both).action_execute()
+        self.assertFalse(op.purchase_created_id)
+
+    def test_each_future_order_line_checked_with_different_taxes(self):
+        op = self._create_order_op(2, taxes=[[], self._purchase_tax().ids])
+        with self.assertRaisesRegex(ValidationError, "whole number of Pair"):
+            op.with_user(self.user_both).action_execute()
+        self.assertFalse(op.purchase_created_id)
+
+    def test_whole_pairs_per_price_and_tax_make_one_order_line_each(self):
+        tax = self._purchase_tax()
+        op = self._create_order_op(6, prices=[60.0, 60.0, 70.0, 70.0, 60.0, 60.0],
+                                   taxes=[[], [], [], [], tax.ids, tax.ids])
+        op.with_user(self.user_both).action_execute()
+        lines = op.purchase_created_id.order_line
+        self.assertEqual(len(lines), 3)
+        self.assertEqual(lines.product_uom, self.pair)
+        self.assertEqual(sorted((ln.price_unit, ln.product_qty, tuple(ln.taxes_id.ids))
+                                for ln in lines),
+                         [(120.0, 1.0, ()), (120.0, 1.0, tuple(tax.ids)), (140.0, 1.0, ())])
+        for line in op.line_ids:
+            self.assertAlmostEqual(line.purchase_line_id.price_unit, 2 * line.price_unit)
+            self.assertEqual(line.purchase_line_id.taxes_id, line.tax_ids)

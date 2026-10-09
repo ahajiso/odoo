@@ -586,12 +586,18 @@ class EquipmentOperation(models.Model):
     def _purchase(self):
         return self.purchase_created_id or self.purchase_id
 
-    def _create_purchase_order(self):
+    def _purchase_groups(self):
+        """Lines of a new order, grouped as its order lines: (product id, unit price,
+        tax ids) -> operation lines. Shared by the checks and the creation."""
         groups = {}
-        for line in self.line_ids:
+        for line in self.line_ids.filtered("product_id"):
             key = (line.product_id.id, line.price_unit, tuple(sorted(line.tax_ids.ids)))
             groups.setdefault(key, self.env["equipment.operation.line"])
             groups[key] |= line
+        return groups
+
+    def _create_purchase_order(self):
+        groups = self._purchase_groups()
         # the vendor's fiscal position, as the order form sets it (the planned
         # accounting treatment of the lines is computed with it, phase 2f)
         fiscal = self.env["account.fiscal.position"].with_company(self.company_id)._get_fiscal_position(
@@ -1048,19 +1054,19 @@ class EquipmentOperation(models.Model):
                                                 left=left))
         elif self.purchase_mode == "create":
             need(self.currency_id, _("currency"))
-            totals = {}
-            for line in self.line_ids.filtered("product_id"):
-                totals[line.product_id] = totals.get(line.product_id, 0.0) + line.quantity
-            for product, qty in totals.items():
+            # each future order line (same grouping as _create_purchase_order) must be
+            # a whole number of its purchase unit's rounding: refused, never rounded
+            for (_product_id, price, _taxes), group in self._purchase_groups().items():
+                product = group.product_id
                 po_uom = product.uom_po_id
+                qty = sum(group.mapped("quantity"))
                 po_qty = self._purchase_qty(product, qty)
-                if po_uom != product.uom_id and float_compare(
-                        po_qty, float_round(po_qty, precision_rounding=po_uom.rounding),
-                        precision_rounding=po_uom.rounding / 1000.0):
+                if float_compare(po_qty, float_round(po_qty, precision_rounding=po_uom.rounding),
+                                 precision_rounding=po_uom.rounding / 1000.0):
                     raise ValidationError(_(
-                        "%(product)s: %(qty)s %(uom)s is not a whole number of %(po_uom)s, "
-                        "its purchase unit. Change the quantity or the product's purchase "
-                        "unit.", product=product.display_name, qty=qty,
+                        "%(product)s at %(price)s: %(qty)s %(uom)s is not a whole number of "
+                        "%(po_uom)s, its purchase unit. Change the quantity or the product's "
+                        "purchase unit.", product=product.display_name, price=price, qty=qty,
                         uom=product.uom_id.name, po_uom=po_uom.name))
             if self.currency_id and not self.currency_id.active:
                 raise ValidationError(_("The currency is not active."))
