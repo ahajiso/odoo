@@ -238,3 +238,20 @@ cd /opt/odoo/addons/custom && git rev-parse HEAD > /opt/odoo/logs/phase2_previou
 git pull && git log --oneline -1
 bash /opt/odoo/addons/custom/docs/deploy_modules.sh /opt/odoo/backups/<file shown by ls>.dump 97 phase2d
 ```
+
+## Fix of 09/10/2026 (4): where to go after a stock refusal
+
+Owner's remark: the refusal of a standard « Validate » did not say where to go. Every
+stock refusal of the equipment rules now ends with « Where to do it: Inventory →
+Operations → Transfers → Equipment Operations (new operation, then « Execute ») ».
+98 tests. Same procedure, label `phase2e`:
+
+```bash
+set -o pipefail
+docker exec odoo_db pg_dump -U odoo -Fc artdubati_test \
+  > /opt/odoo/backups/artdubati_test_$(date +%F_%H%M)_phase2e.dump && echo BACKUP OK
+ls -l /opt/odoo/backups/*phase2e.dump
+cd /opt/odoo/addons/custom && git rev-parse HEAD > /opt/odoo/logs/phase2_previous_commit
+git pull && git log --oneline -1
+bash /opt/odoo/addons/custom/docs/deploy_modules.sh /opt/odoo/backups/<file shown by ls>.dump 98 phase2e
+```

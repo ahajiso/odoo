@@ -137,9 +137,12 @@ class StockMoveLine(models.Model):
                 by_lot.setdefault(equipment.stock_lot_id.id, equipment)
 
         def refuse(line, message):
-            raise ValidationError(_("%(product)s %(lot)s: %(message)s",
-                                    product=line.product_id.display_name,
-                                    lot=line.lot_id.name or "", message=message))
+            raise ValidationError(_(
+                "%(product)s %(lot)s: %(message)s\n\n"
+                "Where to do it: Inventory → Operations → Transfers → Equipment Operations "
+                "(new operation, then « Execute »).",
+                product=line.product_id.display_name, lot=line.lot_id.name or "",
+                message=message))
 
         for line in self:
             running = line._running_operation()

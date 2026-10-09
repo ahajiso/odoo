@@ -1030,3 +1030,16 @@ class TestOperationForm(TestOperationCommon):
         self.assertIn("\n• line 2 (Drill): warranty status", message)
         self.assertIn("\n• line 2 (Drill): insurance status", message)
         self.assertNotIn("line 1", message)
+
+
+@tagged("post_install", "-at_install")
+class TestRefusalMessage(TestOperationCommon):
+
+    def test_refusal_names_where_to_go(self):
+        po = self._order(self.screws, 1)
+        picking = po.picking_ids
+        picking.move_ids.quantity = 1
+        with self.assertRaises(ValidationError) as caught:
+            picking.with_user(self.user_stock).button_validate()
+        self.assertIn("Inventory → Operations → Transfers → Equipment Operations",
+                      str(caught.exception))

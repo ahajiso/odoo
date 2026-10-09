@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 08:09+0000\n"
-"PO-Revision-Date: 2026-10-09 08:09+0000\n"
+"POT-Creation-Date: 2026-10-09 10:59+0000\n"
+"PO-Revision-Date: 2026-10-09 10:59+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -176,8 +176,14 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/stock.py:0
-msgid "%(product)s %(lot)s: %(message)s"
-msgstr "%(product)s %(lot)s: %(message)s"
+msgid ""
+"%(product)s %(lot)s: %(message)s\n"
+"\n"
+"Where to do it: Inventory → Operations → Transfers → Equipment Operations (new operation, then « Execute »)."
+msgstr ""
+"%(product)s %(lot)s: %(message)s\n"
+"\n"
+"محل انجام: موجودی ← عملیات ← انتقال‌ها ← عملیات تجهیزات (عملیات جدید، سپس «اجرا»)."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
