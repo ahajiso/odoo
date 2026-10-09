@@ -468,6 +468,7 @@ Verified locally:
 
 Not verified (server):
 - Chrome and `websocket-client` in `odoo_web`;
-- the filestore path `/var/lib/odoo/filestore`;
+- ~~the filestore path~~: checked on the server on 09/10/2026,
+  `/var/lib/odoo/.local/share/Odoo/filestore` (no `data_dir` in odoo.conf);
 - Anglo-Saxon accounting on the company;
 - the real data of D1 to D5.

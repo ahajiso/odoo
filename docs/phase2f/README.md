@@ -27,15 +27,15 @@ mkdir -p /opt/odoo/backups /opt/odoo/logs
 STAMP=$(date +%F_%H%M)
 docker exec odoo_db pg_dump -U odoo -Fc artdubati_test \
   > /opt/odoo/backups/artdubati_test_${STAMP}_phase2f.dump && echo DB BACKUP OK
-docker exec odoo_web ls -d /var/lib/odoo/filestore/artdubati_test   # must print the folder
-docker exec odoo_web tar -czf - -C /var/lib/odoo/filestore artdubati_test \
+docker exec odoo_web ls -d /var/lib/odoo/.local/share/Odoo/filestore/artdubati_test   # must print the folder
+docker exec odoo_web tar -czf - -C /var/lib/odoo/.local/share/Odoo/filestore artdubati_test \
   > /opt/odoo/backups/artdubati_test_${STAMP}_phase2f_filestore.tar.gz && echo FILESTORE BACKUP OK
 ls -l /opt/odoo/backups/*phase2f*
 cd /opt/odoo/addons/custom && git rev-parse HEAD > /opt/odoo/logs/phase2f_previous_commit
 ```
 
-If `ls -d` prints an error, the filestore lies elsewhere: send the output to Claude
-before going on.
+Filestore path checked on the server on 09/10/2026 (no `data_dir` in odoo.conf, Odoo's
+default folder). If `ls -d` prints an error, send the output to Claude before going on.
 
 ## 2. Fetch the new code without touching the working tree
 
