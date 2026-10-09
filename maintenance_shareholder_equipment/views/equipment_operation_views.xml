@@ -76,12 +76,37 @@
                             <field name="receipt_branch" invisible="operation_type != 'receipt'"
                                    required="operation_type == 'receipt'"/>
                             <field name="acquisition_nature" invisible="receipt_branch != 'acquisition' or operation_type != 'receipt'"/>
-                            <field name="partner_id"/>
+                            <!-- one field, labelled after the previous choices -->
+                            <field name="partner_id" string="Vendor"
+                                   invisible="operation_type != 'receipt' or receipt_branch != 'purchase'"
+                                   domain="[('id', '!=', company_partner_id)]"/>
+                            <field name="partner_id" string="Donor"
+                                   invisible="operation_type != 'receipt' or receipt_branch != 'acquisition' or acquisition_nature != 'gift'"
+                                   domain="[('id', '!=', company_partner_id)]"/>
+                            <field name="partner_id" string="Contributing Shareholder"
+                                   invisible="operation_type != 'receipt' or receipt_branch != 'acquisition' or acquisition_nature != 'current_account'"
+                                   domain="[('id', '!=', company_partner_id)]"/>
+                            <field name="partner_id" string="Partner (Optional)"
+                                   invisible="operation_type != 'receipt' or receipt_branch != 'acquisition' or acquisition_nature != 'regularisation'"/>
+                            <field name="partner_id" string="Owner (Lender)"
+                                   invisible="operation_type != 'receipt' or receipt_branch != 'borrowed'"
+                                   domain="[('id', '!=', company_partner_id)]"/>
+                            <field name="partner_id" string="Lessor"
+                                   invisible="operation_type != 'receipt' or receipt_branch != 'rented'"
+                                   domain="[('id', '!=', company_partner_id)]"/>
+                            <field name="partner_id" string="Third Party"
+                                   invisible="operation_type != 'exit'"
+                                   domain="[('id', '!=', company_partner_id)]"/>
+                            <field name="partner_id" string="Owner"
+                                   invisible="operation_type != 'restitution'"
+                                   domain="[('id', '!=', company_partner_id)]"/>
+                            <field name="company_partner_id" invisible="1"/>
                             <field name="site_partner_id" invisible="operation_type != 'exit'"
                                    domain="[('commercial_partner_id', '=', partner_id)]"/>
-                            <field name="picking_type_id"/>
                             <field name="location_dest_id" invisible="operation_type != 'receipt'"
-                                   domain="[('usage', '=', 'internal'), ('place_type', '=', 'physical')]"/>
+                                   domain="[('usage', '=', 'internal'), ('place_type', '=', 'physical'), ('company_id', 'in', (company_id, False))]"/>
+                            <field name="picking_type_id" groups="base.group_no_one"
+                                   domain="[('company_id', '=', company_id)]"/>
                         </group>
                         <group>
                             <field name="date"/>
@@ -98,7 +123,7 @@
                         <group>
                             <field name="purchase_mode"/>
                             <field name="purchase_id" invisible="purchase_mode != 'existing'"
-                                   domain="[('state', '=', 'purchase'), ('partner_id', 'child_of', partner_id)]"/>
+                                   domain="[('state', '=', 'purchase'), ('receipt_status', '!=', 'full'), ('company_id', '=', company_id)] + ([('partner_id', 'child_of', partner_id)] if partner_id else [])"/>
                             <field name="currency_id" invisible="purchase_mode != 'create'"/>
                             <field name="purchase_created_id" invisible="not purchase_created_id"/>
                         </group>
@@ -116,7 +141,7 @@
                             <field name="exit_nature" invisible="operation_type != 'exit'"/>
                             <field name="contract_mode" invisible="operation_type != 'receipt'"/>
                             <field name="contract_id" invisible="contract_mode != 'existing' or operation_type != 'receipt'"
-                                   domain="[('contract_type', '=', 'purchase'), ('partner_id', '=', partner_id)]"/>
+                                   domain="[('contract_type', '=', 'purchase'), ('partner_id', '=', partner_id), ('active', '=', True), ('company_id', '=', company_id)]"/>
                             <field name="periodicity"/>
                         </group>
                         <group>
@@ -137,27 +162,44 @@
                             <field name="line_ids">
                                 <list editable="bottom">
                                     <field name="operation_type" column_invisible="1"/>
-                                    <field name="equipment_id" optional="show"/>
-                                    <field name="product_id"/>
+                                    <field name="equipment_id"
+                                           column_invisible="parent.operation_type == 'receipt'"
+                                           domain="[('ownership_status', '=', 'owned'), ('integration_state', '=', 'done')] if parent.operation_type == 'exit' else ([('ownership_status', '=', 'lent_out')] if parent.operation_type == 'return' else [('ownership_status', 'in', ('borrowed', 'rented')), ('owner_partner_id', 'child_of', parent.partner_id)])"/>
+                                    <field name="product_id"
+                                           readonly="parent.operation_type != 'receipt'"
+                                           domain="[('maintenance_ok', '=', True)] if parent.receipt_branch in ('borrowed', 'rented') else ([('purchase_ok', '=', True)] if parent.receipt_branch == 'purchase' else [('is_storable', '=', True)])"/>
                                     <field name="family" optional="show"/>
-                                    <field name="quantity"/>
-                                    <field name="quantity_done" optional="show"/>
-                                    <field name="purchase_line_id" optional="hide"/>
-                                    <field name="price_unit" optional="hide"/>
-                                    <field name="tax_ids" widget="many2many_tags" optional="hide"/>
-                                    <field name="unit_value" optional="hide"/>
-                                    <field name="lot_name" optional="show"/>
-                                    <field name="lot_generate" optional="hide"/>
-                                    <field name="equipment_name" optional="hide"/>
-                                    <field name="responsible_user_id" optional="show"/>
-                                    <field name="warranty_status" optional="show"/>
-                                    <field name="insurance_status" optional="show"/>
-                                    <field name="replacement_value" optional="hide"/>
-                                    <field name="replacement_currency_id" optional="hide"/>
-                                    <field name="replacement_value_date" optional="hide"/>
-                                    <field name="rent_amount" optional="hide"/>
-                                    <field name="dest_location_id" optional="hide"/>
-                                    <field name="origin_location_id" optional="hide"/>
+                                    <field name="quantity" column_invisible="parent.operation_type != 'receipt'"/>
+                                    <field name="quantity_done" column_invisible="parent.operation_type != 'receipt'"/>
+                                    <field name="purchase_line_id" optional="hide"
+                                           column_invisible="parent.receipt_branch != 'purchase'"
+                                           domain="[('order_id', '=', parent.purchase_id), ('product_id', '=', product_id)]"/>
+                                    <field name="price_unit"
+                                           column_invisible="parent.receipt_branch != 'purchase' or parent.purchase_mode != 'create'"/>
+                                    <field name="tax_ids" widget="many2many_tags"
+                                           column_invisible="parent.receipt_branch != 'purchase' or parent.purchase_mode != 'create'"
+                                           domain="[('type_tax_use', '=', 'purchase'), ('company_id', '=', parent.company_id)]"/>
+                                    <field name="unit_value"
+                                           column_invisible="parent.operation_type != 'receipt' or parent.receipt_branch != 'acquisition'"/>
+                                    <field name="lot_name" column_invisible="parent.operation_type != 'receipt'"/>
+                                    <field name="lot_generate" optional="show" column_invisible="parent.operation_type != 'receipt'"/>
+                                    <field name="equipment_name" optional="hide" column_invisible="parent.operation_type != 'receipt'"/>
+                                    <field name="responsible_user_id" optional="show" column_invisible="parent.operation_type != 'receipt'"/>
+                                    <field name="warranty_status" column_invisible="parent.operation_type != 'receipt'"/>
+                                    <field name="insurance_status" column_invisible="parent.operation_type != 'receipt'"/>
+                                    <field name="replacement_value"
+                                           column_invisible="parent.operation_type != 'receipt' or parent.receipt_branch not in ('borrowed', 'rented')"/>
+                                    <field name="replacement_currency_id" optional="hide"
+                                           column_invisible="parent.operation_type != 'receipt' or parent.receipt_branch not in ('borrowed', 'rented')"/>
+                                    <field name="replacement_value_date"
+                                           column_invisible="parent.operation_type != 'receipt' or parent.receipt_branch not in ('borrowed', 'rented')"/>
+                                    <field name="rent_amount"
+                                           column_invisible="not ((parent.operation_type == 'receipt' and parent.receipt_branch == 'rented') or (parent.operation_type == 'exit' and parent.exit_nature == 'rental'))"/>
+                                    <field name="dest_location_id"
+                                           column_invisible="parent.operation_type != 'return'"
+                                           domain="[('usage', '=', 'internal'), ('place_type', '=', 'physical')]"/>
+                                    <field name="origin_location_id" optional="hide"
+                                           column_invisible="parent.operation_type == 'receipt'"/>
                                     <field name="condition" optional="show"/>
                                     <field name="attachment_ids" widget="many2many_binary" optional="show"/>
                                 </list>

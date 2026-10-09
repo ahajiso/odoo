@@ -90,12 +90,19 @@ class EquipmentOperation(models.Model):
         help="Vendor, donor or contributor, owner, lessor or third party, according "
         "to the operation.",
     )
+    company_partner_id = fields.Many2one(related="company_id.partner_id",
+                                         string="Company Partner")
     site_partner_id = fields.Many2one(
         "res.partner", string="Site Address",
         help="Address of the third party where the equipment is held.",
     )
-    picking_type_id = fields.Many2one("stock.picking.type", string="Transfer Type",
-                                      check_company=True)
+    picking_type_id = fields.Many2one(
+        "stock.picking.type", string="Transfer Type", check_company=True,
+        compute="_compute_picking_type_id", store=True, readonly=False, precompute=True,
+        help="Set automatically: the order's receipt type, otherwise the receipt type "
+        "of the warehouse delivering the destination stock, the internal transfer for an "
+        "exit or a return, the delivery for a restitution.",
+    )
     location_dest_id = fields.Many2one(
         "stock.location", string="Destination Stock", check_company=True,
         help="Receipt: internal stock receiving the items (non-stock equipment: its "
@@ -103,7 +110,8 @@ class EquipmentOperation(models.Model):
     )
 
     # purchase
-    purchase_mode = fields.Selection([("existing", "Existing Order"), ("create", "Create the Order")])
+    purchase_mode = fields.Selection([("existing", "Existing Order"), ("create", "Create the Order")],
+                                     default="existing")
     purchase_id = fields.Many2one("purchase.order", string="Purchase Order", check_company=True)
     currency_id = fields.Many2one(
         "res.currency", default=lambda self: self.env.company.currency_id,
@@ -161,6 +169,61 @@ class EquipmentOperation(models.Model):
     contract_ids = fields.Many2many("contract.contract", string="Contracts", readonly=True,
                                     copy=False)
     needs_approval = fields.Boolean(compute="_compute_needs_approval")
+
+    # ------------------------------------------------------------ form helpers
+
+    PICKING_CODES = {"receipt": "incoming", "exit": "internal", "return": "internal",
+                     "restitution": "outgoing"}
+
+    @api.depends("operation_type", "receipt_branch", "purchase_mode", "purchase_id",
+                 "location_dest_id", "company_id")
+    def _compute_picking_type_id(self):
+        Type = self.env["stock.picking.type"]
+        for op in self:
+            if op.operation_type == "receipt" and op.receipt_branch == "purchase" \
+                    and op.purchase_mode == "existing" and op.purchase_id:
+                op.picking_type_id = op.purchase_id.picking_type_id
+                continue
+            # active types first; Odoo archives the internal type when storage
+            # locations are off, it still works for the operation's transfers
+            types = Type.with_context(active_test=False).search(
+                [("code", "=", self.PICKING_CODES[op.operation_type]),
+                 ("company_id", "=", op.company_id.id)], order="active desc, sequence, id")
+            dest = op.location_dest_id if op.operation_type == "receipt" else False
+            match = types.filtered(
+                lambda t: dest and t.default_location_dest_id
+                and dest.parent_path.startswith(t.default_location_dest_id.parent_path)
+            )
+            # keep a type chosen by hand when it is still of the right kind
+            if op.picking_type_id in types and not match:
+                continue
+            op.picking_type_id = (match or types)[:1]
+
+    @api.onchange("purchase_id")
+    def _onchange_purchase_id(self):
+        """Choosing an order fills the vendor, the destination and one line per unit of
+        equipment (one line per product otherwise) for what is left to receive."""
+        order = self.purchase_id
+        if not order:
+            return
+        self.partner_id = order.partner_id
+        if not self.location_dest_id:
+            self.location_dest_id = order.picking_type_id.default_location_dest_id
+        commands = [Command.clear()]
+        for pol in order.order_line.filtered(lambda pl: not pl.display_type):
+            product = pol.product_id
+            left = pol.product_qty - pol.qty_received
+            if left <= 0 or (product.type == "service" and not product.maintenance_ok):
+                continue
+            base = {"product_id": product.id, "purchase_line_id": pol.id,
+                    "warranty_status": product.categ_id.default_warranty_status,
+                    "insurance_status": product.categ_id.default_insurance_status}
+            if product.maintenance_ok:
+                commands += [Command.create(dict(base, quantity=1, quantity_done=1))
+                             for _i in range(int(left))]
+            else:
+                commands.append(Command.create(dict(base, quantity=left, quantity_done=left)))
+        self.line_ids = commands
 
     # --------------------------------------------------------------- protection
 

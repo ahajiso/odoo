@@ -182,12 +182,26 @@ Check: **Settings → Users → <user>**, section Manufacturing: « Maintenance 
 « Equipment Operations — Execution » and « — Approval » are drop-down lists, without
 developer mode.
 
-## Fix of 09/10/2026 (2): menu position
+## Fix of 09/10/2026 (2): menu position and form
 
-The menu « Equipment Operations » was a direct child of Inventory → Operations, at the
-level of the sections (Transfers, Adjustments, Procurement). It is now the first item of
-**Inventory → Operations → Transfers**, before Receipts. Data only (menu), no model
-change. Same procedure as the previous fix, with the label `phase2c` and 91 tests:
+Owner's remarks after the first use:
+- the menu « Equipment Operations » was a direct child of Inventory → Operations, at the
+  level of the sections (Transfers, Adjustments, Procurement); it is now the first item
+  of **Inventory → Operations → Transfers**, before Receipts;
+- the transfer type is set automatically and hidden (developer mode only): the order's
+  receipt type, otherwise the receipt type whose default destination contains the
+  chosen stock, the internal transfer for an exit or a return, the delivery for a
+  restitution;
+- the partner field is labelled after the choices (Vendor, Donor, Contributing
+  Shareholder, Owner (Lender), Lessor, Third Party, Owner);
+- choosing an existing order fills the vendor, the destination stock and the lines
+  (one per unit of equipment, one per product otherwise, quantity left to receive);
+  « Existing Order » is the default;
+- lists filtered (orders of the vendor with something left to receive, equipment by
+  operation, products by branch, active supplier contracts of the partner, purchase
+  taxes) and line columns shown only when they apply.
+No model change in the data (one computed stored field filled for existing operations).
+93 tests. Same procedure as the previous fix, label `phase2c`:
 
 ```bash
 set -o pipefail
@@ -196,5 +210,5 @@ docker exec odoo_db pg_dump -U odoo -Fc artdubati_test \
 ls -l /opt/odoo/backups/*phase2c.dump
 cd /opt/odoo/addons/custom && git rev-parse HEAD > /opt/odoo/logs/phase2_previous_commit
 git pull && git log --oneline -1
-bash /opt/odoo/addons/custom/docs/deploy_modules.sh /opt/odoo/backups/<file shown by ls>.dump 91 phase2c
+bash /opt/odoo/addons/custom/docs/deploy_modules.sh /opt/odoo/backups/<file shown by ls>.dump 93 phase2c
 ```

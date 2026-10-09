@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 04:50+0000\n"
-"PO-Revision-Date: 2026-10-09 04:50+0000\n"
+"POT-Creation-Date: 2026-10-09 06:11+0000\n"
+"PO-Revision-Date: 2026-10-09 06:11+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -759,6 +759,11 @@ msgid "Company Currency"
 msgstr "Devise de la société"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__company_partner_id
+msgid "Company Partner"
+msgstr "Partenaire de la société"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__condition
 msgid "Condition"
 msgstr "État constaté"
@@ -845,6 +850,11 @@ msgstr "Articles de contrat"
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__contract_ids
 msgid "Contracts"
 msgstr "Contrats"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Contributing Shareholder"
+msgstr "Associé apporteur"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__acquisition_nature__current_account
@@ -964,6 +974,11 @@ msgstr "Documents"
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__state__done
 msgid "Done"
 msgstr "Exécutée"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Donor"
+msgstr "Donateur"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__state__draft
@@ -1431,6 +1446,11 @@ msgstr ""
 "Prêté : le stock auquel appartiennent les biens prêtés et où ils reviennent."
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Lessor"
+msgstr "Loueur"
+
+#. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
 msgid ""
@@ -1827,6 +1847,16 @@ msgid "Owned"
 msgstr "En propriété"
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Owner"
+msgstr "Propriétaire"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Owner (Lender)"
+msgstr "Propriétaire (prêteur)"
+
+#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
 msgid "Ownership"
 msgstr "Propriété"
@@ -1889,6 +1919,11 @@ msgstr "Parent du nouveau stock"
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__partner_id
 msgid "Partner"
 msgstr "Partenaire"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Partner (Optional)"
+msgstr "Partenaire (facultatif)"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__periodicity
@@ -2214,6 +2249,17 @@ msgstr ""
 "opérations matériel."
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__picking_type_id
+msgid ""
+"Set automatically: the order's receipt type, otherwise the receipt type of "
+"the warehouse delivering the destination stock, the internal transfer for an"
+" exit or a return, the delivery for a restitution."
+msgstr ""
+"Rempli automatiquement : le type de réception de la commande, sinon celui de"
+" l'entrepôt qui livre le stock de destination, le transfert interne pour une"
+" sortie ou un retour, la livraison pour une restitution."
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__shareholder
 msgid "Shareholder"
 msgstr "Actionnaire"
@@ -2498,6 +2544,7 @@ msgstr "Le transfert %s n'a pas pu être validé."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__owner_type__third_party
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Third Party"
 msgstr "Tiers"
 
@@ -2581,6 +2628,11 @@ msgstr "Prix unitaire"
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__unit_value
 msgid "Unit Value"
 msgstr "Valeur unitaire"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Vendor"
+msgstr "Fournisseur"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__bill_ref

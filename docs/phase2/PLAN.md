@@ -438,10 +438,15 @@ operator independent). Test `test_user_groups_view.py` (fails on 5ab6c36): both 
 give a visible `sel_groups_*` field, the Maintenance section is a drop-down list again.
 Also: setup_phase2.py says « WILL » instead of « WOULD » with --apply. 91 tests.
 
-## Fix of 09/10/2026 (2): menu position
+## Fix of 09/10/2026 (2): menu position and form (owner's remarks)
 
-« Equipment Operations » moved from a direct child of Inventory → Operations (level of
-the sections) to the first item of Inventory → Operations → Transfers. Owner's remark.
+Menu moved under Inventory → Operations → Transfers (first item). Form: transfer type
+computed and hidden (`picking_type_id` computed, stored, editable in developer mode);
+partner labelled after the choices; existing order fills vendor, destination and lines
+(onchange); « Existing Order » by default; filtered lists and line columns per case.
+Tests: transfer type per operation and from the order; lines loaded from an order
+(Form). 93 tests. No change of the business rules: the server-side checks of section 6
+are unchanged and still apply to any value sent.
 
 ## Open decisions for the owner
 

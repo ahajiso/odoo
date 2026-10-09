@@ -6,7 +6,7 @@ import psycopg2
 
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
 
 from .common import EquipmentCommon
 
@@ -892,3 +892,52 @@ class TestAuditCorrections(TestOperationCommon):
         op = self._borrow("MS1")
         with self.assertRaises(ValidationError):
             op.action_execute()
+
+
+@tagged("post_install", "-at_install")
+class TestOperationForm(TestOperationCommon):
+    """Form helpers asked by the owner on 09/10/2026: transfer type set automatically,
+    order lines loaded from the chosen order."""
+
+    def test_transfer_type_set_automatically(self):
+        Operation = self.env["equipment.operation"]
+        op = Operation.create({"operation_type": "receipt", "receipt_branch": "borrowed",
+                               "company_id": self.company.id, "location_dest_id": self.stock.id})
+        self.assertEqual(op.picking_type_id, self.warehouse.in_type_id)
+        for operation_type, expected in (("exit", self.warehouse.int_type_id),
+                                         ("return", self.warehouse.int_type_id),
+                                         ("restitution", self.warehouse.out_type_id)):
+            op = Operation.create({"operation_type": operation_type,
+                                   "company_id": self.company.id})
+            self.assertEqual(op.picking_type_id.code, expected.code)
+        po = self._order(self.drill, 1)
+        op = Operation.create({"operation_type": "receipt", "receipt_branch": "purchase",
+                               "purchase_mode": "existing", "purchase_id": po.id,
+                               "company_id": self.company.id})
+        self.assertEqual(op.picking_type_id, po.picking_type_id)
+
+    def test_order_fills_lines_vendor_and_stock(self):
+        po = self.env["purchase.order"].create({
+            "partner_id": self.vendor.id, "picking_type_id": self.warehouse.in_type_id.id,
+            "order_line": [
+                Command.create({"product_id": self.drill.id, "product_qty": 2, "price_unit": 1.0,
+                                "taxes_id": [Command.clear()]}),
+                Command.create({"product_id": self.screws.id, "product_qty": 5, "price_unit": 1.0,
+                                "taxes_id": [Command.clear()]}),
+            ],
+        })
+        po.button_confirm()
+        with Form(self.env["equipment.operation"]) as form:
+            form.operation_type = "receipt"
+            form.receipt_branch = "purchase"
+            form.purchase_mode = "existing"
+            form.purchase_id = po
+            self.assertEqual(form.partner_id, self.vendor)
+            self.assertEqual(form.location_dest_id, self.warehouse.in_type_id.default_location_dest_id)
+            self.assertEqual(len(form.line_ids), 3, "one line per drill unit, one for the screws")
+        op = form.record
+        drills = op.line_ids.filtered(lambda ln: ln.product_id == self.drill)
+        self.assertEqual(drills.mapped("quantity"), [1.0, 1.0])
+        screws = op.line_ids.filtered(lambda ln: ln.product_id == self.screws)
+        self.assertEqual((screws.quantity, screws.quantity_done), (5.0, 5.0))
+        self.assertEqual(op.picking_type_id, po.picking_type_id)
