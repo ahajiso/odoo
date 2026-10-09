@@ -785,6 +785,31 @@ class TestAuditCorrections(TestOperationCommon):
         with self.assertRaises(ValidationError):
             op.action_execute()
 
+    def test_existing_bill_must_cover_an_executed_line(self):
+        """Audit of 3e7c39a: line A billed but not received (executed quantity 0),
+        line B received without bill: the mode « bill already received » is refused."""
+        self.screws.purchase_method = "purchase"  # billable before receipt
+        po = self._po((self.screws, 4), (self.drill, 1))
+        po.action_create_invoice()
+        bill = po.invoice_ids
+        bill.invoice_line_ids.filtered(lambda ln: ln.product_id == self.drill).unlink()
+        self.assertEqual(bill.invoice_line_ids.product_id, self.screws)
+        op = self._purchase_op(po, [
+            dict(product_id=self.screws.id, quantity=4, quantity_done=0,
+                 purchase_line_id=self._pol(po, self.screws).id),
+            dict(product_id=self.drill.id, lot_name="EB3",
+                 purchase_line_id=self._pol(po, self.drill).id),
+        ], bill_mode="existing")
+        with self.assertRaises(ValidationError):
+            op.action_execute()
+        self.assertEqual(op.state, "draft")
+        self.assertFalse(op.picking_ids)
+        # receiving the billed line too: the bill now covers an executed line
+        op.line_ids.filtered(lambda ln: ln.product_id == self.screws).quantity_done = 4
+        op.action_execute()
+        self.assertEqual(op.state, "done")
+        self.assertEqual(op.bill_ids, bill)
+
     # 5. internal transfers
     def test_transfers_to_virtual_place_and_between_offsite_stocks(self):
         rules = TestStockRules._transfer

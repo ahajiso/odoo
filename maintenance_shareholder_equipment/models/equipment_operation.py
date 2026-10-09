@@ -433,6 +433,9 @@ class EquipmentOperation(models.Model):
             self._create_draft_bill(lines)
         if self.receipt_branch == "purchase" and self.bill_mode == "existing":
             bills = self._received_bills(lines)
+            if not bills:
+                raise UserError(_("No bill already received for the lines executed by %s.",
+                                  self.name))
             self.write({"bill_ids": [Command.link(bill.id) for bill in bills]})
         if self.receipt_branch in ("borrowed", "rented"):
             nature = "loan" if self.receipt_branch == "borrowed" else "rental"
@@ -887,9 +890,12 @@ class EquipmentOperation(models.Model):
                         raise ValidationError(_("%(product)s: tax %(tax)s is not a purchase tax "
                                                 "of the company.", product=line.product_id.display_name,
                                                 tax=tax.name))
-        if self.bill_mode == "existing" and self.line_ids.purchase_line_id \
-                and not self._received_bills(self.line_ids):
-            errors.append(_("bill already received for these order lines"))
+        if self.bill_mode == "existing":
+            # only the lines really received count (an executed quantity of 0 receives
+            # nothing, so its bill cannot justify the mode)
+            executed = self.line_ids.filtered(lambda ln: ln._qty_executed() > 0)
+            if not executed.purchase_line_id or not self._received_bills(executed):
+                errors.append(_("bill already received for these order lines"))
         if self.bill_mode == "create":
             need(self.bill_ref, _("vendor bill reference"))
             need(self.bill_date, _("bill date"))

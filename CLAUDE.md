@@ -197,7 +197,7 @@ tests on artdubati_test (47 passing, 08/10/2026).
    « Equipment Operations Approver »; protected link to pickings and moves; stock rules
    (supplier receipts and acquisitions only through an operation, no direct exit of
    equipment). Code on branch claude/clever-rubin-z76iba (not on main until audited):
-   88 tests passing locally after the first code audit (e8aa06e, nine points fixed),
+   89 tests passing locally after the code audits (e8aa06e: nine points; 3e7c39a: one),
    update rehearsed from phase 1 with the monitor views (docs/phase2/README.md).
 3. Stock monitor on revision 2 (SQL view, access rules) and rework of the existing code.
 4. Home page and investor user setup (review the existing configuration).

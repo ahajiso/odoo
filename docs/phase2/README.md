@@ -5,7 +5,7 @@ the server, in this order, only after the audit of the code and once it is on `m
 
 Rehearsed locally on 08/10/2026 (Odoo 18 + OCA heads): update from the phase 1
 database (18.0.2.0.0 → 18.0.3.0.0) with the two stock monitor queries as SQL views
-(views unchanged), 88 tests passing, `docs/deploy_modules.sh` with a fake docker
+(views unchanged), 89 tests passing, `docs/deploy_modules.sh` with a fake docker
 running the real update and tests, `setup_phase2.py` dry run, apply (on a scratch copy
 allowing the local database) and control run, operation form opened in a browser.
 
@@ -74,13 +74,13 @@ Expected (08/10/2026): image `odoo-web`, network `odoo_default`, the mounts of
 `/mnt/extra-addons`, `/var/lib/odoo` and `/etc/odoo`, variables `PATH`, `LANG`,
 `ODOO_VERSION`, `ODOO_RC`. If the output differs, stop and send it to Claude.
 
-Then, with the backup of step 1 and the expected number of tests (88):
+Then, with the backup of step 1 and the expected number of tests (89):
 
 ```bash
-bash /opt/odoo/addons/custom/docs/deploy_modules.sh /opt/odoo/backups/<backup of step 1>.dump 88 phase2
+bash /opt/odoo/addons/custom/docs/deploy_modules.sh /opt/odoo/backups/<backup of step 1>.dump 89 phase2
 ```
 
-Expected last lines: « UPDATE OK », « TESTS OK: 0 failed, 0 error(s) of 88 tests »,
+Expected last lines: « UPDATE OK », « TESTS OK: 0 failed, 0 error(s) of 89 tests »,
 « odoo_web started. Update phase2 done. ». Log lines with « ERROR » inside the test log
 are normal when they belong to tests checking a refusal (the script only fails on the
 exit code or on a wrong count).

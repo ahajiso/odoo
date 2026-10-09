@@ -418,6 +418,15 @@ check that products and locations belong to the company and that acquisition sou
 are inventory locations; the tests fail with an explicit message when `l10n_fr_account`
 is not installed (instead of an attempted installation inside the tests).
 
+## Correction after the audit of 3e7c39a
+
+« Bill already received » is checked on the lines really executed (executed quantity
+> 0): a bill of a line received with 0 no longer justifies the mode; at least one bill
+must carry an executed line, otherwise nothing is executed (and the execution also
+refuses if none is found). Rule kept: at least one bill for the executed lines (one bill
+per executed line would be a new business decision). Test added (fails on 3e7c39a);
+89 tests in all.
+
 ## Open decisions for the owner
 
 - Members of the two new groups on artdubati_test (to give before the tests in the
