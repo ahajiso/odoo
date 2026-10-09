@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
+<t t-name="lartdubati_stock_monitor_mockup.Money">
+  <t t-if="!m or m.empty">—</t>
+  <t t-elif="m.value === null"><span class="o_smm_unconverted"><i class="fa fa-exclamation-circle" aria-hidden="true"/> <bdi t-esc="money(m.amount, m.cur)"/> <span class="o_smm_tag">non converti</span></span></t>
+  <t t-else=""><bdi t-esc="money(m.value, cur)"/></t>
+</t>
+
 <t t-name="lartdubati_stock_monitor_mockup.Dashboard">
-<div class="o_action o_smm">
+<div class="o_action o_smm" t-ref="root" t-on-keydown="onKeydown">
  <div class="o_smm_layout">
   <div class="o_smm_scroll">
 
@@ -13,47 +19,62 @@
         <div class="o_smm_subtitle">Situation au <t t-esc="date(TODAY)"/> · montants dans la devise de chaque stock</div>
       </div>
       <div class="o_smm_header_actions">
-        <div class="o_smm_mock_switch" title="Uniquement dans la maquette : le vrai tableau de bord suit les droits de l'utilisateur.">
-          <span class="o_smm_mock_label">Maquette — voir comme</span>
-          <div class="btn-group btn-group-sm">
+        <div class="o_smm_mock_switch" title="Uniquement dans la maquette : le vrai tableau de bord suit les droits de l'utilisateur et l'état réel des appels.">
+          <span class="o_smm_mock_label">Maquette</span>
+          <div class="btn-group btn-group-sm" role="group" aria-label="Voir comme">
             <t t-foreach="profiles" t-as="p" t-key="p.key">
-              <button class="btn" t-att-class="state.profile === p.key ? 'btn-dark' : 'btn-outline-secondary'" t-on-click="() => this.setProfile(p.key)" t-esc="p.label"/>
+              <button class="btn" t-att-class="state.profile === p.key ? 'btn-dark' : 'btn-outline-secondary'" t-att-aria-pressed="state.profile === p.key ? 'true' : 'false'" t-on-click="() => this.setProfile(p.key)" t-esc="p.label"/>
             </t>
           </div>
+          <select class="form-select form-select-sm o_smm_sim" aria-label="Simuler un état" t-on-change="(ev) => this.setSim(ev.target.value)">
+            <t t-foreach="sims" t-as="s" t-key="s.key">
+              <option t-att-value="s.key" t-att-selected="state.sim === s.key" t-esc="s.label"/>
+            </t>
+          </select>
         </div>
         <button class="btn btn-outline-primary btn-sm" t-on-click="openAnalysis">
-          <i class="fa fa-table me-1"/>Analyse détaillée
+          <i class="fa fa-table me-1" aria-hidden="true"/>Analyse détaillée
         </button>
       </div>
     </header>
 
+    <!-- RPC error -->
+    <div t-if="state.sim === 'error'" class="o_smm_error" role="alert">
+      <i class="fa fa-exclamation-triangle fa-lg" aria-hidden="true"/>
+      <div>
+        <strong>Les données n'ont pas pu être chargées.</strong>
+        <div>Le serveur n'a pas répondu (erreur RPC). Les chiffres affichés ne sont pas à jour.</div>
+      </div>
+      <button class="btn btn-sm btn-danger ms-auto" t-on-click="retry"><i class="fa fa-repeat me-1" aria-hidden="true"/>Réessayer</button>
+    </div>
+
     <!-- Selection and filters -->
-    <section class="o_smm_panel o_smm_filters">
+    <section class="o_smm_panel o_smm_filters" aria-label="Sélection et filtres">
       <div class="o_smm_selectors">
-        <label class="o_smm_field">
-          <span><i class="fa fa-globe me-1"/>Pays</span>
+        <div class="o_smm_field">
+          <span id="smm_country"><i class="fa fa-globe me-1" aria-hidden="true"/>Pays</span>
           <SelectMenu choices="countryChoices" value="state.country" onSelect.bind="onCountry" searchable="false" togglerClass="'o_smm_select'"/>
-        </label>
-        <label class="o_smm_field">
-          <span><i class="fa fa-map-marker me-1"/>Ville</span>
+        </div>
+        <div class="o_smm_field">
+          <span id="smm_city"><i class="fa fa-map-marker me-1" aria-hidden="true"/>Ville</span>
           <SelectMenu choices="cityChoices" value="state.city" onSelect.bind="onCity" searchable="false" togglerClass="'o_smm_select'"/>
-        </label>
-        <label class="o_smm_field o_smm_field_stock">
-          <span><i class="fa fa-cube me-1"/>Stock</span>
+        </div>
+        <div class="o_smm_field o_smm_field_stock">
+          <span id="smm_stock"><i class="fa fa-cube me-1" aria-hidden="true"/>Stock</span>
           <SelectMenu choices="[{value: 'all', label: 'Tous les stocks'}]" groups="stockGroups" value="state.stock" onSelect.bind="onStock" searchPlaceholder="'Rechercher un stock…'" togglerClass="'o_smm_select'"/>
-        </label>
-        <button t-if="hasFilters" class="btn btn-link btn-sm o_smm_reset" t-on-click="resetAll"><i class="fa fa-times me-1"/>Tout effacer</button>
+        </div>
+        <button t-if="hasFilters" class="btn btn-link btn-sm o_smm_reset" t-on-click="resetAll"><i class="fa fa-times me-1" aria-hidden="true"/>Tout effacer</button>
       </div>
       <div class="o_smm_toggles">
         <div class="o_smm_segment" role="group" aria-label="Famille">
-          <button t-att-class="{'active': state.family === 'all'}" t-on-click="() => this.setFamily('all')">Tout <span class="o_smm_count" t-esc="familyCount('all')"/></button>
-          <button t-att-class="{'active': state.family === 'asset'}" t-on-click="() => this.setFamily('asset')"><i class="fa fa-wrench me-1"/>Matériel <span class="o_smm_count" t-esc="familyCount('asset')"/></button>
-          <button t-att-class="{'active': state.family === 'consumable'}" t-on-click="() => this.setFamily('consumable')"><i class="fa fa-tint me-1"/>Consommables <span class="o_smm_count" t-esc="familyCount('consumable')"/></button>
+          <button t-att-class="{'active': state.family === 'all'}" t-att-aria-pressed="state.family === 'all' ? 'true' : 'false'" t-on-click="() => this.setFamily('all')">Tout <span class="o_smm_count" t-esc="familyCount('all')"/></button>
+          <button t-att-class="{'active': state.family === 'asset'}" t-att-aria-pressed="state.family === 'asset' ? 'true' : 'false'" t-on-click="() => this.setFamily('asset')"><i class="fa fa-wrench me-1" aria-hidden="true"/>Matériel <span class="o_smm_count" t-esc="familyCount('asset')"/></button>
+          <button t-att-class="{'active': state.family === 'consumable'}" t-att-aria-pressed="state.family === 'consumable' ? 'true' : 'false'" t-on-click="() => this.setFamily('consumable')"><i class="fa fa-tint me-1" aria-hidden="true"/>Consommables <span class="o_smm_count" t-esc="familyCount('consumable')"/></button>
         </div>
         <div class="o_smm_chips" role="group" aria-label="Propriété">
           <t t-foreach="Object.keys(OWNERSHIP)" t-as="key" t-key="key">
-            <button class="o_smm_chip" t-att-class="'o_smm_' + key + (state.ownership.includes(key) ? ' active' : '')" t-on-click="() => this.toggleOwnership(key)">
-              <i t-att-class="state.ownership.includes(key) ? 'fa fa-check-circle' : 'fa fa-circle'"/>
+            <button class="o_smm_chip" t-att-class="'o_smm_' + key + (state.ownership.includes(key) ? ' active' : '')" t-att-aria-pressed="state.ownership.includes(key) ? 'true' : 'false'" t-on-click="() => this.toggleOwnership(key)">
+              <i t-att-class="'fa ' + (state.ownership.includes(key) ? 'fa-check' : OWNERSHIP[key].icon)" aria-hidden="true"/>
               <t t-esc="OWNERSHIP[key].label"/>
               <span class="o_smm_count" t-esc="ownershipCount(key)"/>
             </button>
@@ -62,17 +83,29 @@
       </div>
     </section>
 
+    <!-- Loading skeleton -->
+    <t t-if="state.sim === 'loading'">
+      <div class="o_smm_loading" role="status" aria-live="polite"><i class="fa fa-circle-o-notch fa-spin me-2" aria-hidden="true"/>Chargement des chiffres…</div>
+      <section class="o_smm_cards" aria-hidden="true">
+        <t t-foreach="skeletonCards" t-as="k" t-key="k"><div class="o_smm_card o_smm_skeleton"><div class="o_smm_sk o_smm_sk_title"/><div class="o_smm_sk o_smm_sk_big"/><div class="o_smm_sk o_smm_sk_line"/></div></t>
+      </section>
+      <section class="o_smm_panel o_smm_list" aria-hidden="true">
+        <t t-foreach="[1,2,3,4,5,6]" t-as="k" t-key="k"><div class="o_smm_sk_row"><div class="o_smm_sk o_smm_sk_cell"/><div class="o_smm_sk o_smm_sk_cell"/><div class="o_smm_sk o_smm_sk_cell"/></div></t>
+      </section>
+    </t>
+
+    <t t-elif="state.sim !== 'error'">
     <!-- Stocks -->
-    <section class="o_smm_stocks">
+    <section class="o_smm_stocks" aria-label="Stocks">
       <t t-foreach="stockCards" t-as="c" t-key="c.stock.id">
-        <button class="o_smm_stock" t-att-class="{'active': c.active, 'o_smm_stock_outside': c.stock.id === 0}" t-on-click="() => this.selectStockCard(c.stock.id)">
+        <button class="o_smm_stock" t-att-class="{'active': c.active, 'o_smm_stock_outside': c.stock.id === 0}" t-att-aria-pressed="c.active ? 'true' : 'false'" t-on-click="() => this.selectStockCard(c.stock.id)">
           <div class="o_smm_stock_head">
             <span class="o_smm_stock_name" t-esc="c.stock.name"/>
-            <span t-if="c.alerts" class="o_smm_alert_badge" t-att-title="c.alerts + ' alerte(s)'"><i class="fa fa-exclamation-triangle"/> <t t-esc="c.alerts"/></span>
+            <span t-if="c.alerts" class="o_smm_alert_badge"><i class="fa fa-exclamation-triangle" aria-hidden="true"/> <t t-esc="c.alerts"/><span class="visually-hidden"> alerte(s)</span></span>
           </div>
           <div class="o_smm_stock_place">
             <t t-if="c.stock.id">
-              <i t-att-class="c.stock.place === 'lent_out' ? 'fa fa-handshake-o' : 'fa fa-building-o'"/>
+              <i t-att-class="c.stock.place === 'lent_out' ? 'fa fa-handshake-o' : 'fa fa-building-o'" aria-hidden="true"/>
               <t t-esc="c.stock.city"/>, <t t-esc="c.stock.country"/>
               <span class="o_smm_cur" t-esc="c.stock.currency"/>
             </t>
@@ -85,11 +118,11 @@
     </section>
 
     <!-- Summary cards -->
-    <div t-if="currencyMix" class="o_smm_notice"><i class="fa fa-info-circle me-1"/>Plusieurs devises dans la sélection : les totaux sont donnés par devise, jamais additionnés entre eux.</div>
-    <section class="o_smm_cards">
+    <div t-if="currencyMix" class="o_smm_notice"><i class="fa fa-info-circle me-1" aria-hidden="true"/>Plusieurs devises dans la sélection : les totaux sont donnés par devise, jamais additionnés entre eux.</div>
+    <section class="o_smm_cards" aria-label="Synthèse">
       <t t-foreach="cards" t-as="card" t-key="card.key">
         <div class="o_smm_card" t-att-class="'o_smm_card_' + card.key">
-          <div class="o_smm_card_title"><i t-att-class="'fa ' + card.icon"/> <t t-esc="card.title"/></div>
+          <div class="o_smm_card_title"><i t-att-class="'fa ' + card.icon" aria-hidden="true"/> <t t-esc="card.title"/></div>
           <t t-if="card.counts">
             <div class="o_smm_card_counts">
               <t t-foreach="card.counts" t-as="n" t-key="n_index">
@@ -102,10 +135,11 @@
             <t t-foreach="card.lines" t-as="line" t-key="line.cur">
               <div class="o_smm_card_line"><span class="o_smm_card_big" t-esc="money(line.amount, line.cur)"/></div>
             </t>
+            <t t-foreach="card.provisional or []" t-as="p" t-key="p.cur">
+              <div class="o_smm_card_prov"><i class="fa fa-hourglass-half" aria-hidden="true"/> dont <t t-esc="money(p.amount, p.cur)"/> provisoire</div>
+            </t>
             <t t-foreach="card.missing" t-as="m" t-key="m.cur">
-              <div class="o_smm_card_missing" title="Aucun taux de change : montant exclu des totaux ci-dessus">
-                <i class="fa fa-exclamation-triangle"/> + <t t-esc="money(m.amount, m.cur)"/> non converti
-              </div>
+              <div class="o_smm_card_missing"><i class="fa fa-exclamation-circle" aria-hidden="true"/> + <t t-esc="money(m.amount, m.cur)"/> non converti, hors total</div>
             </t>
           </t>
           <div class="o_smm_card_note" t-esc="card.note"/>
@@ -114,60 +148,74 @@
     </section>
 
     <!-- Alerts -->
-    <section t-if="alertTotal" class="o_smm_panel o_smm_alerts">
-      <button class="o_smm_alerts_head" t-on-click="() => this.state.alertsOpen = !state.alertsOpen">
-        <i class="fa fa-bell me-2"/>Alertes et anomalies <span class="o_smm_alert_total" t-esc="alertTotal"/>
-        <i t-att-class="'fa ms-auto ' + (state.alertsOpen ? 'fa-chevron-up' : 'fa-chevron-down')"/>
+    <section t-if="alertTotal or controls.length" class="o_smm_panel o_smm_alerts" aria-label="Alertes et anomalies">
+      <button class="o_smm_alerts_head" t-att-aria-expanded="state.alertsOpen ? 'true' : 'false'" t-on-click="() => this.state.alertsOpen = !state.alertsOpen">
+        <i class="fa fa-bell me-2" aria-hidden="true"/>Alertes et anomalies <span class="o_smm_alert_total" t-esc="alertTotal"/>
+        <i t-att-class="'fa ms-auto ' + (state.alertsOpen ? 'fa-chevron-up' : 'fa-chevron-down')" aria-hidden="true"/>
       </button>
       <div t-if="state.alertsOpen" class="o_smm_alerts_list">
         <t t-foreach="alertSummary" t-as="a" t-key="a.code">
-          <button class="o_smm_alert" t-att-class="'o_smm_alert_' + a.level + (state.alert === a.code ? ' active' : '')" t-on-click="() => this.filterAlert(a.code)" t-att-title="a.help">
-            <i t-att-class="a.level === 'danger' ? 'fa fa-exclamation-circle' : 'fa fa-exclamation-triangle'"/>
+          <button class="o_smm_alert" t-att-class="'o_smm_alert_' + a.level + (state.alert === a.code ? ' active' : '')" t-att-aria-pressed="state.alert === a.code ? 'true' : 'false'" t-on-click="() => this.filterAlert(a.code)" t-att-title="a.help">
+            <i t-att-class="a.level === 'danger' ? 'fa fa-exclamation-circle' : 'fa fa-exclamation-triangle'" aria-hidden="true"/>
+            <span class="visually-hidden" t-esc="a.level === 'danger' ? 'Bloquant :' : 'À vérifier :'"/>
             <span t-esc="a.label"/>
             <span class="o_smm_count" t-esc="a.count"/>
-            <span t-if="state.alert === a.code" class="o_smm_alert_filtering">filtre actif <i class="fa fa-times"/></span>
+            <span t-if="state.alert === a.code" class="o_smm_alert_filtering">filtre actif <i class="fa fa-times" aria-hidden="true"/></span>
           </button>
         </t>
-        <t t-foreach="globalAlerts" t-as="g" t-key="g.code">
-          <div class="o_smm_alert o_smm_alert_info"><i class="fa fa-info-circle"/><span t-esc="g.text"/></div>
+        <t t-if="controls.length">
+          <div class="o_smm_controls">
+            <span class="o_smm_controls_title"><i class="fa fa-clipboard me-1" aria-hidden="true"/>Contrôles hors moniteur :</span>
+            <t t-foreach="controls" t-as="g" t-key="g.code">
+              <span class="o_smm_control"><strong t-esc="g.count"/> <t t-esc="g.text"/></span>
+            </t>
+          </div>
         </t>
       </div>
     </section>
 
     <!-- List -->
-    <section class="o_smm_panel o_smm_list">
+    <section class="o_smm_panel o_smm_list" aria-label="Articles">
       <div class="o_smm_list_bar">
         <div class="o_smm_search">
-          <i class="fa fa-search"/>
-          <input type="search" class="form-control" placeholder="Rechercher un article, un n° de série, un emplacement…" t-att-value="state.search" t-on-input="onSearch"/>
+          <i class="fa fa-search" aria-hidden="true"/>
+          <input type="search" class="form-control" aria-label="Rechercher" placeholder="Rechercher un article, un n° de série, un emplacement…" t-att-value="state.search" t-on-input="onSearch"/>
         </div>
-        <div class="o_smm_list_info"><t t-esc="filteredRows.length"/> article(s)</div>
+        <div class="o_smm_list_info" aria-live="polite"><t t-esc="filteredRows.length"/> article(s)</div>
         <Pager offset="state.offset" limit="limit" total="filteredRows.length" onUpdate.bind="onPager"/>
       </div>
-      <div class="o_smm_table_wrap">
+      <div t-if="!filteredRows.length" class="o_smm_empty">
+        <i class="fa fa-search fa-2x" aria-hidden="true"/>
+        <div class="o_smm_empty_title">Aucun article ne correspond.</div>
+        <div t-if="state.sim === 'empty'">Aucun stock n'est visible avec votre profil d'accès. Contactez l'administrateur si c'est inattendu.</div>
+        <div t-else="">Modifiez ou effacez les filtres.</div>
+        <button t-if="hasFilters" class="btn btn-outline-primary btn-sm mt-2" t-on-click="resetAll">Effacer les filtres</button>
+      </div>
+      <div t-else="" class="o_smm_table_wrap">
         <table class="table o_smm_table">
+          <caption class="visually-hidden">Articles du moniteur ; Entrée ouvre la fiche, Échap la ferme.</caption>
           <thead>
             <tr>
-              <th t-on-click="() => this.sortBy('name')">Article <i t-att-class="sortIcon('name')"/></th>
-              <th class="o_smm_col_stock" t-on-click="() => this.sortBy('stock')">Stock <i t-att-class="sortIcon('stock')"/></th>
-              <th t-on-click="() => this.sortBy('ownership')">Propriété <i t-att-class="sortIcon('ownership')"/></th>
-              <th class="text-end" t-on-click="() => this.sortBy('qty')">Qté <i t-att-class="sortIcon('qty')"/></th>
-              <th class="text-end" t-on-click="() => this.sortBy('inv')">Val. inventaire <i t-att-class="sortIcon('inv')"/></th>
-              <th t-if="profile.accounting" class="text-end" t-on-click="() => this.sortBy('nbv')">Val. comptable <i t-att-class="sortIcon('nbv')"/></th>
-              <th t-if="profile.rent" class="text-end o_smm_col_rent" t-on-click="() => this.sortBy('rent')">Loyer <i t-att-class="sortIcon('rent')"/></th>
-              <th class="o_smm_col_alert"/>
+              <th t-att-aria-sort="ariaSort('name')"><button class="o_smm_th" t-on-click="() => this.sortBy('name')">Article <i t-att-class="sortIcon('name')" aria-hidden="true"/></button></th>
+              <th class="o_smm_col_stock" t-att-aria-sort="ariaSort('stock')"><button class="o_smm_th" t-on-click="() => this.sortBy('stock')">Stock <i t-att-class="sortIcon('stock')" aria-hidden="true"/></button></th>
+              <th t-att-aria-sort="ariaSort('ownership')"><button class="o_smm_th" t-on-click="() => this.sortBy('ownership')">Propriété <i t-att-class="sortIcon('ownership')" aria-hidden="true"/></button></th>
+              <th class="text-end" t-att-aria-sort="ariaSort('qty')"><button class="o_smm_th" t-on-click="() => this.sortBy('qty')">Qté <i t-att-class="sortIcon('qty')" aria-hidden="true"/></button></th>
+              <th class="text-end" t-att-aria-sort="ariaSort('inv')"><button class="o_smm_th" t-on-click="() => this.sortBy('inv')">Val. inventaire <i t-att-class="sortIcon('inv')" aria-hidden="true"/></button></th>
+              <th t-if="profile.accountant" class="text-end" t-att-aria-sort="ariaSort('acct')"><button class="o_smm_th" t-on-click="() => this.sortBy('acct')">Val. comptable <i t-att-class="sortIcon('acct')" aria-hidden="true"/></button></th>
+              <th t-if="profile.staff" class="text-end o_smm_col_rent" t-att-aria-sort="ariaSort('rent')"><button class="o_smm_th" t-on-click="() => this.sortBy('rent')">Loyer <i t-att-class="sortIcon('rent')" aria-hidden="true"/></button></th>
+              <th class="o_smm_col_alert"><span class="visually-hidden">Alertes</span></th>
             </tr>
           </thead>
           <tbody>
-            <tr t-if="!pageRows.length"><td colspan="8" class="o_smm_empty">Aucun article ne correspond à ces filtres.</td></tr>
             <t t-foreach="pageRows" t-as="row" t-key="row.id">
-              <tr t-on-click="() => this.openRow(row)" t-att-class="{'o_smm_row_selected': state.selected === row.id}">
+              <tr tabindex="0" t-att-data-row-id="row.id" t-att-aria-selected="state.selected === row.id ? 'true' : 'false'" t-on-click="() => this.openRow(row)" t-on-keydown="(ev) => this.onRowKey(ev, row)" t-att-class="{'o_smm_row_selected': state.selected === row.id}">
                 <td>
                   <div class="o_smm_item">
-                    <i t-att-class="row.family === 'asset' ? 'fa fa-wrench o_smm_fam' : 'fa fa-tint o_smm_fam'" t-att-title="row.family === 'asset' ? 'Matériel' : 'Consommable'"/>
+                    <i t-att-class="row.family === 'asset' ? 'fa fa-wrench o_smm_fam' : 'fa fa-tint o_smm_fam'" aria-hidden="true"/>
                     <div>
                       <div class="o_smm_item_name" t-esc="row.name"/>
                       <div class="o_smm_item_sub">
+                        <span class="visually-hidden" t-esc="row.family === 'asset' ? 'Matériel,' : 'Consommable,'"/>
                         <t t-if="row.serial">N° <t t-esc="row.serial"/></t>
                         <t t-else="" t-esc="row.category"/>
                       </div>
@@ -176,24 +224,27 @@
                 </td>
                 <td class="o_smm_col_stock">
                   <div t-esc="row.stockRec.name"/>
-                  <div class="o_smm_item_sub" t-if="row.location !== row.stockRec.name" t-esc="row.location"/>
+                  <div class="o_smm_item_sub" t-if="row.locations"><i class="fa fa-clone" aria-hidden="true"/> <t t-esc="row.locations.length"/> emplacements</div>
+                  <div class="o_smm_item_sub" t-elif="row.location !== row.stockRec.name" t-esc="row.location"/>
                 </td>
-                <td><span class="o_smm_badge" t-att-class="'o_smm_' + row.ownership" t-esc="OWNERSHIP[row.ownership].label"/></td>
-                <td class="text-end text-nowrap"><t t-esc="number(row.qty)"/> <span class="o_smm_item_sub" t-esc="row.uom"/></td>
-                <td class="text-end text-nowrap">
-                  <t t-esc="money(row.inv, row.cur)"/>
+                <td><span class="o_smm_badge" t-att-class="'o_smm_' + row.ownership"><i t-att-class="'fa ' + OWNERSHIP[row.ownership].icon" aria-hidden="true"/> <t t-esc="OWNERSHIP[row.ownership].label"/></span></td>
+                <td class="text-end text-nowrap o_smm_num"><bdi><t t-esc="number(row.qty)"/> <span class="o_smm_item_sub" t-esc="row.uom"/></bdi></td>
+                <td class="text-end text-nowrap o_smm_num"><t t-call="lartdubati_stock_monitor_mockup.Money"><t t-set="m" t-value="row.m.inv"/><t t-set="cur" t-value="row.cur"/></t></td>
+                <td t-if="profile.accountant" class="text-end text-nowrap o_smm_num">
+                  <t t-call="lartdubati_stock_monitor_mockup.Money"><t t-set="m" t-value="row.m.acct"/><t t-set="cur" t-value="row.cur"/></t>
+                  <div t-if="row.provisional" class="o_smm_tag o_smm_tag_prov"><i class="fa fa-hourglass-half" aria-hidden="true"/> provisoire</div>
                 </td>
-                <td t-if="profile.accounting" class="text-end text-nowrap" t-esc="money(row.nbv, row.cur)"/>
-                <td t-if="profile.rent" class="text-end text-nowrap o_smm_col_rent">
+                <td t-if="profile.staff" class="text-end text-nowrap o_smm_col_rent o_smm_num">
                   <t t-if="row.rent">
-                    <div t-att-class="{'o_smm_muted': !row.rentActive}" t-esc="rentLabel(row)"/>
+                    <div t-att-class="{'o_smm_muted': !row.rentActive}"><bdi t-esc="rentLabel(row)"/></div>
                     <div class="o_smm_item_sub" t-if="!row.rentActive">terminé le <t t-esc="date(row.rent.end)"/></div>
-                    <div class="o_smm_item_sub o_smm_text_danger" t-elif="row.unconverted.some((u) => u.field === 'rent')">non converti</div>
+                    <div class="o_smm_tag o_smm_tag_danger" t-elif="row.m.rent and row.m.rent.ok === false"><i class="fa fa-exclamation-circle" aria-hidden="true"/> non converti</div>
+                    <div class="o_smm_tag" t-elif="row.m.rent and row.m.rent.empty">pas d'équiv. mensuel</div>
                   </t>
                 </td>
                 <td class="o_smm_col_alert">
                   <t t-set="ra" t-value="rowAlerts(row)"/>
-                  <i t-if="ra.length" class="fa fa-exclamation-triangle o_smm_text_warning" t-att-title="ra.map((c) => ALERTS[c].label).join(', ')"/>
+                  <span t-if="ra.length" class="o_smm_row_alert" t-att-title="ra.map((c) => ALERTS[c].label).join(', ')"><i class="fa fa-exclamation-triangle" aria-hidden="true"/><span class="o_smm_row_alert_n" t-esc="ra.length"/><span class="visually-hidden" t-esc="' alerte(s) : ' + ra.map((c) => ALERTS[c].label).join(', ')"/></span>
                 </td>
               </tr>
             </t>
@@ -201,76 +252,85 @@
         </table>
       </div>
     </section>
+    </t>
   </div>
 
   <!-- Detail panel -->
-  <aside t-if="selectedRow" class="o_smm_detail">
+  <aside t-if="selectedRow" class="o_smm_detail" role="dialog" aria-modal="false" t-att-aria-label="'Fiche : ' + selectedRow.name">
     <t t-set="r" t-value="selectedRow"/>
     <div class="o_smm_detail_head">
       <div>
-        <div class="o_smm_detail_kind"><i t-att-class="r.family === 'asset' ? 'fa fa-wrench' : 'fa fa-tint'"/> <t t-esc="r.family === 'asset' ? 'Matériel' : 'Consommable'"/></div>
+        <div class="o_smm_detail_kind"><i t-att-class="r.family === 'asset' ? 'fa fa-wrench' : 'fa fa-tint'" aria-hidden="true"/> <t t-esc="r.family === 'asset' ? 'Matériel' : 'Consommable'"/></div>
         <h2 t-esc="r.name"/>
         <div class="o_smm_item_sub" t-if="r.serial">N° de série <t t-esc="r.serial"/></div>
       </div>
-      <button class="btn btn-light btn-sm" t-on-click="closeDetail" title="Fermer"><i class="fa fa-times"/></button>
+      <button class="btn btn-light btn-sm" t-ref="closeButton" t-on-click="closeDetail" title="Fermer (Échap)" aria-label="Fermer la fiche"><i class="fa fa-times" aria-hidden="true"/></button>
     </div>
     <div class="o_smm_detail_body">
       <t t-set="ra" t-value="rowAlerts(r)"/>
       <div t-foreach="ra" t-as="code" t-key="code" class="o_smm_detail_alert" t-att-class="'o_smm_alert_' + ALERTS[code].level">
-        <i class="fa fa-exclamation-triangle me-1"/><strong t-esc="ALERTS[code].label"/> — <t t-esc="ALERTS[code].help"/>
+        <i t-att-class="ALERTS[code].level === 'danger' ? 'fa fa-exclamation-circle me-1' : 'fa fa-exclamation-triangle me-1'" aria-hidden="true"/><strong t-esc="ALERTS[code].label"/> — <t t-esc="ALERTS[code].help"/>
       </div>
 
       <h3>Propriété</h3>
       <dl>
-        <dt>Statut</dt><dd><span class="o_smm_badge" t-att-class="'o_smm_' + r.ownership" t-esc="OWNERSHIP[r.ownership].label"/></dd>
-        <t t-if="profile.owner and r.owner"><dt>Propriétaire légal</dt><dd t-esc="r.owner"/></t>
-        <t t-if="profile.owner and r.holder"><dt>Détenu par</dt><dd t-esc="r.holder"/></t>
-        <t t-if="profile.owner and r.contract"><dt>Contrat</dt><dd t-esc="r.contract"/></t>
+        <dt>Statut</dt><dd><span class="o_smm_badge" t-att-class="'o_smm_' + r.ownership"><i t-att-class="'fa ' + OWNERSHIP[r.ownership].icon" aria-hidden="true"/> <t t-esc="OWNERSHIP[r.ownership].label"/></span></dd>
+        <t t-if="profile.staff and r.owner"><dt>Propriétaire légal</dt><dd t-esc="r.owner"/></t>
+        <t t-if="profile.staff and r.holder"><dt>Détenu par</dt><dd t-esc="r.holder"/></t>
+        <t t-if="profile.staff and r.family === 'asset'"><dt>Responsable</dt><dd t-if="r.responsible" t-esc="r.responsible"/><dd t-else="" class="o_smm_text_warning">non renseigné</dd></t>
+        <t t-if="profile.staff and r.contract"><dt>Contrat</dt><dd t-esc="r.contract"/></t>
       </dl>
 
       <h3>Emplacement</h3>
       <dl>
         <dt>Stock</dt><dd t-esc="r.stockRec.name"/>
-        <dt>Emplacement</dt><dd t-esc="r.location"/>
+        <t t-if="r.locations"><dt>Emplacements</dt><dd><t t-foreach="r.locations" t-as="l" t-key="l"><div t-esc="l"/></t></dd></t>
+        <t t-else=""><dt>Emplacement</dt><dd t-esc="r.location"/></t>
         <t t-if="r.stockRec.city"><dt>Ville</dt><dd><t t-esc="r.stockRec.city"/>, <t t-esc="r.stockRec.state"/>, <t t-esc="r.stockRec.country"/></dd></t>
         <dt>Devise du stock</dt><dd t-esc="r.cur"/>
       </dl>
 
       <h3>Valeurs <small>(<t t-esc="r.cur"/>)</small></h3>
       <dl>
-        <dt>Quantité</dt><dd><t t-esc="number(r.qty)"/> <t t-esc="r.uom"/></dd>
-        <dt>Valeur d'inventaire</dt><dd t-esc="money(r.inv, r.cur, 2)"/>
-        <t t-if="r.family === 'asset' and (r.repl !== undefined)"><dt>Valeur de remplacement</dt><dd><t t-esc="money(r.repl, r.cur, 2)"/><span t-if="r.replDate" class="o_smm_item_sub"> au <t t-esc="date(r.replDate)"/></span></dd></t>
-        <t t-if="profile.accounting">
-          <t t-if="r.orig !== null"><dt>Valeur d'origine</dt><dd t-esc="money(r.orig, r.cur, 2)"/></t>
-          <t t-if="r.dep !== null and r.family === 'asset'"><dt>Amortissements</dt><dd t-esc="money(r.dep, r.cur, 2)"/></t>
-          <dt>Valeur comptable nette</dt><dd t-esc="money(r.nbv, r.cur, 2)"/>
-          <t t-if="r.asset"><dt>Immobilisation</dt><dd t-esc="r.asset"/></t>
-          <t t-if="r.noAsset"><dt>Immobilisation</dt><dd class="o_smm_muted">aucune (catégorie non immobilisée, coût moyen)</dd></t>
+        <dt>Quantité</dt><dd><bdi><t t-esc="number(r.qty)"/> <t t-esc="r.uom"/></bdi></dd>
+        <t t-foreach="measuresFor(r)" t-as="m" t-key="m.key">
+          <dt t-esc="m.label"/>
+          <dd>
+            <t t-call="lartdubati_stock_monitor_mockup.Money"><t t-set="cur" t-value="r.cur"/></t>
+            <span t-if="m.key === 'repl' and r.repl" class="o_smm_item_sub"> au <t t-esc="date(r.repl.date)"/></span>
+            <span t-if="m.key === 'acct' and r.provisional" class="o_smm_tag o_smm_tag_prov"><i class="fa fa-hourglass-half" aria-hidden="true"/> provisoire</span>
+          </dd>
+        </t>
+        <t t-if="profile.accountant">
+          <t t-if="r.fa"><dt>Immobilisation</dt><dd><t t-esc="r.fa.ref"/> · <t t-esc="ASSET_STATE[r.fa.state]"/></dd></t>
+          <t t-elif="r.family === 'asset' and r.ownership !== 'borrowed' and r.ownership !== 'rented'"><dt>Immobilisation</dt><dd class="o_smm_muted">aucune (<t t-esc="r.treatment === 'valued' ? 'valorisé en stock' : 'passé en charge'"/>)</dd></t>
         </t>
       </dl>
 
-      <t t-if="profile.rent and r.rent">
+      <t t-if="profile.staff and r.rent">
         <h3>Contrat de location</h3>
         <dl>
-          <dt>Loyer</dt><dd t-esc="rentLabel(r)"/>
+          <dt>Loyer</dt><dd><bdi t-esc="rentLabel(r)"/></dd>
           <dt>Période</dt><dd>du <t t-esc="date(r.rent.start)"/><t t-if="r.rent.end"> au <t t-esc="date(r.rent.end)"/></t><t t-else=""> (sans fin)</t></dd>
           <dt>Contrat</dt><dd t-esc="r.rent.contract"/>
-          <t t-if="r.rentActive and r.rentMonthly !== null"><dt>Équivalent mensuel</dt><dd t-esc="money(r.rentMonthly, r.cur, 2)"/></t>
-          <t t-if="profile.accounting"><dt>Loyers payés</dt><dd t-esc="money(r.rentPaid, r.cur, 2)"/></t>
+          <t t-if="r.rentActive"><dt>Équivalent mensuel</dt><dd><t t-if="r.m.rent.empty" class="o_smm_muted">non calculé (périodicité non gérée)</t><t t-else=""><t t-call="lartdubati_stock_monitor_mockup.Money"><t t-set="m" t-value="r.m.rent"/><t t-set="cur" t-value="r.cur"/></t></t></dd></t>
+          <t t-if="profile.accountant and r.m.paid"><dt>Loyers payés</dt><dd><t t-call="lartdubati_stock_monitor_mockup.Money"><t t-set="m" t-value="r.m.paid"/><t t-set="cur" t-value="r.cur"/></t></dd></t>
         </dl>
+        <ul t-if="profile.accountant and r.bills" class="o_smm_bills">
+          <li t-foreach="r.bills" t-as="b" t-key="b_index"><t t-esc="b.refund ? 'Avoir' : 'Facture'"/> du <t t-esc="date(b.date)"/> : <t t-esc="money(b.amount, 'EUR', 2)"/> HT</li>
+        </ul>
       </t>
 
-      <t t-if="r.unconverted.length or (r.conversions.length and profile.accounting)">
+      <t t-set="conv" t-value="conversionsFor(r)"/>
+      <t t-if="conv.length">
         <h3>Conversions</h3>
         <ul class="o_smm_conv">
-          <li t-foreach="r.unconverted" t-as="u" t-key="u_index" class="o_smm_text_danger">
-            <i class="fa fa-exclamation-circle me-1"/><t t-esc="u.label"/> : <strong t-esc="money(u.amount, u.cur, 2)"/> — aucun taux <t t-esc="u.cur"/> → <t t-esc="r.cur"/>, montant exclu des totaux.
-          </li>
-          <t t-if="profile.accounting">
-            <li t-foreach="r.conversions" t-as="c" t-key="c_index">
-              <t t-esc="c.label"/> : <t t-esc="money(c.amount, c.cur, 2)"/> × <t t-esc="number(c.rate)"/> (taux du <t t-esc="date(c.date)"/>)
+          <t t-foreach="conv" t-as="c" t-key="c_index">
+            <li t-if="c.ok === false" class="o_smm_text_danger">
+              <i class="fa fa-exclamation-circle me-1" aria-hidden="true"/><t t-esc="c.label"/> : <strong t-esc="money(c.amount, c.cur, 2)"/> — aucun taux <t t-esc="c.cur"/> → <t t-esc="r.cur"/><t t-if="c.date"> au <t t-esc="date(c.date)"/></t>, exclu des totaux.
             </li>
+            <li t-elif="c.perBill"><t t-esc="c.label"/> : <t t-esc="money(c.amount, c.cur, 2)"/>, chaque facture convertie au taux de sa date comptable.</li>
+            <li t-else=""><t t-esc="c.label"/> : <t t-esc="money(c.amount, c.cur, 2)"/> × <t t-esc="number(c.rate)"/> (taux du <t t-esc="date(c.rateDate)"/>)</li>
           </t>
         </ul>
       </t>
@@ -283,8 +343,8 @@
         <t t-if="r.acquired"><dt>Entrée</dt><dd t-esc="date(r.acquired)"/></t>
       </dl>
     </div>
-    <div t-if="profile.owner" class="o_smm_detail_foot">
-      <button class="btn btn-outline-secondary btn-sm" t-on-click="openAnalysis"><i class="fa fa-external-link me-1"/>Ouvrir la fiche <t t-esc="r.family === 'asset' ? 'équipement' : 'article'"/></button>
+    <div t-if="profile.staff" class="o_smm_detail_foot">
+      <button class="btn btn-outline-secondary btn-sm" t-on-click="openAnalysis"><i class="fa fa-external-link me-1" aria-hidden="true"/>Ouvrir la fiche <t t-esc="r.family === 'asset' ? 'équipement' : 'article'"/></button>
     </div>
   </aside>
  </div>
