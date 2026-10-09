@@ -103,7 +103,7 @@ class AccountMoveLine(models.Model):
         qty = self.quantity
         if self.product_uom_id and self.product_uom_id != self.product_id.uom_id:
             # one equipment per unit of the product, also for a bill in packs
-            qty = self.product_uom_id._compute_quantity(qty, self.product_id.uom_id)
+            qty = self.product_uom_id._compute_quantity(qty, self.product_id.uom_id, round=False)
         if float_compare(qty, float_round(qty, precision_digits=0), precision_digits=6) or qty <= 0:
             raise UserError(
                 _("Bill line %s: an equipment line must have a whole, positive number of "
@@ -248,7 +248,8 @@ class AccountMove(models.Model):
                 qty = line.quantity
                 if line.product_uom_id and line.product_id and \
                         line.product_uom_id != line.product_id.uom_id:
-                    qty = line.product_uom_id._compute_quantity(qty, line.product_id.uom_id)
+                    qty = line.product_uom_id._compute_quantity(qty, line.product_id.uom_id,
+                                                                round=False)
                 if qty <= 0:
                     continue
                 line.equipment_ids.sudo()._set_cost(

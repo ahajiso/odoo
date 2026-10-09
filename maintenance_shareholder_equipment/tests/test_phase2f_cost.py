@@ -290,3 +290,55 @@ class TestPhase2fCost(EquipmentCommon):
         module.migrate(self.env.cr, "18.0.3.0.0")
         equipment.invalidate_recordset()
         self.assertCost(equipment, 100.0, True, "order")
+
+
+@tagged("post_install", "-at_install")
+class TestPhase2fPurchaseUnit(EquipmentCommon):
+    """Order created by the operation when the purchase unit differs from the product's
+    unit (audit of bad8e9f)."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.pair = cls.env["uom.uom"].create({
+            "name": "Pair (test)", "category_id": cls.env.ref("uom.product_uom_unit").category_id.id,
+            "uom_type": "bigger", "factor_inv": 2.0, "rounding": 1.0,
+        })
+        cls.paired = cls._product("Paired grinder", cls.categ_tools, storable=True)
+        cls.paired.uom_po_id = cls.pair
+
+    def _create_order_op(self, count):
+        return self._operation(
+            "receipt", receipt_branch="purchase", partner_id=self.vendor.id,
+            purchase_mode="create", bill_mode="none",
+            lines=[dict(product_id=self.paired.id, lot_name="PO-UOM-%s" % i, price_unit=60.0)
+                   for i in range(count)])
+
+    def test_two_pieces_make_one_pair_order_receipt_and_bill(self):
+        op = self._create_order_op(2)
+        op.with_user(self.user_both).action_execute()
+        line = op.purchase_created_id.order_line
+        self.assertEqual(line.product_uom, self.pair)
+        self.assertEqual(line.product_qty, 1.0)
+        self.assertAlmostEqual(line.price_unit, 120.0)
+        self.assertEqual(line.qty_received, 1.0)
+        equipment = op.line_ids.equipment_id
+        self.assertEqual(len(equipment), 2)
+        for item in equipment:
+            self.assertAlmostEqual(item.cost, 60.0)
+            self.assertTrue(item.cost_provisional)
+        self.assertEqual(sum(op.picking_ids.move_ids.move_line_ids.mapped("quantity")), 2.0)
+        bill = self._bill(op.purchase_created_id)
+        bill_line = bill.invoice_line_ids
+        self.assertEqual(bill_line.product_uom_id, self.pair)
+        self.assertEqual(bill_line.quantity, 1.0)
+        self.assertEqual(bill_line.equipment_ids, equipment)
+        for item in equipment:
+            self.assertAlmostEqual(item.cost, 60.0)
+            self.assertFalse(item.cost_provisional)
+
+    def test_quantity_not_a_whole_number_of_purchase_units_refused(self):
+        op = self._create_order_op(3)
+        with self.assertRaisesRegex(ValidationError, "whole number of Pair"):
+            op.with_user(self.user_both).action_execute()
+        self.assertFalse(op.purchase_created_id)
