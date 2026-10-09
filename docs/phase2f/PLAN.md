@@ -1,6 +1,10 @@
 # Phase 2f plan – corrections to phase 2 (audit of 09/10/2026)
 
-Status: revision 3 (09/10/2026). No code written.
+Status: revision 3 (09/10/2026), **development authorised** by the audit of 24d9027 (D7
+and D8 accepted), with three precisions integrated below:
+- order discount in the estimated cost (§2);
+- `bill_released` distinct from `bill_cancelled` (§2);
+- reliable fetch and script paths in the README (§5).
 - The audit of revision 2 accepted P9, P10, P13 and D6, and asked for five corrections
   before the green light:
   - cost known explicitly (§2);
@@ -108,7 +112,7 @@ business methods below or by the correction wizard.
 - `cost_known` (Boolean, default False): the only test of « cost known ».
 - `cost_date` (Date);
 - `cost_provisional` (Boolean);
-- `cost_source`: order | bill | bill_cancelled | acquisition | migration | manual;
+- `cost_source`: order | bill | bill_cancelled | bill_released | acquisition | migration | manual;
 - `cost_reference` (Char): the document that explains the cost, e.g. « P00165 line 1 »,
   « Fr1223 », « Fr1223 (cancelled) », kept even after `move_line_id` is removed.
 
@@ -118,12 +122,13 @@ gives NULL. A real zero (`cost_known` True and `cost = 0`) stays 0.
 
 | Case | `cost` | `cost_date` | provisional | source |
 |---|---|---|---|---|
-| Receipt before bill (purchase) | order line unit price, untaxed, after discount, **per product unit** (`product_uom._compute_price(price_unit, product.uom_id)`), converted from the order currency at the receipt date (`_convert`, company of the order) | date the receipt is done | yes | order |
+| Receipt before bill (purchase) | order line unit price, untaxed, **after discount** (`price_unit × (1 − discount / 100)`), then **per product unit** (`product_uom._compute_price(…, product.uom_id)`), converted from the order currency at the receipt date (`_convert`, company of the order) | date the receipt is done | yes | order |
 | Bill before receipt (equipment created from the bill) | `abs(balance) / quantity` with the quantity converted into the product's unit (`product_uom_id._compute_quantity(quantity, product.uom_id)`) | accounting date | no | bill |
 | Bill posted after receipt | the estimate is replaced as above, through `_reconcile_equipment()` | accounting date | no | bill |
 | Partial bill | only the equipment reconciled with the billed quantity | | | |
 | Bill reset to draft | amount kept; provisional again; the reference stays the bill's | unchanged | yes | bill |
-| Bill cancelled, or equipment released by `_release_excess()` | the equipment concerned is **recorded before** the unlink (in `button_cancel` and `_release_excess`, before calling `_unlink_equipment`). If it has an order line (through its receipt operation line), the order estimate is restored; otherwise the amount is kept | the restored estimate's date, otherwise unchanged | yes | order, or bill_cancelled with `cost_reference` « <bill> (cancelled) » |
+| Bill cancelled (`button_cancel`) | the equipment concerned is **recorded before** the unlink. If it has an order line (through its receipt operation line), the order estimate is restored; otherwise the amount is kept | the restored estimate's date, otherwise unchanged | yes | order, or `bill_cancelled` with `cost_reference` « <bill> (cancelled) » |
+| Equipment released by `_release_excess()` (draft bill's quantity lowered; the bill is **not** cancelled) | same rule, recorded before the unlink | as above | yes | order, or `bill_released` with `cost_reference` « released from <bill> » |
 | Acquisition without purchase | line `unit_value`, converted from the operation currency at the execution date | execution date | no | acquisition |
 | Borrowed / rented | none: `cost_known` False (the monitor uses the replacement value) | | | |
 | Owned, no source found | none: `cost_known` False; the monitor shows NULL and `alert_cost_missing` | | | |
@@ -146,13 +151,14 @@ gives NULL. A real zero (`cost_known` True and `cost = 0`) stays 0.
   - bill before receipt and receipt before bill;
   - order and bill in a foreign currency at different rates;
   - **order and bill in a unit different from the product's** (pack of 10);
+  - **discount and different unit together** on the order line;
   - partial bill;
   - **bill reset to draft**;
   - **bill cancelled** (separate test: estimate restored from the order, source and
     reference explained);
   - bill cancelled for an equipment created from the bill (amount kept, source
     `bill_cancelled`);
-  - `_release_excess`;
+  - `_release_excess` (source `bill_released`, reference « released from … », distinct from a cancellation);
   - acquisition without purchase;
   - real zero cost versus unknown cost;
   - correction wizard refused to an ownership manager, accepted for an accounting
@@ -270,15 +276,20 @@ gives NULL. A real zero (`cost_known` True and `cost = 0`) stays 0.
 `docs/phase2f/README.md`, run by the owner:
 1. **Backup** of the database and filestore.
 2. **Fetch the code without touching the working tree**:
-   `git -C /opt/odoo/addons/custom fetch origin main`. The running Odoo and the checked
-   out files are unchanged. The scripts of the new commit are extracted to a temporary
-   folder: `git -C /opt/odoo/addons/custom archive origin/main docs/phase2f | tar -x -C /tmp/phase2f`.
-3. **`setup_phase2f.py --apply`** from `/tmp/phase2f` (JSON-RPC against the running,
+   - `git -C /opt/odoo/addons/custom fetch origin +refs/heads/main:refs/remotes/origin/main`
+     explicitly updates `origin/main`;
+   - check it with `git -C /opt/odoo/addons/custom log -1 --oneline origin/main`
+     against the commit announced;
+   - extract the scripts: `rm -rf /tmp/phase2f && mkdir -p /tmp/phase2f && git -C
+     /opt/odoo/addons/custom archive origin/main docs/phase2f | tar -x -C /tmp/phase2f`.
+     The archive keeps its tree, so the scripts are in `/tmp/phase2f/docs/phase2f/`.
+   The running Odoo and the checked out files are unchanged.
+3. **`setup_phase2f.py --apply`** from `/tmp/phase2f/docs/phase2f/` (JSON-RPC against the running,
    unchanged Odoo; dry run first):
    - sets the responsibles chosen by the owner (D1);
    - handles D3 and D4 per the owner's answers.
    It uses only fields that already exist before the update.
-4. **`precheck.sh`** from `/tmp/phase2f`, which must pass (exit 0). It refuses when:
+4. **`precheck.sh`** from `/tmp/phase2f/docs/phase2f/`, which must pass (exit 0). It refuses when:
    - an active integrated equipment has no valid responsible;
    - an open receipt is not decided (D4).
 5. **Stop the application**, then update the working tree:
