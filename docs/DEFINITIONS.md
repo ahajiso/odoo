@@ -224,6 +224,11 @@ automatically in accounting, until the accountant states: legal meaning (transfe
 ownership, contribution in kind, or mere provision by a shareholder), date of transfer,
 counterpart account (capital, 455 or other), VAT, required document.
 
+## Taxes in labels
+Every price or cost is untaxed and its label says so: « (HT) » in French, « (excl. tax) » in
+English (owner's rule, 09/10/2026). A price entered tax included would say « (TTC) »; no
+such entry exists today.
+
 ## Currency
 Each stock is reported in its own currency. Totals are only ever summed within one
 currency and shown grouped by currency. No consolidation in this version.

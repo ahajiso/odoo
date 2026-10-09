@@ -38,7 +38,7 @@
                             <field name="asset_id"/>
                             <field name="move_line_id" readonly="1"/>
                         </group>
-                        <group string="Cost" name="cost">
+                        <group string="Cost (excl. tax)" name="cost">
                             <field name="cost_known"/>
                             <field name="cost" widget="monetary" options="{'currency_field': 'company_currency_id'}"
                                    invisible="not cost_known"/>
@@ -47,7 +47,7 @@
                             <field name="cost_source"/>
                             <field name="cost_reference"/>
                         </group>
-                        <group string="Replacement Value">
+                        <group string="Replacement Value (excl. tax)">
                             <field name="replacement_value" widget="monetary" options="{'currency_field': 'replacement_currency_id'}"/>
                             <field name="replacement_currency_id"/>
                             <field name="replacement_value_date"/>

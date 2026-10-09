@@ -104,7 +104,7 @@ class MaintenanceEquipment(models.Model):
     # type (double precision -> numeric), and Odoo drops every SQL view reading a
     # column whose type it converts, the stock monitor reports included.
     # Shown with its currency by the monetary widget.
-    replacement_value = fields.Float(tracking=True)
+    replacement_value = fields.Float(string="Replacement Value (excl. tax)", tracking=True)
     replacement_currency_id = fields.Many2one(
         "res.currency",
         string="Replacement Value Currency",
@@ -123,7 +123,7 @@ class MaintenanceEquipment(models.Model):
     # a type change would drop the views reading it. It is meaningful only when
     # `cost_known` is set: a Float cannot tell « unknown » from 0.
     # no tracking: _set_cost() posts one explicit message per change, with the reason
-    cost = fields.Float(readonly=True,
+    cost = fields.Float(string="Cost (excl. tax)", readonly=True,
                         help="Unit cost in company currency; see « Cost Known ».")
     cost_known = fields.Boolean(readonly=True, copy=False)
     cost_date = fields.Date(readonly=True, copy=False)

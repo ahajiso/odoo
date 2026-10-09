@@ -28,6 +28,10 @@
 - Single company. DB container: odoo_db (`docker exec -i odoo_db psql -U odoo -d artdubati_test`).
 - Languages: en_US, fr_FR, fa_IR (RTL). All UI strings translatable; .po files come from
   `odoo --i18n-export`, never written by hand.
+- Owner's rule (09/10/2026): every price or cost label says it is untaxed: « (excl. tax) »
+  in the source strings, « (HT) » in French, « (بدون مالیات) » in Persian. Exception only
+  where a price is really entered tax included (none found so far): then « (incl. tax) /
+  (TTC) ». Applies to new fields, views, reports and the stock monitor.
 - Business definitions are in docs/DEFINITIONS.md. Read it first and follow it exactly.
   It is a revisable design document: report every finalised decision there.
 

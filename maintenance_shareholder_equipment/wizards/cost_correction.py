@@ -11,7 +11,7 @@ class EquipmentCostCorrection(models.TransientModel):
     equipment_id = fields.Many2one("maintenance.equipment", required=True, readonly=True)
     currency_id = fields.Many2one(related="equipment_id.company_id.currency_id")
     cost_known = fields.Boolean(string="Cost Known", default=True)
-    cost = fields.Float(help="Unit cost in company currency.")
+    cost = fields.Float(string="Cost (excl. tax)", help="Unit cost in company currency.")
     cost_date = fields.Date(string="Cost Date", default=fields.Date.context_today)
     cost_provisional = fields.Boolean(string="Provisional")
     reason = fields.Text(required=True)

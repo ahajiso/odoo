@@ -211,7 +211,9 @@
                                             <field name="tax_ids" widget="many2many_tags"
                                                    invisible="parent.receipt_branch != 'purchase' or parent.purchase_mode != 'create'"
                                                    domain="[('type_tax_use', '=', 'purchase'), ('company_id', '=', parent.company_id)]"/>
-                                            <field name="unit_value" invisible="parent.operation_type != 'receipt' or parent.receipt_branch != 'acquisition'"/>
+                                            <field name="company_currency_id" invisible="1"/>
+                                            <field name="unit_value" widget="monetary" options="{'currency_field': 'company_currency_id'}"
+                                                   invisible="parent.operation_type != 'receipt' or parent.receipt_branch != 'acquisition'"/>
                                             <field name="replacement_value" invisible="parent.operation_type != 'receipt' or parent.receipt_branch not in ('borrowed', 'rented')"/>
                                             <field name="replacement_currency_id" invisible="parent.operation_type != 'receipt' or parent.receipt_branch not in ('borrowed', 'rented')"/>
                                             <field name="replacement_value_date" invisible="parent.operation_type != 'receipt' or parent.receipt_branch not in ('borrowed', 'rented')"/>
