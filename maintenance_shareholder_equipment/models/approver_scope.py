@@ -28,7 +28,16 @@ APPROVER_SCOPE = {
                       ("contract_id.equipment_operation_created_ids", "!=", False),
                       ("equipment_operation_stop_ids", "!=", False)],
     "account.move": [("equipment_operation_ids", "!=", False)],
+    # lines of the documents above: their forms load them
+    "account.move.line": [("move_id.equipment_operation_ids", "!=", False)],
+    "stock.move.line": ["|", ("move_id.equipment_operation_id", "!=", False),
+                        ("picking_id.equipment_operation_id", "!=", False)],
+    # the contract form loads its modification history (OCA contract)
+    "contract.modification": ["|", ("contract_id.equipment_operation_ids", "!=", False),
+                              ("contract_id.equipment_operation_created_ids", "!=", False)],
 }
+# Read without scope (configuration, not business documents): account.journal, whose
+# name the bill form loads.
 
 
 class ResUsers(models.Model):

@@ -134,6 +134,33 @@
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
+    <record id="rule_approver_scope_account_move_line" model="ir.rule">
+        <field name="name">Bill lines: equipment approver scope</field>
+        <field name="model_id" ref="account.model_account_move_line"/>
+        <field name="domain_force">user._equipment_approver_domain('account.move.line')</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_approver_scope_stock_move_line" model="ir.rule">
+        <field name="name">Move lines: equipment approver scope</field>
+        <field name="model_id" ref="stock.model_stock_move_line"/>
+        <field name="domain_force">user._equipment_approver_domain('stock.move.line')</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_approver_scope_contract_modification" model="ir.rule">
+        <field name="name">Contract modifications: equipment approver scope</field>
+        <field name="model_id" ref="contract.model_contract_modification"/>
+        <field name="domain_force">user._equipment_approver_domain('contract.modification')</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
     <record id="rule_approver_scope_account_move" model="ir.rule">
         <field name="name">Bills: equipment approver scope</field>
         <field name="model_id" ref="account.model_account_move"/>

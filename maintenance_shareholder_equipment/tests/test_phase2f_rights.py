@@ -358,3 +358,32 @@ class TestPhase2fTours(EquipmentCommon, HttpCase):
         self.start_tour(self._url(op), "equipment_operation_operator_tour",
                         login="eq_operator")
         self.assertEqual(op.state, "to_approve")
+
+    def test_approver_alone_opens_every_document_after_execution(self):
+        """Order, receipt with its move lines and serial number, lot, bill with its
+        lines and contract with its lines: each form opens for the approver alone."""
+        self.user_approver.password = "eq_approver"
+        # « Lots & Serial Numbers » is on in artdubati_test (phase 0): every internal
+        # user sees the serial column of the move lines
+        self.env.ref("base.group_user").implied_ids |= self.env.ref("stock.group_production_lot")
+        op = self._complete_operation()
+        op.with_user(self.user_approver).action_approve()
+        op.with_user(self.user_operator).action_execute()
+        self.assertEqual(op.state, "done")
+        loan = self._operation("receipt", receipt_branch="borrowed", partner_id=self.lender.id,
+                               contract_start=fields.Date.today(), open_ended=True,
+                               lines=[dict(product_id=self.drill.id, lot_name="TOUR-LOAN",
+                                           replacement_value=300.0,
+                                           replacement_value_date=fields.Date.today())])
+        loan.with_user(self.user_both).action_execute()
+        documents = [
+            ("purchase.order", op.purchase_id, "equipment_document_with_lines_tour"),
+            ("stock.picking", op.picking_ids, "equipment_receipt_details_tour"),
+            ("stock.lot", op.line_ids.lot_id, "equipment_document_tour"),
+            ("account.move", op.bill_ids, "equipment_document_with_lines_tour"),
+            ("contract.contract", loan.contract_ids, "equipment_document_with_lines_tour"),
+        ]
+        for model, record, tour in documents:
+            with self.subTest(model=model):
+                self.assertEqual(len(record), 1)
+                self.start_tour("/odoo/%s/%s" % (model, record.id), tour, login="eq_approver")

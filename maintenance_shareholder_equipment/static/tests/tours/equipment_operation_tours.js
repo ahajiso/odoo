@@ -36,3 +36,36 @@ registry.category("web_tour.tours").add("equipment_operation_operator_tour", {
         { content: "still waiting for the approver", trigger: ".o_statusbar_status .o_arrow_button_current:contains('To Approve')" },
     ],
 });
+
+// After execution: the approver alone really opens each document the operation refers
+// to (audit of bad8e9f). An access error on the document or on its lines (bill lines,
+// move lines) shows an error dialog and fails the tour.
+const noError = { content: "no error dialog", trigger: "body:not(:has(.o_error_dialog))" };
+
+registry.category("web_tour.tours").add("equipment_document_with_lines_tour", {
+    steps: () => [
+        { content: "form loaded", trigger: ".o_form_view .o_form_sheet" },
+        { content: "its lines are loaded", trigger: ".o_form_view .o_data_row" },
+        noError,
+    ],
+});
+
+registry.category("web_tour.tours").add("equipment_document_tour", {
+    steps: () => [
+        { content: "form loaded", trigger: ".o_form_view .o_form_sheet" },
+        noError,
+    ],
+});
+
+registry.category("web_tour.tours").add("equipment_receipt_details_tour", {
+    steps: () => [
+        { content: "receipt loaded", trigger: ".o_form_view .o_field_widget[name='move_ids_without_package'] .o_data_row" },
+        {
+            content: "open the move's detailed operations",
+            trigger: ".o_field_widget[name='move_ids_without_package'] .o_data_row .fa-list",
+            run: "click",
+        },
+        { content: "the serial number of the move line is shown", trigger: ".modal .o_data_row:contains('TOUR-')" },
+        noError,
+    ],
+});
