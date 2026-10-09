@@ -10,7 +10,7 @@ Modules:
 - `lartdubati_investor_home` 18.0.1.5.0 → 18.0.1.6.0 (its bill-to-cost hook moved to
   module 1).
 
-Expected tests: **136 tests** (both modules), including the 3 interface tours. They are
+Expected tests: **141 tests** (both modules), including the 3 interface tours. They are
 counted even when skipped: the tours need Chrome, which the `odoo_web` image may not
 have.
 
@@ -96,7 +96,7 @@ If it prints PRECHECK FAILED, fix what it lists (step 3) and run it again. Do no
 ```bash
 cd /opt/odoo/addons/custom && git merge --ff-only origin/main && git log -1 --oneline
 bash /opt/odoo/addons/custom/docs/deploy_modules.sh \
-  /opt/odoo/backups/<dump of step 1> 136 phase2f
+  /opt/odoo/backups/<dump of step 1> 141 phase2f
 ```
 
 `deploy_modules.sh`:
@@ -137,4 +137,5 @@ once fixed.
    - **approver alone**: opens the operation and its lines without an access error and
      approves; cannot change the header;
    - **operator and approver**: approves and executes;
-   - **investor without Inventory rights**: no Equipment Operations menu.
+   - **investor without Inventory rights**: no Equipment Operations menu; a JSON-RPC
+     `search_read` on `stock.move.line` returns nothing.

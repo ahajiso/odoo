@@ -367,7 +367,7 @@ Departures from the plan, each with its reason:
   - They need Chrome and the Python module `websocket-client`. Locally they ran and
     passed.
   - On the server, if `odoo_web` lacks either, they are counted as **skipped**, not
-    failed, so the expected total stays 136. The interface checks of README §8 then
+    failed, so the expected total stays 141. The interface checks of README §8 then
     cover them.
 
 Corrections after the audit of bad8e9f (09/10/2026):
@@ -395,20 +395,43 @@ Corrections after the audit of bad8e9f (09/10/2026):
    - `account.journal`: only the journals of those bills (D8; audit of 6cdc8b9: no
      global access). Through a reverse relation `account.journal.equipment_move_ids`
      (moves of the journal), used only by this rule.
-   Not narrowed: `stock.move.line`. Standard stock gives every internal user read,
-   write, create and delete on all move lines (`stock/security/ir.model.access.csv`,
-   `access_stock_move_line_all`, group `base.group_user`); the approver has it as an
-   internal user, so a rule from our module could not narrow it without narrowing a
-   standard right of every internal user. The ACL and rule drafted for it were
-   removed. To be kept in mind for the investors (phase 3: they are internal users).
+   - `stock.move.line` (audit of 888d229): standard stock gives every internal user
+     read, write, create and delete on all move lines
+     (`stock/security/ir.model.access.csv`, `access_stock_move_line_all`, group
+     `base.group_user`); its only standard rule is multi-company. ACLs being additive,
+     two global rules computed per user narrow it:
+     - read: the approver alone reads the lines of the moves and transfers of the
+       operations;
+     - write, create, unlink: the approver alone gets an always-false domain;
+     - « alone » means: no right on the model other than the approver's and the one
+       given to every internal user (`IGNORED_STANDARD_ACCESS`); a user with
+       Inventory / User, directly or through « Equipment Operator » (which implies
+       it), keeps the standard rights.
+     And in `lartdubati_investor_home`: a global rule, all modes, always false for a
+     « Stock Monitor Investor » without Inventory / User (search, read, create, write
+     and delete refused), always true for everyone else.
+     Tests (5 profiles): approver alone reads a linked line and not a free one, and
+     create, write and unlink are refused by the rule itself (checked through the
+     `ir.rule` log, which names the operation and the model, the user message being
+     generic without debug rights); approver + Inventory, operator + approver and an
+     ordinary Inventory user keep search, create, write and unlink; investor without
+     Inventory: search empty, read, create, write and unlink refused; investor with
+     Inventory unchanged. Mutation check: with either rule neutralised, the matching
+     tests fail.
+     Other standard rights of every internal user, read only, seen on the way (for
+     phase 3, investors): `stock.quant`, `stock.location`, `stock.warehouse`,
+     `stock.picking.type`, `stock.route`, `stock.rule`, packages, putaway and storage
+     categories, `maintenance.equipment` (read); `maintenance.request` (all modes,
+     standard maintenance requests by any employee).
    Tour test `test_approver_alone_opens_every_document_after_execution`: after approval
    and execution, the approver alone opens the order (with lines), the receipt and the
    detailed operations of its move (serial number shown), the lot, the bill (with
    lines) and the contract of a borrowed equipment (with lines), each without an
    error dialog. The test enables « Lots & Serial Numbers » for internal users, as on
    artdubati_test (phase 0); without it the serial column is hidden. The scope test
-   also checks the bill lines, the move lines and the journals (the bill's journal
-   readable, an unrelated journal refused).
+   also checks the bill lines, the move lines (a line of the operation readable, a free
+   line refused) and the journals (the bill's journal readable, an unrelated journal
+   refused).
 3. **`setup_phase2f.py`**: `--responsible ID=login` is refused unless ID is in the D1
    list (integrated equipment without a responsible) and `--archive-equipment ID`
    unless ID is in the D3 list; both before any write, in dry run too. Run for real
@@ -431,7 +454,7 @@ Corrections after the audit of bad8e9f (09/10/2026):
    only).
 
 Verified locally:
-- 136 tests (Odoo 18, local OCA heads), the three tour tests included, executed and
+- 141 tests (Odoo 18, local OCA heads), the three tour tests included, executed and
   not skipped (each of their 7 tours reaches its last step in the log);
 - full rehearsal of the deployment on a database made with the phase 2 code (2345e7e):
   - the precheck fails on the 3 integrated equipment without a responsible and the open

@@ -247,6 +247,12 @@ a dedicated detail view rather than global rules on stock.quant that would break
 Inventory.
 Accounting value, original value, depreciation, rent paid and accounting entries carry
 `groups=` restricted to the accounting group; cost is visible to the store group.
+Move lines (decided after the audit of 888d229, phase 2f): standard stock gives every
+internal user read, write, create and delete on all of them. An investor without
+Inventory / User has no access at all to them; an equipment approver without
+Inventory / User reads only those of the equipment operations and writes none. Both
+through global rules computed per user; users with Inventory / User keep the standard
+rights.
 
 ## Custom fields kept (everything else comes from standard or OCA)
 - maintenance.equipment (phase 2f, 09/10/2026):
