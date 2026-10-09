@@ -291,7 +291,8 @@ gives NULL. A real zero (`cost_known` True and `cost = 0`) stays 0.
    It uses only fields that already exist before the update.
 4. **`precheck.sh`** from `/tmp/phase2f/docs/phase2f/`, which must pass (exit 0). It refuses when:
    - an active integrated equipment has no valid responsible;
-   - an open receipt is not decided (D4).
+   - an open receipt is not decided (D4): a receipt kept by the owner is named with
+     `--keep-receipt NAME` (owner's decision of 09/10/2026: Bg/IN/00004 kept).
 5. **Stop the application**, then update the working tree:
    `git -C /opt/odoo/addons/custom merge --ff-only origin/main`.
 6. **Update the modules and run the tests**: `deploy_modules.sh <dump> <count> phase2f`,

@@ -64,32 +64,46 @@ export ODOO_URL=https://erp.lartdubati.com ODOO_DB=artdubati_test ODOO_LOGIN ODO
 python3 setup_phase2f.py                          # dry run: lists D1 to D5
 ```
 
-Then, with the decisions, for example:
-- D1, equipment 484 → responsible `login`;
-- D3, archive the equipment « Test »;
-- D4, cancel Bg/IN/00004 if it is test data.
+Owner's decisions (09/10/2026):
+- D1, equipment 484: responsible set in the interface. The dry run must show
+  « D1 – 0 integrated equipment without a valid responsible ». Otherwise:
+  `python3 setup_phase2f.py --responsible 484=<login>` (dry run), then the same with
+  `--apply`.
+- D3: the « Test… » equipment was deleted. The dry run must show « D3 – 0 ».
+- D4: Bg/IN/00004 is **kept**. Nothing to do here; it is named at step 4. It can no
+  longer be validated with the standard button (phase 2): when the goods arrive, it is
+  received through Inventory → Operations → Transfers → Equipment Operations, receipt
+  type « Purchase », « Existing Order » = its order: the operation takes this receipt
+  over (no second receipt).
 
 ```bash
-python3 setup_phase2f.py --responsible 484=<login> --archive-equipment <id> \
-  --cancel-receipt Bg/IN/00004            # dry run of the changes
-python3 setup_phase2f.py --responsible 484=<login> --archive-equipment <id> \
-  --cancel-receipt Bg/IN/00004 --apply
 unset ODOO_PASSWORD
 ```
 
-- D2 (addresses of the candidate stocks): the list is printed. The addresses are
-  completed in the interface (Inventory → Configuration → Locations, field Address;
-  Contacts for city and country). They are needed for phase 3, not for 2f.
-- D5: remove « Stock Monitor Investor » from an account that has Inventory rights,
-  unless an investor profile is explicitly needed (Settings → Users).
+- D2 (addresses of the stocks): not needed for 2f, needed before phase 3. For each
+  stock listed « NO ADDRESS »: Inventory → Configuration → Locations → open the
+  location (for example Bg/Stock) → field **Address** (under « Location
+  Type ») → choose the contact of the site. The city and country come from that
+  contact (Contacts → the contact → address). Set it on the stock location itself:
+  Bg/Stock is outside the warehouse root, so it inherits nothing.
+- D5 (investor group): the dry run prints, under « D5 – investors », each account in
+  « Stock Monitor Investor ». An account flagged « HAS INVENTORY RIGHTS » (typically
+  an administrator or storekeeper added to the group for a test) has its stocks
+  filtered by its access profile; without a profile it sees no internal stock, so
+  its Inventory work breaks. Unless that account must really act as an investor:
+  Settings → Users & Companies → Users → the account → tab « Access Rights » →
+  section « Investor » → empty the field, Save. An account flagged only « no access
+  profile » sees nothing in the monitor until it gets a profile (phase 4).
 
 ## 4. Precheck (must print PRECHECK OK)
 
 ```bash
-bash /tmp/phase2f/docs/phase2f/precheck.sh artdubati_test
+bash /tmp/phase2f/docs/phase2f/precheck.sh artdubati_test --keep-receipt Bg/IN/00004
 ```
 
-If it prints PRECHECK FAILED, fix what it lists (step 3) and run it again. Do not go on.
+`--keep-receipt` (D4) lists that receipt as kept instead of blocking; a name that is
+not an open receipt of the list makes the precheck fail. If it prints PRECHECK FAILED,
+fix what it lists (step 3) and run it again. Do not go on.
 
 ## 5 to 7. Stop, update the working tree, update and test, restart
 
