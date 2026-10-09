@@ -1,6 +1,14 @@
 # Phase 2f plan – corrections to phase 2 (audit of 09/10/2026)
 
-Status: revision 2 (09/10/2026). No code written.
+Status: revision 3 (09/10/2026). No code written.
+- The audit of revision 2 accepted P9, P10, P13 and D6, and asked for five corrections
+  before the green light:
+  - cost known explicitly (§2);
+  - treatment frozen in the approval (§3);
+  - possible deployment order (§5);
+  - filtered dashboard domain and rates without a PostgreSQL function (phase 3 plan);
+  - the scope of the approver's read rights (§4).
+- They are integrated here and in docs/phase3/PLAN.md §1c.
 - Revision 1 was audited with phase 3 revision 3. This revision integrates its
   corrections:
   - A1, equipment cost (§2);
@@ -41,6 +49,13 @@ Cost:
   without a date. Equipment created by a receipt has no cost.
 - At bill posting, `_reconcile_equipment()` (account_move.py:146) links the received
   equipment to the bill line, before `_fill_equipment_assets()`.
+- Phase 1 removes these links in two cases:
+  - `button_cancel()` (account_move.py:305) unlinks every equipment of the bill;
+  - `_release_excess()` (line 195) unlinks equipment when a draft bill's quantity is
+    lowered.
+  After that, `move_line_id` no longer says where the cost came from.
+- A Float field reads back as 0.0 whether the column is NULL or 0: the ORM gives no
+  reliable « unknown » for `cost`.
 
 Account of a supplier bill line (Odoo 18):
 - `account.move.line._compute_account_id` (account_move_line.py:553) takes the
@@ -86,154 +101,196 @@ Access rights:
   - the receipt copies the responsible;
   - the precheck query finds an equipment created without a responsible.
 
-## 2. Equipment cost with date and provisional flag (correction A1)
+## 2. Equipment cost with date and provisional flag (corrections A1 and 1)
 
-New stored fields on maintenance.equipment, protected like the ownership fields
-(written by business methods, or corrected by « Equipment ownership managers » with
-`cost_source = manual` and a chatter trace):
+New stored fields on maintenance.equipment. They are protected: written only by the
+business methods below or by the correction wizard.
+- `cost_known` (Boolean, default False): the only test of « cost known ».
 - `cost_date` (Date);
 - `cost_provisional` (Boolean);
-- `cost_source`: order | bill | acquisition | manual.
+- `cost_source`: order | bill | bill_cancelled | acquisition | migration | manual;
+- `cost_reference` (Char): the document that explains the cost, e.g. « P00165 line 1 »,
+  « Fr1223 », « Fr1223 (cancelled) », kept even after `move_line_id` is removed.
 
-The existing `cost` column (Float, company currency) keeps its type: the phase 3 view
-reads it (phase 1 rule).
+The existing `cost` column (Float, company currency) keeps its type, because the
+phase 3 view reads it. Whenever `cost_known` is False, `cost` is ignored: the view
+gives NULL. A real zero (`cost_known` True and `cost = 0`) stays 0.
 
 | Case | `cost` | `cost_date` | provisional | source |
 |---|---|---|---|---|
-| Receipt before bill (purchase) | order line unit price, untaxed, after discount, converted from the order currency at the receipt date (`_convert`, company of the order) | date the receipt is done | yes | order |
-| Bill before receipt (equipment created from the bill by maintenance_account) | `abs(balance) / quantity in the product's unit` of the bill line | accounting date of the bill | no | bill |
-| Bill posted after receipt | the estimate is replaced by `abs(balance) / quantity` of the line the equipment is reconciled with (`_reconcile_equipment()`) | accounting date | no | bill |
-| Partial bill | only the equipment reconciled with the billed quantity get the real cost; the others keep the estimate | | | |
-| Bill reset to draft or cancelled | the amount stays and becomes provisional again until a bill is posted again (source `order` if the equipment has an order line, otherwise `bill`) | unchanged | yes | order or bill |
+| Receipt before bill (purchase) | order line unit price, untaxed, after discount, **per product unit** (`product_uom._compute_price(price_unit, product.uom_id)`), converted from the order currency at the receipt date (`_convert`, company of the order) | date the receipt is done | yes | order |
+| Bill before receipt (equipment created from the bill) | `abs(balance) / quantity` with the quantity converted into the product's unit (`product_uom_id._compute_quantity(quantity, product.uom_id)`) | accounting date | no | bill |
+| Bill posted after receipt | the estimate is replaced as above, through `_reconcile_equipment()` | accounting date | no | bill |
+| Partial bill | only the equipment reconciled with the billed quantity | | | |
+| Bill reset to draft | amount kept; provisional again; the reference stays the bill's | unchanged | yes | bill |
+| Bill cancelled, or equipment released by `_release_excess()` | the equipment concerned is **recorded before** the unlink (in `button_cancel` and `_release_excess`, before calling `_unlink_equipment`). If it has an order line (through its receipt operation line), the order estimate is restored; otherwise the amount is kept | the restored estimate's date, otherwise unchanged | yes | order, or bill_cancelled with `cost_reference` « <bill> (cancelled) » |
 | Acquisition without purchase | line `unit_value`, converted from the operation currency at the execution date | execution date | no | acquisition |
-| Borrowed / rented | none (the monitor uses the replacement value) | | | |
-| Owned with no source found | NULL, never 0; the monitor raises `alert_cost_missing` | | | |
+| Borrowed / rented | none: `cost_known` False (the monitor uses the replacement value) | | | |
+| Owned, no source found | none: `cost_known` False; the monitor shows NULL and `alert_cost_missing` | | | |
 
-- `balance` is already in company currency at the bill's rate, so a foreign-currency
-  bill needs no other conversion.
+- `balance` is already in company currency at the bill's rate.
 - The bill-to-equipment hook of `lartdubati_investor_home/models/account_move_line.py`
-  moves to `maintenance_shareholder_equipment`, so that the cost has one owner.
+  moves to `maintenance_shareholder_equipment`.
+- **Manual correction**: the wizard « Correct the equipment cost » (amount, date,
+  provisional, mandatory reason) is reserved to **Accounting / Administrator**
+  (`account.group_account_manager`), not to the ownership managers (decision D7). It
+  writes through one method, which posts the old and new values with the reason and
+  the author in the chatter. `cost_source` becomes `manual`.
 - Migration (post-migrate 18.0.3.1.0):
-  - integrated equipment with a posted bill line: cost from that line, final;
-  - otherwise, from the receipt move's `price_unit` (company currency, provisional,
-    receipt date);
-  - otherwise NULL, listed by the setup script.
+  - equipment with a posted bill line: source bill;
+  - otherwise from the receipt move's `price_unit` (per product unit): provisional,
+    source migration, receipt date;
+  - otherwise `cost_known` False, listed by the setup script.
 - Tests:
   - order price different from the bill price (estimate, then real);
   - bill before receipt and receipt before bill;
-  - order and bill in a foreign currency, with different rates at receipt and bill
-    dates;
-  - partial bill (two units, one billed);
+  - order and bill in a foreign currency at different rates;
+  - **order and bill in a unit different from the product's** (pack of 10);
+  - partial bill;
+  - **bill reset to draft**;
+  - **bill cancelled** (separate test: estimate restored from the order, source and
+    reference explained);
+  - bill cancelled for an equipment created from the bill (amount kept, source
+    `bill_cancelled`);
+  - `_release_excess`;
   - acquisition without purchase;
-  - bill reset to draft;
-  - migration of an equipment with and without a bill.
+  - real zero cost versus unknown cost;
+  - correction wizard refused to an ownership manager, accepted for an accounting
+    administrator, with its chatter trace;
+  - migration.
 
-## 3. Point 10 – accounting treatment shown in the receipt (correction A2)
+## 3. Point 10 – accounting treatment shown in the receipt and frozen in the approval (corrections A2 and 2)
 
 - Computed field `accounting_treatment` (text) on each line of a receipt that brings
   **company property**: purchase, and acquisition without purchase. It is shown on the
   line sheet and in the approval summary.
 - The account is the one the future bill line will actually use, under the current
-  configuration:
-  - **existing order**: an in-memory supplier bill (`account.move.new`, type
-    `in_invoice`, partner, company, the order's fiscal position) with one line built
-    from `purchase_line._prepare_account_move_line()`; its computed `account_id` is
-    read. This runs Odoo's own resolution: product or category account, fiscal position
-    mapping, and the stock input account of `stock_account`;
-  - **new order**: the same in-memory bill, with the partner's fiscal position as the
-    order would get it (`account.fiscal.position._get_fiscal_position(partner)`) and a
-    line on the product.
-  - Nothing is saved: `new()` records only.
-- Wording, from the account found:
-  - the account has an `asset_profile_id`: « Under the current configuration, posting
-    the bill will create a fixed asset (profile <profile>, account <account>) »;
-  - storable product with automated valuation: « Under the current configuration, the
-    value will be carried by the stock (account <account>); no fixed asset »;
-  - any other account: « Under the current configuration, the bill line will use
-    account <account>; no fixed asset will be created automatically ». The account is
-    named, never labelled as an expense.
-- Acquisition without purchase: no bill exists, so the text says « No bill: if this
-  equipment must be capitalised, the fixed asset is created manually by the accountant »
-  and names the category's accounts.
-- Confirmation `no_asset_confirmed` (« I confirm this equipment will not create a fixed
-  asset automatically »):
-  - required only on lines of company property (purchase, acquisition without
-    purchase) whose treatment creates no asset;
+  configuration, computed on an in-memory supplier bill (`account.move.new`, type
+  `in_invoice`):
+  - existing order: a line from `purchase_line._prepare_account_move_line()` with the
+    order's fiscal position;
+  - new order: a line on the product with the partner's fiscal position
+    (`account.fiscal.position._get_fiscal_position(partner)`).
+  Odoo's `_compute_account_id` then applies the product or category account, the fiscal
+  position and the `stock_account` input account. Nothing is saved.
+- Wording, always prefixed « Planned treatment under the current configuration: »:
+  - account with an asset profile: « posting the bill will create a fixed asset
+    (account <code>) »;
+  - storable product with automated valuation: « value carried by the stock (account
+    <code>); no fixed asset »;
+  - any other account: « the bill line will use account <code>; no fixed asset will be
+    created automatically ». The account is named, never labelled as an expense.
+  - acquisition without purchase: « no bill: if this equipment must be capitalised, the
+    fixed asset is created manually by the accountant ».
+- **Treatment signature in the approval**: per line, a tuple
+  - account id;
+  - asset profile id;
+  - product valuation (`real_time` / `manual_periodic`);
+  - the category that gave the account (product or category level);
+  - fiscal position id;
+  - Anglo-Saxon flag of the company.
+  It is added to `_commitment_snapshot()`. At execution the server recomputes it like
+  the rest of the snapshot. Any difference (category changed, fiscal position, account
+  or profile changed, valuation changed) cancels the approval: the operation goes back
+  to draft, with a chatter message naming the line and the old and new treatment, and
+  must be approved again.
+- **Confirmation** `no_asset_confirmed`:
+  - only on lines of company property (purchase, acquisition) whose treatment creates no
+    asset;
   - never for borrowed, rented or consumable lines.
-  It is part of the approval snapshot, so a change after approval invalidates the
-  approval.
-- The computed text is `compute_sudo=True`: it reads the account and the asset profile,
-  which the operator may not read, and only displays their names. It grants no access
-  to them.
-- Tests:
-  - the three wordings, including a manual-valuation category whose account carries an
-    asset profile (asset, not expense);
+  It is part of the snapshot.
+- **Visibility**:
+  - the account **code** is shown, which every internal user may read
+    (account.account is readable by `base.group_user`);
+  - the asset **profile name** is shown only to users who can read the profile
+    (accountants);
+  - everyone else sees the generic wording « a fixed asset will be created ».
+  The computation reads the account's profile with `sudo()` inside the compute method
+  only to know whether one exists; no name or value of a record the user cannot read
+  is returned. This replaces `compute_sudo=True` on the whole field.
+- Tests, each comparing the announced account with **the account of the real bill line
+  Odoo generates** (`action_create_invoice()` on the order, then the line's
+  `account_id`):
+  - plain account;
   - fiscal position mapping the account;
-  - automated valuation giving the stock input account;
+  - automated valuation (stock input account);
+  - manual valuation on an account carrying an asset profile;
   - acquisition wording;
-  - confirmation required for a purchase without asset, not for a borrowed or rented
-    line;
-  - snapshot invalidated by a change of product after approval.
+  - confirmation required only for company property;
+  - approval cancelled when, after approval, the category's account, the account's
+    profile, the product's valuation or the partner's fiscal position changes;
+  - profile name hidden from a non-accountant.
 
-## 4. Point 11 – approver separated from the operator (correction A3)
+## 4. Point 11 – approver separated from the operator (corrections A3 and « approver's scope »)
 
 - `equipment.operation` ACL for the approver: **read only** (`1,0,0,0`), as on its
   lines and stop lines. Approval, rejection and reset to draft stay methods that check
   the group, then write as superuser.
 - `_mail_post_access = "read"`, so the approver can post in the chatter.
-- **Minimal read ACLs** for `group_equipment_approver`: read only, no write, create or
-  unlink, and no Inventory group. They cover what an operation shows or references and
-  `base.group_user` cannot read:
-  - purchase.order;
-  - purchase.order.line;
-  - stock.lot;
-  - stock.picking;
-  - stock.move;
-  - contract.contract;
-  - contract.line.
-  Multi-company record rules of those models still apply.
-  Locations, transfer types, products, taxes, currency and users are already readable
-  by internal users (§0).
-- `_check_user_access()` is called at **submit, approve and execute**. It also checks:
-  - line taxes;
-  - the operation's and the order's currency;
-  - order lines;
-  - responsible;
-  - parent of off-site stocks;
-  - replacement currency.
+- Read rights on referenced documents, **limited to the documents referenced by an
+  equipment operation** (option 2 of the audit, decision D8):
+  - **read** ACLs for `group_equipment_approver` only on purchase.order,
+    purchase.order.line, stock.lot, stock.picking, stock.move, contract.contract and
+    contract.line;
+  - **record rules of the approver group** restrict them to referenced documents,
+    through reverse fields added for this purpose:
+    - purchase.order: `equipment_operation_ids != False`;
+    - purchase.order.line: `order_id.equipment_operation_ids != False`;
+    - stock.picking and stock.move: `equipment_operation_id != False` (fields of
+      phase 2);
+    - stock.lot: `equipment_operation_line_ids != False`;
+    - contract.contract: `equipment_operation_ids != False`;
+    - contract.line: `contract_id.equipment_operation_ids != False`.
+  - Group rules are ORed with the rules of the user's other groups. A user who is also
+    a purchase user keeps their purchase rights, as expected. An approver-only user
+    sees nothing else.
+  - The alternative (company-wide read, documented as a business decision) is left to
+    the owner (D8).
+- `_check_user_access()` is called at **submit, approve and execute**. It also checks
+  line taxes, currencies, order lines, responsible, parent of off-site stocks and
+  replacement currency.
 - Tests (Python):
-  - approver: cannot write the header (AccessError), can approve, reject and post a
-    message;
+  - approver: header write refused; approve, reject and message allowed;
   - operator: cannot approve;
   - a user with both roles can do both;
-  - an investor without Inventory rights can neither read nor create operations;
-  - an unreadable referenced record blocks submit, approve and execute.
-- **Interface test (tour, HttpCase)** with an approver-only user (`base.group_user` +
-  approver):
-  - open the operation list;
-  - open a complete purchase receipt (order, lines with taxes, responsible, lot,
-    destination, accounting treatment);
-  - read every tab and line sheet without an access error;
-  - approve;
-  - check the state.
+  - investor: no access to operations;
+  - an unreadable referenced record blocks submit, approve and execute;
+  - **an approver-only user cannot read an order, lot, transfer or contract that no
+    operation references**, and can read the referenced ones.
+- **Interface test (tour, HttpCase)** with an approver-only user:
+  - open a complete purchase receipt and every line sheet;
+  - see the treatment and approve;
+  - no access error.
   Same tour for the operator, without the approve button.
 - Interface checks on artdubati_test with four real profiles (Playwright, passwords
-  given by the owner and never stored): operator only, approver only, both, investor
-  without Inventory rights.
+  never stored).
 
-## 5. Deployment
-- `docs/phase2f/precheck.sh` (read-only psql) exits 1, and stops the deployment, when:
-  - an active integrated equipment has no responsible, or an inactive, portal or
-    other-company responsible (C3);
-  - an open receipt was not created by an operation (D4 not decided).
-- `docs/phase2f/README.md`:
-  1. backup of the database and filestore;
-  2. `setup_phase2f.py` (dry run, then `--apply`: D1 responsibles, D3, D4 per the
-     owner's answers);
-  3. `precheck.sh`, which must pass;
-  4. `git pull`;
-  5. `deploy_modules.sh <dump> <count> phase2f`;
-  6. interface checks.
+## 5. Deployment (correction 3: fetching the code is not deploying it)
+
+`docs/phase2f/README.md`, run by the owner:
+1. **Backup** of the database and filestore.
+2. **Fetch the code without touching the working tree**:
+   `git -C /opt/odoo/addons/custom fetch origin main`. The running Odoo and the checked
+   out files are unchanged. The scripts of the new commit are extracted to a temporary
+   folder: `git -C /opt/odoo/addons/custom archive origin/main docs/phase2f | tar -x -C /tmp/phase2f`.
+3. **`setup_phase2f.py --apply`** from `/tmp/phase2f` (JSON-RPC against the running,
+   unchanged Odoo; dry run first):
+   - sets the responsibles chosen by the owner (D1);
+   - handles D3 and D4 per the owner's answers.
+   It uses only fields that already exist before the update.
+4. **`precheck.sh`** from `/tmp/phase2f`, which must pass (exit 0). It refuses when:
+   - an active integrated equipment has no valid responsible;
+   - an open receipt is not decided (D4).
+5. **Stop the application**, then update the working tree:
+   `git -C /opt/odoo/addons/custom merge --ff-only origin/main`.
+6. **Update the modules and run the tests**: `deploy_modules.sh <dump> <count> phase2f`,
+   which keeps odoo_web stopped on failure.
+7. **Restart only if everything passed**. On failure, restore the backup and the
+   previous commit (procedure 4b of phase 2).
+
+Operations already approved before the update carry a snapshot without the treatment
+signature. Their approval is therefore cancelled at execution, by design. The setup
+script lists them in step 3, so that they can be approved again after the update.
 
 ## 6. Data to prepare (read-only queries, owner decisions)
 
@@ -244,7 +301,9 @@ reads it (phase 1 rule).
 | D3 | Active incomplete equipment named « Test » | `select id, name, integration_state, stock_lot_id, create_date from maintenance_equipment where name ilike 'test%';` | delete it, or archive it if a move references it |
 | D4 | Open receipt Bg/IN/00004 | `select p.id, p.name, p.state, p.origin, p.equipment_operation_id from stock_picking p where p.name = 'Bg/IN/00004';` | cancel it if it is test data, otherwise take it over through an operation |
 | D5 | Account with both « Investor » and Inventory rights | `select u.id, u.login from res_users u join res_groups_users_rel r on r.uid = u.id join ir_model_data d on d.res_id = r.gid and d.model = 'res.groups' and d.module = 'lartdubati_investor_home' and d.name = 'group_stock_investor' where u.stock_access_id is null;` (investors without a profile; their other groups are checked on the user form) | remove « Investor » from that account, unless an investor profile is explicitly needed |
-| D6 | « Not assigned » responsible allowed? | — | no |
+| D6 | « Not assigned » responsible allowed? | — | **no (accepted, audit of 09/10/2026)** |
+| D7 | Who may correct an equipment cost by hand? | — | proposal: Accounting / Administrator only, through the wizard |
+| D8 | Approver's read scope | — | proposal: limited to the documents referenced by operations (record rules); alternative: company-wide read, documented |
 
 The old monitor's totals are not used for any check; its reports are removed in
 phase 3.

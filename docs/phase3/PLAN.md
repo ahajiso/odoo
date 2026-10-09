@@ -1,6 +1,9 @@
 # Phase 3 plan – stock monitor on revision 2
 
-Status: revision 4 (09/10/2026). No business code written.
+Status: revision 5 (09/10/2026). No business code written.
+- The audit of revision 4 accepted P9, P10, P13 and D6, validated the visual
+  direction (no new mock-up needed) and asked for five corrections, answered in
+  section 1c and in docs/phase2f/PLAN.md revision 3.
 - The audit of revision 3 validated the mock-up's visual direction and the answers to
   the eight blockers. It asked for four corrections and five complements, answered in
   section 1b.
@@ -125,8 +128,19 @@ Odoo and the existing code:
 | C1 | `alert_negative_quantity` for negative quants: the row stays visible and is valued as the stock valuation does (negative quantity × AVCO), flagged as an anomaly. | Negative quant: row, signed value, alert. | — |
 | C2 | D2 covers every candidate monitor stock: `Bg/Stock`, `TBER/Stock`, `TIST/Stock` and every `lent_out` location (2f §6). | — | D2 |
 | C3 | 2f: the correction of existing equipment is **mandatory before deployment**. The 2f precheck refuses to deploy while an integrated equipment has no valid responsible, because `@api.constrains` only runs when its trigger fields change. | Precheck blocking on a database with such an equipment. | D1 |
-| C4 | Alert counts and every aggregate of the first display come from **one** ORM method, `get_dashboard_data(domain)`, on the monitor model (§4.3). It runs `read_group` under the user's environment, without sudo, and returns only the fields the user may read. A first display is 2 RPCs. | Query count, groups (an investor gets no staff key), record rules. | — |
+| C4 | Alert counts and every aggregate of the first display come from **one** ORM method, `get_dashboard_data(filters)`, on the monitor model (§4.3), under the user's environment, without sudo. **Revised by 1c-4**: structured filters instead of a domain; 3 RPCs at first display. | Query count, groups (an investor gets no staff key), record rules. | — |
 | C5 | Performance measured in the browser too: time from opening the menu to cards and list rendered (Playwright), plus server time. | `monitor_perf` test on 10,000 rows, both measures recorded. | — |
+
+## 1c. Answers to the audit of revision 4
+
+| # | Correction retained | Test planned | Owner decision |
+|---|---|---|---|
+| 1 | Cost known only through `cost_known` (phase 2f), never through a NULL Float. The view gives NULL when `cost_known` is false and 0 only for a real zero. Quantities and prices converted into the product's unit. Cancellation and release record the equipment before the unlink. Manual correction through a wizard reserved to Accounting / Administrator. | 2f §2 (reset to draft, cancellation, units, real zero). View: unknown cost gives NULL and the alert; real zero gives 0 without alert. | D7 (2f) |
+| 2 | Treatment signature (account, profile, valuation, category, fiscal position, Anglo-Saxon flag) in the approval snapshot, recomputed at execution; any difference cancels the approval. The profile name is shown only to users who can read it. | 2f §3, against the account of the real bill line Odoo generates. | — |
+| 3 | Deployment of 2f: backup, `git fetch` and extraction of the scripts without touching the working tree, setup, precheck, stop, merge, update and tests, restart only on success. | 2f §5. | — |
+| 4 | `get_dashboard_data(filters)` takes **no Odoo domain**: a structured filter (§4.3) checked against a per-profile whitelist, from which the server builds the domain. The standard RPCs (`web_search_read`, `read_group`, export) are already protected by Odoo 18: a domain, order or group-by on a field the user may not read raises AccessError (`_field_to_sql`, models.py:3003; `_flush_search`, models.py:5792). This is tested, not assumed. The first display is **3 RPCs**: `fields_get`, aggregates and list page. | Investor: filter on a financial field refused by the method; `web_search_read`, `read_group` and `search_count` with a domain on `accounting_value` refused (AccessError). Store user: domain on `rent_paid` refused. RPC count measured at 3. | — |
+| 5 | **No PostgreSQL function**: the rate lookup is written inside the view with `LEFT JOIN LATERAL` subqueries (§3.5). The only SQL object remains the view. | The comparisons with `_convert()` of A4 run on the view. | — |
+| Approver | Read scope limited to the documents referenced by operations (record rules of the approver group), 2f §4. | 2f §4: unreferenced documents unreadable. | D8 (2f) |
 
 ## 2. Decisions for the owner
 
@@ -140,9 +154,9 @@ Odoo and the existing code:
 | P6 | Screens | Decided: OWL dashboard plus standard views on the same model. |
 | P7 | Threshold of « replacement value too old » | 12 months, company setting. |
 | P8 | Monthly equivalent of a rent | Audit's formula (§3.6); daily and weekly are unsupported and raise an anomaly. |
-| P9 | Conversion mode | `historical` by default, `latest` as an option, `none` removed (C12). |
-| P10 | Equipment to complete | Outside the monitor, counted in the staff controls (audit point 14, first option). |
-| P13 | Performance target | Under 2 s in the browser (and on the server) and under 15 RPCs for the first display on 10,000 rows; the design needs 2 RPCs (C4). |
+| P9 | Conversion mode | **Accepted**: `historical` by default, `latest` as an option, `none` removed (C12). |
+| P10 | Equipment to complete | **Accepted**: outside the monitor, counted in the staff controls. |
+| P13 | Performance target | **Accepted**: under 2 s in the browser (and on the server) and under 15 RPCs for the first display on 10,000 rows; the design needs 3 RPCs. |
 
 ## 3. The view `lartdubati.stock.monitor`
 
@@ -205,8 +219,9 @@ bill, so its `m_rate` and `m_rate_date` are empty; the detail lists the bills.
 | Borrowed / rented | replacement value (NULL and `alert_replacement_missing` if none) | 0 | 0 |
 | Non-stock equipment (vehicle) | as owned, with its asset or cost | 0 | as owned |
 
-- **Equipment cost** (phase 2f): `cost` (company currency), `cost_date`,
-  `cost_provisional` and `cost_source` (order, bill, acquisition, manual). A provisional
+- **Equipment cost** (phase 2f): `cost_known`, `cost` (company currency), `cost_date`,
+  `cost_provisional`, `cost_source` and `cost_reference`. The view reads `cost` only
+  when `cost_known` is true, otherwise NULL. A provisional
   cost makes the inventory value provisional (`inventory_provisional`, shown with the
   « provisional » tag). With no cost, the inventory value is NULL and
   `alert_cost_missing` is raised, never a silent 0.
@@ -243,8 +258,14 @@ uses the last rate.
     `m_rate_missing` and `alert_rate_missing`;
   - when the earliest later rate is used, the factor is Odoo's, with `m_rate_fallback`.
   - The company currency without a rate row is 1.0, as in Odoo.
-- Implemented as a SQL function per company and date in the view definition, written
-  to mirror `_get_rates` line by line.
+- Implemented **inside the view**, without any PostgreSQL function. For each measure,
+  two `LEFT JOIN LATERAL` subqueries (source and target currency) select the rate row
+  as `_get_rates` does:
+  - `WHERE currency_id = … AND (company_id IS NULL OR company_id = root company)`;
+  - first `name <= date ORDER BY company_id, name DESC LIMIT 1`;
+  - then, as fallback, `ORDER BY company_id, name ASC LIMIT 1`.
+  The factor and the flags are computed from these two rows. The only SQL object
+  created by the module is the view (§6.3 checks it).
 
 ### 3.6 Rent (point 8)
 - **Active rental line**:
@@ -339,25 +360,41 @@ Action `lartdubati_investor_home.action_stock_monitor_analysis` on the same mode
 Exports go through the standard export, limited to the fields from `fields_get`.
 
 ### 4.3 Data access (points 12 and 13, complement C4)
-- **One aggregated method** `get_dashboard_data(domain)` on `lartdubati.stock.monitor`
-  (public, no sudo). It runs, under the user's environment and therefore under the
-  record rules:
+- **One aggregated method** `get_dashboard_data(filters)` on `lartdubati.stock.monitor`
+  (public, no sudo). It takes **no Odoo domain**. `filters` is a dictionary with only
+  these keys:
+  - `country_ids`, `cities`, `stock_ids`;
+  - `families`, `ownerships`;
+  - `alert` (one alert column name);
+  - `search` (text).
+  Values are type-checked. The server builds the domain from them:
+  - `search` applies only to the text labels;
+  - `alert` must be an alert the user may see.
+  Any other key, any other value type, or an alert outside the user's whitelist raises
+  a UserError. The whitelist comes from the fields the user may read (investor, store,
+  accountant), so no filter can bear on a hidden figure.
+- Under the user's environment, and therefore under the record rules, it runs:
   - one `read_group` grouped by `currency_id`, summing the converted measures (SQL
     `SUM` ignores NULL);
   - one `read_group` grouped by `stock_name`, `currency_id` (stock cards);
   - one `read_group` per visible measure on `m_rate_missing = 1`, grouped by
     `m_source_currency_id` (unconverted amounts, at most six);
-  - one `read_group` with no grouping summing every alert column (counts);
+  - one `read_group` with no grouping, summing every visible alert column (counts);
   - one `read_group` grouped by `country_name`, `city`, `stock_name` (selection lists);
   - for staff only, `search_count` on maintenance.equipment and stock.quant (controls
     outside the monitor), only if `check_access_rights` allows it.
+- The list page uses the standard `web_search_read` with the domain the client builds
+  from the same filters. Odoo 18 refuses any domain, order or group-by on a field the
+  user may not read (`_field_to_sql` and `_flush_search`); a test proves it for each
+  profile.
 - Fields not readable by the user (`_has_field_access` / `fields_get` of the user) are
   left out of every aggregate, so the method never returns or computes a figure the
   user could not read directly.
-- First display: 1 RPC for the aggregates and 1 RPC for the list page
-  (`web_search_read` with domain, limit 25, offset, order), plus the `fields_get` the
-  client action needs. Each filter change: the same 2 RPCs. Detail: `web_read` of the
-  row.
+- First display: **3 RPCs**:
+  1. `fields_get` (metadata);
+  2. `get_dashboard_data` (aggregates);
+  3. `web_search_read` (list page: limit 25, offset, order).
+  Each filter change makes calls 2 and 3 again. Detail: `web_read` of the row.
 - Everything goes through the ORM with the user's environment. No controller, no
   `sudo()`, no raw SQL in Python: the only SQL is the view definition.
 - RPC errors are caught: a banner with « Retry » is shown and the previous figures are
