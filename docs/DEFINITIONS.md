@@ -6,13 +6,15 @@ pending owner validation. Points marked "to confirm" are open; points marked
 "accountant" need the accountant's validation before the related development.
 
 ## Stock
-A stock is a stock.location declared for the monitor: any location whose place type
-is set. Attributes:
+A stock is a stock.location declared for the monitor: an internal location flagged
+« Monitor Stock » (`is_monitor_stock`, phase 3; the place type alone no longer decides,
+since every location has one). Attributes:
 - place type: physical / off-site (held by a third party) / virtual (later);
 - address: `address_id` from OCA `stock_location_address`, mandatory on every monitor
   stock (sub-locations inherit it for display only; the monitor and the access rules
   use the stored address of the stock itself);
-- currency (default: company currency);
+- currency (`monitor_currency_id`, mandatory; company currency by default and for the
+  stocks flagged at the phase 3 update);
 - return location (off-site stocks only, mandatory): a stock inside a real warehouse
   where items go back.
 
@@ -27,7 +29,12 @@ party. On artdubati_test (warehouse « Bougival 1 », code Bg, root shown as WH)
         ├── Customer A
         └── Partner B
 
-Each quant belongs to the nearest ancestor location that has a place type.
+Each quant (and each non-stock equipment through its monitor location) belongs to the
+nearest monitor stock at or above its location (`parent_path`), never found through
+`warehouse_id`. A lent-out location is always a monitor stock; an exit that creates one
+gives it the site address (which needs a city and a country). An item in an internal
+location under no monitor stock is shown to staff only, with the alert « Outside any
+monitor stock ».
 An employee is not a third party: equipment entrusted to an employee stays `owned`, in
 a normal or job-site location, assigned through its responsible user and usage history.
 
@@ -210,6 +217,22 @@ contracts. One contract may hold several equipment, one line each, with its own 
 For an asset the monitor shows separately: original value, net book value, replacement
 value and its date.
 
+Values as implemented in phase 3 (`lartdubati.stock.monitor`, docs/phase3/PLAN.md §3.4):
+- inventory value: consumable = quantity × average cost; company equipment with a
+  fixed asset = its original value; without one = its cost (phase 2f, provisional until
+  the bill; unknown cost = no value and an alert, never 0); borrowed / rented =
+  replacement value (none = no value and an alert);
+- stock value (staff): what the stock valuation carries: quantity × average cost for an
+  automated category, 0 for a manual one and for fixed assets;
+- net book value (accountants): fixed asset = original value − posted depreciation (the
+  salvage value is not deducted), provisional while the asset is a draft, 0 once
+  removed; otherwise the stock value; borrowed / rented = 0 (C19, C20, C22);
+- current rent (staff): the active rental line of the supplier contract, stored price ×
+  quantity × (1 − discount), monthly equivalent by periodicity (daily and weekly: no
+  equivalent, alert); rent paid (accountants): posted supplier bill and refund product
+  lines linked to the equipment's rental lines, untaxed, refunds deducted (C21).
+Equipment to complete (not integrated) is not in the monitor; staff see its count.
+
 Costing method for consumables: average cost (AVCO), changeable later.
 
 ## Replacement value
@@ -233,7 +256,13 @@ such entry exists today.
 Each stock is reported in its own currency. Totals are only ever summed within one
 currency and shown grouped by currency. No consolidation in this version.
 Net book value, stock valuation and posted rents are in company currency at source.
-Conversion to the stock's currency: rate and date to confirm with the accountant.
+Conversion to the stock's currency (phase 3, test choice C12): as
+`res.currency._convert()` (company rate first, then the global one; the last rate on or
+before the date, else the earliest later one, flagged « later rate used »), each amount
+at its own date by default (fixed asset start, cost date, replacement value date, rent
+start, each bill's accounting date; average cost at today), or every amount at today's
+rate (setting). A currency without any rate gives no converted amount: the amount stays
+in its own currency, outside the totals, with an alert (never Odoo's silent rate 1).
 
 ## Access
 Access profiles (separate model, linked to users): any combination of allowed countries,
@@ -247,6 +276,13 @@ a dedicated detail view rather than global rules on stock.quant that would break
 Inventory.
 Accounting value, original value, depreciation, rent paid and accounting entries carry
 `groups=` restricted to the accounting group; cost is visible to the store group.
+Phase 3: staff = Inventory / User or Accounting / Read-only; accountants = Accounting /
+Read-only. Investors (internal users with the investor group, no Inventory group) read
+text labels (product, stock, city, country...) denormalised in the monitor, never the
+records behind them; every figure they may not read is absent from the dashboard, the
+analysis views and exports (exports also need « Allow export »). The profile filters the
+monitor rows (family, ownership, stocks and their sub-locations, country of the stock's
+own address) and the internal locations (country of the monitor stock above them).
 Move lines (decided after the audit of 888d229, phase 2f): standard stock gives every
 internal user read, write, create and delete on all of them. An investor without
 Inventory / User has no access at all to them; an equipment approver without

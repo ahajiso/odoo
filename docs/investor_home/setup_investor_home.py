@@ -1,7 +1,7 @@
 """Configure the investor home page (OCA web_quick_start_screen) and hide the menus
 investors do not need (OCA base_menu_visibility_restriction). Safe to run again: it
 updates what exists. Run once per database (artdubati_test, then production), and
-again after the Stock Monitor report is rebuilt (its action changes).
+again after phase 3 (the Financial button opens the stock monitor dashboard).
 
 Usage (credentials from the environment, never stored):
     ODOO_URL=https://erp.lartdubati.com ODOO_DB=artdubati_test \
@@ -97,13 +97,13 @@ coming_soon = upsert(
     },
 )
 
-# The Stock Monitor action is created by bi_sql_editor (changes when rebuilt).
-monitor = call("bi.sql.view", "search_read", [("technical_name", "=", "stock_monitor")], ["action_id"])
-monitor_action = monitor[0]["action_id"][0]
+# The Stock Monitor dashboard (phase 3): a server action of lartdubati_investor_home
+# that opens the client action lartdubati_investor_home.action_stock_monitor.
+monitor_action = ref("lartdubati_investor_home.action_server_stock_monitor")
 
 BUTTONS = [
     # (sequence, en name, icon, action, {lang: (name, description)})
-    (10, "Financial", "fa-line-chart", f"ir.actions.act_window,{monitor_action}", {
+    (10, "Financial", "fa-line-chart", f"ir.actions.server,{monitor_action}", {
         "en_US": ("Financial", "Stock monitor: quantities and values per stock."),
         "fr_FR": ("Financier", "Suivi des stocks : quantités et valeurs par stock."),
         "fa_IR": ("مالی", "پایش انبار: مقادیر و ارزش‌ها برای هر انبار."),

@@ -1,6 +1,6 @@
 # Phase 3 plan – stock monitor on revision 2
 
-Status: revision 5 (09/10/2026). No business code written.
+Status: revision 5 (09/10/2026), developed on the branch (section 11), audit pending.
 - The audit of revision 4 accepted P9, P10, P13 and D6, validated the visual
   direction (no new mock-up needed) and asked for five corrections, answered in
   section 1c and in docs/phase2f/PLAN.md revision 3.
@@ -563,3 +563,77 @@ The tests of section 1, plus:
 - C19 updated: inventory value versus accounting value of equipment without an asset.
 - C20 (new): draft assets shown as provisional.
 - C21 (new): rent paid untaxed; non-recoverable VAT.
+
+## 11. Implementation notes (09/10/2026), for the code audit
+
+Developed in the order of section 8, one commit per step (4 da4b5ef, 5 bcf936b,
+6 3336526, 7 f8e22a4, 8a a1c271a, 8b d02bb4d, 8c 7c6e6c0, 9 e34653e, then docs and
+translations). Departures from the plan, each with its reason:
+- **Monitor stock fields** (P2): `is_monitor_stock` and `monitor_currency_id` (the
+  name avoids any clash with a `currency_id` other modules could add to locations). A
+  monitor stock is internal and needs a currency and an address with a city and a
+  country; a lent-out location must be one. The off-site stock created by an exit is
+  flagged in company currency, and the exit checks the site address first.
+- **Contract currency**: `equipment_currency_id` reuses OCA's own
+  `_get_computed_currency()`; the depends also list `partner_id` (the price-list path is
+  excluded by the constraint anyway).
+- **NULL amounts**: the ORM reads a NULL Float as 0.0, so « unknown » could not be told
+  from 0 on a row. Each measure has a `<measure>_known` column (0/1); the list, form and
+  dashboard hide or flag unknown amounts. Totals were already right (SQL sums ignore
+  NULL); a currency whose amounts are all unknown gets no total line.
+- **Consumables with manual valuation** (not in the §3.4 table): inventory value =
+  quantity × average cost, stock value and net book value 0, like expensed equipment.
+  New question C22.
+- **Dates**: an amount without a date (replacement value without its date) is converted
+  at today's rate, as `_convert()` does without a date.
+- **Dashboard filters**: country, city and stock are sent as their **text labels**
+  (`countries`, `cities`, `stocks`), not ids: the ids are staff-only fields and Odoo
+  refuses a domain on them to an investor. The server builds the domain and returns
+  it; the client uses it for the list page, so the domain is built in one place.
+- **Export**: Odoo refuses any export to a user without « Allow export »
+  (`base.group_allow_export`), investors included; with it, the field groups still
+  apply (tested). Stricter than the plan, nothing to configure.
+- **Home page button**: a server action `action_server_stock_monitor` opens the client
+  action, because whether the quick start screen accepts a client action could not be
+  checked (OCA web_quick_start_screen not available locally); server actions are already
+  used there. `docs/investor_home/setup_investor_home.py` points to it.
+- **Performance** (P13): the first version took 8.6 s on the server for 10,000 rows.
+  Measured with EXPLAIN on a local copy (10,000 rows, half the stocks in another
+  currency): the base computation took 21 ms. The time went to per-row work:
+  - rate lookups as LATERAL joins (computed even when unused);
+  - the nearest stock found per row;
+  - the `ir.default` fallback of the company-dependent fields per row;
+  - six full passes in `get_dashboard_data`;
+  - web_search_read's second count.
+  The fixes:
+  - the conversions are set-based: the (currency, date) points needed are listed once,
+    each rate looked up once exactly as `_get_rates` does, then hash-joined;
+  - the nearest stock is resolved once per location, the fallbacks once per company;
+  - `get_dashboard_data` makes one fine-grained `read_group` (country, city, stock,
+    place, currency, family, ownership), from which totals, cards, alerts, counts and
+    choices are derived; further queries only with an alert or text filter or for
+    unconverted / provisional amounts;
+  - the list page skips the second count (`count_limit` 1; the total comes from the
+    aggregates).
+  Result (`monitor_perf`, local machine): server 0.65 s (accountant) and 0.74 s
+  (investor with its rules), browser render 1.1 s. The 3 RPCs of the first display are
+  checked by a Hoot test.
+- **Precheck**: the « views reading a removed column » check cannot be unit-tested once
+  the columns are gone; it is covered by the rehearsal below. The other checks have a
+  test.
+
+Verified locally (Odoo 18, local OCA heads):
+- 186 tests in both modules (5 Hoot tests run headless by one of them, 3 tour
+  tests), plus the `monitor_perf` test on request;
+- migration rehearsal on a database made with the deployed 2f code (d63608c): precheck
+  failing on an old report reading `owner_type` / `acquisition_mode`, rows in the
+  equipment-contract table and a stock without address, then passing once fixed; update
+  to 18.0.4.0.0 / 18.0.2.0.0 without error; « No Conversion » moved to « Latest Rate »;
+  post-check clean; the saw and the cement valued as expected.
+
+Not verified (server):
+- the content of `contract_contract_maintenance_equipment_rel` (README step 0a);
+- Chrome, `websocket-client` and `rtlcss` in `odoo_web`;
+- whether the quick start screen also accepts a client action (not needed with the
+  server action);
+- the times on the server's hardware (4 GB VPS) and with its rate history.

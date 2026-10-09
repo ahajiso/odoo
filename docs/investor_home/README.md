@@ -4,11 +4,13 @@ The investor home page is configuration, not code: a quick start screen of the O
 module `web_quick_start_screen` (OCA/web 18.0), plus menus hidden from investors with
 OCA `base_menu_visibility_restriction` (OCA/server-ux 18.0).
 `setup_investor_home.py` creates or updates all of it (usage in its header). Run it once
-per database, and again after the Stock Monitor report is rebuilt (new action id).
+per database, and again after phase 3 (the Financial button opens the stock monitor
+dashboard, lartdubati_investor_home.action_stock_monitor, through the server action
+lartdubati_investor_home.action_server_stock_monitor).
 
 ## What it sets up
 - **Investor Home** screen with 4 buttons (name and description in EN/FR/FA):
-  Financial (opens Dashboards > Stock Monitor), Administrative, Commerce & Services,
+  Financial (opens the Stock Monitor dashboard), Administrative, Commerce & Services,
   Production (these three run the server action "Investor Home: coming soon", a
   notification in the user's language; limited to Internal Users, so investors can run it).
 - Menus hidden from the group "Stock Monitor Investor" (field "Excluded groups" on the

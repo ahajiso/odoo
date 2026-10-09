@@ -1,85 +1,11 @@
-# Stock monitor (OCA bi_sql_editor reports)
+# Stock monitor (obsolete OCA bi_sql_editor reports)
 
-The stock monitor is not code: it is two reports of the OCA module `bi_sql_editor`
-(OCA/reporting-engine 18.0), configured in **Dashboards > Configuration > SQL Views**.
-This folder keeps their configuration so they can be recreated (e.g. on production).
-Definitions: `docs/DEFINITIONS.md`. Decisions: `CLAUDE.md`.
+Since phase 3 the stock monitor is the model `lartdubati.stock.monitor` of module
+`lartdubati_investor_home` (one SQL view) with its OWL dashboard (action
+`lartdubati_investor_home.action_stock_monitor`) and the standard views (action
+`lartdubati_investor_home.action_stock_monitor_analysis`). Definitions:
+`docs/DEFINITIONS.md`; plan: `docs/phase3/PLAN.md`; deployment: `docs/phase3/README.md`.
 
-## Prerequisites (installed modules)
-`bi_sql_editor`, `contract`, `maintenance_equipment_contract`, `maintenance_account`,
-`account_asset_management`, `lartdubati_investor_home` (access profiles, place type,
-`user.stock_access_rule_domain('monitor')`).
-
-## The two reports
-| Name | Technical name | Query | Groups |
-|---|---|---|---|
-| Stock Monitor | `stock_monitor` | `stock_monitor_investor.sql` | `lartdubati_investor_home.group_stock_investor`, `stock.group_stock_user`, `account.group_account_readonly` |
-| Stock Monitor - Values & Rent | `stock_monitor_full` | `stock_monitor.sql` | `account.group_account_readonly`, `stock.group_stock_manager` |
-
-`stock_monitor_investor.sql` is `stock_monitor.sql` without the columns
-`x_accounting_value`, `x_rent_month`, `x_rent_paid` (bi_sql_editor cannot hide a
-column per group, hence two reports). Change both files together.
-
-Settings for both:
-- **Is Materialized View: unchecked** (the default is checked; a materialized view only
-  refreshes on a schedule, the monitor must be live).
-- Domain: `user.stock_access_rule_domain('monitor')` (global rule: investors only see
-  what their Stock Access Profile allows; other users are not restricted).
-- Parent menu: `spreadsheet_dashboard.spreadsheet_dashboard_menu_root` (Dashboards).
-- View order: `pivot,list,graph`. Action context: `{'group_by': ['x_currency_id']}`.
-
-Field mapping (after "Validate SQL Expression"):
-- Selection fields:
-  - `x_family`: `[('asset', 'Asset'), ('consumable', 'Consumable')]`
-  - `x_ownership`: `[('owned', 'Owned'), ('borrowed', 'Borrowed'), ('rented', 'Rented'), ('lent_out', 'Lent Out')]`
-  - `x_place_type`: `[('physical', 'Physical'), ('lent_out', 'Lent Out'), ('virtual', 'Virtual')]`
-- Labels: `x_location_id` Stock, `x_item` Item, `x_rent_month` Rent per Month,
-  `x_rent_paid` Rent Paid to Date (others: proposed label).
-- Group by: family, ownership, location, warehouse, place type, country, state, city,
-  currency, product.
-- Pivot: row `x_location_id`, column `x_family`; measures (sum) quantity, inventory value,
-  accounting value, rent per month, rent paid.
-- List: warehouse, place type, state, city, product "Optional (hidden)"; others shown.
-
-Then "Create SQL View and Model", then "Create UI".
-
-## Business choices
-Set in **Settings > Inventory > Stock Monitor** (stored on the company, fields
-`stock_monitor_currency_mode` and `stock_monitor_replacement_price` of module
-`lartdubati_investor_home`; bi_sql_editor forbids reading system parameters):
-- Currency conversion into the currency of the stock's country (warehouse address):
-  Latest Rate (default) / Rate on Entry Date (stock line entry date, equipment effective
-  date) / No Conversion. Company currency when that currency has no rate.
-- Replacement price of borrowed/rented consumables: Product Cost (default) / Sales Price.
-
-Written in the query:
-- Rent: supplier contracts (OCA contract, type Supplier), lines with a manual price
-  (specific price); converted to a monthly amount; paid = posted vendor bills of the
-  contract lines. A contract linked to several equipment is split equally between them;
-  consumable rent is split between stocks by quantity.
-- Accounting value of an asset: the fixed asset of the vendor bill line the equipment was
-  created from (OCA maintenance_account); empty (0) when there is none.
-
-## Changing a query
-In Dashboards > Configuration > SQL Views: "Set to Draft", paste the new query,
-"Validate SQL Expression", redo the field mapping above, "Create SQL View and Model",
-"Create UI".
-
-## Translations (FR, FA)
-bi_sql_editor creates labels in English only and recreates them in English when a report
-is rebuilt; module .po files cannot reach them. The terms are in `translations.csv`
-(columns en_US, fr_FR, fa_IR; kinds: `report` = menu and action name, `field` = column
-label, `value` = selection value).
-
-To correct a term:
-- Durable: edit `translations.csv`, commit, then run `apply_translations.py` (usage in its
-  header; credentials from environment variables). Run it again after any report rebuild
-  and once on production.
-- Quick, in Odoo (lost at the next rebuild unless also put in the CSV): developer mode,
-  - column label: Settings > Technical > Database Structure > Fields, search the model
-    `x_bi_sql_view.stock_monitor` (or `..._full`) and the field, click the language code
-    next to "Field Label";
-  - selection value: same field form, "Selection Options" list, language code next to
-    the value name;
-  - menu name: Settings > Technical > User Interface > Menu Items, language code next to
-    the name (the window action under Settings > Technical > Actions > Window Actions).
+The two bi_sql_editor reports (`stock_monitor`, `stock_monitor_full`) are deleted at the
+phase 3 deployment (step 0b of its README). Their queries and configuration are in the
+git history of this folder (before phase 3).
