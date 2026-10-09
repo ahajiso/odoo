@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 06:35+0000\n"
-"PO-Revision-Date: 2026-10-09 06:35+0000\n"
+"POT-Creation-Date: 2026-10-09 08:09+0000\n"
+"PO-Revision-Date: 2026-10-09 08:09+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -139,7 +139,9 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
-msgid "%(op)s cannot be validated, missing or invalid: %(list)s"
+msgid ""
+"%(op)s cannot be validated. Missing or invalid:\n"
+"%(list)s"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -713,6 +715,16 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__condition
 msgid "Condition"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Condition and Photos"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Condition observed"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -1290,6 +1302,11 @@ msgid "Is Follower"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Item"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_category__is_fixed_asset_stock
 msgid ""
 "Items of this category are fixed assets: quantity and location come from "
@@ -1732,6 +1749,11 @@ msgid "Order Line"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Origin"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__origin_location_id
 msgid "Origin Stock"
 msgstr ""
@@ -2056,6 +2078,11 @@ msgid "Restitutions"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Return"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__dest_location_id
 msgid "Return Destination"
 msgstr ""
@@ -2089,6 +2116,11 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__stock_lot_id
 msgid "Serial Number (Stock)"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Serial Number and Equipment"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2488,6 +2520,11 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Values"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Vendor"
 msgstr ""
 
@@ -2523,6 +2560,7 @@ msgid "Warranty Status"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
 msgid "Warranty and Insurance"
 msgstr ""
@@ -2593,12 +2631,6 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "at least one line"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
-#. odoo-python
-#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
-msgid "bill PDF"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2694,6 +2726,12 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "line %(n)s (%(product)s)"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "nature of the acquisition"
 msgstr ""
 
@@ -2702,6 +2740,14 @@ msgstr ""
 #: code:addons/maintenance_shareholder_equipment/models/contract.py:0
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "no end"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid ""
+"no receipt type of a warehouse delivers the destination stock %s (Inventory "
+"→ Configuration → Operation Types)"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2763,14 +2809,6 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
-msgid ""
-"receipt transfer type of the destination stock (none found: choose it in "
-"developer mode)"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
-#. odoo-python
-#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "receipt type"
 msgstr ""
 
@@ -2810,6 +2848,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product.py:0
 msgid "the asset profile must create one asset per unit"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "the bill as a PDF file in the field « Bill (PDF) »"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment

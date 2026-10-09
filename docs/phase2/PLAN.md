@@ -462,6 +462,13 @@ are unchanged and still apply to any value sent.
    orders of two warehouses.
 The three new tests fail on 890a178. 95 tests in all.
 
+## Fix of 09/10/2026 (3): first use of the receipt form (owner)
+
+Transfer type computed again when missing before submission, approval and execution
+(a record saved before its stock was chosen kept none); lines shown as a short table
+with a sheet per line; error message with one bullet per missing value, naming the
+line. Tests: type recomputed, message per line. 97 tests.
+
 ## Open decisions for the owner
 
 - Members of the two new groups on artdubati_test (to give before the tests in the

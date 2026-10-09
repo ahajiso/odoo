@@ -1005,3 +1005,28 @@ class TestOperationForm(TestOperationCommon):
         screws = op.line_ids.filtered(lambda ln: ln.product_id == self.screws)
         self.assertEqual((screws.quantity, screws.quantity_done), (5.0, 5.0))
         self.assertEqual(op.picking_type_id, po.picking_type_id)
+
+    def test_missing_transfer_type_recomputed_before_checks(self):
+        """Owner's test of 09/10/2026: a receipt saved before its stock was chosen kept
+        an empty transfer type and was refused at submission."""
+        op = self._borrow("RT1")
+        op.sudo().write({"picking_type_id": False})
+        self.assertFalse(op.picking_type_id)
+        op.action_execute()
+        self.assertEqual(op.state, "done")
+        self.assertEqual(op.picking_ids.picking_type_id, self.warehouse.in_type_id)
+
+    def test_message_lists_each_missing_value_by_line(self):
+        op = self._borrow("MS2", lines=[
+            dict(product_id=self.drill.id, lot_name="MS2", replacement_value=1.0,
+                 replacement_value_date=fields.Date.today()),
+            dict(product_id=self.drill.id, lot_name="MS3", replacement_value=1.0,
+                 replacement_value_date=fields.Date.today()),
+        ])
+        op.line_ids[1].write({"warranty_status": False, "insurance_status": False})
+        with self.assertRaises(ValidationError) as caught:
+            op.action_execute()
+        message = str(caught.exception)
+        self.assertIn("\n• line 2 (Drill): warranty status", message)
+        self.assertIn("\n• line 2 (Drill): insurance status", message)
+        self.assertNotIn("line 1", message)

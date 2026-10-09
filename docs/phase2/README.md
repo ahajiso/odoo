@@ -214,3 +214,27 @@ cd /opt/odoo/addons/custom && git rev-parse HEAD > /opt/odoo/logs/phase2_previou
 git pull && git log --oneline -1
 bash /opt/odoo/addons/custom/docs/deploy_modules.sh /opt/odoo/backups/<file shown by ls>.dump 95 phase2c
 ```
+
+## Fix of 09/10/2026 (3): first use of the receipt form
+
+Owner's test of EQOP/2026/0159 (purchase, order created by the operation, Bg/Stock):
+- the transfer type was empty when the operation was submitted (record saved before
+  its stock was chosen): it is now computed again, if missing, before submission,
+  approval and execution;
+- the lines were unreadable (too many columns): the table keeps product, quantities,
+  serial number, warranty and insurance; a click opens the line's sheet with every
+  field grouped (item, serial number and equipment, values, warranty and insurance,
+  condition and photos);
+- the error message lists one missing value per line, naming the line (« line 2
+  (product): warranty status »), and says where the bill PDF goes.
+97 tests. Same procedure, label `phase2d`:
+
+```bash
+set -o pipefail
+docker exec odoo_db pg_dump -U odoo -Fc artdubati_test \
+  > /opt/odoo/backups/artdubati_test_$(date +%F_%H%M)_phase2d.dump && echo BACKUP OK
+ls -l /opt/odoo/backups/*phase2d.dump
+cd /opt/odoo/addons/custom && git rev-parse HEAD > /opt/odoo/logs/phase2_previous_commit
+git pull && git log --oneline -1
+bash /opt/odoo/addons/custom/docs/deploy_modules.sh /opt/odoo/backups/<file shown by ls>.dump 97 phase2d
+```

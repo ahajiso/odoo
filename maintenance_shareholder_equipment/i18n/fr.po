@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 06:35+0000\n"
-"PO-Revision-Date: 2026-10-09 06:35+0000\n"
+"POT-Creation-Date: 2026-10-09 08:09+0000\n"
+"PO-Revision-Date: 2026-10-09 08:09+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -156,8 +156,12 @@ msgstr "%(name)s : le numéro de série appartient à un autre article."
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
-msgid "%(op)s cannot be validated, missing or invalid: %(list)s"
-msgstr "%(op)s ne peut pas être validée, manquant ou invalide : %(list)s"
+msgid ""
+"%(op)s cannot be validated. Missing or invalid:\n"
+"%(list)s"
+msgstr ""
+"%(op)s ne peut pas être validée. Il manque ou est invalide :\n"
+"%(list)s"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -763,6 +767,16 @@ msgid "Condition"
 msgstr "État constaté"
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Condition and Photos"
+msgstr "État et photos"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Condition observed"
+msgstr "État constaté"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_res_config_settings
 msgid "Config Settings"
 msgstr "Paramètres de configuration"
@@ -1362,6 +1376,11 @@ msgid "Is Follower"
 msgstr "Est abonné"
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Item"
+msgstr "Article"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_category__is_fixed_asset_stock
 msgid ""
 "Items of this category are fixed assets: quantity and location come from "
@@ -1836,6 +1855,11 @@ msgid "Order Line"
 msgstr "Ligne de commande"
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Origin"
+msgstr "Origine"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__origin_location_id
 msgid "Origin Stock"
 msgstr "Stock d'origine"
@@ -2170,6 +2194,11 @@ msgid "Restitutions"
 msgstr "Restitutions"
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Return"
+msgstr "Retour"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__dest_location_id
 msgid "Return Destination"
 msgstr "Destination de retour"
@@ -2204,6 +2233,11 @@ msgstr "Numéro de série"
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__stock_lot_id
 msgid "Serial Number (Stock)"
 msgstr "Numéro de série (stock)"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Serial Number and Equipment"
+msgstr "Numéro de série et équipement"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -2632,6 +2666,11 @@ msgstr "Valeur unitaire"
 
 #. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Values"
+msgstr "Valeurs"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Vendor"
 msgstr "Fournisseur"
 
@@ -2671,6 +2710,7 @@ msgid "Warranty Status"
 msgstr "Statut de garantie"
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
 msgid "Warranty and Insurance"
 msgstr "Garantie et assurance"
@@ -2748,12 +2788,6 @@ msgstr ""
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "at least one line"
 msgstr "au moins une ligne"
-
-#. module: maintenance_shareholder_equipment
-#. odoo-python
-#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
-msgid "bill PDF"
-msgstr "PDF de la facture"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -2848,6 +2882,12 @@ msgstr "statut d'assurance"
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "line %(n)s (%(product)s)"
+msgstr "ligne %(n)s (%(product)s)"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "nature of the acquisition"
 msgstr "nature de l'acquisition"
 
@@ -2857,6 +2897,16 @@ msgstr "nature de l'acquisition"
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "no end"
 msgstr "sans fin"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid ""
+"no receipt type of a warehouse delivers the destination stock %s (Inventory "
+"→ Configuration → Operation Types)"
+msgstr ""
+"aucun type de réception d'un entrepôt ne livre le stock de destination %s "
+"(Inventaire → Configuration → Types d'opérations)"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -2922,16 +2972,6 @@ msgstr "commande d'achat"
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
-msgid ""
-"receipt transfer type of the destination stock (none found: choose it in "
-"developer mode)"
-msgstr ""
-"type de réception du stock de destination (aucun trouvé : le choisir en mode"
-" développeur)"
-
-#. module: maintenance_shareholder_equipment
-#. odoo-python
-#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "receipt type"
 msgstr "type de réception"
 
@@ -2974,6 +3014,12 @@ msgstr "la catégorie d'immobilisation appartient à une autre société"
 #: code:addons/maintenance_shareholder_equipment/models/product.py:0
 msgid "the asset profile must create one asset per unit"
 msgstr "la catégorie d'immobilisation doit créer une immobilisation par unité"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "the bill as a PDF file in the field « Bill (PDF) »"
+msgstr "la facture en fichier PDF dans le champ « Facture (PDF) »"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python

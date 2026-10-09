@@ -215,6 +215,13 @@ class EquipmentOperation(models.Model):
                 if match or op.picking_type_id.code != "incoming":
                     op.picking_type_id = match
 
+    def _ensure_picking_type(self):
+        """The type is computed when the form changes; a record saved before its stock
+        was chosen may still have none: compute it again before any check."""
+        for op in self.filtered(lambda o: o.operation_type == "receipt"
+                                and not o.picking_type_id):
+            op.sudo()._compute_picking_type_id()
+
     @api.onchange("purchase_id")
     def _onchange_purchase_id(self):
         """Choosing an order fills the vendor, the destination and one line per unit of
@@ -377,6 +384,7 @@ class EquipmentOperation(models.Model):
                 raise AccessError(_("Only equipment operators can submit an operation."))
             if op.state != "draft":
                 raise UserError(_("%s is not a draft.", op.name))
+            op._ensure_picking_type()
             op._refresh_stop_lines()
             op._check_values()
             if not op._needs_approval():
@@ -392,6 +400,7 @@ class EquipmentOperation(models.Model):
                 raise AccessError(_("Only equipment operation approvers can approve."))
             if op.state not in ("draft", "to_approve"):
                 raise UserError(_("%s cannot be approved in its current state.", op.name))
+            op._ensure_picking_type()
             op._refresh_stop_lines()
             op._check_values()
             op.sudo().write({
@@ -457,6 +466,7 @@ class EquipmentOperation(models.Model):
             if op.state not in ("draft", "approved"):
                 raise UserError(_("%s is already executed or being executed.", op.name))
             was_approved = op.state == "approved"
+            op._ensure_picking_type()
             op._refresh_stop_lines()
             if was_approved and op.state == "draft":
                 # the contract lines changed since the approval: stop here (no error, so
@@ -880,13 +890,16 @@ class EquipmentOperation(models.Model):
                     errors.append(_("%s: transfer type of its warehouse",
                                     line.equipment_id.display_name))
         if errors:
-            raise ValidationError(_("%(op)s cannot be validated, missing or invalid: %(list)s",
-                                    op=op.name, list=", ".join(str(e) for e in errors)))
+            raise ValidationError(_("%(op)s cannot be validated. Missing or invalid:\n%(list)s",
+                                    op=op.name,
+                                    list="\n".join("• %s" % e for e in errors)))
 
     def _check_values_receipt(self, errors, need):
         need(self.receipt_branch, _("receipt type"))
-        need(self.picking_type_id, _("receipt transfer type of the destination stock "
-                                     "(none found: choose it in developer mode)"))
+        need(self.picking_type_id or not self.location_dest_id,
+             _("no receipt type of a warehouse delivers the destination stock %s "
+               "(Inventory → Configuration → Operation Types)",
+               self.location_dest_id.display_name))
         need(self.location_dest_id, _("destination stock"))
         if self.picking_type_id and self.picking_type_id.code != "incoming":
             raise ValidationError(_("Choose a receipt operation type."))
@@ -913,7 +926,7 @@ class EquipmentOperation(models.Model):
         if third_party:
             self._check_third_party_contract(errors, need)
         for line in self.line_ids:
-            label = line.product_id.display_name
+            label = line._label()
             if third_party and line.family == "consumable":
                 raise ValidationError(_("%s: consumables are always owned (v1).", label))
             if line.family == "consumable" and branch == "acquisition" \
@@ -980,7 +993,7 @@ class EquipmentOperation(models.Model):
             need(self.bill_ref, _("vendor bill reference"))
             need(self.bill_date, _("bill date"))
             if not self.bill_attachment_ids.filtered(lambda a: a.mimetype == "application/pdf"):
-                errors.append(_("bill PDF"))
+                errors.append(_("the bill as a PDF file in the field « Bill (PDF) »"))
 
     def _check_third_party_contract(self, errors, need):
         need(self.contract_start, _("contract start"))
@@ -1277,6 +1290,13 @@ class EquipmentOperationLine(models.Model):
     @api.onchange("quantity")
     def _onchange_quantity(self):
         self.quantity_done = self.quantity
+
+    def _label(self):
+        """« line 2 (product) », to name a line in the messages."""
+        lines = self.operation_id.line_ids
+        position = (list(lines).index(self) + 1) if self in lines else "?"
+        return _("line %(n)s (%(product)s)", n=position,
+                 product=(self.product_id or self.equipment_id).display_name or "-")
 
     def _transfer_type(self):
         """Transfer type of the warehouse holding this equipment for an exit or a

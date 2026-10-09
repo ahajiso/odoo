@@ -160,50 +160,68 @@
                     </group>
                     <notebook>
                         <page string="Lines" name="lines">
+                            <!-- Short table; a click opens the line's sheet with every field. -->
                             <field name="line_ids">
-                                <list editable="bottom">
+                                <list>
                                     <field name="operation_type" column_invisible="1"/>
-                                    <field name="equipment_id"
-                                           column_invisible="parent.operation_type == 'receipt'"
-                                           domain="[('ownership_status', '=', 'owned'), ('integration_state', '=', 'done')] if parent.operation_type == 'exit' else ([('ownership_status', '=', 'lent_out')] if parent.operation_type == 'return' else [('ownership_status', 'in', ('borrowed', 'rented')), ('owner_partner_id', 'child_of', parent.partner_id)])"/>
-                                    <field name="product_id"
-                                           readonly="parent.operation_type != 'receipt'"
-                                           domain="[('maintenance_ok', '=', True)] if parent.receipt_branch in ('borrowed', 'rented') else ([('purchase_ok', '=', True)] if parent.receipt_branch == 'purchase' else ['|', ('maintenance_ok', '=', True), ('is_storable', '=', True)])"/>
-                                    <field name="family" optional="show"/>
+                                    <field name="equipment_id" column_invisible="parent.operation_type == 'receipt'"/>
+                                    <field name="product_id"/>
                                     <field name="quantity" column_invisible="parent.operation_type != 'receipt'"/>
                                     <field name="quantity_done" column_invisible="parent.operation_type != 'receipt'"/>
-                                    <field name="purchase_line_id" optional="hide"
-                                           column_invisible="parent.receipt_branch != 'purchase'"
-                                           domain="[('order_id', '=', parent.purchase_id), ('product_id', '=', product_id)]"/>
-                                    <field name="price_unit"
-                                           column_invisible="parent.receipt_branch != 'purchase' or parent.purchase_mode != 'create'"/>
-                                    <field name="tax_ids" widget="many2many_tags"
-                                           column_invisible="parent.receipt_branch != 'purchase' or parent.purchase_mode != 'create'"
-                                           domain="[('type_tax_use', '=', 'purchase'), ('company_id', '=', parent.company_id)]"/>
-                                    <field name="unit_value"
-                                           column_invisible="parent.operation_type != 'receipt' or parent.receipt_branch != 'acquisition'"/>
                                     <field name="lot_name" column_invisible="parent.operation_type != 'receipt'"/>
-                                    <field name="lot_generate" optional="show" column_invisible="parent.operation_type != 'receipt'"/>
-                                    <field name="equipment_name" optional="hide" column_invisible="parent.operation_type != 'receipt'"/>
-                                    <field name="responsible_user_id" optional="show" column_invisible="parent.operation_type != 'receipt'"/>
                                     <field name="warranty_status" column_invisible="parent.operation_type != 'receipt'"/>
                                     <field name="insurance_status" column_invisible="parent.operation_type != 'receipt'"/>
-                                    <field name="replacement_value"
-                                           column_invisible="parent.operation_type != 'receipt' or parent.receipt_branch not in ('borrowed', 'rented')"/>
-                                    <field name="replacement_currency_id" optional="hide"
-                                           column_invisible="parent.operation_type != 'receipt' or parent.receipt_branch not in ('borrowed', 'rented')"/>
-                                    <field name="replacement_value_date"
-                                           column_invisible="parent.operation_type != 'receipt' or parent.receipt_branch not in ('borrowed', 'rented')"/>
-                                    <field name="rent_amount"
-                                           column_invisible="not ((parent.operation_type == 'receipt' and parent.receipt_branch == 'rented') or (parent.operation_type == 'exit' and parent.exit_nature == 'rental'))"/>
-                                    <field name="dest_location_id"
-                                           column_invisible="parent.operation_type != 'return'"
-                                           domain="[('usage', '=', 'internal'), ('place_type', '=', 'physical')]"/>
-                                    <field name="origin_location_id" optional="hide"
-                                           column_invisible="parent.operation_type == 'receipt'"/>
-                                    <field name="condition" optional="show"/>
-                                    <field name="attachment_ids" widget="many2many_binary" optional="show"/>
+                                    <field name="dest_location_id" column_invisible="parent.operation_type != 'return'"/>
                                 </list>
+                                <form>
+                                    <field name="operation_type" invisible="1"/>
+                                    <group>
+                                        <group string="Item">
+                                            <field name="equipment_id" invisible="parent.operation_type == 'receipt'"
+                                                   domain="[('ownership_status', '=', 'owned'), ('integration_state', '=', 'done')] if parent.operation_type == 'exit' else ([('ownership_status', '=', 'lent_out')] if parent.operation_type == 'return' else [('ownership_status', 'in', ('borrowed', 'rented')), ('owner_partner_id', 'child_of', parent.partner_id)])"/>
+                                            <field name="product_id" readonly="parent.operation_type != 'receipt'"
+                                                   domain="[('maintenance_ok', '=', True)] if parent.receipt_branch in ('borrowed', 'rented') else ([('purchase_ok', '=', True)] if parent.receipt_branch == 'purchase' else ['|', ('maintenance_ok', '=', True), ('is_storable', '=', True)])"/>
+                                            <field name="family"/>
+                                            <field name="purchase_line_id" invisible="parent.receipt_branch != 'purchase' or parent.purchase_mode != 'existing'"
+                                                   domain="[('order_id', '=', parent.purchase_id), ('product_id', '=', product_id)]"/>
+                                            <field name="quantity" invisible="parent.operation_type != 'receipt'"/>
+                                            <field name="quantity_done" invisible="parent.operation_type != 'receipt'"/>
+                                        </group>
+                                        <group string="Serial Number and Equipment" invisible="parent.operation_type != 'receipt' or family == 'consumable'">
+                                            <field name="lot_name" invisible="family != 'equipment'"/>
+                                            <field name="lot_generate" invisible="family != 'equipment'"/>
+                                            <field name="equipment_name"/>
+                                            <field name="responsible_user_id"/>
+                                        </group>
+                                    </group>
+                                    <group>
+                                        <group string="Values" invisible="parent.operation_type != 'receipt' and not (parent.operation_type == 'exit' and parent.exit_nature == 'rental')">
+                                            <field name="price_unit" invisible="parent.receipt_branch != 'purchase' or parent.purchase_mode != 'create'"/>
+                                            <field name="tax_ids" widget="many2many_tags"
+                                                   invisible="parent.receipt_branch != 'purchase' or parent.purchase_mode != 'create'"
+                                                   domain="[('type_tax_use', '=', 'purchase'), ('company_id', '=', parent.company_id)]"/>
+                                            <field name="unit_value" invisible="parent.operation_type != 'receipt' or parent.receipt_branch != 'acquisition'"/>
+                                            <field name="replacement_value" invisible="parent.operation_type != 'receipt' or parent.receipt_branch not in ('borrowed', 'rented')"/>
+                                            <field name="replacement_currency_id" invisible="parent.operation_type != 'receipt' or parent.receipt_branch not in ('borrowed', 'rented')"/>
+                                            <field name="replacement_value_date" invisible="parent.operation_type != 'receipt' or parent.receipt_branch not in ('borrowed', 'rented')"/>
+                                            <field name="rent_amount" invisible="not ((parent.operation_type == 'receipt' and parent.receipt_branch == 'rented') or (parent.operation_type == 'exit' and parent.exit_nature == 'rental'))"/>
+                                        </group>
+                                        <group string="Warranty and Insurance" invisible="parent.operation_type != 'receipt' or family == 'consumable'">
+                                            <field name="warranty_status"/>
+                                            <field name="insurance_status"/>
+                                        </group>
+                                        <group string="Return" invisible="parent.operation_type != 'return'">
+                                            <field name="dest_location_id" domain="[('usage', '=', 'internal'), ('place_type', '=', 'physical')]"/>
+                                        </group>
+                                        <group string="Origin" invisible="parent.operation_type == 'receipt' or not origin_location_id">
+                                            <field name="origin_location_id"/>
+                                        </group>
+                                    </group>
+                                    <group string="Condition and Photos">
+                                        <field name="condition" nolabel="1" colspan="2" placeholder="Condition observed"/>
+                                        <field name="attachment_ids" widget="many2many_binary" colspan="2"/>
+                                    </group>
+                                </form>
                             </field>
                         </page>
                         <page string="Contract Lines to Stop" name="stops"
