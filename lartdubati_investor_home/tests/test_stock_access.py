@@ -11,26 +11,24 @@ class TestStockAccess(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.france = cls.env.ref("base.fr")
+        cls.germany = cls.env.ref("base.de")
         Warehouse = cls.env["stock.warehouse"]
-        # The stock address is the warehouse address (standard).
-        cls.wh_fr = Warehouse.create(
-            {
-                "name": "WH France",
-                "code": "TWFR",
-                "partner_id": cls.env["res.partner"]
-                .create({"name": "Site France", "country_id": cls.france.id})
-                .id,
-            }
-        )
-        cls.wh_other = Warehouse.create(
-            {
-                "name": "WH Other",
-                "code": "TWOT",
-                "partner_id": cls.env["res.partner"].create({"name": "Site Other"}).id,
-            }
-        )
+        Partner = cls.env["res.partner"]
+        cls.wh_fr = Warehouse.create({"name": "WH France", "code": "TWFR"})
+        cls.wh_other = Warehouse.create({"name": "WH Other", "code": "TWOT"})
         cls.stock_a = cls.wh_fr.lot_stock_id
         cls.stock_b = cls.wh_other.lot_stock_id
+        # geography = the stock's own address (phase 3), never the warehouse partner
+        currency = cls.env.company.currency_id.id
+        cls.stock_a.write({"is_monitor_stock": True, "monitor_currency_id": currency,
+                           "address_id": Partner.create({
+                               "name": "Site France", "city": "Bougival",
+                               "country_id": cls.france.id}).id})
+        cls.stock_b.write({"is_monitor_stock": True, "monitor_currency_id": currency,
+                           "address_id": Partner.create({
+                               "name": "Site Germany", "city": "Berlin",
+                               "country_id": cls.germany.id}).id})
+        # a real investor: internal user + investor, no Inventory group
         cls.user = cls.env["res.users"].create(
             {
                 "name": "Investor",
@@ -39,7 +37,6 @@ class TestStockAccess(TransactionCase):
                     Command.set(
                         [
                             cls.env.ref("base.group_user").id,
-                            cls.env.ref("stock.group_stock_user").id,
                             cls.env.ref("lartdubati_investor_home.group_stock_investor").id,
                         ]
                     )
@@ -80,6 +77,21 @@ class TestStockAccess(TransactionCase):
         self.user.groups_id -= self.env.ref("lartdubati_investor_home.group_stock_investor")
         self.assertEqual(self._visible_stocks(), self.stock_a | self.stock_b)
 
+    def test_sub_location_without_address_follows_its_stock(self):
+        shelf = self.env["stock.location"].create(
+            {"name": "Shelf", "usage": "internal", "location_id": self.stock_a.id})
+        self.user.stock_access_id = self.Profile.create(
+            {"name": "France", "country_ids": [Command.set(self.france.ids)]})
+        Location = self.env["stock.location"].with_user(self.user)
+        self.assertEqual(Location.search([("id", "=", shelf.id)]), shelf)
+
+    def test_new_address_country_applies_at_once(self):
+        self.user.stock_access_id = self.Profile.create(
+            {"name": "Germany", "country_ids": [Command.set(self.germany.ids)]})
+        self.assertEqual(self._visible_stocks(), self.stock_b)
+        self.stock_a.address_id.country_id = self.germany
+        self.assertEqual(self._visible_stocks(), self.stock_a | self.stock_b)
+
     def test_monitor_domain(self):
         Profile = self.Profile
         self.assertEqual(Profile.browse()._monitor_domain(), [(0, "=", 1)])
@@ -97,9 +109,9 @@ class TestStockAccess(TransactionCase):
             }
         )
         domain = profile._monitor_domain()
-        self.assertIn(("x_family", "in", ["asset"]), domain)
-        self.assertIn(("x_ownership", "in", ["rented"]), domain)
-        self.assertIn(("x_country_id", "in", self.france.ids), domain)
+        self.assertIn(("family", "in", ["asset"]), domain)
+        self.assertIn(("ownership_status", "in", ["rented"]), domain)
+        self.assertIn(("country_id", "in", self.france.ids), domain)
 
 
 @tagged("post_install", "-at_install")

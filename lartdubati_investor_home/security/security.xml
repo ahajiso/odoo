@@ -19,6 +19,11 @@
         <field name="model_id" ref="stock.model_stock_location"/>
         <field name="domain_force">user.stock_access_rule_domain('location')</field>
     </record>
+    <record id="rule_stock_monitor_access" model="ir.rule">
+        <field name="name">Stock monitor: stock access profile</field>
+        <field name="model_id" ref="model_lartdubati_stock_monitor"/>
+        <field name="domain_force">user.stock_access_rule_domain('monitor')</field>
+    </record>
     <!-- Move lines: no access for an investor without Inventory rights (all modes) -->
     <record id="rule_stock_move_line_investor" model="ir.rule">
         <field name="name">Move lines: investor without Inventory rights</field>

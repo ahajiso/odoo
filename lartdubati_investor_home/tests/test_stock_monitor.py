@@ -2,6 +2,7 @@
 from datetime import timedelta
 
 from odoo import Command, fields
+from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 
 from odoo.addons.maintenance_shareholder_equipment.tests.test_operation import (
@@ -382,3 +383,120 @@ class TestMonitorLabels(MonitorCommon):
         self.assertEqual(row.product_name, "Screws")
         self.assertEqual(row.with_context(lang="fr_FR").product_name, "Vis")
         self.assertEqual(row.uom_name, "Units")
+
+
+@tagged("post_install", "-at_install")
+class TestMonitorAccess(MonitorCommon):
+    """§5 and points 6, 13, 1c-4: access profiles and field groups."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        Users = cls.env["res.users"].with_context(no_reset_password=True)
+
+        def user(login, *groups):
+            return Users.create({
+                "name": login, "login": login, "company_id": cls.company.id,
+                "company_ids": [Command.set(cls.company.ids)],
+                "groups_id": [Command.set(
+                    [cls.env.ref(g).id for g in ("base.group_user",) + groups])]})
+        cls.investor = user("mon_investor", "lartdubati_investor_home.group_stock_investor")
+        cls.store = user("mon_store", "stock.group_stock_user")
+        cls.accountant = user("mon_accountant", "account.group_account_readonly")
+        Profile = cls.env["lartdubati.stock.access"]
+        cls.profile = Profile.create({"name": "Everything (test)"})
+        cls.investor.stock_access_id = cls.profile
+        # a German stock beside the French one
+        cls.germany = cls.env.ref("base.de")
+        cls.berlin = cls.env["stock.location"].create({
+            "name": "Berlin", "usage": "internal",
+            "location_id": cls.warehouse.view_location_id.id, "is_monitor_stock": True,
+            "monitor_currency_id": cls.company.currency_id.id,
+            "address_id": cls.env["res.partner"].create({
+                "name": "Entrepôt Berlin (test)", "city": "Berlin",
+                "country_id": cls.germany.id}).id})
+        cls.shelf = cls.env["stock.location"].create(
+            {"name": "Shelf (no address)", "usage": "internal", "location_id": cls.stock.id})
+        Quant = cls.env["stock.quant"]
+        Quant._update_available_quantity(cls.screws, cls.shelf, 4)
+        Quant._update_available_quantity(cls.screws, cls.berlin, 6)
+
+    def _visible(self, user, domain=()):
+        self.env.flush_all()
+        self.Monitor.invalidate_model()
+        return self.Monitor.with_user(user).search(
+            [("company_id", "=", self.company.id), *domain])
+
+    def test_profile_dimensions(self):
+        op = self._borrow("MON-ACC1")
+        op.with_user(self.user_both).action_execute()
+        all_rows = self._visible(self.investor)
+        self.assertEqual(set(all_rows.mapped("family")), {"asset", "consumable"})
+        self.profile.country_ids = self.germany
+        rows = self._visible(self.investor)
+        self.assertEqual(set(rows.mapped("city")), {"Berlin"})
+        self.profile.write({"country_ids": [Command.clear()],
+                            "location_ids": [Command.set(self.stock.ids)]})
+        rows = self._visible(self.investor)
+        self.assertEqual(set(rows.mapped("city")), {"Bougival"},
+                         "the sub-location without address follows its stock")
+        self.profile.write({"location_ids": [Command.clear()], "family_ids": [Command.set(
+            self.env.ref("lartdubati_investor_home.family_asset").ids)]})
+        self.assertEqual(set(self._visible(self.investor).mapped("family")), {"asset"})
+        self.profile.write({"family_ids": [Command.clear()], "ownership_type_ids": [
+            Command.set(self.env.ref("lartdubati_investor_home.ownership_borrowed").ids)]})
+        self.assertEqual(set(self._visible(self.investor).mapped("ownership_status")),
+                         {"borrowed"})
+        self.investor.stock_access_id = False
+        self.assertFalse(self._visible(self.investor), "no profile: nothing")
+
+    def test_investor_reads_labels_never_staff_fields(self):
+        row = self._visible(self.investor, [("city", "=", "Berlin")])
+        self.assertEqual(len(row), 1)
+        values = row.read(["product_name", "stock_name", "country_name", "city",
+                           "currency_id", "company_id", "inventory_value", "quantity"])[0]
+        self.assertEqual(values["country_name"], "Germany")
+        self.assertEqual(values["currency_id"][0], self.company.currency_id.id)
+        fields = self.Monitor.with_user(self.investor).fields_get()
+        for staff_field in ("stock_value", "accounting_value", "rent_paid", "stock_id",
+                            "owner_partner_id", "alert_count", "alert_no_asset"):
+            self.assertNotIn(staff_field, fields)
+        self.assertIn("inventory_value", fields)
+        self.assertIn("replacement_value_rate_missing", fields)
+        Monitor = self.Monitor.with_user(self.investor)
+        with self.assertRaises(AccessError):
+            row.read(["stock_value"])
+        with self.assertRaises(AccessError):
+            Monitor.search([("accounting_value", ">", 0)])
+        with self.assertRaises(AccessError):
+            Monitor.search_count([("stock_id", "=", self.berlin.id)])
+        with self.assertRaises(AccessError):
+            Monitor.read_group([], ["stock_value:sum"], ["currency_id"])
+        with self.assertRaises(AccessError):
+            Monitor.search([], order="accounting_value desc")
+        # export needs « Allow export » (base.group_allow_export), which investors do not
+        # have by default; with it, a staff field still cannot be exported
+        with self.assertRaises(UserError):
+            row.export_data(["inventory_value"])
+        self.investor.groups_id |= self.env.ref("base.group_allow_export")
+        self.assertEqual(len(row.export_data(["inventory_value", "city"])["datas"]), 1)
+        with self.assertRaises(AccessError):
+            row.export_data(["stock_value"])
+
+    def test_store_and_accountant_scopes(self):
+        row = self._visible(self.store, [("city", "=", "Berlin")])
+        self.assertEqual(row.read(["stock_value", "stock_id"])[0]["stock_id"][0],
+                         self.berlin.id)
+        with self.assertRaises(AccessError):
+            row.read(["accounting_value"])
+        with self.assertRaises(AccessError):
+            self.Monitor.with_user(self.store).search([("rent_paid", ">", 0)])
+        row = self._visible(self.accountant, [("city", "=", "Berlin")])
+        row.read(["accounting_value", "stock_value", "rent_paid"])
+
+    def test_nobody_writes(self):
+        row = self._visible(self.store, [("city", "=", "Berlin")])
+        with self.assertRaises(AccessError):
+            row.write({"city": "Paris"})
+        with self.assertRaises(AccessError):
+            self.Monitor.with_user(self.accountant).create({"city": "Paris"})
