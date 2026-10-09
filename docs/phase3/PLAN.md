@@ -1,15 +1,25 @@
 # Phase 3 plan – stock monitor on revision 2
 
-Status: revision 1, proposal for the audit (09/10/2026). No code written.
+Status: revision 2 (09/10/2026), for a new audit. Revision 1 was audited by ChatGPT
+(eight blocking corrections, section 12). The owner then chose a modern OWL dashboard as
+the main interface, with the standard views as the secondary interface (section 4). A
+throwaway mock-up with static demo data was built for the owner's validation
+(docs/phase3/mockup/, screenshots in docs/phase3/mockup/screenshots/). No business code
+written; none before the new audit of this plan.
 Scope: `maintenance_shareholder_equipment` 18.0.4.0.0 (stock attributes, removal of the
 obsolete fields) and `lartdubati_investor_home` 18.0.2.0.0 (monitor, access). Builds on
 phases 1 and 2. Home page: phase 4 (only its Financial button is repointed here).
 Manual: phase 5.
 
-Owner's input (09/10/2026): « Je n'ai pas grand chose à garder du monitor actuel. Il
-n'est pas assez intuitif. » The current bi_sql_editor reports are therefore replaced,
-not ported (section 2), and the screens are validated by the owner on screenshots
-before the rest is coded (section 9, step 1).
+Owner's input (09/10/2026):
+- « Je n'ai pas grand chose à garder du monitor actuel. Il n'est pas assez intuitif. »
+  The bi_sql_editor reports are therefore replaced, not ported.
+- « Je choisis finalement un tableau de bord OWL moderne comme interface principale du
+  moniteur [...] esthétique, intuitive et responsive, tout en restant fonctionnellement
+  irréprochable. Les vues Odoo standard doivent rester disponibles comme interface
+  secondaire [...]. Le tableau de bord doit utiliser le même modèle SQL, passer
+  exclusivement par l'ORM, sans sudo, et respecter strictement les règles d'accès et les
+  restrictions de champs. »
 
 ## 0. Facts checked in the code
 
@@ -58,7 +68,9 @@ before the rest is coded (section 9, step 1).
 | P3 | Items in an internal location with no monitor stock above it? | Shown to non-investors with stock « (outside any monitor stock) », as a control; never shown to investors (the access rule requires a stock). |
 | P4 | May investors see the legal owner of borrowed / rented items (`owner_partner_id`)? | **No** by default: shown to stock users and accountants only. Investors see the status. |
 | P5 | Keep bi_sql_editor installed? | Remove the two reports. Uninstalling the module is the owner's choice (it may be used elsewhere); the plan does not need it. |
-| P6 | Screens (section 4): standard views or a custom dashboard? | **Standard views first** (A), validated on screenshots; the custom dashboard (B) only if A is still not intuitive. |
+| P6 | Screens | **Decided by the owner (09/10/2026)**: OWL dashboard as the main interface, standard views (list, pivot, graph, form) as the secondary interface, both on the same model (section 4). |
+| P7 | Threshold of the « replacement value too old » alert | 12 months, company setting (business choice, one setting with a default). |
+| P8 | Monthly equivalent of a rent (summary card) | Amount × factor of the contract line's recurrence, divided by its interval: daily × 365/12, weekly × 52/12, monthly and « monthly last day » × 1, quarterly ÷ 3, semesterly ÷ 6, yearly ÷ 12. The list and the detail always show the contract's own amount and period. |
 
 ## 2. Data model changes
 
@@ -85,6 +97,9 @@ before the rest is coded (section 9, step 1).
   - `stock_monitor_replacement_price` is removed: it is moot, since consumables are
     owned only;
   - `stock_monitor_currency_mode` is kept (C12).
+  - `stock_monitor_replacement_age` (months, default 12): threshold of the « replacement
+    value too old » alert (P7). An integer column read by the view: its type is never
+    changed afterwards.
 - Global rule on `lartdubati.stock.monitor`:
   `user.stock_access_rule_domain('monitor')`.
 - The existing location rule is kept.
@@ -131,6 +146,21 @@ Rows have stable ids, so a row form can be opened and reloaded.
 | rent_amount, rent_period, rent_start | active rental line (`equipment_nature = rental`, supplier contract, not cancelled, active, today within [start, end]) | stock users, accountants |
 | rent_paid | posted supplier bill lines minus refunds, on all rental lines of the equipment (by `contract_line_id`), company currency converted | accountants |
 
+### 3.3b Alert and conversion columns (read by the dashboard)
+- Booleans:
+  - `alert_rate_missing`;
+  - `alert_rental_ended` (latest rental line ended, item still in an internal stock);
+  - `alert_outside_stock`;
+  - `alert_replacement_missing` (borrowed / rented without replacement value);
+  - `alert_replacement_old` (date older than the company threshold, P7);
+  - `alert_lent_uninsured` (lent_out with insurance status « not insured »).
+  These are computed in the view, so that they can be filtered and counted by
+  `read_group`. `alert_count` holds their sum.
+- For each converted amount: the source amount, the source currency and a « converted »
+  flag. When the conversion fails, the converted value is NULL (never 0) and the
+  source amount stays readable. Field groups are those of the amount.
+- `rent_monthly`: monthly equivalent of the active rent (P8), converted like the rest.
+
 ### 3.4 Aggregation rule
 
 Contract data is joined through a subquery aggregated per equipment, so there is one
@@ -151,34 +181,102 @@ phase 1.
 - Totals are only meaningful within one currency. The default grouping starts with the
   currency whenever more than one currency is present (section 4).
 
-## 4. Screens (to validate by the owner on screenshots, step 1)
+## 4. Interface
 
-Option A, standard Odoo views, no JavaScript. Top menu « Stock Monitor » (own app
-icon), one action:
+### 4.1 Main interface: OWL dashboard (client action)
+Menu « Stock Monitor » (own app icon). Action `lartdubati_investor_home.action_stock_monitor`
+(client action, stable XML id, target of the home page's Financial button). Layout,
+as in the mock-up:
+1. Header: title, date of the figures, button « Detailed analysis » (secondary
+   interface, 4.2, with the current filters as domain).
+2. Selection: Country, City, Stock (Odoo `SelectMenu`, searchable, stocks grouped by
+   country · city). They are chained: choosing a stock sets its country and city, and
+   choosing a country limits the cities and stocks. « Clear all » appears as soon as a
+   filter is set.
+3. Visual filters: a segmented control for Family (All / Equipment / Consumables) and
+   chips for Ownership (Owned / Borrowed / Rented / Lent out, multiple choice). Each
+   shows its count.
+4. Stock cards: one card per stock in the selection, showing its city, country,
+   currency, inventory value, counts and alerts. A click selects the stock, a second
+   click unselects it. The card « Outside any monitor stock » (dashed) is shown to
+   non-investors only (P3).
+5. Summary cards, filtered like the list:
+   - items: number of equipment, and number of consumable lines (quantities are not
+     added across units);
+   - inventory value;
+   - net book value (accountants);
+   - current rents, monthly equivalent (stock users and accountants);
+   - rents paid to date (accountants).
+   One line per currency, never added across currencies. A blue notice is shown when
+   the selection holds several currencies. Amounts that could not be converted are
+   shown in red, « + 120 USD non converti », outside the totals.
+6. Alerts and anomalies: one button per kind, with its count; a click filters the list.
+   - Red: exchange rate missing; rental ended but the equipment is still present;
+     outside any monitor stock.
+   - Orange: replacement value missing; replacement value older than the threshold
+     (P7); lent out and not insured.
+   - Information (stock users and accountants): equipment received and still to
+     complete, not in the monitor (`search_count` on maintenance.equipment, under the
+     user's own rights).
+   Investors see only the alerts about the figures they see (missing rate).
+7. List: search (article, serial number, location, category, stock), sorting by
+   column, pager (25 rows a page). Columns follow the field groups (section 3.3). The
+   stock column is hidden under 992 px.
+8. Detail panel on click, with sections:
+   - Ownership (owner, holder and contract for authorised groups only);
+   - Location;
+   - Values in the stock currency;
+   - Rental contract;
+   - Conversions: source amount, rate and date for accountants; every unconverted
+     amount, for everyone who sees it;
+   - Identity;
+   - the row's alerts, at the top.
+   « Open the equipment form » appears only for users with read access on
+   maintenance.equipment, never for investors.
+9. Responsive design for computers and tablets. At 1200 px and above, the panel sits
+   beside the list. Under 1200 px it opens over the list. Under 992 px, filters wrap
+   and minor columns are hidden. Phones are not a target. CSS uses logical properties,
+   so that fa_IR (RTL) is mirrored; this is checked on screenshots in fa_IR.
 
-1. Default view: a list grouped by stock. The collapsed group rows show the totals per
-   stock: assets, inventory value, and, by group, accounting value, rent. Opening a
-   stock lists its items.
-2. Left search panel (`searchpanel`), with counts:
-   - Country, then City;
-   - Stock (hierarchy);
-   - Family (Assets / Consumables);
-   - Ownership (Owned / Borrowed / Rented / Lent out).
-   One click filters. Choosing a stock is a click in the panel or typing its name in
-   the search bar, which replaces the combo box of the brief.
-3. Pivot (stock × family, stock × ownership) and graph as secondary views.
-4. Row form: one sheet per item with sections Identity, Location, Ownership, Values,
-   Rent. The fields are read-only. Links are not clickable for investors
-   (`no_open`), so they never open models they have no right on.
+The « view as » switch of the mock-up does not exist in the module: what a user sees
+comes only from their groups and record rules.
 
-Option B, only if A is refused: a custom OWL dashboard. It has a top bar (stock combo
-box, country / city, family toggle, ownership chips) and one card per stock with its
-totals, and opens the same list.
-- The data still come through the ORM, with the same rules and no sudo.
-- Cost: JavaScript, its tests and its translations to maintain at each Odoo version.
+### 4.2 Secondary interface: standard views
+Action `lartdubati_investor_home.action_stock_monitor_analysis` on the same model:
+- list grouped by currency then stock, with sums;
+- pivot (stock × family, stock × ownership);
+- graph;
+- read-only form;
+- search view with filters and group-bys;
+- `searchpanel` (country, stock, family, ownership).
+Used for detailed analysis, exports (standard export, subject to the field groups),
+advanced search and controls.
 
-Question to the owner, to guide the prototype: what is not intuitive today (finding a
-stock, filters, too many columns, pivot)?
+### 4.3 Data access of the dashboard (no sudo)
+- The dashboard first reads `fields_get` on `lartdubati.stock.monitor`. Fields the
+  user's groups do not allow are absent, so it never asks for them: no AccessError,
+  and no column or card for them.
+- Summary cards and stock cards: `formatted_read_group` / `read_group` with the user's
+  domain, grouped by currency (and by stock for the stock cards), summing the
+  converted amounts. Unconverted amounts: a second `read_group` on rows whose
+  conversion failed, grouped by source currency.
+- List: `web_search_read` with limit, offset and order. Counts: `search_count`.
+- Detail: `web_read` of the row.
+- Selection lists: `read_group` by country, city and stock of the monitor rows. They
+  only offer what the user may see.
+- Everything goes through the ORM with the user's environment. Record rules
+  (section 5) apply to every call. No controller, no `sudo()`, no raw SQL in Python:
+  the only SQL is the view definition.
+
+### 4.4 Mock-up (done, for the owner's validation)
+`docs/phase3/mockup/lartdubati_stock_monitor_mockup`: a throwaway module.
+- It is never installed on a server and never merged into the business modules.
+- Its data are static demo data in JavaScript (5 stocks in France and Iran, EUR and
+  IRR, one rent in USD without rate, one item outside any stock).
+- A « view as » switch shows the three profiles.
+- 10 screenshots in `docs/phase3/mockup/screenshots/` (desktop 1440 px, tablet 1024
+  and 768 px).
+It is deleted from the repo once the dashboard is merged.
 
 ## 5. Access
 - `ir.model.access` read on the monitor for the groups investor, `stock.group_stock_user`
@@ -234,6 +332,16 @@ Dry run by default, `--apply` on artdubati_test only. It:
     AccessError.
 - Constraints: a monitor stock without an address is refused; so is a lent_out location
   that is not a monitor stock.
+- Dashboard (Hoot JS tests, Odoo 18):
+  - columns and cards follow the fields returned by `fields_get`;
+  - totals per currency and unconverted amounts;
+  - filters translated into the domain;
+  - the alert filter;
+  - pager and sorting;
+  - the detail panel.
+- Tour (HttpCase) with an investor user: the dashboard opens; no accounting column or
+  card is shown; a stock outside the profile is absent; the detailed analysis keeps the
+  restrictions.
 - Regression: the 98 tests of phases 1-2 still pass.
 
 ## 8. Server procedure (docs/phase3/README.md, run by the owner)
@@ -257,14 +365,20 @@ Dry run by default, `--apply` on artdubati_test only. It:
 Rehearsed first on the local `mig` database, a copy with the old monitor views.
 
 ## 9. Order of work (small commits)
-1. Prototype of the screens (section 4, A) on the local database with sample data,
-   with screenshots sent to the owner. Nothing else is coded before their answer.
-2. stock.location fields and constraints, with tests.
-3. SQL view and model, with the tests of section 7.
-4. Access: rules, groups and the location domain, with tests.
-5. Removal of the obsolete fields and setting, migration rehearsal.
-6. Setup script, README, translations (fr, fa, exported), CLAUDE.md and DEFINITIONS.md
-   (« Stock », « Measures », « Access »), QUESTIONS_COMPTABLE.md.
+1. Mock-up of the dashboard. **Done** (docs/phase3/mockup), screenshots submitted to
+   the owner. The owner validates the ergonomics, navigation and information density;
+   their remarks are integrated into this plan.
+2. New audit of this plan (revision 2). No business code before its green light.
+3. stock.location fields and constraints, with tests.
+4. SQL view and model (columns, alerts, conversions), with the tests of section 7.
+5. Access: rules, groups and the location domain, with tests.
+6. Secondary interface (standard views).
+7. OWL dashboard on the real model, with Hoot tests and the tour. Screenshots in fr_FR,
+   en_US and fa_IR (RTL), desktop and tablet.
+8. Removal of the obsolete fields and setting, migration rehearsal.
+9. Setup script, README, translations (exported), CLAUDE.md and DEFINITIONS.md
+   (« Stock », « Measures », « Access », dashboard), QUESTIONS_COMPTABLE.md. Removal of
+   the mock-up.
 
 ## 10. Verified / not verified / hypotheses
 - Verified in the code: the facts of section 0.
@@ -273,10 +387,17 @@ Rehearsed first on the local `mig` database, a copy with the old monitor views.
   - other SQL views depending on the obsolete columns;
   - the addresses of the existing internal locations;
   - whether bi_sql_editor is used for anything else.
-- Hypotheses to check in step 1 or 3:
-  - Odoo 18 list group rows sum monetary fields per group, and the screen stays
-    readable with one currency per stock;
-  - `searchpanel` on an `_auto = False` model with many2one hierarchy (stock);
+- Verified with the mock-up (local Odoo 18): `SelectMenu` with groups and search,
+  `Pager`, side panel and overlay, rendering at 1440, 1024 and 768 px. Pitfalls found:
+  - an English word in a template is translated by Odoo's own terms (« Location »
+    became « Emplacement »), so source strings must be chosen carefully;
+  - `.o_action` imposes a column layout, which needs its own row container;
+  - Sass `min()` with mixed units breaks the bundle.
+- Hypotheses to check in steps 4-7:
+  - Odoo 18 list group rows sum monetary fields per group (secondary interface);
+  - `searchpanel` on an `_auto = False` model with a many2one hierarchy (stock);
+  - `read_group` on the view stays fast enough for the dashboard (a few hundred rows
+    today; indexes are on the source tables);
   - `contract.contract.currency_id` is stored (it is computed);
   - the performance of the `parent_path` match is enough (a few hundred rows today).
 
@@ -287,3 +408,8 @@ Rehearsed first on the local `mig` database, a copy with the old monitor views.
   fixed-asset categories (no account.asset). Test choice: product unit cost (AVCO) at
   the time of the monitor. Where to change: product category (costing method), or move
   the category to the fixed assets.
+
+## 12. Audit of revision 1 (ChatGPT, eight blocking corrections)
+The text of the audit has not been relayed into this session. The eight corrections
+are to be integrated here, one by one, each answered (fixed, argued, or sent to the
+owner), before the new audit. Nothing in revision 2 claims to address them.

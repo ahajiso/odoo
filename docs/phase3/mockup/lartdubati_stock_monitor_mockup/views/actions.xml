@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_stock_monitor_mockup" model="ir.actions.client">
+        <field name="name">Stock Monitor</field>
+        <field name="tag">lartdubati_stock_monitor_mockup</field>
+    </record>
+    <menuitem id="menu_stock_monitor_mockup" name="Stock Monitor"
+              action="action_stock_monitor_mockup" sequence="5"
+              web_icon="stock,static/description/icon.png"/>
+</odoo>

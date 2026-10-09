@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<t t-name="lartdubati_stock_monitor_mockup.Dashboard">
+<div class="o_action o_smm">
+ <div class="o_smm_layout">
+  <div class="o_smm_scroll">
+
+    <!-- Header -->
+    <header class="o_smm_header">
+      <div>
+        <h1 class="o_smm_title">Moniteur de stock</h1>
+        <div class="o_smm_subtitle">Situation au <t t-esc="date(TODAY)"/> · montants dans la devise de chaque stock</div>
+      </div>
+      <div class="o_smm_header_actions">
+        <div class="o_smm_mock_switch" title="Uniquement dans la maquette : le vrai tableau de bord suit les droits de l'utilisateur.">
+          <span class="o_smm_mock_label">Maquette — voir comme</span>
+          <div class="btn-group btn-group-sm">
+            <t t-foreach="profiles" t-as="p" t-key="p.key">
+              <button class="btn" t-att-class="state.profile === p.key ? 'btn-dark' : 'btn-outline-secondary'" t-on-click="() => this.setProfile(p.key)" t-esc="p.label"/>
+            </t>
+          </div>
+        </div>
+        <button class="btn btn-outline-primary btn-sm" t-on-click="openAnalysis">
+          <i class="fa fa-table me-1"/>Analyse détaillée
+        </button>
+      </div>
+    </header>
+
+    <!-- Selection and filters -->
+    <section class="o_smm_panel o_smm_filters">
+      <div class="o_smm_selectors">
+        <label class="o_smm_field">
+          <span><i class="fa fa-globe me-1"/>Pays</span>
+          <SelectMenu choices="countryChoices" value="state.country" onSelect.bind="onCountry" searchable="false" togglerClass="'o_smm_select'"/>
+        </label>
+        <label class="o_smm_field">
+          <span><i class="fa fa-map-marker me-1"/>Ville</span>
+          <SelectMenu choices="cityChoices" value="state.city" onSelect.bind="onCity" searchable="false" togglerClass="'o_smm_select'"/>
+        </label>
+        <label class="o_smm_field o_smm_field_stock">
+          <span><i class="fa fa-cube me-1"/>Stock</span>
+          <SelectMenu choices="[{value: 'all', label: 'Tous les stocks'}]" groups="stockGroups" value="state.stock" onSelect.bind="onStock" searchPlaceholder="'Rechercher un stock…'" togglerClass="'o_smm_select'"/>
+        </label>
+        <button t-if="hasFilters" class="btn btn-link btn-sm o_smm_reset" t-on-click="resetAll"><i class="fa fa-times me-1"/>Tout effacer</button>
+      </div>
+      <div class="o_smm_toggles">
+        <div class="o_smm_segment" role="group" aria-label="Famille">
+          <button t-att-class="{'active': state.family === 'all'}" t-on-click="() => this.setFamily('all')">Tout <span class="o_smm_count" t-esc="familyCount('all')"/></button>
+          <button t-att-class="{'active': state.family === 'asset'}" t-on-click="() => this.setFamily('asset')"><i class="fa fa-wrench me-1"/>Matériel <span class="o_smm_count" t-esc="familyCount('asset')"/></button>
+          <button t-att-class="{'active': state.family === 'consumable'}" t-on-click="() => this.setFamily('consumable')"><i class="fa fa-tint me-1"/>Consommables <span class="o_smm_count" t-esc="familyCount('consumable')"/></button>
+        </div>
+        <div class="o_smm_chips" role="group" aria-label="Propriété">
+          <t t-foreach="Object.keys(OWNERSHIP)" t-as="key" t-key="key">
+            <button class="o_smm_chip" t-att-class="'o_smm_' + key + (state.ownership.includes(key) ? ' active' : '')" t-on-click="() => this.toggleOwnership(key)">
+              <i t-att-class="state.ownership.includes(key) ? 'fa fa-check-circle' : 'fa fa-circle'"/>
+              <t t-esc="OWNERSHIP[key].label"/>
+              <span class="o_smm_count" t-esc="ownershipCount(key)"/>
+            </button>
+          </t>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stocks -->
+    <section class="o_smm_stocks">
+      <t t-foreach="stockCards" t-as="c" t-key="c.stock.id">
+        <button class="o_smm_stock" t-att-class="{'active': c.active, 'o_smm_stock_outside': c.stock.id === 0}" t-on-click="() => this.selectStockCard(c.stock.id)">
+          <div class="o_smm_stock_head">
+            <span class="o_smm_stock_name" t-esc="c.stock.name"/>
+            <span t-if="c.alerts" class="o_smm_alert_badge" t-att-title="c.alerts + ' alerte(s)'"><i class="fa fa-exclamation-triangle"/> <t t-esc="c.alerts"/></span>
+          </div>
+          <div class="o_smm_stock_place">
+            <t t-if="c.stock.id">
+              <i t-att-class="c.stock.place === 'lent_out' ? 'fa fa-handshake-o' : 'fa fa-building-o'"/>
+              <t t-esc="c.stock.city"/>, <t t-esc="c.stock.country"/>
+              <span class="o_smm_cur" t-esc="c.stock.currency"/>
+            </t>
+            <t t-else="">Emplacements internes sans stock du moniteur</t>
+          </div>
+          <div class="o_smm_stock_value" t-esc="c.inv ? money(c.inv.amount, c.inv.cur) : '—'"/>
+          <div class="o_smm_stock_counts"><t t-esc="c.assets"/> équip. · <t t-esc="c.consumables"/> consommables</div>
+        </button>
+      </t>
+    </section>
+
+    <!-- Summary cards -->
+    <div t-if="currencyMix" class="o_smm_notice"><i class="fa fa-info-circle me-1"/>Plusieurs devises dans la sélection : les totaux sont donnés par devise, jamais additionnés entre eux.</div>
+    <section class="o_smm_cards">
+      <t t-foreach="cards" t-as="card" t-key="card.key">
+        <div class="o_smm_card" t-att-class="'o_smm_card_' + card.key">
+          <div class="o_smm_card_title"><i t-att-class="'fa ' + card.icon"/> <t t-esc="card.title"/></div>
+          <t t-if="card.counts">
+            <div class="o_smm_card_counts">
+              <t t-foreach="card.counts" t-as="n" t-key="n_index">
+                <div><span class="o_smm_card_big" t-esc="n.value"/> <span t-esc="n.label"/></div>
+              </t>
+            </div>
+          </t>
+          <t t-else="">
+            <t t-if="!card.lines.length and !card.missing.length"><div class="o_smm_card_big o_smm_muted">—</div></t>
+            <t t-foreach="card.lines" t-as="line" t-key="line.cur">
+              <div class="o_smm_card_line"><span class="o_smm_card_big" t-esc="money(line.amount, line.cur)"/></div>
+            </t>
+            <t t-foreach="card.missing" t-as="m" t-key="m.cur">
+              <div class="o_smm_card_missing" title="Aucun taux de change : montant exclu des totaux ci-dessus">
+                <i class="fa fa-exclamation-triangle"/> + <t t-esc="money(m.amount, m.cur)"/> non converti
+              </div>
+            </t>
+          </t>
+          <div class="o_smm_card_note" t-esc="card.note"/>
+        </div>
+      </t>
+    </section>
+
+    <!-- Alerts -->
+    <section t-if="alertTotal" class="o_smm_panel o_smm_alerts">
+      <button class="o_smm_alerts_head" t-on-click="() => this.state.alertsOpen = !state.alertsOpen">
+        <i class="fa fa-bell me-2"/>Alertes et anomalies <span class="o_smm_alert_total" t-esc="alertTotal"/>
+        <i t-att-class="'fa ms-auto ' + (state.alertsOpen ? 'fa-chevron-up' : 'fa-chevron-down')"/>
+      </button>
+      <div t-if="state.alertsOpen" class="o_smm_alerts_list">
+        <t t-foreach="alertSummary" t-as="a" t-key="a.code">
+          <button class="o_smm_alert" t-att-class="'o_smm_alert_' + a.level + (state.alert === a.code ? ' active' : '')" t-on-click="() => this.filterAlert(a.code)" t-att-title="a.help">
+            <i t-att-class="a.level === 'danger' ? 'fa fa-exclamation-circle' : 'fa fa-exclamation-triangle'"/>
+            <span t-esc="a.label"/>
+            <span class="o_smm_count" t-esc="a.count"/>
+            <span t-if="state.alert === a.code" class="o_smm_alert_filtering">filtre actif <i class="fa fa-times"/></span>
+          </button>
+        </t>
+        <t t-foreach="globalAlerts" t-as="g" t-key="g.code">
+          <div class="o_smm_alert o_smm_alert_info"><i class="fa fa-info-circle"/><span t-esc="g.text"/></div>
+        </t>
+      </div>
+    </section>
+
+    <!-- List -->
+    <section class="o_smm_panel o_smm_list">
+      <div class="o_smm_list_bar">
+        <div class="o_smm_search">
+          <i class="fa fa-search"/>
+          <input type="search" class="form-control" placeholder="Rechercher un article, un n° de série, un emplacement…" t-att-value="state.search" t-on-input="onSearch"/>
+        </div>
+        <div class="o_smm_list_info"><t t-esc="filteredRows.length"/> article(s)</div>
+        <Pager offset="state.offset" limit="limit" total="filteredRows.length" onUpdate.bind="onPager"/>
+      </div>
+      <div class="o_smm_table_wrap">
+        <table class="table o_smm_table">
+          <thead>
+            <tr>
+              <th t-on-click="() => this.sortBy('name')">Article <i t-att-class="sortIcon('name')"/></th>
+              <th class="o_smm_col_stock" t-on-click="() => this.sortBy('stock')">Stock <i t-att-class="sortIcon('stock')"/></th>
+              <th t-on-click="() => this.sortBy('ownership')">Propriété <i t-att-class="sortIcon('ownership')"/></th>
+              <th class="text-end" t-on-click="() => this.sortBy('qty')">Qté <i t-att-class="sortIcon('qty')"/></th>
+              <th class="text-end" t-on-click="() => this.sortBy('inv')">Val. inventaire <i t-att-class="sortIcon('inv')"/></th>
+              <th t-if="profile.accounting" class="text-end" t-on-click="() => this.sortBy('nbv')">Val. comptable <i t-att-class="sortIcon('nbv')"/></th>
+              <th t-if="profile.rent" class="text-end o_smm_col_rent" t-on-click="() => this.sortBy('rent')">Loyer <i t-att-class="sortIcon('rent')"/></th>
+              <th class="o_smm_col_alert"/>
+            </tr>
+          </thead>
+          <tbody>
+            <tr t-if="!pageRows.length"><td colspan="8" class="o_smm_empty">Aucun article ne correspond à ces filtres.</td></tr>
+            <t t-foreach="pageRows" t-as="row" t-key="row.id">
+              <tr t-on-click="() => this.openRow(row)" t-att-class="{'o_smm_row_selected': state.selected === row.id}">
+                <td>
+                  <div class="o_smm_item">
+                    <i t-att-class="row.family === 'asset' ? 'fa fa-wrench o_smm_fam' : 'fa fa-tint o_smm_fam'" t-att-title="row.family === 'asset' ? 'Matériel' : 'Consommable'"/>
+                    <div>
+                      <div class="o_smm_item_name" t-esc="row.name"/>
+                      <div class="o_smm_item_sub">
+                        <t t-if="row.serial">N° <t t-esc="row.serial"/></t>
+                        <t t-else="" t-esc="row.category"/>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="o_smm_col_stock">
+                  <div t-esc="row.stockRec.name"/>
+                  <div class="o_smm_item_sub" t-if="row.location !== row.stockRec.name" t-esc="row.location"/>
+                </td>
+                <td><span class="o_smm_badge" t-att-class="'o_smm_' + row.ownership" t-esc="OWNERSHIP[row.ownership].label"/></td>
+                <td class="text-end text-nowrap"><t t-esc="number(row.qty)"/> <span class="o_smm_item_sub" t-esc="row.uom"/></td>
+                <td class="text-end text-nowrap">
+                  <t t-esc="money(row.inv, row.cur)"/>
+                </td>
+                <td t-if="profile.accounting" class="text-end text-nowrap" t-esc="money(row.nbv, row.cur)"/>
+                <td t-if="profile.rent" class="text-end text-nowrap o_smm_col_rent">
+                  <t t-if="row.rent">
+                    <div t-att-class="{'o_smm_muted': !row.rentActive}" t-esc="rentLabel(row)"/>
+                    <div class="o_smm_item_sub" t-if="!row.rentActive">terminé le <t t-esc="date(row.rent.end)"/></div>
+                    <div class="o_smm_item_sub o_smm_text_danger" t-elif="row.unconverted.some((u) => u.field === 'rent')">non converti</div>
+                  </t>
+                </td>
+                <td class="o_smm_col_alert">
+                  <t t-set="ra" t-value="rowAlerts(row)"/>
+                  <i t-if="ra.length" class="fa fa-exclamation-triangle o_smm_text_warning" t-att-title="ra.map((c) => ALERTS[c].label).join(', ')"/>
+                </td>
+              </tr>
+            </t>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Detail panel -->
+  <aside t-if="selectedRow" class="o_smm_detail">
+    <t t-set="r" t-value="selectedRow"/>
+    <div class="o_smm_detail_head">
+      <div>
+        <div class="o_smm_detail_kind"><i t-att-class="r.family === 'asset' ? 'fa fa-wrench' : 'fa fa-tint'"/> <t t-esc="r.family === 'asset' ? 'Matériel' : 'Consommable'"/></div>
+        <h2 t-esc="r.name"/>
+        <div class="o_smm_item_sub" t-if="r.serial">N° de série <t t-esc="r.serial"/></div>
+      </div>
+      <button class="btn btn-light btn-sm" t-on-click="closeDetail" title="Fermer"><i class="fa fa-times"/></button>
+    </div>
+    <div class="o_smm_detail_body">
+      <t t-set="ra" t-value="rowAlerts(r)"/>
+      <div t-foreach="ra" t-as="code" t-key="code" class="o_smm_detail_alert" t-att-class="'o_smm_alert_' + ALERTS[code].level">
+        <i class="fa fa-exclamation-triangle me-1"/><strong t-esc="ALERTS[code].label"/> — <t t-esc="ALERTS[code].help"/>
+      </div>
+
+      <h3>Propriété</h3>
+      <dl>
+        <dt>Statut</dt><dd><span class="o_smm_badge" t-att-class="'o_smm_' + r.ownership" t-esc="OWNERSHIP[r.ownership].label"/></dd>
+        <t t-if="profile.owner and r.owner"><dt>Propriétaire légal</dt><dd t-esc="r.owner"/></t>
+        <t t-if="profile.owner and r.holder"><dt>Détenu par</dt><dd t-esc="r.holder"/></t>
+        <t t-if="profile.owner and r.contract"><dt>Contrat</dt><dd t-esc="r.contract"/></t>
+      </dl>
+
+      <h3>Emplacement</h3>
+      <dl>
+        <dt>Stock</dt><dd t-esc="r.stockRec.name"/>
+        <dt>Emplacement</dt><dd t-esc="r.location"/>
+        <t t-if="r.stockRec.city"><dt>Ville</dt><dd><t t-esc="r.stockRec.city"/>, <t t-esc="r.stockRec.state"/>, <t t-esc="r.stockRec.country"/></dd></t>
+        <dt>Devise du stock</dt><dd t-esc="r.cur"/>
+      </dl>
+
+      <h3>Valeurs <small>(<t t-esc="r.cur"/>)</small></h3>
+      <dl>
+        <dt>Quantité</dt><dd><t t-esc="number(r.qty)"/> <t t-esc="r.uom"/></dd>
+        <dt>Valeur d'inventaire</dt><dd t-esc="money(r.inv, r.cur, 2)"/>
+        <t t-if="r.family === 'asset' and (r.repl !== undefined)"><dt>Valeur de remplacement</dt><dd><t t-esc="money(r.repl, r.cur, 2)"/><span t-if="r.replDate" class="o_smm_item_sub"> au <t t-esc="date(r.replDate)"/></span></dd></t>
+        <t t-if="profile.accounting">
+          <t t-if="r.orig !== null"><dt>Valeur d'origine</dt><dd t-esc="money(r.orig, r.cur, 2)"/></t>
+          <t t-if="r.dep !== null and r.family === 'asset'"><dt>Amortissements</dt><dd t-esc="money(r.dep, r.cur, 2)"/></t>
+          <dt>Valeur comptable nette</dt><dd t-esc="money(r.nbv, r.cur, 2)"/>
+          <t t-if="r.asset"><dt>Immobilisation</dt><dd t-esc="r.asset"/></t>
+          <t t-if="r.noAsset"><dt>Immobilisation</dt><dd class="o_smm_muted">aucune (catégorie non immobilisée, coût moyen)</dd></t>
+        </t>
+      </dl>
+
+      <t t-if="profile.rent and r.rent">
+        <h3>Contrat de location</h3>
+        <dl>
+          <dt>Loyer</dt><dd t-esc="rentLabel(r)"/>
+          <dt>Période</dt><dd>du <t t-esc="date(r.rent.start)"/><t t-if="r.rent.end"> au <t t-esc="date(r.rent.end)"/></t><t t-else=""> (sans fin)</t></dd>
+          <dt>Contrat</dt><dd t-esc="r.rent.contract"/>
+          <t t-if="r.rentActive and r.rentMonthly !== null"><dt>Équivalent mensuel</dt><dd t-esc="money(r.rentMonthly, r.cur, 2)"/></t>
+          <t t-if="profile.accounting"><dt>Loyers payés</dt><dd t-esc="money(r.rentPaid, r.cur, 2)"/></t>
+        </dl>
+      </t>
+
+      <t t-if="r.unconverted.length or (r.conversions.length and profile.accounting)">
+        <h3>Conversions</h3>
+        <ul class="o_smm_conv">
+          <li t-foreach="r.unconverted" t-as="u" t-key="u_index" class="o_smm_text_danger">
+            <i class="fa fa-exclamation-circle me-1"/><t t-esc="u.label"/> : <strong t-esc="money(u.amount, u.cur, 2)"/> — aucun taux <t t-esc="u.cur"/> → <t t-esc="r.cur"/>, montant exclu des totaux.
+          </li>
+          <t t-if="profile.accounting">
+            <li t-foreach="r.conversions" t-as="c" t-key="c_index">
+              <t t-esc="c.label"/> : <t t-esc="money(c.amount, c.cur, 2)"/> × <t t-esc="number(c.rate)"/> (taux du <t t-esc="date(c.date)"/>)
+            </li>
+          </t>
+        </ul>
+      </t>
+
+      <h3>Identité</h3>
+      <dl>
+        <dt>Catégorie</dt><dd t-esc="r.category"/>
+        <t t-if="r.warranty"><dt>Garantie</dt><dd t-esc="r.warranty"/></t>
+        <t t-if="r.insurance"><dt>Assurance</dt><dd t-esc="r.insurance"/></t>
+        <t t-if="r.acquired"><dt>Entrée</dt><dd t-esc="date(r.acquired)"/></t>
+      </dl>
+    </div>
+    <div t-if="profile.owner" class="o_smm_detail_foot">
+      <button class="btn btn-outline-secondary btn-sm" t-on-click="openAnalysis"><i class="fa fa-external-link me-1"/>Ouvrir la fiche <t t-esc="r.family === 'asset' ? 'équipement' : 'article'"/></button>
+    </div>
+  </aside>
+ </div>
+</div>
+</t>
+
+</templates>

@@ -1,0 +1,314 @@
+// Mock-up of the stock monitor dashboard. Odoo backend variables only, no external font.
+$smm-owned: #2e7d32;
+$smm-borrowed: #1565c0;
+$smm-rented: #c75b00;
+$smm-lent_out: #7b1fa2;
+$smm-radius: 12px;
+
+.o_smm {
+    height: 100%;
+    overflow: hidden;
+    background: #f4f5f7;
+    color: #1f2933;
+    font-size: 0.95rem;
+
+    .o_smm_layout {
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        height: 100%;
+        min-height: 0;
+    }
+    .o_smm_scroll {
+        flex: 1 1 auto;
+        overflow: auto;
+        padding: 20px 24px 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-width: 0;
+        > * { flex: none; }
+    }
+    .o_smm_muted { color: #8a94a3; }
+    .o_smm_text_danger { color: #c62828; }
+    .o_smm_text_warning { color: #e09100; }
+    .o_smm_item_sub { color: #6b7684; font-size: 0.82rem; }
+    .o_smm_count {
+        display: inline-block;
+        min-width: 1.6em;
+        padding: 0 6px;
+        margin-left: 6px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.07);
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    // Header ---------------------------------------------------------------------------
+    .o_smm_header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .o_smm_title { font-size: 1.6rem; font-weight: 700; margin: 0; }
+    .o_smm_subtitle { color: #6b7684; }
+    .o_smm_header_actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+    .o_smm_mock_switch {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 8px;
+        border: 1px dashed #b0b8c4;
+        border-radius: 8px;
+        background: #fff;
+    }
+    .o_smm_mock_label { font-size: 0.78rem; color: #6b7684; text-transform: uppercase; letter-spacing: 0.03em; }
+
+    // Panels ------------------------------------------------------------------------------
+    .o_smm_panel {
+        background: #fff;
+        border-radius: $smm-radius;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+    }
+    .o_smm_filters { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+    .o_smm_selectors { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+    .o_smm_field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 180px;
+        flex: 1 1 180px;
+        > span { font-size: 0.78rem; font-weight: 600; color: #6b7684; text-transform: uppercase; letter-spacing: 0.03em; }
+        &.o_smm_field_stock { flex: 2 1 260px; }
+    }
+    .o_smm_select {
+        width: 100%;
+        min-height: 38px;
+        border: 1px solid #d5dae1 !important;
+        border-radius: 8px !important;
+        background: #fff;
+        padding: 6px 10px;
+        font-weight: 600;
+    }
+    .o_smm_toggles { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .o_smm_segment {
+        display: inline-flex;
+        background: #eef0f3;
+        border-radius: 10px;
+        padding: 3px;
+        button {
+            border: 0;
+            background: transparent;
+            padding: 6px 12px;
+            border-radius: 8px;
+            color: #4a5462;
+            font-weight: 600;
+            &.active { background: #fff; color: #1f2933; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12); }
+        }
+    }
+    .o_smm_chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .o_smm_chip {
+        border: 1px solid #d5dae1;
+        background: #fff;
+        border-radius: 20px;
+        padding: 5px 12px;
+        font-weight: 600;
+        color: #4a5462;
+        i { margin-right: 6px; font-size: 0.8rem; }
+    }
+    @each $key, $color in (owned: $smm-owned, borrowed: $smm-borrowed, rented: $smm-rented, lent_out: $smm-lent_out) {
+        .o_smm_chip.o_smm_#{$key} {
+            i { color: $color; }
+            &.active { background: rgba($color, 0.1); border-color: $color; color: $color; }
+        }
+        .o_smm_badge.o_smm_#{$key} { background: rgba($color, 0.1); color: $color; }
+    }
+    .o_smm_badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    // Stock cards -----------------------------------------------------------------------
+    .o_smm_stocks {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(220px, 1fr);
+        gap: 12px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+    .o_smm_stock {
+        text-align: left;
+        border: 2px solid transparent;
+        background: #fff;
+        border-radius: $smm-radius;
+        padding: 12px 14px;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        &:hover { border-color: #c9d1dc; }
+        &.active { border-color: $o-brand-primary; background: rgba($o-brand-primary, 0.04); }
+        &.o_smm_stock_outside { border-style: dashed; border-color: #e0a5a5; }
+    }
+    .o_smm_stock_head { display: flex; justify-content: space-between; gap: 8px; }
+    .o_smm_stock_name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .o_smm_stock_place { color: #6b7684; font-size: 0.85rem; i { margin-right: 4px; } }
+    .o_smm_cur { margin-left: 6px; padding: 0 6px; border-radius: 6px; background: #eef0f3; font-size: 0.75rem; font-weight: 700; color: #4a5462; }
+    .o_smm_stock_value { font-size: 1.25rem; font-weight: 700; }
+    .o_smm_stock_counts { color: #6b7684; font-size: 0.82rem; }
+    .o_smm_alert_badge { color: #c75b00; font-weight: 700; font-size: 0.82rem; white-space: nowrap; }
+
+    // Summary cards ----------------------------------------------------------------------
+    .o_smm_notice {
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: #e8f0fe;
+        color: #1a4fa0;
+        font-size: 0.88rem;
+    }
+    .o_smm_cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+    .o_smm_card {
+        background: #fff;
+        border-radius: $smm-radius;
+        padding: 14px 16px;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+        border-top: 4px solid #9aa5b4;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .o_smm_card_inv { border-top-color: $o-brand-primary; }
+    .o_smm_card_nbv { border-top-color: $smm-owned; }
+    .o_smm_card_rent { border-top-color: $smm-rented; }
+    .o_smm_card_paid { border-top-color: #546e7a; }
+    .o_smm_card_title { font-size: 0.8rem; font-weight: 700; color: #6b7684; text-transform: uppercase; letter-spacing: 0.03em; }
+    .o_smm_card_big { font-size: 1.35rem; font-weight: 700; color: #1f2933; }
+    .o_smm_card_counts .o_smm_card_big { font-size: 1.2rem; }
+    .o_smm_card_missing { color: #c62828; font-weight: 600; font-size: 0.88rem; }
+    .o_smm_card_note { margin-top: auto; color: #8a94a3; font-size: 0.78rem; }
+
+    // Alerts --------------------------------------------------------------------------------
+    .o_smm_alerts { padding: 4px 8px 8px; }
+    .o_smm_alerts_head {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        border: 0;
+        background: transparent;
+        padding: 8px;
+        font-weight: 700;
+    }
+    .o_smm_alert_total { margin-left: 8px; padding: 0 8px; border-radius: 10px; background: #c75b00; color: #fff; font-size: 0.8rem; }
+    .o_smm_alerts_list { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 8px 4px; }
+    .o_smm_alert {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 0.88rem;
+        text-align: left;
+        &.active { box-shadow: 0 0 0 2px currentColor inset; }
+    }
+    .o_smm_alert_danger { background: #fdecea; color: #b71c1c; }
+    .o_smm_alert_warning { background: #fff4e5; color: #a35200; }
+    .o_smm_alert_info { background: #eef0f3; color: #4a5462; }
+    .o_smm_alert_filtering { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-left: 4px; }
+
+    // List -----------------------------------------------------------------------------------
+    .o_smm_list { padding: 8px 0 0; }
+    .o_smm_list_bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 4px 16px 10px; }
+    .o_smm_search {
+        position: relative;
+        flex: 1 1 280px;
+        i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #8a94a3; }
+        input { padding-left: 34px; border-radius: 8px; min-height: 38px; }
+    }
+    .o_smm_list_info { color: #6b7684; font-size: 0.88rem; }
+    .o_smm_table_wrap { overflow-x: auto; }
+    .o_smm_table {
+        margin: 0;
+        th {
+            position: sticky;
+            top: 0;
+            background: #f8f9fb;
+            color: #6b7684;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 1px solid #e3e7ed;
+        }
+        td { vertical-align: middle; border-color: #eef0f3; }
+        tbody tr { cursor: pointer; &:hover { background: #f8fafc; } }
+        tr.o_smm_row_selected { background: rgba($o-brand-primary, 0.07) !important; }
+        th:first-child, td:first-child { padding-left: 16px; }
+        th:last-child, td:last-child { padding-right: 16px; }
+    }
+    .o_smm_sort_idle { opacity: 0.3; }
+    .o_smm_item { display: flex; align-items: center; gap: 10px; }
+    .o_smm_fam { width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 8px; background: #eef0f3; color: #4a5462; flex: none; }
+    .o_smm_item_name { font-weight: 600; }
+    .o_smm_col_alert { width: 32px; text-align: center; }
+    .o_smm_empty { text-align: center; color: #8a94a3; padding: 32px !important; }
+
+    // Detail panel --------------------------------------------------------------------------
+    .o_smm_detail {
+        flex: 0 0 420px;
+        max-width: 420px;
+        background: #fff;
+        border-left: 1px solid #e3e7ed;
+        display: flex;
+        flex-direction: column;
+        box-shadow: -4px 0 16px rgba(16, 24, 40, 0.06);
+    }
+    .o_smm_detail_head {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 16px 18px 12px;
+        border-bottom: 1px solid #eef0f3;
+        h2 { font-size: 1.2rem; font-weight: 700; margin: 2px 0; }
+    }
+    .o_smm_detail_kind { font-size: 0.78rem; font-weight: 700; color: #6b7684; text-transform: uppercase; }
+    .o_smm_detail_body {
+        flex: 1 1 auto;
+        overflow: auto;
+        padding: 8px 18px 16px;
+        h3 { font-size: 0.8rem; font-weight: 700; color: #6b7684; text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 0 6px; }
+        dl { display: grid; grid-template-columns: 44% 56%; margin: 0; row-gap: 6px; }
+        dt { font-weight: 400; color: #6b7684; }
+        dd { margin: 0; font-weight: 600; }
+    }
+    .o_smm_detail_alert { padding: 8px 10px; border-radius: 8px; margin-top: 8px; font-size: 0.88rem; }
+    .o_smm_conv { padding-left: 18px; margin: 0; font-size: 0.88rem; li { margin-bottom: 4px; } }
+    .o_smm_detail_foot { padding: 12px 18px; border-top: 1px solid #eef0f3; }
+
+    // Tablet ----------------------------------------------------------------------------------
+    @media (max-width: 1199.98px) {
+        .o_smm_detail {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10;
+            width: 92%;
+            max-width: 420px;
+        }
+    }
+    @media (max-width: 991.98px) {
+        .o_smm_scroll { padding: 14px 14px 24px; }
+        .o_smm_col_stock { display: none; }
+        .o_smm_mock_label { display: none; }
+    }
+}
