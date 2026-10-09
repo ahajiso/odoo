@@ -4,3 +4,6 @@ access_ownership_type_system,ownership type system,model_lartdubati_ownership_ty
 access_item_family_user,item family user,model_lartdubati_item_family,base.group_user,1,0,0,0
 access_item_family_system,item family system,model_lartdubati_item_family,base.group_system,1,1,1,1
 access_stock_access_manager,stock access profile manager,model_lartdubati_stock_access,base.group_erp_manager,1,1,1,1
+access_stock_monitor_investor,stock monitor investor,model_lartdubati_stock_monitor,group_stock_investor,1,0,0,0
+access_stock_monitor_stock_user,stock monitor inventory user,model_lartdubati_stock_monitor,stock.group_stock_user,1,0,0,0
+access_stock_monitor_accountant,stock monitor accountant,model_lartdubati_stock_monitor,account.group_account_readonly,1,0,0,0

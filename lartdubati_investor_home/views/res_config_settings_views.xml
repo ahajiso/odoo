@@ -11,9 +11,14 @@
                              help="How amounts are converted into the currency of a stock located in another country.">
                         <field name="stock_monitor_currency_mode"/>
                         <div class="text-muted">
-                            Latest Rate: today's rate. Rate on Entry Date: the rate of the day the
-                            item entered the stock. No Conversion: everything in the company currency.
+                            Rate at Each Amount's Date: each amount at the rate of its own date
+                            (fixed asset start, cost, replacement value, rent start, bill).
+                            Latest Rate: today's rate for every amount.
                         </div>
+                    </setting>
+                    <setting string="Replacement Value Validity"
+                             help="A replacement value older than this number of months is flagged « to check ».">
+                        <field name="stock_monitor_replacement_max_age"/>
                     </setting>
                     <setting string="Replacement Price"
                              help="Inventory value of borrowed or rented consumables.">

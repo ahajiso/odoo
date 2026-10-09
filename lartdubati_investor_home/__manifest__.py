@@ -1,12 +1,15 @@
 {
     "name": "L'Art du Bâti - Investor Home and Stock Monitor",
-    "version": "18.0.1.6.0",
+    "version": "18.0.2.0.0",
     "summary": "Stock place type, per-user stock access and a mandatory stock "
     "on equipment for the investor stock monitor.",
     "author": "L'Art du Bâti",
     "license": "LGPL-3",
     "category": "Inventory/Inventory",
-    "depends": ["stock", "maintenance_shareholder_equipment", "maintenance_account"],
+    "depends": [
+        "stock", "maintenance_shareholder_equipment", "maintenance_account",
+        "account_asset_management", "contract",
+    ],
     "data": [
         "security/security.xml",
         "security/ir.model.access.csv",
