@@ -200,7 +200,8 @@ tests on artdubati_test (47 passing, 08/10/2026).
    Audited and merged into main (5ab6c36); deployed on artdubati_test on 09/10/2026
    (89 tests passing on the server, settings script applied, monitor views unchanged).
    Fix of the groups (own categories, 91 tests) deployed on 09/10/2026. Pending audit:
-   menu under Transfers and form helpers (owner's remarks, 93 tests).
+   menu under Transfers and form helpers (owner's remarks), corrected after the audit
+   of 890a178 (transfer type per warehouse), 95 tests.
 3. Stock monitor on revision 2 (SQL view, access rules) and rework of the existing code.
 4. Home page and investor user setup (review the existing configuration).
 5. Translations, manual rewrite for all phases (cards citing removed or changed fields,

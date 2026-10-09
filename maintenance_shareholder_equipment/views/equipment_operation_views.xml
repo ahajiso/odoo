@@ -106,7 +106,8 @@
                             <field name="location_dest_id" invisible="operation_type != 'receipt'"
                                    domain="[('usage', '=', 'internal'), ('place_type', '=', 'physical'), ('company_id', 'in', (company_id, False))]"/>
                             <field name="picking_type_id" groups="base.group_no_one"
-                                   domain="[('company_id', '=', company_id)]"/>
+                                   invisible="operation_type != 'receipt'"
+                                   domain="[('company_id', '=', company_id), ('code', '=', 'incoming')]"/>
                         </group>
                         <group>
                             <field name="date"/>
@@ -167,7 +168,7 @@
                                            domain="[('ownership_status', '=', 'owned'), ('integration_state', '=', 'done')] if parent.operation_type == 'exit' else ([('ownership_status', '=', 'lent_out')] if parent.operation_type == 'return' else [('ownership_status', 'in', ('borrowed', 'rented')), ('owner_partner_id', 'child_of', parent.partner_id)])"/>
                                     <field name="product_id"
                                            readonly="parent.operation_type != 'receipt'"
-                                           domain="[('maintenance_ok', '=', True)] if parent.receipt_branch in ('borrowed', 'rented') else ([('purchase_ok', '=', True)] if parent.receipt_branch == 'purchase' else [('is_storable', '=', True)])"/>
+                                           domain="[('maintenance_ok', '=', True)] if parent.receipt_branch in ('borrowed', 'rented') else ([('purchase_ok', '=', True)] if parent.receipt_branch == 'purchase' else ['|', ('maintenance_ok', '=', True), ('is_storable', '=', True)])"/>
                                     <field name="family" optional="show"/>
                                     <field name="quantity" column_invisible="parent.operation_type != 'receipt'"/>
                                     <field name="quantity_done" column_invisible="parent.operation_type != 'receipt'"/>

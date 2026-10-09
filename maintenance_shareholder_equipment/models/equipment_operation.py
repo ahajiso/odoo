@@ -99,9 +99,9 @@ class EquipmentOperation(models.Model):
     picking_type_id = fields.Many2one(
         "stock.picking.type", string="Transfer Type", check_company=True,
         compute="_compute_picking_type_id", store=True, readonly=False, precompute=True,
-        help="Set automatically: the order's receipt type, otherwise the receipt type "
-        "of the warehouse delivering the destination stock, the internal transfer for an "
-        "exit or a return, the delivery for a restitution.",
+        help="Set automatically for a receipt: the order's receipt type, otherwise the "
+        "receipt type of the warehouse delivering the destination stock. Exits, returns "
+        "and restitutions use the transfer type of each equipment's warehouse.",
     )
     location_dest_id = fields.Many2one(
         "stock.location", string="Destination Stock", check_company=True,
@@ -175,29 +175,45 @@ class EquipmentOperation(models.Model):
     PICKING_CODES = {"receipt": "incoming", "exit": "internal", "return": "internal",
                      "restitution": "outgoing"}
 
+    def _transfer_types(self, code):
+        # active types first; Odoo archives the internal type when storage locations
+        # are off, it still works for the operation's transfers
+        return self.env["stock.picking.type"].with_context(active_test=False).search(
+            [("code", "=", code), ("company_id", "=", self.company_id.id)],
+            order="active desc, sequence, id")
+
+    def _transfer_type_for(self, code, location, side):
+        """Transfer type of the warehouse holding `location`: the type of this code
+        whose default source (side "src") or destination ("dest") location contains
+        it, the most specific one. Never a mere first type: `warehouse_id` of a
+        location is not reliable here (Bg/Stock is outside its warehouse root)."""
+        Type = self.env["stock.picking.type"]
+        if not location:
+            return Type
+        def anchor(ptype):
+            return ptype.default_location_src_id if side == "src" else ptype.default_location_dest_id
+        candidates = self._transfer_types(code).filtered(
+            lambda t: anchor(t) and location.parent_path.startswith(anchor(t).parent_path))
+        if not candidates:
+            return Type
+        return max(candidates, key=lambda t: (len(anchor(t).parent_path), t.active))
+
     @api.depends("operation_type", "receipt_branch", "purchase_mode", "purchase_id",
                  "location_dest_id", "company_id")
     def _compute_picking_type_id(self):
-        Type = self.env["stock.picking.type"]
+        """Receipts only: exits, returns and restitutions take the type of each
+        equipment's warehouse, line by line, at execution."""
         for op in self:
-            if op.operation_type == "receipt" and op.receipt_branch == "purchase" \
-                    and op.purchase_mode == "existing" and op.purchase_id:
+            if op.operation_type != "receipt":
+                op.picking_type_id = False
+            elif op.receipt_branch == "purchase" and op.purchase_mode == "existing" \
+                    and op.purchase_id:
                 op.picking_type_id = op.purchase_id.picking_type_id
-                continue
-            # active types first; Odoo archives the internal type when storage
-            # locations are off, it still works for the operation's transfers
-            types = Type.with_context(active_test=False).search(
-                [("code", "=", self.PICKING_CODES[op.operation_type]),
-                 ("company_id", "=", op.company_id.id)], order="active desc, sequence, id")
-            dest = op.location_dest_id if op.operation_type == "receipt" else False
-            match = types.filtered(
-                lambda t: dest and t.default_location_dest_id
-                and dest.parent_path.startswith(t.default_location_dest_id.parent_path)
-            )
-            # keep a type chosen by hand when it is still of the right kind
-            if op.picking_type_id in types and not match:
-                continue
-            op.picking_type_id = (match or types)[:1]
+            else:
+                match = op._transfer_type_for("incoming", op.location_dest_id, "dest")
+                # a type chosen by hand (developer mode) stays if still a receipt type
+                if match or op.picking_type_id.code != "incoming":
+                    op.picking_type_id = match
 
     @api.onchange("purchase_id")
     def _onchange_purchase_id(self):
@@ -207,8 +223,8 @@ class EquipmentOperation(models.Model):
         if not order:
             return
         self.partner_id = order.partner_id
-        if not self.location_dest_id:
-            self.location_dest_id = order.picking_type_id.default_location_dest_id
+        # the destination follows the order's warehouse (changing the order resets it)
+        self.location_dest_id = order.picking_type_id.default_location_dest_id
         commands = [Command.clear()]
         for pol in order.order_line.filtered(lambda pl: not pl.display_type):
             product = pol.product_id
@@ -670,9 +686,7 @@ class EquipmentOperation(models.Model):
         stock_lines = self.line_ids.filtered(lambda ln: ln.equipment_id.stock_lot_id)
         for line in self.line_ids - stock_lines:
             line.equipment_id.write({"current_location_id": offsite.id})
-        if stock_lines:
-            picking = self._new_internal_picking(stock_lines, offsite)
-            self._fill_and_validate(picking, stock_lines)
+        self._transfers_by_warehouse(stock_lines, lambda line: offsite)
         nature = self.exit_nature
         self._add_contract_lines("sale", self.line_ids, nature, self._contract_product(nature, "sale"))
         self._copy_line_documents()
@@ -700,9 +714,7 @@ class EquipmentOperation(models.Model):
         stock_lines = self.line_ids.filtered(lambda ln: ln.equipment_id.stock_lot_id)
         for line in self.line_ids - stock_lines:
             line.equipment_id.write({"current_location_id": line.dest_location_id.id})
-        if stock_lines:
-            picking = self._new_internal_picking(stock_lines, None)
-            self._fill_and_validate(picking, stock_lines)
+        self._transfers_by_warehouse(stock_lines, lambda line: line.dest_location_id)
         self._stop_contract_lines()
         self._copy_line_documents()
 
@@ -710,20 +722,8 @@ class EquipmentOperation(models.Model):
         stock_lines = self.line_ids.filtered(lambda ln: ln.equipment_id.stock_lot_id)
         for line in self.line_ids:
             line.origin_location_id = line._current_location()
-        if stock_lines:
-            owner = self.partner_id
-            dest = owner.with_company(self.company_id).property_stock_supplier
-            picking = self.env["stock.picking"].create({
-                "picking_type_id": self.picking_type_id.id,
-                "location_id": stock_lines[0].origin_location_id.id,
-                "location_dest_id": dest.id,
-                "partner_id": owner.id, "owner_id": owner.id, "origin": self.name,
-                "company_id": self.company_id.id,
-                "move_ids": [Command.create(line._move_vals(line.origin_location_id, dest))
-                             for line in stock_lines],
-            })
-            picking.action_confirm()
-            self._fill_and_validate(picking, stock_lines)
+        dest = self.partner_id.with_company(self.company_id).property_stock_supplier
+        self._transfers_by_warehouse(stock_lines, lambda line: dest, owner=self.partner_id)
         self._stop_contract_lines()
         self._copy_line_documents()
         for line in self.line_ids:
@@ -733,21 +733,32 @@ class EquipmentOperation(models.Model):
             equipment.message_post(body=_("Returned to its owner by %s.", self._get_html_link()))
             equipment.write({"active": False})
 
-    def _new_internal_picking(self, lines, dest):
-        moves = []
+    def _transfers_by_warehouse(self, lines, destination, owner=None):
+        """One transfer per transfer type, i.e. per warehouse holding the equipment
+        (exit, restitution: where it is; return: where it goes back)."""
+        groups = {}
         for line in lines:
-            target = dest or line.dest_location_id
-            moves.append(Command.create(line._move_vals(line.origin_location_id, target)))
-        picking = self.env["stock.picking"].create({
-            "picking_type_id": self.picking_type_id.id,
-            "location_id": lines[0].origin_location_id.id,
-            "location_dest_id": (dest or lines[0].dest_location_id).id,
-            "partner_id": self.partner_id.id, "origin": self.name,
-            "company_id": self.company_id.id,
-            "move_ids": moves,
-        })
-        picking.action_confirm()
-        return picking
+            ptype = line._transfer_type()
+            if not ptype:
+                raise UserError(_("No transfer type of a warehouse holds %s.",
+                                  line.equipment_id.display_name))
+            groups.setdefault(ptype, self.env["equipment.operation.line"])
+            groups[ptype] |= line
+        for ptype, group in groups.items():
+            first = group[0]
+            picking = self.env["stock.picking"].create({
+                "picking_type_id": ptype.id,
+                "location_id": first.origin_location_id.id,
+                "location_dest_id": destination(first).id,
+                "partner_id": self.partner_id.id, "origin": self.name,
+                "owner_id": owner.id if owner else False,
+                "company_id": self.company_id.id,
+                "move_ids": [Command.create(line._move_vals(line.origin_location_id,
+                                                            destination(line)))
+                             for line in group],
+            })
+            picking.action_confirm()
+            self._fill_and_validate(picking, group)
 
     def _stop_contract_lines(self):
         date = self._today
@@ -863,13 +874,19 @@ class EquipmentOperation(models.Model):
             if line.replacement_currency_id and not line.replacement_currency_id.active:
                 raise ValidationError(_("Currency %s is not active.", line.replacement_currency_id.name))
         getattr(op, "_check_values_%s" % op.operation_type)(errors, need)
+        if op.operation_type != "receipt":
+            for line in op.line_ids.filtered(lambda ln: ln.equipment_id.stock_lot_id):
+                if not line._transfer_type():
+                    errors.append(_("%s: transfer type of its warehouse",
+                                    line.equipment_id.display_name))
         if errors:
             raise ValidationError(_("%(op)s cannot be validated, missing or invalid: %(list)s",
                                     op=op.name, list=", ".join(str(e) for e in errors)))
 
     def _check_values_receipt(self, errors, need):
         need(self.receipt_branch, _("receipt type"))
-        need(self.picking_type_id, _("operation type"))
+        need(self.picking_type_id, _("receipt transfer type of the destination stock "
+                                     "(none found: choose it in developer mode)"))
         need(self.location_dest_id, _("destination stock"))
         if self.picking_type_id and self.picking_type_id.code != "incoming":
             raise ValidationError(_("Choose a receipt operation type."))
@@ -1007,9 +1024,6 @@ class EquipmentOperation(models.Model):
         need(self.partner_id, _("third party"))
         need(self.site_partner_id, _("site address"))
         need(self.exit_nature, _("free loan or rented out"))
-        need(self.picking_type_id, _("operation type"))
-        if self.picking_type_id and self.picking_type_id.code != "internal":
-            raise ValidationError(_("Choose an internal transfer operation type."))
         partner = self.partner_id.commercial_partner_id
         if self.site_partner_id and self.site_partner_id.commercial_partner_id != partner:
             raise ValidationError(_("The site address belongs to another partner."))
@@ -1043,9 +1057,6 @@ class EquipmentOperation(models.Model):
                 line._check_contract_start_free("sale", self.exit_nature)
 
     def _check_values_return(self, errors, need):
-        need(self.picking_type_id, _("operation type"))
-        if self.picking_type_id and self.picking_type_id.code != "internal":
-            raise ValidationError(_("Choose an internal transfer operation type."))
         for line in self.line_ids:
             equipment = line.equipment_id
             need(equipment, _("equipment"))
@@ -1058,10 +1069,6 @@ class EquipmentOperation(models.Model):
 
     def _check_values_restitution(self, errors, need):
         need(self.partner_id, _("owner"))
-        if any(line.equipment_id.stock_lot_id for line in self.line_ids):
-            need(self.picking_type_id, _("operation type"))
-            if self.picking_type_id and self.picking_type_id.code != "outgoing":
-                raise ValidationError(_("Choose a delivery operation type."))
         for line in self.line_ids:
             equipment = line.equipment_id
             need(equipment, _("equipment"))
@@ -1270,6 +1277,16 @@ class EquipmentOperationLine(models.Model):
     @api.onchange("quantity")
     def _onchange_quantity(self):
         self.quantity_done = self.quantity
+
+    def _transfer_type(self):
+        """Transfer type of the warehouse holding this equipment for an exit or a
+        restitution (where it is), or receiving it back for a return."""
+        op = self.operation_id
+        if op.operation_type == "return":
+            return op._transfer_type_for("internal", self.dest_location_id, "dest")
+        location = self.origin_location_id or self._current_location()
+        code = "outgoing" if op.operation_type == "restitution" else "internal"
+        return op._transfer_type_for(code, location, "src")
 
     def _qty_executed(self):
         """Executed quantity as entered: 0 means nothing received for this line."""

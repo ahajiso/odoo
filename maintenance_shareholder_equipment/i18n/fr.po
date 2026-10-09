@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 06:11+0000\n"
-"PO-Revision-Date: 2026-10-09 06:11+0000\n"
+"POT-Creation-Date: 2026-10-09 06:35+0000\n"
+"PO-Revision-Date: 2026-10-09 06:35+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -389,6 +389,12 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "%s: transfer type of its warehouse"
+msgstr "%s : type de transfert de son entrepôt"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s: unit value"
 msgstr "%s : valeur unitaire"
 
@@ -719,12 +725,6 @@ msgstr "Catégorie %(categ)s, société %(company)s : %(errors)s"
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
-msgid "Choose a delivery operation type."
-msgstr "Choisissez un type d'opération de livraison."
-
-#. module: maintenance_shareholder_equipment
-#. odoo-python
-#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "Choose a receipt operation type."
 msgstr "Choisissez un type d'opération de réception."
 
@@ -733,12 +733,6 @@ msgstr "Choisissez un type d'opération de réception."
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "Choose an active lent-out stock."
 msgstr "Choisissez un stock chez un tiers actif."
-
-#. module: maintenance_shareholder_equipment
-#. odoo-python
-#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
-msgid "Choose an internal transfer operation type."
-msgstr "Choisissez un type d'opération de transfert interne."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_res_company
@@ -1659,6 +1653,12 @@ msgid "No move of %(product)s in %(picking)s."
 msgstr "Aucun mouvement de %(product)s dans %(picking)s."
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "No transfer type of a warehouse holds %s."
+msgstr "Aucun type de transfert d'un entrepôt ne couvre %s."
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation_line__family__non_stock
 msgid "Non-Stock Equipment"
 msgstr "Équipement hors stock"
@@ -2251,9 +2251,10 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__picking_type_id
 msgid ""
-"Set automatically: the order's receipt type, otherwise the receipt type of "
-"the warehouse delivering the destination stock, the internal transfer for an"
-" exit or a return, the delivery for a restitution."
+"Set automatically for a receipt: the order's receipt type, otherwise the "
+"receipt type of the warehouse delivering the destination stock. Exits, "
+"returns and restitutions use the transfer type of each equipment's "
+"warehouse."
 msgstr ""
 "Rempli automatiquement : le type de réception de la commande, sinon celui de"
 " l'entrepôt qui livre le stock de destination, le transfert interne pour une"
@@ -2881,12 +2882,6 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
-msgid "operation type"
-msgstr "type d'opération"
-
-#. module: maintenance_shareholder_equipment
-#. odoo-python
-#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "owner"
 msgstr "propriétaire"
 
@@ -2923,6 +2918,16 @@ msgstr ""
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "purchase order"
 msgstr "commande d'achat"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid ""
+"receipt transfer type of the destination stock (none found: choose it in "
+"developer mode)"
+msgstr ""
+"type de réception du stock de destination (aucun trouvé : le choisir en mode"
+" développeur)"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python

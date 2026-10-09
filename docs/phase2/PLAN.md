@@ -448,6 +448,20 @@ Tests: transfer type per operation and from the order; lines loaded from an orde
 (Form). 93 tests. No change of the business rules: the server-side checks of section 6
 are unchanged and still apply to any value sent.
 
+## Corrections after the audit of 890a178
+
+1. Transfer type of exits, returns and restitutions: taken line by line from the
+   warehouse holding the equipment (type whose default source location contains it;
+   for a return, whose default destination contains the return destination; most
+   specific match), one transfer per type; never « the first type of the company ». The
+   header field is only for receipts, where a missing match is an error (no blind
+   fallback). Test with two warehouses for exit, return and restitution.
+2. Products offered for an acquisition without purchase: maintainable or storable
+   (non-stock equipment included).
+3. Changing the order resets the destination stock to the new order's; test with two
+   orders of two warehouses.
+The three new tests fail on 890a178. 95 tests in all.
+
 ## Open decisions for the owner
 
 - Members of the two new groups on artdubati_test (to give before the tests in the

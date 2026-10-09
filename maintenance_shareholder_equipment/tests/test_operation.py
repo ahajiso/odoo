@@ -899,22 +899,86 @@ class TestOperationForm(TestOperationCommon):
     """Form helpers asked by the owner on 09/10/2026: transfer type set automatically,
     order lines loaded from the chosen order."""
 
+    def _second_warehouse(self):
+        return self.env["stock.warehouse"].create(
+            {"name": "WH form", "code": "WF", "company_id": self.company.id})
+
+    def _receive_in(self, warehouse, serial):
+        po = self.env["purchase.order"].create({
+            "partner_id": self.vendor.id, "picking_type_id": warehouse.in_type_id.id,
+            "order_line": [Command.create({"product_id": self.drill.id, "product_qty": 1,
+                                           "price_unit": 1.0, "taxes_id": [Command.clear()]})],
+        })
+        po.button_confirm()
+        op = self._operation("receipt", receipt_branch="purchase", partner_id=self.vendor.id,
+                             purchase_mode="existing", purchase_id=po.id,
+                             location_dest_id=warehouse.lot_stock_id.id,
+                             lines=[dict(product_id=self.drill.id,
+                                         purchase_line_id=po.order_line.id, lot_name=serial)])
+        op.action_execute()
+        return op.line_ids.equipment_id
+
     def test_transfer_type_set_automatically(self):
         Operation = self.env["equipment.operation"]
-        op = Operation.create({"operation_type": "receipt", "receipt_branch": "borrowed",
-                               "company_id": self.company.id, "location_dest_id": self.stock.id})
-        self.assertEqual(op.picking_type_id, self.warehouse.in_type_id)
-        for operation_type, expected in (("exit", self.warehouse.int_type_id),
-                                         ("return", self.warehouse.int_type_id),
-                                         ("restitution", self.warehouse.out_type_id)):
-            op = Operation.create({"operation_type": operation_type,
-                                   "company_id": self.company.id})
-            self.assertEqual(op.picking_type_id.code, expected.code)
+        wh2 = self._second_warehouse()
+        for warehouse in (self.warehouse, wh2):
+            op = Operation.create({"operation_type": "receipt", "receipt_branch": "borrowed",
+                                   "company_id": self.company.id,
+                                   "location_dest_id": warehouse.lot_stock_id.id})
+            self.assertEqual(op.picking_type_id, warehouse.in_type_id)
         po = self._order(self.drill, 1)
         op = Operation.create({"operation_type": "receipt", "receipt_branch": "purchase",
                                "purchase_mode": "existing", "purchase_id": po.id,
                                "company_id": self.company.id})
         self.assertEqual(op.picking_type_id, po.picking_type_id)
+        op = Operation.create({"operation_type": "exit", "company_id": self.company.id})
+        self.assertFalse(op.picking_type_id, "exits take the type of each equipment's warehouse")
+
+    def test_transfer_types_follow_each_equipment_warehouse(self):
+        wh2 = self._second_warehouse()
+        first = self._owned_equipment("TW-A")
+        second = self._receive_in(wh2, "TW-B")
+        out = self._exit(first | second)
+        out.action_execute()
+        self.assertEqual(len(out.picking_ids), 2, "one transfer per warehouse")
+        self.assertEqual(set(out.picking_ids.picking_type_id.ids),
+                         {self.warehouse.int_type_id.id, wh2.int_type_id.id})
+        back = self._operation("return", lines=[dict(equipment_id=first.id),
+                                                dict(equipment_id=second.id)])
+        back.action_execute()
+        self.assertEqual(set(back.picking_ids.picking_type_id.ids),
+                         {self.warehouse.int_type_id.id, wh2.int_type_id.id})
+        for picking in back.picking_ids:
+            warehouse = self.warehouse if picking.picking_type_id == self.warehouse.int_type_id else wh2
+            self.assertEqual(picking.move_ids.location_dest_id, warehouse.lot_stock_id)
+        # restitution of an item borrowed into the second warehouse
+        borrow = self._borrow("TW-C", location_dest_id=wh2.lot_stock_id.id)
+        borrow.action_execute()
+        self.assertEqual(borrow.picking_ids.picking_type_id, wh2.in_type_id)
+        rest = self._operation("restitution", partner_id=self.lender.id,
+                               lines=[dict(equipment_id=borrow.line_ids.equipment_id.id)])
+        rest.action_execute()
+        self.assertEqual(rest.picking_ids.picking_type_id, wh2.out_type_id)
+
+    def test_changing_order_resets_destination(self):
+        wh2 = self._second_warehouse()
+        po1 = self._order(self.drill, 1)
+        po2 = self.env["purchase.order"].create({
+            "partner_id": self.vendor.id, "picking_type_id": wh2.in_type_id.id,
+            "order_line": [Command.create({"product_id": self.drill.id, "product_qty": 1,
+                                           "price_unit": 1.0, "taxes_id": [Command.clear()]})],
+        })
+        po2.button_confirm()
+        with Form(self.env["equipment.operation"]) as form:
+            form.operation_type = "receipt"
+            form.receipt_branch = "purchase"
+            form.purchase_id = po2
+            self.assertEqual(form.location_dest_id, wh2.lot_stock_id)
+            form.purchase_id = po1
+            self.assertEqual(form.location_dest_id, self.warehouse.lot_stock_id)
+            self.assertEqual(len(form.line_ids), 1)
+        self.assertEqual(form.record.line_ids.purchase_line_id, po1.order_line)
+        self.assertEqual(form.record.picking_type_id, po1.picking_type_id)
 
     def test_order_fills_lines_vendor_and_stock(self):
         po = self.env["purchase.order"].create({

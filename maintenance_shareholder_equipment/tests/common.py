@@ -179,11 +179,8 @@ class EquipmentCommon(TransactionCase):
     def _operation(self, operation_type, lines=(), user=None, **vals):
         """Draft operation with sensible defaults for the tests."""
         defaults = {
-            "receipt": {"picking_type_id": self.warehouse.in_type_id.id,
-                        "location_dest_id": self.stock.id},
-            "exit": {"picking_type_id": self.warehouse.int_type_id.id},
-            "return": {"picking_type_id": self.warehouse.int_type_id.id},
-            "restitution": {"picking_type_id": self.warehouse.out_type_id.id},
+            "receipt": {"location_dest_id": self.stock.id},  # transfer type computed
+            "exit": {}, "return": {}, "restitution": {},  # type per warehouse, per line
         }[operation_type]
         line_defaults = {"warranty_status": "no_warranty", "insurance_status": "insured"}
         Operation = self.env["equipment.operation"]

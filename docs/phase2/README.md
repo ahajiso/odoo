@@ -188,20 +188,22 @@ Owner's remarks after the first use:
 - the menu « Equipment Operations » was a direct child of Inventory → Operations, at the
   level of the sections (Transfers, Adjustments, Procurement); it is now the first item
   of **Inventory → Operations → Transfers**, before Receipts;
-- the transfer type is set automatically and hidden (developer mode only): the order's
-  receipt type, otherwise the receipt type whose default destination contains the
-  chosen stock, the internal transfer for an exit or a return, the delivery for a
-  restitution;
+- the transfer type is set automatically: for a receipt, the order's receipt type,
+  otherwise the receipt type whose default destination contains the chosen stock
+  (hidden, editable in developer mode); for an exit, a return or a restitution, the type
+  of each equipment's warehouse (default source, or destination for a return, containing
+  its location), with one transfer per warehouse;
 - the partner field is labelled after the choices (Vendor, Donor, Contributing
   Shareholder, Owner (Lender), Lessor, Third Party, Owner);
-- choosing an existing order fills the vendor, the destination stock and the lines
+- choosing an existing order fills the vendor, the destination stock (reset when the
+  order changes) and the lines
   (one per unit of equipment, one per product otherwise, quantity left to receive);
   « Existing Order » is the default;
 - lists filtered (orders of the vendor with something left to receive, equipment by
   operation, products by branch, active supplier contracts of the partner, purchase
   taxes) and line columns shown only when they apply.
 No model change in the data (one computed stored field filled for existing operations).
-93 tests. Same procedure as the previous fix, label `phase2c`:
+95 tests. Same procedure as the previous fix, label `phase2c`:
 
 ```bash
 set -o pipefail
@@ -210,5 +212,5 @@ docker exec odoo_db pg_dump -U odoo -Fc artdubati_test \
 ls -l /opt/odoo/backups/*phase2c.dump
 cd /opt/odoo/addons/custom && git rev-parse HEAD > /opt/odoo/logs/phase2_previous_commit
 git pull && git log --oneline -1
-bash /opt/odoo/addons/custom/docs/deploy_modules.sh /opt/odoo/backups/<file shown by ls>.dump 93 phase2c
+bash /opt/odoo/addons/custom/docs/deploy_modules.sh /opt/odoo/backups/<file shown by ls>.dump 95 phase2c
 ```
