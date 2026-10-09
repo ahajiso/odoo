@@ -17,6 +17,7 @@
         "views/stock_access_views.xml",
         "views/res_users_views.xml",
         "views/res_config_settings_views.xml",
+        "views/stock_monitor_views.xml",
     ],
     "installable": True,
     "application": False,

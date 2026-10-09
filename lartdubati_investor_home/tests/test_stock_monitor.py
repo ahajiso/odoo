@@ -500,3 +500,22 @@ class TestMonitorAccess(MonitorCommon):
             row.write({"city": "Paris"})
         with self.assertRaises(AccessError):
             self.Monitor.with_user(self.accountant).create({"city": "Paris"})
+
+    def test_analysis_views_for_each_profile(self):
+        """The secondary interface loads for every profile; fields and filters reserved
+        to staff or accountants are removed from an investor's views."""
+        modes = [(False, mode) for mode in ("list", "pivot", "graph", "form", "search")]
+        staff_only = ("stock_value", "accounting_value", "rent_paid", "alert_count",
+                      "owner_name", "with_alerts", "outside_stock", "provisional")
+        for user in (self.investor, self.store, self.accountant):
+            with self.subTest(user=user.login):
+                views = self.Monitor.with_user(user).get_views(modes)["views"]
+                arch = "".join(view["arch"] for view in views.values())
+                for name in staff_only:
+                    if user == self.investor:
+                        self.assertNotIn(f'"{name}"', arch)
+                if user == self.accountant:
+                    self.assertIn('"accounting_value"', arch)
+                if user == self.store:
+                    self.assertIn('"stock_value"', arch)
+                    self.assertNotIn('"accounting_value"', arch)

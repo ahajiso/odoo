@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Secondary interface of the stock monitor (docs/phase3/PLAN.md §4.2): standard
+         views on lartdubati.stock.monitor. Fields reserved to staff or accountants are
+         removed by Odoo for users who may not read them; filters on them carry the same
+         groups. An unknown amount (rate missing, cost unknown) is hidden, not shown as 0:
+         the ORM reads a NULL Float as 0, the « known » flag tells them apart. -->
+    <record id="view_stock_monitor_list" model="ir.ui.view">
+        <field name="name">lartdubati.stock.monitor.list</field>
+        <field name="model">lartdubati.stock.monitor</field>
+        <field name="arch" type="xml">
+            <list string="Stock Monitor" create="false" edit="false" delete="false">
+                <field name="currency_id" column_invisible="True"/>
+                <field name="inventory_value_known" column_invisible="True"/>
+                <field name="replacement_value_known" column_invisible="True"/>
+                <field name="stock_value_known" column_invisible="True"/>
+                <field name="accounting_value_known" column_invisible="True"/>
+                <field name="rent_monthly_known" column_invisible="True"/>
+                <field name="stock_name"/>
+                <field name="location_name" optional="hide"/>
+                <field name="city" optional="hide"/>
+                <field name="country_name" optional="hide"/>
+                <field name="family"/>
+                <field name="ownership_status"/>
+                <field name="product_name"/>
+                <field name="equipment_name" optional="show"/>
+                <field name="serial" optional="show"/>
+                <field name="category_name" optional="hide"/>
+                <field name="asset_count" sum="Total"/>
+                <field name="quantity"/>
+                <field name="uom_name" optional="hide"/>
+                <field name="inventory_value" widget="monetary" sum="Total"
+                       options="{'currency_field': 'currency_id'}"
+                       invisible="not inventory_value_known"/>
+                <field name="replacement_value" widget="monetary" optional="hide"
+                       options="{'currency_field': 'currency_id'}"
+                       invisible="not replacement_value_known"/>
+                <field name="stock_value" widget="monetary" sum="Total" optional="show"
+                       options="{'currency_field': 'currency_id'}"
+                       invisible="not stock_value_known"/>
+                <field name="accounting_value" widget="monetary" sum="Total" optional="show"
+                       options="{'currency_field': 'currency_id'}"
+                       invisible="not accounting_value_known"/>
+                <field name="rent_monthly" widget="monetary" sum="Total" optional="hide"
+                       options="{'currency_field': 'currency_id'}"
+                       invisible="not rent_monthly_known"/>
+                <field name="rent_paid" widget="monetary" sum="Total" optional="hide"
+                       options="{'currency_field': 'currency_id'}"/>
+                <field name="alert_count" sum="Total" optional="show"
+                       decoration-danger="alert_count &gt; 0"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stock_monitor_pivot" model="ir.ui.view">
+        <field name="name">lartdubati.stock.monitor.pivot</field>
+        <field name="model">lartdubati.stock.monitor</field>
+        <field name="arch" type="xml">
+            <pivot string="Stock Monitor" disable_linking="False">
+                <field name="currency_id" type="row"/>
+                <field name="stock_name" type="row"/>
+                <field name="family" type="col"/>
+                <field name="inventory_value" type="measure"/>
+                <field name="asset_count" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_stock_monitor_graph" model="ir.ui.view">
+        <field name="name">lartdubati.stock.monitor.graph</field>
+        <field name="model">lartdubati.stock.monitor</field>
+        <field name="arch" type="xml">
+            <graph string="Stock Monitor" type="bar" stacked="True">
+                <field name="stock_name"/>
+                <field name="family"/>
+                <field name="inventory_value" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_stock_monitor_form" model="ir.ui.view">
+        <field name="name">lartdubati.stock.monitor.form</field>
+        <field name="model">lartdubati.stock.monitor</field>
+        <field name="arch" type="xml">
+            <form string="Stock Monitor" create="false" edit="false" delete="false">
+                <sheet>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="inventory_value_known" invisible="1"/>
+                    <field name="replacement_value_known" invisible="1"/>
+                    <field name="stock_value_known" invisible="1"/>
+                    <field name="accounting_value_known" invisible="1"/>
+                    <field name="rent_monthly_known" invisible="1"/>
+                    <div class="oe_title">
+                        <h1><field name="product_name"/></h1>
+                        <h2 invisible="not equipment_name"><field name="equipment_name"/></h2>
+                    </div>
+                    <group>
+                        <group string="Place">
+                            <field name="stock_name"/>
+                            <field name="location_name"/>
+                            <field name="city"/>
+                            <field name="state_name"/>
+                            <field name="country_name"/>
+                            <field name="place_type"/>
+                        </group>
+                        <group string="Item">
+                            <field name="family"/>
+                            <field name="ownership_status"/>
+                            <field name="owner_name"/>
+                            <field name="responsible_name"/>
+                            <field name="serial"/>
+                            <field name="category_name"/>
+                            <field name="quantity"/>
+                            <field name="uom_name"/>
+                            <field name="warranty_status"/>
+                            <field name="insurance_status"/>
+                        </group>
+                        <group string="Values">
+                            <field name="inventory_value" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"
+                                   invisible="not inventory_value_known"/>
+                            <field name="inventory_provisional" widget="boolean"/>
+                            <field name="replacement_value" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"
+                                   invisible="not replacement_value_known"/>
+                            <field name="replacement_value_date"/>
+                            <field name="stock_value" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"
+                                   invisible="not stock_value_known"/>
+                            <field name="original_value" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"/>
+                            <field name="depreciated_value" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"/>
+                            <field name="accounting_value" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"
+                                   invisible="not accounting_value_known"/>
+                            <field name="asset_state"/>
+                            <field name="accounting_provisional" widget="boolean"/>
+                        </group>
+                        <group string="Rent">
+                            <field name="rent_amount"/>
+                            <field name="rent_currency_id"/>
+                            <field name="rent_rule_type"/>
+                            <field name="rent_interval"/>
+                            <field name="rent_start"/>
+                            <field name="rent_end"/>
+                            <field name="rent_monthly" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"
+                                   invisible="not rent_monthly_known"/>
+                            <field name="rent_paid" widget="monetary"
+                                   options="{'currency_field': 'currency_id'}"/>
+                        </group>
+                        <group string="Conversion">
+                            <field name="inventory_value_source_amount"/>
+                            <field name="inventory_value_source_currency_id"/>
+                            <field name="inventory_value_rate"/>
+                            <field name="inventory_value_rate_date"/>
+                            <field name="inventory_value_rate_missing" widget="boolean"/>
+                            <field name="inventory_value_rate_fallback" widget="boolean"/>
+                        </group>
+                        <group string="Alerts">
+                            <field name="alert_count"/>
+                            <field name="alert_rate_missing" widget="boolean"/>
+                            <field name="alert_integrity" widget="boolean"/>
+                            <field name="alert_no_position" widget="boolean"/>
+                            <field name="alert_negative_quantity" widget="boolean"/>
+                            <field name="alert_cost_missing" widget="boolean"/>
+                            <field name="alert_outside_stock" widget="boolean"/>
+                            <field name="alert_rental_ended" widget="boolean"/>
+                            <field name="alert_asset_removed" widget="boolean"/>
+                            <field name="alert_asset_missing" widget="boolean"/>
+                            <field name="alert_replacement_missing" widget="boolean"/>
+                            <field name="alert_replacement_old" widget="boolean"/>
+                            <field name="alert_lent_uninsured" widget="boolean"/>
+                            <field name="alert_rent_period_unsupported" widget="boolean"/>
+                            <field name="alert_no_asset" widget="boolean"/>
+                            <field name="alert_no_responsible" widget="boolean"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_stock_monitor_search" model="ir.ui.view">
+        <field name="name">lartdubati.stock.monitor.search</field>
+        <field name="model">lartdubati.stock.monitor</field>
+        <field name="arch" type="xml">
+            <search string="Stock Monitor">
+                <field name="product_name"/>
+                <field name="equipment_name"/>
+                <field name="serial"/>
+                <field name="stock_name"/>
+                <field name="city"/>
+                <field name="country_name"/>
+                <filter name="assets" string="Assets" domain="[('family', '=', 'asset')]"/>
+                <filter name="consumables" string="Consumables"
+                        domain="[('family', '=', 'consumable')]"/>
+                <separator/>
+                <filter name="owned" string="Owned" domain="[('ownership_status', '=', 'owned')]"/>
+                <filter name="borrowed" string="Borrowed"
+                        domain="[('ownership_status', '=', 'borrowed')]"/>
+                <filter name="rented" string="Rented" domain="[('ownership_status', '=', 'rented')]"/>
+                <filter name="lent_out" string="Lent Out"
+                        domain="[('ownership_status', '=', 'lent_out')]"/>
+                <separator/>
+                <filter name="unconverted" string="Amount Not Converted"
+                        domain="['|', ('inventory_value_rate_missing', '=', 1), ('replacement_value_rate_missing', '=', 1)]"/>
+                <filter name="with_alerts" string="With Alerts" domain="[('alert_count', '&gt;', 0)]"
+                        groups="stock.group_stock_user,account.group_account_readonly"/>
+                <filter name="outside_stock" string="Outside Any Monitor Stock"
+                        domain="[('alert_outside_stock', '=', 1)]"
+                        groups="stock.group_stock_user,account.group_account_readonly"/>
+                <filter name="provisional" string="Provisional Net Book Value"
+                        domain="[('accounting_provisional', '=', 1)]"
+                        groups="account.group_account_readonly"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_currency" string="Currency"
+                            context="{'group_by': 'currency_id'}"/>
+                    <filter name="group_country" string="Country"
+                            context="{'group_by': 'country_name'}"/>
+                    <filter name="group_city" string="City" context="{'group_by': 'city'}"/>
+                    <filter name="group_stock" string="Stock" context="{'group_by': 'stock_name'}"/>
+                    <filter name="group_family" string="Family" context="{'group_by': 'family'}"/>
+                    <filter name="group_ownership" string="Ownership"
+                            context="{'group_by': 'ownership_status'}"/>
+                    <filter name="group_category" string="Product Category"
+                            context="{'group_by': 'category_name'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_stock_monitor_analysis" model="ir.actions.act_window">
+        <field name="name">Stock Monitor – Detailed Analysis</field>
+        <field name="res_model">lartdubati.stock.monitor</field>
+        <field name="view_mode">list,pivot,graph,form</field>
+        <field name="search_view_id" ref="view_stock_monitor_search"/>
+        <field name="context">{'group_by': ['currency_id', 'stock_name']}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No item in the stocks you may see.</p>
+            <p>Your access profile decides which stocks, families and ownership statuses
+                you see.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_stock_monitor_root" name="Stock Monitor"
+              groups="lartdubati_investor_home.group_stock_investor,stock.group_stock_user,account.group_account_readonly"
+              sequence="45"/>
+    <menuitem id="menu_stock_monitor_analysis" name="Detailed Analysis"
+              parent="menu_stock_monitor_root" action="action_stock_monitor_analysis"
+              sequence="20"/>
+</odoo>
