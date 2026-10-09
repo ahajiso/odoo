@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 13:30+0000\n"
-"PO-Revision-Date: 2026-10-09 13:30+0000\n"
+"POT-Creation-Date: 2026-10-09 16:18+0000\n"
+"PO-Revision-Date: 2026-10-09 16:18+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -207,6 +207,16 @@ msgid ""
 msgstr ""
 "%(product)s %(lot)s: مالکی غیر از شرکت فقط برای شماره سریال تجهیز امانی یا "
 "اجاره‌ای از همان مالک (%(owner)s) مجاز است."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid ""
+"%(product)s: %(qty)s %(uom)s is not a whole number of %(po_uom)s, its "
+"purchase unit. Change the quantity or the product's purchase unit."
+msgstr ""
+"%(product)s: %(qty)s %(uom)s عدد صحیحی از %(po_uom)s، واحد خرید آن، نیست. "
+"مقدار یا واحد خرید کالا را تغییر دهید."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -787,6 +797,7 @@ msgid "Company"
 msgstr "شرکت"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__company_currency_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__company_currency_id
 msgid "Company Currency"
 msgstr "ارز شرکت"
@@ -948,13 +959,6 @@ msgid "Correct the ownership of an equipment"
 msgstr "اصلاح مالکیت یک تجهیز"
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__cost
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__cost
-#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
-msgid "Cost"
-msgstr "هزینه"
-
-#. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid ""
@@ -963,6 +967,13 @@ msgid ""
 msgstr ""
 "هزینه %(cost)s %(currency)s (%(state)s)، منبع: %(origin)s %(ref)s، تاریخ "
 "%(date)s، توسط %(user)s."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__cost
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__cost
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
+msgid "Cost (excl. tax)"
+msgstr "هزینه (بدون مالیات)"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__cost_date
@@ -2318,8 +2329,8 @@ msgstr "محصول اجاره (دریافتی)"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__rent_amount
-msgid "Rent per Period"
-msgstr "اجاره در هر دوره"
+msgid "Rent per Period (excl. tax)"
+msgstr "اجاره در هر دوره (بدون مالیات)"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_nature__rental
@@ -2348,8 +2359,8 @@ msgstr "ارز جایگزینی"
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__replacement_value
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__replacement_value
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
-msgid "Replacement Value"
-msgstr "ارزش جایگزینی"
+msgid "Replacement Value (excl. tax)"
+msgstr "ارزش جایگزینی (بدون مالیات)"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__replacement_currency_id
@@ -2870,13 +2881,13 @@ msgstr "دارای گارانتی"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__price_unit
-msgid "Unit Price"
-msgstr "قیمت واحد"
+msgid "Unit Price (excl. tax)"
+msgstr "قیمت واحد (بدون مالیات)"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__unit_value
-msgid "Unit Value"
-msgstr "ارزش واحد"
+msgid "Unit Value (excl. tax, company currency)"
+msgstr "ارزش واحد (بدون مالیات، ارز شرکت)"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_cost_correction__cost
