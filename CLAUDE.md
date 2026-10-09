@@ -225,9 +225,10 @@ tests on artdubati_test (47 passing, 08/10/2026).
    skipped: no websocket-client / Chrome in odoo_web; covered by the interface checks),
    migration: 1 cost from its order (equipment 484, 15 € HT provisional, P00165),
    0 unknown; functional checks validated by the audit. Phase 2f done.
-   Open: the saw's draft bill (P00165, account 607000, no fixed asset) is not posted
-   until it is decided whether it is capitalised (C19); stock addresses of Bg/Stock,
-   TBER/Stock, TIST/Stock (at least city and country) before phase 3.
+   Then (09/10/2026): the saw's bill BILL/2026/10/0006 (P00165) posted on 607000, no
+   fixed asset (test choice, C19 open), equipment 484 cost 15 € HT final from the bill;
+   addresses set on Bg/Stock (Bougival, FR), TIST/Stock (Istanbul, TR) and TBER/Stock
+   (DE; its contact's city « PARIS CEDEX 20 » to correct to Berlin before phase 3).
 3. Stock monitor on revision 2 (SQL view, OWL dashboard, access rules) and rework of the
    existing code: docs/phase3/PLAN.md revision 5 (mock-up's visual direction validated
    on 09/10/2026; rates mirrored from `_get_rates` inside the view, no PostgreSQL
