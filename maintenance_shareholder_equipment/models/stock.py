@@ -139,8 +139,9 @@ class StockMoveLine(models.Model):
         def refuse(line, message):
             raise ValidationError(_(
                 "%(product)s %(lot)s: %(message)s\n\n"
-                "Where to do it: Inventory → Operations → Transfers → Equipment Operations "
-                "(new operation, then « Execute »).",
+                "This action is reserved to an « Equipment Operator ». The operator goes to "
+                "Inventory → Operations → Transfers → Equipment Operations (new operation, "
+                "then « Execute »).",
                 product=line.product_id.display_name, lot=line.lot_id.name or "",
                 message=message))
 

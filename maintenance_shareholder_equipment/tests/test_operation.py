@@ -1041,5 +1041,6 @@ class TestRefusalMessage(TestOperationCommon):
         picking.move_ids.quantity = 1
         with self.assertRaises(ValidationError) as caught:
             picking.with_user(self.user_stock).button_validate()
-        self.assertIn("Inventory → Operations → Transfers → Equipment Operations",
-                      str(caught.exception))
+        message = str(caught.exception)
+        self.assertIn("reserved to an « Equipment Operator »", message)
+        self.assertIn("Inventory → Operations → Transfers → Equipment Operations", message)

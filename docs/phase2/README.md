@@ -242,8 +242,8 @@ bash /opt/odoo/addons/custom/docs/deploy_modules.sh /opt/odoo/backups/<file show
 ## Fix of 09/10/2026 (4): where to go after a stock refusal
 
 Owner's remark: the refusal of a standard « Validate » did not say where to go. Every
-stock refusal of the equipment rules now ends with « Where to do it: Inventory →
-Operations → Transfers → Equipment Operations (new operation, then « Execute ») ».
+stock refusal of the equipment rules now says the action is reserved to an « Equipment Operator » and ends with the path « Inventory →
+Operations → Transfers → Equipment Operations (new operation, then « Execute ») » (audit: a stock user cannot open that menu).
 98 tests. Same procedure, label `phase2e`:
 
 ```bash

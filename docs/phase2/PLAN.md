@@ -471,8 +471,9 @@ line. Tests: type recomputed, message per line. 97 tests.
 
 ## Fix of 09/10/2026 (4): stock refusals name where to go (owner)
 
-Every refusal of `_check_equipment_operation` ends with the menu path of the equipment
-operations. Test on a standard « Validate » of a supplier receipt. 98 tests.
+Every refusal of `_check_equipment_operation` says the action is reserved to an
+« Equipment Operator » and gives the menu path (audit: the user refused may not have
+that menu). Test on a standard « Validate » of a supplier receipt. 98 tests.
 Owner's test of EQOP/2026/0159 on artdubati_test: executed (order P00165 created and
 confirmed, receipt Bg/IN/00003 done on Bg/Stock, equipment 484 integrated with serial
 1234, draft bill Fr1223); a user without equipment rights sees only the equipment he
