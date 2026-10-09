@@ -15,10 +15,11 @@ Lists (always):
 - approved operations: they will have to be approved again after the update (their
   approval carries no accounting treatment yet).
 
-Changes (only with --apply, only on artdubati_test, only what the owner decided):
-  --responsible EQUIPMENT_ID=LOGIN   (repeatable) set the responsible of an equipment
-  --archive-equipment EQUIPMENT_ID    (repeatable) archive an equipment
-  --cancel-receipt PICKING_NAME       (repeatable) cancel an open receipt
+Changes (only with --apply, only on artdubati_test, only what the owner decided). Each
+target must belong to the list the script prints, otherwise nothing is written:
+  --responsible EQUIPMENT_ID=LOGIN   (repeatable) an equipment of the D1 list
+  --archive-equipment EQUIPMENT_ID    (repeatable) an equipment of the D3 list (« Test… »)
+  --cancel-receipt PICKING_NAME       (repeatable) a receipt of the D4 list
 
 Usage:
     ODOO_URL=https://erp.lartdubati.com ODOO_DB=artdubati_test \
@@ -86,11 +87,15 @@ invalid = [e for e in equipment if not valid(e)]
 print(f"D1 – {len(invalid)} integrated equipment without a valid responsible:")
 for e in invalid:
     print(f"  id {e['id']}: {e['name']} (responsible: {e['owner_user_id'] and e['owner_user_id'][1] or 'none'})")
+d1_ids = {e["id"] for e in invalid}
 for item in args.responsible:
     eq_id, _sep, login = item.partition("=")
+    if not eq_id.isdigit() or int(eq_id) not in d1_ids:
+        errors.append(f"--responsible {item}: equipment {eq_id} is not in the D1 list above")
+        continue
     found = call("res.users", "search_read", [("login", "=", login)], ["login", "active", "share", "company_ids"])
-    if not eq_id.isdigit() or len(found) != 1:
-        errors.append(f"--responsible {item}: equipment id or login not found")
+    if len(found) != 1:
+        errors.append(f"--responsible {item}: login {login} not found")
         continue
     user = found[0]
     if not user["active"] or user["share"] or company_id not in user["company_ids"]:
@@ -122,8 +127,13 @@ print(f"D3 – {len(tests)} equipment named « Test… »:")
 for e in tests:
     print(f"  id {e['id']}: {e['name']} state={e['integration_state']} active={e['active']} "
           f"serial={e['stock_lot_id'] and e['stock_lot_id'][1]}")
+d3 = {e["id"]: e for e in tests}
 for eq_id in args.archive_equipment:
-    todo.append(("maintenance.equipment", eq_id, {"active": False}, f"archive equipment {eq_id}"))
+    if eq_id not in d3:
+        errors.append(f"--archive-equipment {eq_id}: not in the D3 list above (« Test… » only)")
+        continue
+    todo.append(("maintenance.equipment", eq_id, {"active": False},
+                 f"archive equipment {eq_id} ({d3[eq_id]['name']})"))
 print()
 
 # D4 ---------------------------------------------------------------------------------
