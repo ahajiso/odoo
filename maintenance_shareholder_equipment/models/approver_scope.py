@@ -28,10 +28,10 @@ APPROVER_SCOPE = {
                       ("contract_id.equipment_operation_created_ids", "!=", False),
                       ("equipment_operation_stop_ids", "!=", False)],
     "account.move": [("equipment_operation_ids", "!=", False)],
-    # lines of the documents above: their forms load them. Move lines need nothing:
-    # standard stock gives every internal user read access to all of them
-    # (access_stock_move_line_all), the approver included.
+    # lines of the documents above: their forms load them
     "account.move.line": [("move_id.equipment_operation_ids", "!=", False)],
+    "stock.move.line": ["|", ("move_id.equipment_operation_id", "!=", False),
+                        ("picking_id.equipment_operation_id", "!=", False)],
     # the contract form loads its modification history (OCA contract)
     "contract.modification": ["|", ("contract_id.equipment_operation_ids", "!=", False),
                               ("contract_id.equipment_operation_created_ids", "!=", False)],
@@ -40,25 +40,44 @@ APPROVER_SCOPE = {
 }
 
 
+# Standard rights given to every internal user that do not count as a real right on
+# the model: stock gives `base.group_user` read, write, create and delete on every move
+# line (stock/security/ir.model.access.csv, access_stock_move_line_all). An approver
+# without Inventory rights must not keep them (audit of 888d229).
+IGNORED_STANDARD_ACCESS = {
+    "stock.move.line": "base.group_user",
+}
+
+
 class ResUsers(models.Model):
     _inherit = "res.users"
 
-    def _equipment_approver_domain(self, model_name):
-        """Domain of the global rule on `model_name` for the current user."""
+    def _equipment_approver_domain(self, model_name, mode="read"):
+        """Domain of the global rules on `model_name` for the current user.
+
+        `mode` "read": the approver alone reads the documents of the operations.
+        `mode` "write" (write, create, unlink rules): the approver alone writes
+        nothing; only used where a standard right gives every internal user write
+        access (IGNORED_STANDARD_ACCESS)."""
         user = self.env.user.sudo()
         approver = self.env.ref(APPROVER_XMLID, raise_if_not_found=False)
         if not approver or approver not in user.groups_id:
             return expression.TRUE_DOMAIN
-        # any other read right on the model (a group other than the approver's, or a
-        # right given to everyone) keeps its full scope
+        # any other right on the model (a group other than the approver's, or a right
+        # given to everyone) keeps its full scope
+        groups = user.groups_id - approver
+        ignored = IGNORED_STANDARD_ACCESS.get(model_name)
+        if ignored:
+            groups -= self.env.ref(ignored)
+        perm = "perm_read" if mode == "read" else "perm_write"
         other = self.env["ir.model.access"].sudo().search_count([
-            ("model_id.model", "=", model_name), ("perm_read", "=", True),
+            ("model_id.model", "=", model_name), (perm, "=", True),
             ("active", "=", True),
-            "|", ("group_id", "=", False), ("group_id", "in", (user.groups_id - approver).ids),
+            "|", ("group_id", "=", False), ("group_id", "in", groups.ids),
         ])
         if other:
             return expression.TRUE_DOMAIN
-        return APPROVER_SCOPE[model_name]
+        return APPROVER_SCOPE[model_name] if mode == "read" else expression.FALSE_DOMAIN
 
 
 class PurchaseOrder(models.Model):

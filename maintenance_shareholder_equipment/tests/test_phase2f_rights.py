@@ -2,6 +2,7 @@
 and approver separated from the operator (point 11, A3, D8),
 docs/phase2f/PLAN.md §3 and §4."""
 import base64
+from contextlib import contextmanager
 
 from odoo import Command, fields
 from odoo.exceptions import AccessError, ValidationError
@@ -252,9 +253,7 @@ class TestPhase2fApprover(EquipmentCommon):
             ("stock.lot", op.line_ids.lot_id, other_lot),
             ("account.move", op.bill_ids, False),
             ("account.move.line", op.bill_ids.line_ids, False),
-            # move lines: standard stock lets every internal user read them all
-            # (access_stock_move_line_all), so not narrowed
-            ("stock.move.line", op.picking_ids.move_line_ids, False),
+            ("stock.move.line", op.picking_ids.move_line_ids, self._free_move_line()),
             # journals: only those of the referenced bills (D8, audit of 6cdc8b9)
             ("account.journal", op.bill_ids.journal_id,
              self.env["account.journal"].create({"name": "Unrelated (test)", "code": "UNRT",
@@ -275,6 +274,96 @@ class TestPhase2fApprover(EquipmentCommon):
             [("id", "=", other_picking.id)]))
         self.assertTrue(self.env["purchase.order"].with_user(self.user_both).search(
             [("id", "=", other_po.id)]))
+
+    @contextmanager
+    def _denied_by_move_line_rule(self, *operations):
+        """AccessError raised by a record rule of stock.move.line for one of
+        `operations` (the message is generic for users without debug rights: the log
+        names the operation and the model)."""
+        with self.assertLogs("odoo.addons.base.models.ir_rule", "INFO") as logs, \
+                self.assertRaises(AccessError):
+            yield
+        self.assertTrue(any("operation: %s on" % operation in line
+                            and "model: stock.move.line" in line
+                            for line in logs.output for operation in operations),
+                        logs.output)
+
+    def _free_move_line(self):
+        """A move line no equipment operation refers to."""
+        return self.env["stock.move.line"].create(self._move_line_values())
+
+    def _move_line_values(self):
+        if not getattr(self, "_free_move", None):
+            product = self._product("Cement bag (test)", self.categ_tools, storable=True)
+            self._free_move = self.env["stock.move"].create({
+                "name": "Receipt (test)", "product_id": product.id, "product_uom_qty": 10.0,
+                "product_uom": product.uom_id.id,
+                "location_id": self.env.ref("stock.stock_location_suppliers").id,
+                "location_dest_id": self.stock.id, "company_id": self.company.id})
+            self._free_move._action_confirm()
+        move = self._free_move
+        return {"product_id": move.product_id.id, "location_id": move.location_id.id,
+                "location_dest_id": move.location_dest_id.id, "quantity": 1.0,
+                "product_uom_id": move.product_uom.id, "company_id": self.company.id,
+                "move_id": move.id}
+
+    def test_move_lines_approver_alone_reads_linked_writes_nothing(self):
+        """Standard stock gives every internal user read, write, create and delete on
+        all move lines (access_stock_move_line_all); the approver alone reads those of
+        the operations and writes none (audit of 888d229)."""
+        _po, op = self._submitted()
+        op.with_user(self.user_approver).action_approve()
+        op.with_user(self.user_operator).action_execute()
+        linked = op.picking_ids.move_line_ids
+        free = self._free_move_line()
+        self.assertTrue(linked)
+        MoveLine = self.env["stock.move.line"].with_user(self.user_approver)
+        self.assertEqual(MoveLine.search([("id", "in", (linked | free).ids)]), linked)
+        linked.with_user(self.user_approver).read(["quantity", "lot_id"])
+        with self.assertRaises(AccessError):
+            free.with_user(self.user_approver).read(["quantity"])
+        # refused by the write rule itself, not by the read scope or a business check
+        orphan = dict(self._move_line_values(), move_id=False)
+        with self._denied_by_move_line_rule("create"):
+            MoveLine.create(orphan)
+        with self.assertRaises(AccessError):
+            MoveLine.create(self._move_line_values())
+        # lot_name: a field stock's write() does not act on, so the rule decides
+        with self._denied_by_move_line_rule("write"):
+            linked.with_user(self.user_approver).write({"lot_name": "CHANGED"})
+        # quantity of a done line: also refused (stock first posts on the transfer)
+        with self.assertRaises(AccessError):
+            linked.with_user(self.user_approver).write({"quantity": 5.0})
+        with self._denied_by_move_line_rule("unlink"):
+            linked.with_user(self.user_approver).unlink()
+        with self.assertRaises(AccessError):
+            free.with_user(self.user_approver).write({"quantity": 5.0})
+        with self.assertRaises(AccessError):
+            free.with_user(self.user_approver).unlink()
+        self.assertTrue((linked | free).exists() == linked | free)
+        self.assertEqual(free.quantity, 1.0)
+        self.assertEqual(linked.quantity, 1.0)
+
+    def test_move_lines_standard_rights_kept_with_inventory(self):
+        """Approver with Inventory / User (directly or through the operator group) and
+        an ordinary Inventory user keep the standard rights on every move line."""
+        approver_stock = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "eq_approver_stock", "login": "eq_approver_stock",
+            "company_id": self.company.id, "company_ids": [Command.set(self.company.ids)],
+            "groups_id": [Command.set([
+                self.env.ref("base.group_user").id, self.env.ref("stock.group_stock_user").id,
+                self.env.ref("maintenance_shareholder_equipment.group_equipment_approver").id])],
+        })
+        free = self._free_move_line()
+        for user in (approver_stock, self.user_both, self.user_stock):
+            with self.subTest(user=user.login):
+                MoveLine = self.env["stock.move.line"].with_user(user)
+                self.assertEqual(MoveLine.search([("id", "=", free.id)]), free)
+                line = MoveLine.create(self._move_line_values())
+                line.write({"quantity": 2.0})
+                self.assertEqual(line.quantity, 2.0)
+                line.unlink()
+                self.assertFalse(line.exists())
 
     def test_contract_scope(self):
         op = self._operation("receipt", receipt_branch="borrowed", partner_id=self.lender.id,
