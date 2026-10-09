@@ -30,6 +30,45 @@ class StockLocation(models.Model):
         help="Stock in a real warehouse where items held by the third party come back.",
     )
 
+    # Phase 3: a stock of the monitor (docs/phase3/PLAN.md §3.2). Its own address gives
+    # the geography (never warehouse_id: Bg/Stock is outside its warehouse root).
+    is_monitor_stock = fields.Boolean(
+        string="Monitor Stock",
+        help="A stock of the stock monitor: the items in it and in its sub-locations are "
+        "reported under it. Requires an address with a city and a country, and a currency.",
+    )
+    monitor_currency_id = fields.Many2one(
+        "res.currency", string="Stock Currency",
+        help="Currency in which the stock monitor reports this stock.",
+    )
+
+    @api.constrains("is_monitor_stock", "monitor_currency_id", "address_id", "usage",
+                    "place_type", "active")
+    def _check_monitor_stock(self):
+        for location in self.filtered("active"):
+            if location.place_type == "lent_out" and not location.is_monitor_stock:
+                raise ValidationError(
+                    _("%(name)s is a lent-out stock: it must be a monitor stock.",
+                      name=location.complete_name)
+                )
+            if not location.is_monitor_stock:
+                continue
+            if location.usage != "internal":
+                raise ValidationError(
+                    _("%(name)s: only an internal location can be a monitor stock.",
+                      name=location.complete_name)
+                )
+            if not location.monitor_currency_id:
+                raise ValidationError(
+                    _("%(name)s: a monitor stock needs a currency.", name=location.complete_name)
+                )
+            address = location.address_id
+            if not address or not address.city or not address.country_id:
+                raise ValidationError(
+                    _("%(name)s: a monitor stock needs an address with a city and a country.",
+                      name=location.complete_name)
+                )
+
     @api.constrains("place_type", "return_location_id", "active")
     def _check_return_location(self):
         for location in self.filtered(lambda loc: loc.active and loc.place_type == "lent_out"):

@@ -69,6 +69,17 @@ class ContractLine(models.Model):
                           contract=other.contract_id.display_name)
                     )
 
+    @api.constrains("equipment_id", "automatic_price", "contract_id")
+    def _check_equipment_automatic_price(self):
+        """The rent of an equipment is the stored price of its line, in a currency that
+        does not depend on a price list (phase 3)."""
+        for contract in self.contract_id:
+            lines = contract.contract_line_ids
+            if lines.filtered("equipment_id") and lines.filtered("automatic_price"):
+                raise ValidationError(_(
+                    "%s: a contract with an equipment line cannot have a line with an "
+                    "automatic price (price list).", contract.display_name))
+
     def _can_be_invoiced(self, date_ref):
         if self.equipment_nature == "loan":
             return False
@@ -83,6 +94,23 @@ class ContractLine(models.Model):
 
 class ContractContract(models.Model):
     _inherit = "contract.contract"
+
+    # OCA's currency_id is computed and not stored: the stock monitor's SQL view reads
+    # this stored copy, computed by OCA's own logic (phase 3, docs/phase3/PLAN.md §1-1).
+    # The price-list path depends on the partner's property price list, which no
+    # dependency can follow: a contract holding an equipment line has no automatic price
+    # (ContractLine._check_equipment_automatic_price), so that path never applies.
+    equipment_currency_id = fields.Many2one(
+        "res.currency", string="Contract Currency (stored)",
+        compute="_compute_equipment_currency_id", store=True,
+    )
+
+    @api.depends("manual_currency_id", "journal_id.currency_id", "company_id.currency_id",
+                 "pricelist_id.currency_id", "contract_line_ids.automatic_price", "partner_id")
+    def _compute_equipment_currency_id(self):
+        for contract in self:
+            contract.equipment_currency_id = (contract.manual_currency_id
+                                              or contract._get_computed_currency())
 
     @api.depends("contract_line_ids.equipment_nature")
     def _compute_recurring_next_date(self):

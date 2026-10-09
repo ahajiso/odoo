@@ -6,3 +6,4 @@ from . import test_operation
 from . import test_user_groups_view
 from . import test_phase2f_cost
 from . import test_phase2f_rights
+from . import test_phase3_stock

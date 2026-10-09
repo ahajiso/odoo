@@ -114,6 +114,10 @@ class EquipmentCommon(TransactionCase):
             "equipment_current_account_location_id": cls.acq_locations["current_account"].id,
             "equipment_regularisation_location_id": cls.acq_locations["regularisation"].id,
         })
+        # address of the off-site stocks of the tests (a monitor stock needs a city and a
+        # country, phase 3)
+        cls.offsite_address = env["res.partner"].create({
+            "name": "Site (test)", "city": "Lyon", "country_id": env.ref("base.fr").id})
         cls.offsite_parent = Location.create({
             "name": "Chez tiers", "usage": "internal", "is_offsite_parent": True,
             "location_id": cls.warehouse.view_location_id.id, "company_id": cls.company.id,
@@ -230,3 +234,12 @@ class EquipmentCommon(TransactionCase):
             [("move_line_id", "in", bill.line_ids.ids)]
         )
         self.assertEqual(pointing, bill.invoice_line_ids.equipment_ids)
+
+    def _lent_out_vals(self, **vals):
+        """Values of a lent-out stock, a monitor stock since phase 3."""
+        return dict({"usage": "internal", "place_type": "lent_out",
+                     "is_monitor_stock": True,
+                     "monitor_currency_id": self.company.currency_id.id,
+                     "address_id": self.offsite_address.id,
+                     "location_id": self.offsite_parent.id,
+                     "return_location_id": self.stock.id}, **vals)

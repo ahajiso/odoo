@@ -26,9 +26,11 @@ class TestOperationCommon(EquipmentCommon):
         })
         cls.customer = cls.env["res.partner"].create({"name": "Customer"})
         cls.site_a = cls.env["res.partner"].create(
-            {"name": "Site A", "parent_id": cls.customer.id, "type": "delivery"})
+            {"name": "Site A", "parent_id": cls.customer.id, "type": "delivery",
+             "city": "Lyon", "country_id": cls.env.ref("base.fr").id})
         cls.site_b = cls.env["res.partner"].create(
-            {"name": "Site B", "parent_id": cls.customer.id, "type": "delivery"})
+            {"name": "Site B", "parent_id": cls.customer.id, "type": "delivery",
+             "city": "Lille", "country_id": cls.env.ref("base.fr").id})
 
     def _borrow(self, serial, user=None, **vals):
         values = dict(
@@ -358,12 +360,25 @@ class TestAcquisition(TestOperationCommon):
 @tagged("post_install", "-at_install")
 class TestExitReturnRestitution(TestOperationCommon):
 
+    def test_exit_to_a_site_without_city_or_country_refused(self):
+        """The site address becomes the address of the new off-site stock, a monitor
+        stock: it needs a city and a country (phase 3)."""
+        site = self.env["res.partner"].create(
+            {"name": "Site C", "parent_id": self.customer.id, "type": "delivery"})
+        op = self._exit(self._owned_equipment("EXC"), site_partner_id=site.id)
+        with self.assertRaisesRegex(ValidationError, "needs a city and a country"):
+            op.action_execute()
+        self.assertFalse(op.offsite_location_id)
+
     def test_exit_and_return_to_recorded_origin(self):
         equipment = self._owned_equipment("EX1")
         op = self._exit(equipment)
         op.action_execute()
         location = op.offsite_location_id
         self.assertEqual(location.place_type, "lent_out")
+        # a monitor stock in the company currency (phase 3)
+        self.assertTrue(location.is_monitor_stock)
+        self.assertEqual(location.monitor_currency_id, self.company.currency_id)
         self.assertEqual(location.address_id, self.site_a)
         self.assertEqual(location.location_id, self.offsite_parent)
         self.assertEqual(equipment.ownership_status, "lent_out")
@@ -515,10 +530,7 @@ class TestStockRules(TestOperationCommon):
         owned = self._owned_equipment("SR2")
         customers = self.env.ref("stock.stock_location_customers")
         suppliers = self.env.ref("stock.stock_location_suppliers")
-        lent = self.env["stock.location"].create({
-            "name": "Somewhere", "usage": "internal", "place_type": "lent_out",
-            "location_id": self.offsite_parent.id, "return_location_id": self.stock.id,
-        })
+        lent = self.env["stock.location"].create(self._lent_out_vals(name="Somewhere"))
         manager = self.env["res.users"].create({
             "name": "Ownership manager", "login": "eq_manager", "email": "m@example.com",
             "company_id": self.company.id, "company_ids": [Command.set(self.company.ids)],
@@ -553,10 +565,7 @@ class TestStockRules(TestOperationCommon):
 
     def test_consumable_into_lent_out_stock_refused(self):
         self.env["stock.quant"]._update_available_quantity(self.screws, self.stock, 10)
-        lent = self.env["stock.location"].create({
-            "name": "Elsewhere", "usage": "internal", "place_type": "lent_out",
-            "location_id": self.offsite_parent.id, "return_location_id": self.stock.id,
-        })
+        lent = self.env["stock.location"].create(self._lent_out_vals(name="Elsewhere"))
         picking = self.env["stock.picking"].create({
             "picking_type_id": self.warehouse.int_type_id.id,
             "location_id": self.stock.id, "location_dest_id": lent.id,
@@ -821,9 +830,7 @@ class TestAuditCorrections(TestOperationCommon):
         with self.assertRaises(ValidationError):
             rules(self, equipment, virtual).button_validate()
         self._exit(equipment).action_execute()
-        other = self.env["stock.location"].create({
-            "name": "Other site", "usage": "internal", "place_type": "lent_out",
-            "location_id": self.offsite_parent.id, "return_location_id": self.stock.id})
+        other = self.env["stock.location"].create(self._lent_out_vals(name="Other site"))
         with self.assertRaises(ValidationError):
             rules(self, equipment, other).button_validate()
 

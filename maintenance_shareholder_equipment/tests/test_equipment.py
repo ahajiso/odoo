@@ -234,17 +234,16 @@ class TestSetup(EquipmentCommon):
 
     def test_lent_out_location_needs_return(self):
         Location = self.env["stock.location"]
-        with self.assertRaises(ValidationError):
-            Location.create({"name": "At customer", "usage": "internal",
-                             "location_id": self.warehouse.view_location_id.id,
-                             "place_type": "lent_out"})
+        with self.assertRaisesRegex(ValidationError, "return location is required"):
+            Location.create(self._lent_out_vals(
+                name="At customer", location_id=self.warehouse.view_location_id.id,
+                return_location_id=False))
         archived = Location.create({"name": "Old", "usage": "internal", "active": False,
                                     "location_id": self.warehouse.view_location_id.id,
                                     "place_type": "physical"})
         archived.place_type = "lent_out"  # archived: not checked
-        Location.create({"name": "At customer", "usage": "internal",
-                         "location_id": self.warehouse.view_location_id.id,
-                         "place_type": "lent_out", "return_location_id": self.stock.id})
+        Location.create(self._lent_out_vals(
+            name="At customer", location_id=self.warehouse.view_location_id.id))
 
 
 @tagged("post_install", "-at_install")

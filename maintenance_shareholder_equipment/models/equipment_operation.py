@@ -782,6 +782,8 @@ class EquipmentOperation(models.Model):
             "location_id": self.new_location_parent_id.id,
             "usage": "internal",
             "place_type": "lent_out",
+            "is_monitor_stock": True,
+            "monitor_currency_id": self.company_id.currency_id.id,
             "address_id": self.site_partner_id.id,
             "return_location_id": first.id,
             "company_id": self.company_id.id,
@@ -1144,6 +1146,11 @@ class EquipmentOperation(models.Model):
         else:
             need(self.new_location_name, _("off-site stock (existing or new)"))
             need(self.new_location_parent_id, _("parent of the new off-site stock"))
+            site = self.site_partner_id
+            if site and (not site.city or not site.country_id):
+                raise ValidationError(_(
+                    "%s: the site address needs a city and a country (it becomes the address "
+                    "of the new off-site stock, a monitor stock).", site.display_name))
             if self.new_location_parent_id and not self.new_location_parent_id.is_offsite_parent:
                 raise ValidationError(_("The parent must be flagged as parent of off-site stocks."))
         self._check_third_party_contract(errors, need)

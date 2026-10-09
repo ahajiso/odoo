@@ -77,11 +77,9 @@ class TestAuditFixes(EquipmentCommon):
         Location = self.env["stock.location"]
         for bad in (suppliers, self.warehouse.view_location_id):
             with self.assertRaises(ValidationError):
-                Location.create({
-                    "name": "At customer", "usage": "internal",
-                    "location_id": self.warehouse.view_location_id.id,
-                    "place_type": "lent_out", "return_location_id": bad.id,
-                })
+                Location.create(self._lent_out_vals(
+                    name="At customer", location_id=self.warehouse.view_location_id.id,
+                    return_location_id=bad.id))
 
     # 4. lowering a quantity never archives an integrated equipment
     def test_release_keeps_integrated_equipment(self):
