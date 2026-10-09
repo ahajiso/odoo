@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 16:18+0000\n"
-"PO-Revision-Date: 2026-10-09 16:18+0000\n"
+"POT-Creation-Date: 2026-10-09 16:28+0000\n"
+"PO-Revision-Date: 2026-10-09 16:28+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -212,11 +212,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid ""
-"%(product)s: %(qty)s %(uom)s is not a whole number of %(po_uom)s, its "
-"purchase unit. Change the quantity or the product's purchase unit."
+"%(product)s at %(price)s: %(qty)s %(uom)s is not a whole number of "
+"%(po_uom)s, its purchase unit. Change the quantity or the product's purchase"
+" unit."
 msgstr ""
-"%(product)s: %(qty)s %(uom)s عدد صحیحی از %(po_uom)s، واحد خرید آن، نیست. "
-"مقدار یا واحد خرید کالا را تغییر دهید."
+"%(product)s با قیمت %(price)s: %(qty)s %(uom)s عدد صحیحی از %(po_uom)s، واحد"
+" خرید آن، نیست. مقدار یا واحد خرید کالا را تغییر دهید."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -1535,6 +1536,16 @@ msgstr ""
 "اقلام این دسته‌بندی دارایی ثابت هستند: مقدار و مکان از انبار و ارزش از "
 "دارایی ثابت گرفته می‌شود. برای هر شرکت لازم است: ارزش‌گذاری دستی و حساب "
 "هزینهٔ گروه ۲۱ با دسته‌بندی دارایی که برای هر واحد یک دارایی ایجاد کند."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_account_journal
+msgid "Journal"
+msgstr "روزنامه"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_account_journal__equipment_move_ids
+msgid "Journal Entries"
+msgstr "اسناد حسابداری"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_account_move

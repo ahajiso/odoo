@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 16:18+0000\n"
-"PO-Revision-Date: 2026-10-09 16:18+0000\n"
+"POT-Creation-Date: 2026-10-09 16:28+0000\n"
+"PO-Revision-Date: 2026-10-09 16:28+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -219,11 +219,13 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid ""
-"%(product)s: %(qty)s %(uom)s is not a whole number of %(po_uom)s, its "
-"purchase unit. Change the quantity or the product's purchase unit."
+"%(product)s at %(price)s: %(qty)s %(uom)s is not a whole number of "
+"%(po_uom)s, its purchase unit. Change the quantity or the product's purchase"
+" unit."
 msgstr ""
-"%(product)s : %(qty)s %(uom)s ne fait pas un nombre entier de %(po_uom)s, "
-"son unité d'achat. Modifiez la quantité ou l'unité d'achat de l'article."
+"%(product)s à %(price)s : %(qty)s %(uom)s ne fait pas un nombre entier de "
+"%(po_uom)s, son unité d'achat. Modifiez la quantité ou l'unité d'achat de "
+"l'article."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -1562,6 +1564,16 @@ msgstr ""
 "chaque société : valorisation manuelle, compte de charges de classe 21 "
 "portant une catégorie d'immobilisation qui crée une immobilisation par "
 "unité."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_account_journal
+msgid "Journal"
+msgstr "Journal"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_account_journal__equipment_move_ids
+msgid "Journal Entries"
+msgstr "Pièces comptables"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_account_move
