@@ -20,10 +20,6 @@
                              help="A replacement value older than this number of months is flagged « to check ».">
                         <field name="stock_monitor_replacement_max_age"/>
                     </setting>
-                    <setting string="Replacement Price"
-                             help="Inventory value of borrowed or rented consumables.">
-                        <field name="stock_monitor_replacement_price"/>
-                    </setting>
                 </block>
             </xpath>
         </field>

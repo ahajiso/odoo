@@ -140,24 +140,6 @@ class MaintenanceEquipment(models.Model):
         help="Only for equipment not managed in stock (vehicle, fixed installation). "
         "Must be empty when the equipment has a serial number in stock.",
     )
-    # Obsolete, kept until phase 3: the stock monitor reports (bi_sql_editor views)
-    # still read these columns, and removing a field drops its column with CASCADE.
-    owner_type = fields.Selection(
-        [("company", "Company"), ("shareholder", "Shareholder"), ("third_party", "Third Party")],
-        string="Ownership Type (obsolete)",
-        default="company",
-    )
-    acquisition_mode = fields.Selection(
-        [
-            ("purchase", "Purchase"),
-            ("rental", "Rental"),
-            ("borrowed", "Borrowed from Third Party"),
-            ("loaned_out", "Loaned to Third Party"),
-        ],
-        string="Acquisition Mode (obsolete)",
-        default="purchase",
-    )
-
     _sql_constraints = [
         ("stock_lot_uniq", "unique(stock_lot_id)",
          "A serial number can belong to one equipment only."),

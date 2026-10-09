@@ -90,6 +90,25 @@ class TestMonitorStock(EquipmentCommon):
         with self.assertRaisesRegex(ValidationError, "city and a country"):
             self._migrate()
 
+    def test_precheck_finds_blocking_data(self):
+        """docs/phase3/precheck.sql: a candidate stock without address and equipment
+        still linked by maintenance_equipment_contract stop the deployment. (Its third
+        check, views reading the removed columns, needs those columns: it is covered by
+        the migration rehearsal, docs/phase3/README.md.)"""
+        self.env.flush_all()
+        cr = self.env.cr
+        cr.execute("UPDATE stock_location SET address_id = NULL WHERE id = %s", [self.stock.id])
+        # the table of OCA maintenance_equipment_contract, as before its uninstallation
+        cr.execute("CREATE TABLE IF NOT EXISTS contract_contract_maintenance_equipment_rel "
+                   "(contract_contract_id integer, maintenance_equipment_id integer)")
+        cr.execute("INSERT INTO contract_contract_maintenance_equipment_rel VALUES (1, 1)")
+        repo = os.path.dirname(get_module_path("maintenance_shareholder_equipment"))
+        with open(os.path.join(repo, "docs", "phase3", "precheck.sql")) as sql:
+            cr.execute(sql.read())
+        found = {(row[0], row[1]) for row in cr.fetchall()}
+        self.assertIn(("stock_address", self.stock.id), found)
+        self.assertIn("equipment_contract_rel", {check for check, _id in found})
+
     def _migrate(self):
         path = os.path.join(get_module_path("maintenance_shareholder_equipment"),
                             "migrations", "18.0.4.0.0", "post-migrate.py")
