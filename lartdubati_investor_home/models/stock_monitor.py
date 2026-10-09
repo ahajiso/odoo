@@ -4,7 +4,9 @@ One row per integrated equipment (id = equipment id × 2) and one row per consum
 quant (id = quant id × 2 + 1). Values follow §3.4, conversions §3.5, rent §3.6 and
 alerts §3.7. The only SQL object is the view; no PostgreSQL function.
 """
-from odoo import api, fields, models, tools
+from odoo import _, api, fields, models, tools
+from odoo.exceptions import UserError
+from odoo.osv import expression
 
 from odoo.addons.maintenance_shareholder_equipment.models.maintenance_equipment import (
     INSURANCE_STATUS,
@@ -25,6 +27,18 @@ MEASURES = {
     "accounting_value": "accounting",
     "rent_monthly": "rent_m",
 }
+# dashboard filters (§4.3): key -> type of its value; text labels, never ids (ids are
+# reserved to staff, a domain on them would be refused to an investor)
+FILTER_TYPES = {
+    "countries": list, "cities": list, "stocks": list, "families": list,
+    "ownerships": list, "alert": str, "search": str,
+}
+OUTSIDE_STOCK = "__outside__"  # stock filter value of the rows outside any monitor stock
+SEARCH_FIELDS = ("product_name", "equipment_name", "serial", "stock_name", "location_name",
+                 "category_name")
+# rate alerts an investor may see: those of the measures every monitor user sees
+PUBLIC_RATE_ALERTS = ("inventory_value_rate_missing", "replacement_value_rate_missing")
+
 # alerts (§3.7); their groups are given on the fields
 ALERTS = {
     "alert_rate_missing": STAFF,
@@ -568,3 +582,175 @@ SELECT m.*,
          AND am.move_type IN ('in_invoice', 'in_refund')
        HAVING count(*) > 0) rp ON TRUE"""
 
+    # ------------------------------------------------------------------ dashboard
+
+    def _readable(self, names):
+        return [name for name in names if self._fields[name].is_accessible(self.env)]
+
+    @api.model
+    def _dashboard_domain(self, filters, skip=()):
+        """Domain of the dashboard filters (§4.3). `filters` holds only the keys of
+        FILTER_TYPES, with values of their type; anything else is refused. `skip`:
+        keys left out (counts of a filter ignore the filter itself)."""
+        if not isinstance(filters, dict):
+            raise UserError(_("Invalid dashboard filters."))
+        for key, value in filters.items():
+            kind = FILTER_TYPES.get(key)
+            if kind is None or not isinstance(value, kind) or (
+                    kind is list and not all(isinstance(item, str) for item in value)):
+                raise UserError(_("Invalid dashboard filter: %s", key))
+        alert = filters.get("alert")
+        if alert and alert not in self._dashboard_alerts():
+            raise UserError(_("Invalid dashboard filter: %s", "alert"))
+        domain = []
+        if filters.get("countries") and "countries" not in skip:
+            domain.append([("country_name", "in", filters["countries"])])
+        if filters.get("cities") and "cities" not in skip:
+            domain.append([("city", "in", filters["cities"])])
+        if filters.get("stocks") and "stocks" not in skip:
+            stocks = [name for name in filters["stocks"] if name != OUTSIDE_STOCK]
+            parts = [[("stock_name", "in", stocks)]] if stocks else []
+            if OUTSIDE_STOCK in filters["stocks"]:
+                parts.append([("stock_name", "=", False)])
+            domain.append(expression.OR(parts))
+        if filters.get("families") and "families" not in skip:
+            domain.append([("family", "in", filters["families"])])
+        if filters.get("ownerships") and "ownerships" not in skip:
+            domain.append([("ownership_status", "in", filters["ownerships"])])
+        if alert and "alert" not in skip:
+            domain.append([(alert, "=", 1)])
+        term = (filters.get("search") or "").strip()
+        if term and "search" not in skip:
+            domain.append(expression.OR([[(name, "ilike", term)] for name in SEARCH_FIELDS]))
+        return expression.AND(domain) if domain else []
+
+    @api.model
+    def _dashboard_alerts(self):
+        """Alert columns the user may read (whitelist of the alert filter)."""
+        return self._readable(list(ALERTS) + list(PUBLIC_RATE_ALERTS))
+
+    @api.model
+    def get_dashboard_data(self, filters=None):
+        """Every aggregate of the dashboard in one call (§4.3), under the user's rights
+        and record rules, without sudo. Only the fields the user may read are summed or
+        returned. The list page is read separately with the returned domain."""
+        filters = filters or {}
+        domain = self._dashboard_domain(filters)
+        measures = self._readable(list(MEASURES))
+        alerts = self._dashboard_alerts()
+        staff = self._fields["stock_id"].is_accessible(self.env)
+
+        def by_currency(rows, key="currency_id"):
+            return [{"currency_id": currency.id, "amount": amount}
+                    for currency, amount in rows if currency]
+
+        # 1. totals per currency, provisional and missing counts
+        # « known » counts: a currency whose amounts are all unknown has no total line
+        # (read_group returns 0, not NULL, for a sum of NULLs)
+        aggregates = ["__count", "asset_count:sum"] + [f"{m}:sum" for m in measures] + [
+            f"{m}_rate_missing:sum" for m in measures] + [f"{m}_known:sum" for m in measures]
+        if "rent_paid" in self._readable(["rent_paid"]):
+            aggregates += ["rent_paid:sum", "rent_paid_rate_missing:sum"]
+        if "accounting_value" in measures:
+            aggregates.append("accounting_provisional:sum")
+        totals = {name: {"lines": [], "missing": [], "provisional": []}
+                  for name in measures + self._readable(["rent_paid"])}
+        count = assets = 0
+        missing_counts = {}
+        provisional_count = 0
+        for currency, *values in self._read_group(domain, ["currency_id"], aggregates):
+            result = dict(zip(aggregates, values))
+            count += result["__count"]
+            assets += result["asset_count:sum"] or 0
+            for name in totals:
+                known = result.get(f"{name}_known:sum", 1)  # rent_paid: per bill line
+                if name == "rent_paid":
+                    known = result.get("rent_paid:sum") is not None and (
+                        result["__count"] > (result.get("rent_paid_rate_missing:sum") or 0))
+                if currency and known and result.get(f"{name}:sum") is not None:
+                    totals[name]["lines"].append(
+                        {"currency_id": currency.id, "amount": result[f"{name}:sum"]})
+                missing_counts[name] = (missing_counts.get(name, 0)
+                                        + (result.get(f"{name}_rate_missing:sum") or 0))
+            provisional_count += result.get("accounting_provisional:sum") or 0
+        # unconverted amounts, in their source currency (only when some are missing)
+        for name, missing in missing_counts.items():
+            if not missing:
+                continue
+            if name == "rent_paid":
+                rows = self._read_group(domain + [("rent_paid_rate_missing", "=", 1)],
+                                        ["currency_id"], ["rent_paid_source_amount:sum"])
+                totals[name]["missing"] = [
+                    {"currency_id": self.env.company.currency_id.id, "amount": amount}
+                    for _currency, amount in rows]
+                continue
+            rows = self._read_group(domain + [(f"{name}_rate_missing", "=", 1)],
+                                    [f"{name}_source_currency_id"],
+                                    [f"{name}_source_amount:sum"])
+            totals[name]["missing"] = by_currency(rows)
+        if provisional_count:
+            rows = self._read_group(domain + [("accounting_provisional", "=", 1)],
+                                    ["currency_id"], ["accounting_value:sum"])
+            totals["accounting_value"]["provisional"] = by_currency(rows)
+
+        # 2. stock cards: the selection's geography, family and ownership, every stock
+        card_domain = self._dashboard_domain(filters, skip=("stocks", "alert", "search"))
+        card_aggregates = ["__count", "asset_count:sum", "inventory_value:sum",
+                           "inventory_value_rate_missing:sum"]
+        if self._readable(["alert_count"]):
+            card_aggregates.append("alert_count:sum")
+        stocks = []
+        for name, city, country, place, currency, *values in self._read_group(
+                card_domain, ["stock_name", "city", "country_name", "place_type", "currency_id"],
+                card_aggregates):
+            result = dict(zip(card_aggregates, values))
+            stocks.append({
+                "name": name or OUTSIDE_STOCK, "city": city or "", "country": country or "",
+                "place_type": place or "", "currency_id": currency.id,
+                "count": result["__count"], "assets": result["asset_count:sum"] or 0,
+                "inventory_value": result["inventory_value:sum"] or 0.0,
+                "missing": result["inventory_value_rate_missing:sum"] or 0,
+                "alerts": result.get("alert_count:sum") or 0,
+            })
+
+        # 3. alert counts: the selection without the alert filter and the search
+        alert_counts = {}
+        if alerts:
+            alert_domain = self._dashboard_domain(filters, skip=("alert", "search"))
+            values = self._read_group(alert_domain, [], [f"{a}:sum" for a in alerts])[0]
+            alert_counts = {a: value or 0 for a, value in zip(alerts, values)}
+
+        # 4. counts of the family segment and the ownership chips
+        segment_domain = self._dashboard_domain(
+            filters, skip=("families", "ownerships", "alert", "search"))
+        segments = [{"family": family, "ownership": ownership, "count": number}
+                    for family, ownership, number in self._read_group(
+                        segment_domain, ["family", "ownership_status"], ["__count"])]
+
+        # 5. choices of the selectors: every stock the user may see
+        choices = [{"country": country or "", "city": city or "",
+                    "stock": name or OUTSIDE_STOCK, "currency_id": currency.id}
+                   for country, city, name, currency, _count in self._read_group(
+                       [], ["country_name", "city", "stock_name", "currency_id"], ["__count"])]
+
+        # 6. controls outside the monitor (point 14), staff only, under their own rights
+        controls = {}
+        if staff:
+            Equipment = self.env["maintenance.equipment"]
+            if Equipment.has_access("read"):
+                controls["to_complete"] = Equipment.search_count(
+                    [("integration_state", "!=", "done")])
+            Lot = self.env["stock.lot"]
+            if Lot.has_access("read"):
+                controls["serial_without_equipment"] = Lot.search_count([
+                    ("product_id.maintenance_ok", "=", True),
+                    ("quant_ids.quantity", ">", 0),
+                    ("quant_ids.location_id.usage", "=", "internal"),
+                    ("equipment_ids", "=", False),
+                ])
+        return {
+            "domain": domain, "count": count, "assets": assets, "totals": totals,
+            "stocks": stocks, "alerts": alert_counts, "segments": segments,
+            "choices": choices, "controls": controls, "staff": staff,
+            "date": fields.Date.context_today(self),
+        }

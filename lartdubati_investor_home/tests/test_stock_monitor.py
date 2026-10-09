@@ -519,3 +519,92 @@ class TestMonitorAccess(MonitorCommon):
                 if user == self.store:
                     self.assertIn('"stock_value"', arch)
                     self.assertNotIn('"accounting_value"', arch)
+
+
+@tagged("post_install", "-at_install")
+class TestMonitorDashboardData(TestMonitorAccess):
+    """§4.3: get_dashboard_data, one call under the user's rights."""
+
+    def _data(self, user, filters=None):
+        self.env.flush_all()
+        self.Monitor.invalidate_model()
+        return self.Monitor.with_user(user).get_dashboard_data(filters or {})
+
+    def test_investor_gets_no_staff_key(self):
+        data = self._data(self.investor)
+        self.assertFalse(data["staff"])
+        self.assertEqual(set(data["totals"]), {"inventory_value", "replacement_value"})
+        self.assertFalse(data["controls"])
+        self.assertLessEqual(set(data["alerts"]), {"inventory_value_rate_missing",
+                                                   "replacement_value_rate_missing"})
+        self.assertTrue(all(card["alerts"] == 0 for card in data["stocks"]))
+        store = self._data(self.store)
+        self.assertTrue(store["staff"])
+        self.assertIn("stock_value", store["totals"])
+        self.assertNotIn("accounting_value", store["totals"])
+        self.assertIn("to_complete", store["controls"])
+        accountant = self._data(self.accountant)
+        self.assertIn("accounting_value", accountant["totals"])
+        self.assertIn("rent_paid", accountant["totals"])
+
+    def test_filters_are_checked(self):
+        Monitor = self.Monitor.with_user(self.investor)
+        for filters in ({"domain": [("id", ">", 0)]}, {"countries": "France"},
+                        {"stocks": [1]}, {"alert": "alert_no_asset"},
+                        {"alert": "stock_value"}, ["countries"]):
+            with self.subTest(filters=filters), self.assertRaises(UserError):
+                Monitor.get_dashboard_data(filters)
+        self.assertTrue(self.Monitor.with_user(self.store).get_dashboard_data(
+            {"alert": "alert_no_asset"})["domain"])
+
+    def test_totals_per_currency_and_selection(self):
+        self.berlin.monitor_currency_id = self.usd
+        self.env["res.currency.rate"].create({
+            "currency_id": self.usd.id, "name": self.today - timedelta(days=1), "rate": 2.0,
+            "company_id": self.company.id})
+        data = self._data(self.investor)
+        lines = {line["currency_id"]: line["amount"]
+                 for line in data["totals"]["inventory_value"]["lines"]}
+        eur = self.company.currency_id
+        price = self.screws.standard_price
+        self.assertAlmostEqual(lines[eur.id], 4 * price)
+        self.assertAlmostEqual(lines[self.usd.id], 6 * price * 2.0, msg="never added to EUR")
+        cards = {card["city"]: card for card in data["stocks"]}
+        self.assertEqual(cards["Berlin"]["currency_id"], self.usd.id)
+        self.assertEqual(cards["Berlin"]["name"], self.berlin.complete_name)
+        self.assertEqual({choice["country"] for choice in data["choices"]},
+                         {"France", "Germany"})
+        berlin = self._data(self.investor, {"cities": ["Berlin"]})
+        self.assertEqual(berlin["count"], 1)
+        self.assertEqual([line["currency_id"] for line in
+                          berlin["totals"]["inventory_value"]["lines"]], [self.usd.id])
+        self.assertEqual(len(berlin["stocks"]), 1)
+        self.assertEqual(len(berlin["choices"]), 2, "the selectors keep every stock")
+        rows = self.Monitor.with_user(self.investor).search(berlin["domain"])
+        self.assertEqual(len(rows), 1, "the returned domain gives the list page")
+
+    def test_unconverted_amounts_stay_out_of_totals(self):
+        self.env["res.currency.rate"].search([("currency_id", "=", self.chf.id)]).unlink()
+        self.berlin.monitor_currency_id = self.chf
+        data = self._data(self.investor)
+        inventory = data["totals"]["inventory_value"]
+        self.assertEqual([line["currency_id"] for line in inventory["lines"]],
+                         [self.company.currency_id.id])
+        self.assertEqual(inventory["missing"], [{
+            "currency_id": self.company.currency_id.id,
+            "amount": 6 * self.screws.standard_price}])
+        self.assertEqual(data["alerts"]["inventory_value_rate_missing"], 1)
+
+    def test_profile_restricts_every_aggregate(self):
+        self.profile.country_ids = self.germany
+        data = self._data(self.investor)
+        self.assertEqual(data["count"], 1)
+        self.assertEqual([card["city"] for card in data["stocks"]], ["Berlin"])
+        self.assertEqual([choice["city"] for choice in data["choices"]], ["Berlin"])
+
+    def test_query_count(self):
+        self._data(self.accountant)  # warm the caches
+        self.env.flush_all()
+        self.Monitor.invalidate_model()
+        with self.assertQueryCount(__system__=8):
+            self.Monitor.with_user(self.accountant).get_dashboard_data({})
