@@ -35,4 +35,11 @@ class ResUsers(models.Model):
             )
         if target == "monitor":
             return user.stock_access_id._monitor_domain()
+        if target == "move_line":
+            # standard stock gives every internal user read, write, create and delete
+            # on all move lines (access_stock_move_line_all): an investor without
+            # Inventory rights gets none (audit of 888d229)
+            if user.has_group("stock.group_stock_user"):
+                return expression.TRUE_DOMAIN
+            return expression.FALSE_DOMAIN
         raise ValueError(target)
