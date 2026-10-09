@@ -121,10 +121,12 @@ Still valid from 04/10/2026:
 - Phase 0 done on artdubati_test: consumable product categories 11-17 at average cost;
   Consignment setting (owner on stock) enabled. Asset profiles wait for the accountant.
 
-To decide when phase 3 is planned: keep bi_sql_editor for the monitor (reports defined
-in docs/stock_monitor/, two reports because a column cannot be hidden per group) or
-replace it by a module model on a SQL view with `groups=` per field. Same question for
-the home page (web_quick_start_screen configuration versus a client action).
+Decided by the owner on 09/10/2026 (phase 3): the bi_sql_editor reports are replaced by a
+module model on a SQL view with `groups=` per field; the main interface is an OWL
+dashboard (client action) on that model, through the ORM without sudo, the standard
+views (list, pivot, graph, export) being the secondary interface. Plan and mock-up:
+docs/phase3/. Still to decide in phase 4: the home page (web_quick_start_screen
+configuration versus a client action).
 
 ## Existing code to rework (built on the 04/10 decisions)
 - Done in phase 1: account_move_line.py no longer sets `current_location_id`;
@@ -204,7 +206,13 @@ tests on artdubati_test (47 passing, 08/10/2026).
    unchanged; first purchase receipt executed by the owner (order created, receipt done
    on Bg/Stock, equipment integrated, draft bill), standard « Validate » refused with the
    path to the operations. Phase 2 done.
-3. Stock monitor on revision 2 (SQL view, access rules) and rework of the existing code.
+2f. Corrections to phase 2 from the general audit of 09/10/2026 (responsible required,
+   accounting treatment shown in the receipt, read-only approver, data to prepare):
+   docs/phase2f/PLAN.md, revision 1 pending audit; deployed before phase 3.
+3. Stock monitor on revision 2 (SQL view, OWL dashboard, access rules) and rework of the
+   existing code: docs/phase3/PLAN.md revision 3 pending audit (answers the eight
+   blocking corrections and points 12-15); mock-up iteration 2 in docs/phase3/mockup/.
+   No business code before the green light.
 4. Home page and investor user setup (review the existing configuration).
 5. Translations, manual rewrite for all phases (cards citing removed or changed fields,
    new receiving procedures, Investor tab), deployment checklist

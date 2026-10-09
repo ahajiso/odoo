@@ -14,14 +14,22 @@ and before this checklist:**
   configuration file and `dbfilter` limited to its database (`list_db = False`);
 - [ ] two independent code folders (custom and OCA addons), production pinned to a commit
   or tag already validated on test;
+- [ ] the OCA dependencies pinned: a lock file `docs/deployment/oca-lock.txt` lists, for
+  each OCA repository, the exact commit validated on test (written by the owner from
+  `git -C <clone> rev-parse HEAD` on the test server); production checks out exactly
+  those commits, never a branch head;
+- [ ] `dbfilter` set and `list_db = False` on both services (checked with
+  `curl -s <url>/web/database/selector` returning no database list);
 - [ ] two databases, `artdubati_test` and `artdubati` (they may stay on the same
   PostgreSQL server at first);
 - [ ] two filestores (separate data volumes);
-- [ ] independent backups of each database and filestore, restore tested;
+- [ ] independent backups of each database **and its filestore**, restore tested;
 - [ ] controlled promotion: the commit tested on `artdubati_test` (tests green, owner's
   checks) is the one checked out in the production folder, then the production modules
   are updated with production stopped, after a backup.
 
+**The steps below are obsolete** (written for the bi_sql_editor monitor of 04/10/2026):
+they are rewritten in phase 5 for the module monitor and the phase 2, 2f and 3 procedures.
 The steps below assume this separation: « the code » means the production folder, and
 the commands use the production service.
 
