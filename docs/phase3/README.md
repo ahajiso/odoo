@@ -178,6 +178,22 @@ Then, with the profiles (Playwright with their passwords, never stored):
    provisional », rent paid.
 4. In Persian (fa_IR): the dashboard is mirrored (right to left). If it is not, the
    `rtlcss` command is missing in `odoo_web` (PLAN.md §9).
-5. Figures to compare with Inventory: Bg/Stock quantities; the saw (equipment 484):
+5. Pivot and graph with two currencies: set a monitor stock temporarily to another
+   currency that is **active and has a rate** (e.g. activate TRY and enter a rate first,
+   or use an already active one); the pivot's grand total stays empty for the amounts,
+   the graph draws no bar for a mixed group; then set the stock back.
+6. Figures to compare with Inventory: Bg/Stock quantities; the saw (equipment 484):
    inventory value 15 € HT, stock value 0, net book value 0, alert « No fixed asset
    (expensed) » for staff.
+
+## Deployment record (artdubati_test, 10/10/2026)
+Step 0: no row in the equipment-contract table, `maintenance_equipment_contract`
+uninstalled, the two reports deleted. Backups `artdubati_test_2026-10-10_0613_phase3`
+(dump and filestore); previous commit 8c71b35. Precheck: Bg/Stock Bougival FR,
+TBER/Stock Berlin DE, TIST/Stock Istanbul TR, PRECHECK OK. `deploy_modules.sh … 191 phase3
+70648a2`: CODE OK, UPDATE OK, 0 failed of 191 tests (tours and Hoot skipped, as in 2f),
+odoo_web restarted. Migration: monitor stocks Bg/Stock, TBER/Stock, TIST/Stock; currency
+mode `latest`. Post-check: no row. Financial button repointed. Interface checks
+validated by the audit; the test account restored (English, no temporary right, stocks
+in EUR). Data to examine: Integrity alert on the cement of TBER/Stock, Bg/TEST Paris
+outside any monitor stock.

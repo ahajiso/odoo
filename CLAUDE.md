@@ -137,7 +137,7 @@ configuration versus a client action).
 - Done in phase 1: account_move_line.py no longer sets `current_location_id`;
   maintenance_equipment.py (internal location required) removed; `place_type` moved to
   maintenance_shareholder_equipment.
-- Done in phase 3 (on the branch, audit pending): `stock_monitor_replacement_price`,
+- Done in phase 3 (deployed on artdubati_test on 10/10/2026): `stock_monitor_replacement_price`,
   `owner_type` and `acquisition_mode` removed; the bi_sql_editor queries replaced by the
   monitor view; `_location_domain` by the country of the monitor stock's own address;
   investor tests without Inventory group. `stock_monitor_currency_mode` (historical /
@@ -238,8 +238,17 @@ tests on artdubati_test (47 passing, 08/10/2026).
    stops odoo_web before moving the code, stock place type, TBER address), PLAN.md §11.1.
    191 tests passing locally; monitor_perf
    on 10,000 rows: 0.65-0.74 s server, 1.1 s browser; migration rehearsed on a database
-   made with the 2f code. Pending: audit of the code, then deployment by the owner
-   (docs/phase3/README.md).
+   made with the 2f code. Audited, merged into main (70648a2, fast-forward) and deployed
+   on artdubati_test on 10/10/2026 (docs/phase3/README.md): no equipment-contract rows,
+   maintenance_equipment_contract uninstalled, the two bi_sql_editor reports deleted,
+   backups, PRECHECK OK (addresses Bougival FR, Berlin DE, Istanbul TR), stop then code
+   then update (deploy_modules.sh), 191 tests 0 failed (tours and Hoot skipped: no
+   websocket-client / Chrome in odoo_web), migration flagged Bg/Stock, TBER/Stock,
+   TIST/Stock, currency mode « latest », post-check clean, Financial button repointed,
+   interface checks validated by the audit (investor, store, accountant, fa_IR RTL,
+   pivot and graph with two currencies, saw 484: 15 € HT, 0, 0, « No Fixed Asset »).
+   Phase 3 done. Data to examine (shown by the monitor): Integrity alert on the cement
+   of TBER/Stock, Bg/TEST Paris outside any monitor stock.
 4. Home page and investor user setup (review the existing configuration).
 5. Translations, manual rewrite for all phases (cards citing removed or changed fields,
    new receiving procedures, Investor tab), deployment checklist
