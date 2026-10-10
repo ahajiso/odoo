@@ -91,9 +91,10 @@ of the filestore recorded; the dump read back (`pg_restore --list`) and **restor
 temporary database**, whose modules and record counts are compared with artdubati_test,
 then dropped; the archive listed (`tar -tzf`), its files counted and every file the dump's
 attachments point to looked for in it: **a missing one stops the backup**, the list is
-kept in `/opt/odoo/logs/phase4_missing_attachments_<stamp>.txt`; send it to Claude (going
-on needs an explicit exception agreed after reading it,
-`ALLOW_MISSING_ATTACHMENTS=<exact number>`); then the final
+kept in `/opt/odoo/logs/phase4_missing_attachments_<stamp>.txt`; send it to Claude. For
+phase 4, the backup must show **0** missing files; in general, going on needs an
+explicit exception for that exact list, `ALLOW_MISSING_ATTACHMENTS_SHA256=<sha256 of the
+list>`, agreed after reading it (never a number alone); then the final
 names, their SHA-256, and last the manifest `/opt/odoo/logs/phase4_backup`. Any failure
 leaves no manifest, so neither the deployment nor the rollback can use a bad backup.
 Read-only for artdubati_test; it needs free disk space for one more copy of the

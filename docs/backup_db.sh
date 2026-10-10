@@ -155,8 +155,9 @@ ARCHIVE_FILES=$(grep -c -v '/$' "$TGZ.list" || true)
 grep -q "^$DB/" "$TGZ.list" || { echo "Archive does not hold $DB/."; exit 1; }
 # every file the attachments of the dump point to must be in the archive (captured at
 # the same moment). Missing ones stop the backup; their list is kept in
-# $MISSING_LIST. Going on anyway needs an explicit exception:
-# ALLOW_MISSING_ATTACHMENTS=<the exact number>, after Claude has read the list.
+# $MISSING_LIST. Going on anyway needs an explicit exception for that exact list:
+# ALLOW_MISSING_ATTACHMENTS_SHA256=<sha256 of the list file>, after Claude has read it
+# (audit of 4c6d12e..aebe0aa: a number alone would accept another list of the same size).
 MISSING_LIST="$LOGDIR/${LABEL}_missing_attachments_$STAMP.txt"
 : > "$MISSING_LIST"
 while IFS= read -r fname; do
@@ -164,12 +165,14 @@ while IFS= read -r fname; do
   grep -qxF "$DB/$fname" "$TGZ.list" || echo "$fname" >> "$MISSING_LIST"
 done <<< "$ATTACHMENT_FILES"
 MISSING=$(wc -l < "$MISSING_LIST")
+MISSING_SHA=$(sha256sum "$MISSING_LIST" | cut -d' ' -f1)
 echo "archive readable: $ARCHIVE_FILES files; attachment files missing: $MISSING ($MISSING_LIST)"
 rm -f "$TGZ.list"
-if [ "$MISSING" -gt 0 ] && [ "${ALLOW_MISSING_ATTACHMENTS:-}" != "$MISSING" ]; then
+if [ "$MISSING" -gt 0 ] && [ "${ALLOW_MISSING_ATTACHMENTS_SHA256:-}" != "$MISSING_SHA" ]; then
   head -20 "$MISSING_LIST"
   echo "BACKUP REFUSED: $MISSING attachment files missing from the filestore (list above and"
-  echo "in $MISSING_LIST). Send the list to Claude; continue only with the exception agreed."
+  echo "in $MISSING_LIST, sha256 $MISSING_SHA). Send the list to Claude; continue only"
+  echo "with the exception agreed for this exact list."
   exit 1
 fi
 docker exec odoo_db dropdb -U odoo "$VERIFY_DB"
@@ -189,6 +192,7 @@ FILESTORE_SHA256=$TGZ_SHA
 FILESTORE_FILES=$ARCHIVE_FILES
 ATTACHMENT_FILES_MISSING=$MISSING
 ATTACHMENT_MISSING_LIST=$MISSING_LIST
+ATTACHMENT_MISSING_LIST_SHA256=$MISSING_SHA
 DB_BYTES=$DB_BYTES
 FILESTORE_BYTES=$FILESTORE_BYTES
 MODULES_MD5=$DUMP_MODULES
