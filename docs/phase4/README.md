@@ -9,7 +9,7 @@ Module: `lartdubati_investor_home` 18.0.2.0.0 → 18.0.3.0.0 (new dependency
 `web_quick_start_screen`, already installed on artdubati_test).
 `maintenance_shareholder_equipment` is updated too (unchanged, its tests run).
 
-Expected tests: **228 tests** (both modules). The tours and the Hoot tests need
+Expected tests: **230 tests** (both modules). The tours and the Hoot tests need
 Chrome and `websocket-client`: without them in `odoo_web` they are counted as skipped,
 as in phases 2f and 3; the interface checks of step 8 cover them. The JSON-RPC, action
 and URL tests of the investor security (actions, calls, routes, password change) do not need a browser; the
@@ -75,7 +75,7 @@ precheck_home.sql):
 
 ```bash
 bash /tmp/phase4/docs/deploy_modules.sh \
-  /opt/odoo/backups/<dump of step 1> 228 phase4 <commit announced by Claude>
+  /opt/odoo/backups/<dump of step 1> 230 phase4 <commit announced by Claude>
 ```
 
 Same script as phase 3: checks first, stops `odoo_web`, moves the working tree to the

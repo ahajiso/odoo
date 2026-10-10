@@ -274,15 +274,17 @@ tests on artdubati_test (47 passing, 08/10/2026).
    (whitelist of authenticated routes for investor accounts: get_definitions, /json,
    /report refused, docs/phase4/ROUTES.md; own password change tested); audit of
    2071e6e corrected (whitelist of public routes for investor sessions, no group channel
-   on the investor's websocket, own presence); 228 tests
+   on the investor's websocket, own presence); audit of 3326829 corrected (/mail/data
+   options whitelisted for investors: `failures` dropped; websocket channels tested
+   without websocket-client); 230 tests
    passing locally; rehearsals on the phase 3 code clean. Before deployment: Q7
    (Purchase rights off `test_investor`), one atomic update.
 5. Translations, deployment checklist (docs/deployment/investor_home.md).
 6. Functional phases proposed by the audit of 6063db1, order to set by the owner
    (docs/ROADMAP.md): recurring expenses and contracts, bill payment and bank
    reconciliation, insurance register (ten-year liability included), Fleet linked to
-   equipment and assets, worksites and stock consumption, workwear / PPE (meaning of
-   « VT » to confirm), operational maintenance, supplier bill intake, one-off and
+   equipment and assets, worksites and stock consumption, workwear / PPE (« VT »
+   = vêtements de travail, confirmed), operational maintenance, supplier bill intake, one-off and
    employee expenses.
 Last. Manual rewrite for all phases (cards citing removed or changed fields, new
    receiving procedures, Investor tab), after every functional phase.
