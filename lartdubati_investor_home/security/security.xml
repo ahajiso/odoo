@@ -96,4 +96,15 @@
         <field name="model_id" ref="mail.model_mail_activity"/>
         <field name="domain_force">user.stock_access_rule_domain('none')</field>
     </record>
+    <!-- own password change (audit of 6063db1): the wizard and the password check -->
+    <record id="rule_change_password_own_investor" model="ir.rule">
+        <field name="name">Password change: investor accounts use their own wizard</field>
+        <field name="model_id" ref="base.model_change_password_own"/>
+        <field name="domain_force">user.stock_access_rule_domain('own_created')</field>
+    </record>
+    <record id="rule_identitycheck_investor" model="ir.rule">
+        <field name="name">Password check: investor accounts use their own</field>
+        <field name="model_id" ref="base.model_res_users_identitycheck"/>
+        <field name="domain_force">user.stock_access_rule_domain('own_created')</field>
+    </record>
 </odoo>

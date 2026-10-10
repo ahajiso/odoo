@@ -12,6 +12,7 @@ import logging
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
+from odoo.http import request
 
 _logger = logging.getLogger(__name__)
 
@@ -39,12 +40,19 @@ INVESTOR_MODELS = {
         "mail.message",  # same, mail client init: inbox / starred (rule: none)
         "mail.activity",  # activity systray of the web client (rule: none)
         "ir.filters",  # favourite filters loaded with the views (rule: none)
+        # own password change (audit of 6063db1): the standard wizard and the password
+        # check it asks for first (rules: own records only)
+        "change.password.own",
+        "res.users.identitycheck",
     }),
     "write": frozenset({
         "res.users.settings",  # web client settings (rule: own record)
+        "change.password.own",
+        "res.users.identitycheck",  # the password typed (the check runs in sudo)
     }),
-    "create": frozenset(),
-    "unlink": frozenset(),
+    # res.users.identitycheck is created in sudo by @check_identity
+    "create": frozenset({"change.password.own"}),
+    "unlink": frozenset({"change.password.own"}),  # change_password() unlinks it
 }
 
 # P4-2e (audit of dff33cb): the public methods an investor account may call through
@@ -74,6 +82,37 @@ INVESTOR_METHODS.update({
                                  "systray_get_activities"},
     # web client settings (rule: own record)
     "res.users.settings": READ_METHODS | {"set_res_users_settings"},
+    # own password change: the wizard, then the password check (@check_identity)
+    "change.password.own": READ_METHODS | {"onchange", "web_save", "change_password"},
+    "res.users.identitycheck": READ_METHODS | {"onchange", "web_save", "run_check"},
+})
+
+# P4-2f (audit of 6063db1): the authenticated routes (auth « user » or « bearer ») an
+# investor account may reach; every other one is refused before its controller runs,
+# whatever module adds it later (ir.http._pre_dispatch). Routes resolving models,
+# actions or reports themselves, possibly in sudo, are refused this way:
+# /web/model/get_definitions, /bus/get_model_definitions, /json, /json/1, /report/*,
+# /stock/<format>/<report>... The list comes from the inventory of the routes of the
+# installed modules (docs/phase4/ROUTES.md) and from the tours.
+INVESTOR_ROUTES = frozenset({
+    "/web/webclient/load_menus/<string:unique>",
+    "/web/session/get_session_info",
+    "/web/session/check",
+    "/web/action/load",  # whitelist of actions (controllers/action.py)
+    "/web/action/load_breadcrumbs",  # goes through load (same whitelist)
+    "/web/dataset/call_kw",  # INVESTOR_METHODS (controllers/dataset.py)
+    "/web/dataset/call_kw/<path:path>",
+    "/web/dataset/call_button",
+    "/web/dataset/call_button/<path:path>",
+    "/web/domain/validate",  # custom filter of the analysis views (search_count as the user)
+    # export of the monitor (P4-5, controllers/export.py) and the pivot download (the
+    # client sends the table it shows, nothing is read)
+    "/web/export/formats",
+    "/web/export/get_fields",
+    "/web/export/namelist",
+    "/web/export/csv",
+    "/web/export/xlsx",
+    "/web/pivot/export_xlsx",
 })
 
 
@@ -235,3 +274,17 @@ class ResUsers(models.Model):
                                       for key in vals):
             self._set_investor_home()
         return res
+
+
+class IrHttp(models.AbstractModel):
+    _inherit = "ir.http"
+
+    @classmethod
+    def _pre_dispatch(cls, rule, args):
+        # P4-2f: before the standard pre-dispatch and the controller
+        if rule.endpoint.routing.get("auth") in ("user", "bearer") \
+                and rule.rule not in INVESTOR_ROUTES and request.env.uid \
+                and is_investor(request.env):
+            _logger.info("Investor route refused: %s, uid %s", rule.rule, request.env.uid)
+            raise AccessError(_("This page is not available to investor accounts."))
+        return super()._pre_dispatch(rule, args)

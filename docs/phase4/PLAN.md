@@ -149,6 +149,25 @@ account, before the standard controller:
 - external API (`/xmlrpc`, `/xmlrpc/2`, `/jsonrpc`, service `object`): refused to
   investor accounts (« Access Denied », as wrong credentials).
 
+### P4-2f. Whitelist of routes (audit of 6063db1)
+Some authenticated routes resolve models, actions or reports themselves, sometimes in
+sudo, and go through neither `call_kw` nor `/web/action/load`. Examples:
+`/web/model/get_definitions` (fields of any model, verified: without the guard it
+returns the fields of `account.move`), `/json` and `/json/1`, `/report/*`. For an
+investor account, every route with `auth="user"` or `auth="bearer"` is refused before
+its controller (`ir.http._pre_dispatch`) unless it is in `INVESTOR_ROUTES`: 16 routes,
+each needed by the pages and protected by its own check. Routes added later by any
+module are refused until listed. Public routes (reachable without logging in) are not
+filtered. Inventory, reasons and project rule: `docs/phase4/ROUTES.md`; inventory script:
+`docs/phase4/routes.py`.
+
+Own password change (audit of 6063db1, point 4): the standard flow works end to end.
+It goes through the password check (`res.users.identitycheck`, created in sudo by
+`@check_identity`), then the wizard (`change.password.own`). The two models are listed
+(read and write; create and unlink for the wizard only), with a rule « own records »
+(`create_uid`), and their methods (`web_save`, `onchange`, `run_check`,
+`change_password`) are named in `INVESTOR_METHODS`.
+
 ### P4-2b. Record rules on the listed models
 Global rules computed per user (pattern `stock_access_rule_domain`), TRUE for staff:
 - `ir.ui.menu`: only the Stock Monitor menu tree (this is also P4-3: the same rule hides
@@ -249,7 +268,15 @@ JSON-RPC and URLs):
   (list, pivot, graph), language switch, logout: tours and Python checks;
 - staff unchanged: Inventory user and accountant keep their accesses and menus;
 - P4-5: each forbidden group refused, Technical Features and the other implied groups
-  accepted; the precheck lists offenders.
+  accepted; the precheck lists offenders;
+- P4-2f: `/web/model/get_definitions` and `/bus/get_model_definitions` on
+  `account.move`, `res.groups`, `maintenance.equipment` and the monitor; `/json` and
+  `/json/1` on the Inventory and invoice actions (id, external ID, path) and on the
+  monitor analysis, with a session and with an API key; `/report/html|pdf|text` on a
+  transfer, a purchase order and an invoice, `/report/download`, `/stock/pdf/...`;
+  other authenticated routes (`/my`, `/web/become`, `/mail/thread/messages`...): all
+  refused to the investor, standard for the administrator; own password change end to
+  end, another user's wizard unreadable.
 On the server after the update: the probe as `test_investor`, expected: monitor readable,
 quick start screen and buttons read-only, every other model refused, root menu Stock
 Monitor only.
@@ -362,6 +389,21 @@ rehearsal, translations, docs). Additions and findings, each with its reason:
     « Workshop » screen holding buttons named « Production » and « Financial »;
   - P4-1 characterisation: S2 is now a real return to the consignor (Partners/
     Vendors), S2b the standard « Return » wizard; same conclusion.
+
+- **Audit of 6063db1** (§2 P4-2f):
+  - instead of three overrides, a whitelist of authenticated routes for investor
+    accounts (`ir.http._pre_dispatch`), so that a route added later by any module is
+    refused until it is listed; the 16 routes come from the inventory of the installed
+    modules and the tours (`ROUTES.md`); mutation check: without the guard, 16 checks
+    fail, including `/web/model/get_definitions` returning the fields of `account.move`
+    to the investor;
+  - `/json/1` accepts a session only with the browser's Sec-Fetch headers; the tests
+    send them (otherwise the standard refusal would hide ours) and also try an API key
+    made for the investor by an administrator: refused;
+  - own password change: tested end to end (password check, wizard, new password logs
+    in);
+  - public routes not filtered (reachable anonymously, default deny as the user): the
+    reason and the alternative are in `ROUTES.md`, for the owner.
 
 Verified locally (Odoo 18, OCA heads, `web_quick_start_screen` c3120b0):
 - tests of both modules (see README for the count), including the investor tours

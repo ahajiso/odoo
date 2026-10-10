@@ -18,6 +18,7 @@ from odoo.tests.common import JsonRpcException
 from odoo.addons.lartdubati_investor_home.models.investor_security import (
     INVESTOR_ACTIONS,
     INVESTOR_BUTTONS,
+    INVESTOR_ROUTES,
 )
 from odoo.addons.lartdubati_investor_home.tests.test_stock_monitor import MonitorAccessCommon
 
@@ -35,6 +36,9 @@ REFUSED_MODELS = [
 # a model no rule or list of ours names, readable by every internal user in standard
 # Odoo: refused all the same (default deny)
 UNNAMED_MODEL = "uom.uom"
+# what a browser sends when the user opens a URL (/json/1 checks them for a session)
+BROWSER_HEADERS = {"Sec-Fetch-Dest": "document", "Sec-Fetch-Mode": "navigate",
+                   "Sec-Fetch-Site": "same-origin", "Sec-Fetch-User": "?1"}
 PNG = base64.b64encode(
     b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00"
     b"\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8"
@@ -425,6 +429,184 @@ class TestInvestorCalls(InvestorSecurityCommon, HttpCase):
             else:
                 self.fail("external API not refused to the investor")
             self.assertTrue(proxy_call(self.store.login, self.store.id))
+
+
+@tagged("post_install", "-at_install")
+class TestInvestorRoutes(InvestorSecurityCommon, HttpCase):
+    """P4-2f (audit of 6063db1): routes resolving models, actions or reports themselves
+    (possibly in sudo) are refused by the route whitelist before their controller; staff
+    keep the standard behaviour. And the own password change, end to end."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.investor.password = cls.investor.login
+        cls.store.password = cls.store.login
+        partner = cls.env["res.partner"].create({"name": "Supplier (routes test)"})
+        cls.order = cls.env["purchase.order"].create({
+            "partner_id": partner.id, "order_line": [Command.create({
+                "product_id": cls.drill.id, "product_qty": 1, "price_unit": 10})]})
+        cls.picking = cls.env["stock.picking"].create({
+            "partner_id": partner.id,
+            "picking_type_id": cls.env.ref("stock.picking_type_in").id})
+        cls.invoice = cls.env["account.move"].create({
+            "move_type": "out_invoice", "partner_id": partner.id,
+            "invoice_line_ids": [Command.create({"name": "Secret line", "quantity": 1,
+                                                 "price_unit": 10})]})
+
+    def _token(self):
+        return re.search(r'csrf_token: "(\w+)"', self.url_open("/odoo").text).group(1)
+
+    def _definitions(self, route, key, models):
+        return self.url_open(route, data={"csrf_token": self._token(),
+                                          key: json.dumps(models)})
+
+    def test_model_definitions_refused(self):
+        models = ["account.move", "res.groups", "maintenance.equipment",
+                  "lartdubati.stock.monitor"]
+        self.authenticate(self.investor.login, self.investor.login)
+        for route, key in (("/web/model/get_definitions", "model_names"),
+                           ("/bus/get_model_definitions", "model_names_to_fetch")):
+            for model in models:
+                with self.subTest(route=route, model=model):
+                    response = self._definitions(route, key, [model])
+                    self.assertEqual(response.status_code, 403)
+                    self.assertNotIn(b'"fields"', response.content)
+        self.authenticate("admin", "admin")
+        response = self._definitions("/web/model/get_definitions", "model_names",
+                                     ["account.move"])
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("fields", response.json()["account.move"])
+
+    def test_json_routes_refused(self):
+        self.env["ir.config_parameter"].sudo().set_param("web.json.enabled", "1")
+        picking = self.env.ref("stock.action_picking_tree_all")
+        invoices = self.env.ref("account.action_move_out_invoice_type")
+        analysis = self.env.ref("lartdubati_investor_home.action_stock_monitor_analysis")
+        subpaths = [f"action-{picking.id}", "action-stock.action_picking_tree_all",
+                    f"action-{invoices.id}", "action-account.action_move_out_invoice_type",
+                    f"action-{analysis.id}"]
+        if picking.path:
+            subpaths.append(picking.path)
+        # /json/1 accepts a session only from a browser navigation (Sec-Fetch headers),
+        # or an API key: both are refused by the route whitelist, not by the standard
+        # check (no API key can be made by an investor account; one made by an
+        # administrator is refused all the same)
+        key = self.env["res.users.apikeys"].with_user(self.investor).sudo()._generate(
+            None, "routes test", False)
+        self.authenticate(self.investor.login, self.investor.login)
+        for prefix in ("/json/", "/json/1/"):
+            for subpath in subpaths:
+                with self.subTest(url=prefix + subpath):
+                    response = self.url_open(prefix + subpath, allow_redirects=False,
+                                             headers=BROWSER_HEADERS)
+                    self.assertEqual(response.status_code, 403)
+        self.authenticate(None, None)
+        response = self.url_open("/json/1/action-stock.action_picking_tree_all",
+                                 headers={"Authorization": f"Bearer {key}"})
+        self.assertEqual(response.status_code, 403)
+        self.assertNotIn("records", response.text)
+        # staff: standard behaviour
+        self.authenticate("admin", "admin")
+        response = self.url_open("/json/1/action-stock.action_picking_tree_all",
+                                 headers=BROWSER_HEADERS)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("records", response.json())
+
+    def test_reports_refused(self):
+        self.authenticate(self.investor.login, self.investor.login)
+        urls = [f"/report/html/stock.report_picking/{self.picking.id}",
+                f"/report/pdf/stock.report_deliveryslip/{self.picking.id}",
+                f"/report/html/purchase.report_purchaseorder/{self.order.id}",
+                f"/report/text/purchase.report_purchasequotation/{self.order.id}",
+                f"/report/html/account.report_invoice/{self.invoice.id}",
+                f"/report/pdf/account.report_invoice_with_payments/{self.invoice.id}",
+                "/stock/pdf/stock.report_picking"]
+        for url in urls:
+            with self.subTest(url=url):
+                response = self.url_open(url)
+                self.assertEqual(response.status_code, 403)
+                self.assertNotIn(self.picking.name.encode(), response.content)
+                self.assertNotIn(self.order.name.encode(), response.content)
+                self.assertNotIn(b"Secret line", response.content)
+        response = self.url_open("/report/download", data={
+            "csrf_token": self._token(),
+            "data": json.dumps([f"/report/html/account.report_invoice/{self.invoice.id}",
+                                "qweb-html"])})
+        self.assertEqual(response.status_code, 403)
+        self.assertNotIn(b"Secret line", response.content)
+        # staff: standard behaviour (an administrator, an order of their company: the
+        # purchase order report needs no barcode renderer)
+        admin = self.env.ref("base.user_admin")
+        order = self.env["purchase.order"].with_company(admin.company_id).create({
+            "partner_id": self.order.partner_id.id, "order_line": [Command.create({
+                "name": "Line", "product_id": self.drill.id, "product_qty": 1,
+                "price_unit": 10})]})
+        self.authenticate("admin", "admin")
+        response = self.url_open(f"/report/html/purchase.report_purchaseorder/{order.id}")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(order.name.encode(), response.content)
+
+    def test_other_authenticated_routes_refused(self):
+        """Routes no investor page uses: refused because they are not listed, whatever
+        they do (the whitelist, not a list of known risks)."""
+        self.authenticate(self.investor.login, self.investor.login)
+        for route, params in (("/web/session/account", {}),
+                              ("/web/session/modules", {}),
+                              ("/web/view/edit_custom", {"custom_id": 1, "arch": "x"}),
+                              ("/web/action/run", {"action_id": 1}),
+                              ("/mail/inbox/messages", {}),
+                              ("/mail/thread/messages", {"thread_model": "res.partner",
+                                                          "thread_id": 1})):
+            with self.subTest(route=route), self.assertRaises(JsonRpcException):
+                self.make_jsonrpc_request(route, params)
+        for url in ("/my", "/my/invoices", "/my/purchase", "/web/become",
+                    f"/account/download_invoice_documents/{self.invoice.id}/pdf"):
+            with self.subTest(url=url):
+                self.assertEqual(self.url_open(url, allow_redirects=False).status_code, 403)
+        # listed routes: what the investor pages use
+        self.assertTrue(self.make_jsonrpc_request("/web/session/get_session_info", {}))
+        self.assertIn("/web/dataset/call_kw/<path:path>", INVESTOR_ROUTES)
+
+    def test_staff_routes_unchanged(self):
+        self.authenticate(self.store.login, self.store.login)
+        self.assertTrue(self.make_jsonrpc_request("/web/session/modules", {}))
+        self.assertEqual(self.url_open("/my", allow_redirects=False).status_code, 200)
+
+    def test_own_password_change(self):
+        """The standard flow: preferences → wizard → password check → reload, then the
+        new password logs in. Another user's wizard stays out of reach."""
+        others = self.env["change.password.own"].with_user(self.store).create(
+            {"new_password": "store-secret-1", "confirm_password": "store-secret-1"})
+        self.authenticate(self.investor.login, self.investor.login)
+
+        def call(model, method, args, kwargs=None, route="/web/dataset/call_kw"):
+            return self.make_jsonrpc_request(route, {
+                "model": model, "method": method, "args": args, "kwargs": kwargs or {}})
+        # preference_change_password asks for the password first (@check_identity)
+        check = call("res.users", "preference_change_password", [[self.investor.id]],
+                     route="/web/dataset/call_button")
+        self.assertEqual(check["res_model"], "res.users.identitycheck")
+        call("res.users.identitycheck", "get_views", [], {"views": [[False, "form"]]})
+        call("res.users.identitycheck", "web_save",
+             [[check["res_id"]], {"password": self.investor.login}], {"specification": {}})
+        action = call("res.users.identitycheck", "run_check", [[check["res_id"]]],
+                      route="/web/dataset/call_button")
+        self.assertEqual(action["res_model"], "change.password.own")
+        call("change.password.own", "get_views", [], {"views": [[False, "form"]]})
+        new = "investor-new-1"
+        wizard = call("change.password.own", "web_save",
+                      [[], {"new_password": new, "confirm_password": new}],
+                      {"specification": {}})[0]["id"]
+        with self.assertRaises(JsonRpcException):
+            call("change.password.own", "web_read", [others.ids],
+                 {"specification": {"new_password": {}}})
+        result = call("change.password.own", "change_password", [[wizard]],
+                      route="/web/dataset/call_button")
+        self.assertEqual(result["tag"], "reload")
+        self.authenticate(self.investor.login, new)
+        self.assertEqual(self.make_jsonrpc_request("/web/session/get_session_info", {})["uid"],
+                         self.investor.id)
 
 
 def _pre_migrate():

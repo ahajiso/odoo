@@ -2,7 +2,8 @@
 
 Investor accounts read only the stock monitor; the investor home page is versioned in
 the module. Plan: `docs/phase4/PLAN.md` (revision 5, implementation notes §9);
-characterisation of P4-1: `docs/phase4/CHARACTERISATION.md` (no code yet, separate plan).
+characterisation of P4-1: `docs/phase4/CHARACTERISATION.md` (no code yet, separate plan);
+HTTP routes and investor accounts: `docs/phase4/ROUTES.md`.
 
 Module: `lartdubati_investor_home` 18.0.2.0.0 → 18.0.3.0.0 (new dependency
 `web_quick_start_screen`, already installed on artdubati_test).
@@ -11,7 +12,7 @@ Module: `lartdubati_investor_home` 18.0.2.0.0 → 18.0.3.0.0 (new dependency
 Expected tests: **216 tests** (both modules). The tours and the Hoot tests need
 Chrome and `websocket-client`: without them in `odoo_web` they are counted as skipped,
 as in phases 2f and 3; the interface checks of step 8 cover them. The JSON-RPC, action
-and URL tests of the investor security do not need a browser.
+and URL tests of the investor security (actions, calls, routes, password change) do not need a browser.
 
 **Run nothing before the audit of the code and the owner's go. One atomic update: no
 partial deployment.**
@@ -123,11 +124,29 @@ records for: the monitor (the profile's rows), `quick.start.screen` (1),
 `res.company`, `res.currency`, `mail.message` (0), `discuss.channel` (0); « not
 installed or refused » for every other model (the call itself is refused since P4-2e).
 
+The route inventory (read-only), to compare with `ROUTES.md`: every authenticated route
+other than the 16 listed must read « refused ». Send the output to Claude if a route of
+a module not in the local inventory appears:
+
+```bash
+docker exec -i odoo_web odoo shell -d artdubati_test --no-http \
+  < /opt/odoo/addons/custom/docs/phase4/routes.py 2>/dev/null | grep '^ROUTE' \
+  > /opt/odoo/logs/phase4_routes.txt
+cut -d'|' -f4 /opt/odoo/logs/phase4_routes.txt | sort | uniq -c
+grep '| allowed' /opt/odoo/logs/phase4_routes.txt | wc -l   # must print 16
+```
+
 Then in the browser:
 1. `test_investor` (English, then French, then Persian after logging in again): the
    home page opens with the 4 buttons; Financial opens the dashboard, « ← Investor
    Home » (arrow mirrored in Persian) goes back; the 3 other buttons show « Coming
-   soon »; Detailed analysis opens; no error dialog; only the « Stock Monitor » menu.
+   soon »; Detailed analysis opens (export to CSV / XLSX and the pivot download work);
+   no error dialog; only the « Stock Monitor » menu. Preferences → Account Security →
+   Change password: the password check, then the new password, then logging in again
+   with it (then set it back as the owner wishes). Afterwards, the log must show no
+   route refused during these checks:
+   `docker logs odoo_web --since 30m 2>&1 | grep "Investor route refused"` (empty;
+   otherwise send it to Claude).
 2. An Inventory user and an accountant: menus and screens as before; the dashboard as
    after phase 3.
 3. As administrator: Settings → Users → `test_investor`: adding Purchase / User is

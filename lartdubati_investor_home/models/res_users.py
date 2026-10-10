@@ -58,6 +58,8 @@ class ResUsers(models.Model):
             return expression.FALSE_DOMAIN
         if target == "users_settings":
             return [("user_id", "=", user.id)]
+        if target == "own_created":
+            return [("create_uid", "=", user.id)]
         if target == "move_line":
             # standard stock gives every internal user read, write, create and delete
             # on all move lines (access_stock_move_line_all): an investor without
