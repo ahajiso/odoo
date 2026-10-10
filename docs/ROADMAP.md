@@ -1,4 +1,4 @@
-# Roadmap after phase 4 (audits of 6063db1 and 2071e6e, 10/10/2026)
+# Roadmap after phase 4 (audits of 6063db1, 2071e6e and 86cf4ac..beacfeb, 10/10/2026)
 
 Functional needs found by the audit, **not part of phase 4** (security). Each one becomes
 its own phase, with a plan audited before any code. The order is for the owner to set.
@@ -17,6 +17,27 @@ Rules carried by each phase:
   methods, routes, menu, fields and tests (`docs/phase4/ROUTES.md`); without them,
   nothing new is visible to investors;
 - every module installed comes with the inventory of its routes (`docs/phase4/routes.py`).
+
+## 0. Right after phase 4 (audit of 86cf4ac..beacfeb), before A to K
+
+Not mixed with the phase 4 security deployment; each with its own plan and audit.
+
+1. Label « Can be Maintenance » → « Can be Maintained » (FR « Peut être maintenu »,
+   FA with the same verbal meaning): find which OCA module defines it, override the
+   label with a minimal local inheritance (never edit the OCA repository), test
+   `fields_get` in the three languages.
+2. Product creation procedure, reworked.
+3. Two separate classifications: the product category (accounting treatment) and the
+   equipment category (business); default equipment category on the product.
+4. Clean-up of the existing categories, in particular the misleading equipment category
+   « Fixed Assets ».
+5. Mac Mini to regularise: product category « All » and equipment category « All »
+   wrong; no bill and no fixed asset; order now at 1 100 € (excl. tax) while the
+   equipment keeps a provisional cost of 1 850 € (excl. tax).
+6. Audit of the accounts of every product and equipment category (accountant,
+   `QUESTIONS_COMPTABLE.md`).
+
+Then the functional phases below, and the manual last.
 
 ## A. Recurring expenses and contracts
 A persistent document creating or completing the contract (OCA `contract`) and its

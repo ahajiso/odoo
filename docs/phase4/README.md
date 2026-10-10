@@ -11,71 +11,51 @@ Module: `lartdubati_investor_home` 18.0.2.0.0 → 18.0.3.0.0 (new dependency
 scope on repair and sale orders; new dependencies `repair` and `sale_stock`, both
 installed on the server).
 
-Expected tests on the server: **229 tests** (both modules; 230 locally). The tours and
-the Hoot tests need Chrome and `websocket-client`: without them in `odoo_web` they are
-counted as skipped, as in phases 2f and 3; the interface checks of step 8 cover them.
-The real websocket test class is skipped as a whole and not counted (first attempt:
-« of 229 tests »), hence 229. The JSON-RPC, action
-and URL tests of the investor security (actions, calls, routes, password change) do not need a browser; the
-real websocket test needs `websocket-client` (skipped on the server like the tours);
-the channel list is also tested without it (`TestInvestorBusChannels`, runs on the
-server).
+Expected tests on the server: **SERVERTESTS tests** (both modules; LOCALTESTS locally on a
+database with the server's 122 modules, log kept in `docs/phase4/test_logs/`). The tours
+and the Hoot tests need Chrome and `websocket-client`: without them in `odoo_web` they
+are counted as skipped, as in phases 2f and 3; the interface checks of step 9 cover
+them. The real websocket test class is skipped as a whole and not counted (first
+attempt: 229 for 230), hence one less on the server. The JSON-RPC, action, URL and
+password tests of the investor security do not need a browser; the websocket channel
+list is also tested without `websocket-client` (`TestInvestorBusChannels`).
 
 **Run nothing before the audit of the code and the owner's go. One atomic update: no
-partial deployment.**
+partial deployment.** Every script below stops at the first problem; nothing here has a
+name to type by hand.
 
 ## 0. Before the deployment (the running version keeps serving)
 
-- Q7: `test_investor` must hold no right other than the investor group (and what Odoo
-  gives every internal user). Settings → Users → `test_investor` → Access Rights:
-  Purchase empty, then Save. The precheck (step 3) refuses the update until every
-  investor account is clean; nothing is removed automatically.
+Q7: `test_investor` must hold no right other than the investor group (and what Odoo
+gives every internal user). Settings → Users → `test_investor` → Access Rights:
+Purchase empty, then Save. The precheck (step 3) refuses the update until every
+investor account is clean; nothing is removed automatically.
 
-- Installed modules (first deployment attempt, 10/10/2026: the tests had been run on a
-  smaller set of modules; Calendar, Repair and Sales changed the investor's and the
-  approver's screens). The tests of this version ran on a local database with exactly
-  the 122 modules of artdubati_test. The list must not have changed since, and
-  `repair` and `sale_stock` (new dependencies of `maintenance_shareholder_equipment`)
-  must be installed, otherwise the update would install them:
-
-  ```bash
-  docker exec -i odoo_db psql -U odoo -d artdubati_test -At -c \
-    "select count(*) from ir_module_module where state='installed'"            # 122
-  docker exec -i odoo_db psql -U odoo -d artdubati_test -At -c \
-    "select name, state from ir_module_module where name in ('repair','sale_stock','calendar')"
-  ```
-  Any other count: send the list to Claude before going on.
-
-## 1. Backup (database and filestore)
-
-```bash
-set -o pipefail
-mkdir -p /opt/odoo/backups /opt/odoo/logs
-STAMP=$(date +%F_%H%M)
-docker exec odoo_db pg_dump -U odoo -Fc artdubati_test \
-  > /opt/odoo/backups/artdubati_test_${STAMP}_phase4.dump && echo DB BACKUP OK
-FS=/var/lib/odoo/.local/share/Odoo/filestore
-docker exec odoo_web ls -d $FS/artdubati_test   # must print the folder
-docker exec odoo_web tar -czf - -C $FS artdubati_test \
-  > /opt/odoo/backups/artdubati_test_${STAMP}_phase4_filestore.tar.gz && echo FILESTORE BACKUP OK
-ls -l /opt/odoo/backups/*phase4*
-# the backup's path, read by steps 4-6 and the rollback (no name to type by hand)
-echo /opt/odoo/backups/artdubati_test_${STAMP}_phase4.dump > /opt/odoo/logs/phase4_backup
-cd /opt/odoo/addons/custom && git rev-parse HEAD > /opt/odoo/logs/phase4_previous_commit
-cat /opt/odoo/logs/phase4_backup /opt/odoo/logs/phase4_previous_commit
-```
-
-## 2. Fetch the new code without touching the working tree
+## 1. Fetch the new code without touching the working tree
 
 ```bash
 cd /opt/odoo/addons/custom
 git fetch origin +refs/heads/main:refs/remotes/origin/main
 git log -1 --oneline origin/main        # must be the commit announced by Claude
 rm -rf /tmp/phase4 && mkdir -p /tmp/phase4
-git archive origin/main docs/phase4 docs/deploy_modules.sh | tar -x -C /tmp/phase4
-ls /tmp/phase4/docs/phase4/             # precheck.sh precheck.sql info.sql menus.sql ...
+git archive origin/main docs/phase4 docs/deploy_modules.sh docs/backup_db.sh \
+  docs/restore_db.sh | tar -x -C /tmp/phase4
+ls /tmp/phase4/docs/ /tmp/phase4/docs/phase4/
 git status --short | head               # nothing changed in the working tree
 ```
+
+## 2. Same modules as the tested database (must print MODULES OK)
+
+```bash
+bash /tmp/phase4/docs/phase4/check_modules.sh before
+```
+
+It compares, name and version, every module installed on artdubati_test with
+`docs/phase4/modules.txt` (the 122 modules of the local database that ran the tests; the
+two updated modules must still be at their current versions). Any difference stops
+(first deployment attempt, 10/10/2026: the tests had run on another set of modules).
+It also prints the image of `odoo_web` and its Odoo version, for the record; the Odoo
+and OCA revisions of the tested code are at the top of `modules.txt`.
 
 ## 3. Precheck (must print PRECHECK OK)
 
@@ -93,12 +73,28 @@ precheck_home.sql):
   `home_button_mismatch`): send it to Claude (the update would stop). Other profiles'
   quick start screens are not concerned.
 
-## 4 to 6. Stop, update the working tree, update and test, restart
+## 4. Backup, checked (must print BACKUP OK)
 
 ```bash
-BACKUP=$(cat /opt/odoo/logs/phase4_backup); COMMIT=$(git -C /opt/odoo/addons/custom rev-parse --short origin/main)
-echo "$BACKUP $COMMIT"     # the dump of step 1 and the commit announced by Claude
-bash /tmp/phase4/docs/deploy_modules.sh "$BACKUP" 229 phase4 "$COMMIT"
+bash /tmp/phase4/docs/backup_db.sh phase4
+```
+
+`backup_db.sh` (`set -euo pipefail`): dump and filestore archive under temporary
+names; the dump read back (`pg_restore --list`) and **restored completely into a
+temporary database**, whose modules and record counts are compared with artdubati_test,
+then dropped; the archive listed (`tar -tzf`) and its files counted; then the final
+names, their SHA-256, and last the manifest `/opt/odoo/logs/phase4_backup`. Any failure
+leaves no manifest, so neither the deployment nor the rollback can use a bad backup.
+Read-only for artdubati_test (a few minutes; it needs free disk space for one more copy
+of the database).
+
+## 5 to 7. Stop, update the working tree, update and test, restart
+
+```bash
+BACKUP=$(sed -n 's/^DUMP=//p' /opt/odoo/logs/phase4_backup)
+COMMIT=$(git -C /opt/odoo/addons/custom rev-parse --short origin/main)
+echo "$BACKUP $COMMIT"     # the dump of step 4 and the commit announced by Claude
+bash /tmp/phase4/docs/deploy_modules.sh "$BACKUP" SERVERTESTS phase4 "$COMMIT"
 ```
 
 Same script as phase 3: checks first, stops `odoo_web`, moves the working tree to the
@@ -107,35 +103,30 @@ update adopts the home page records of the old setup script (found by their name
 English, French or Persian: the script could leave the Persian name in the English
 value), rewrites their English names, keeps their French and Persian ones, and gives
 every investor account the new home action. On « FAILED » it leaves `odoo_web`
-stopped: rollback.
+stopped: send the logs to Claude, then the rollback.
 
 ### Rollback (only after a FAILED)
 
-One block: it does nothing unless the backup of step 1 exists (first deployment,
-10/10/2026: a placeholder left the path empty, the database was dropped and nothing
-restored; restored by hand from the same backup).
-
 ```bash
-BACKUP=$(cat /opt/odoo/logs/phase4_backup 2>/dev/null)
-PREVIOUS=$(cat /opt/odoo/logs/phase4_previous_commit 2>/dev/null)
-if [ -s "$BACKUP" ] && [ -n "$PREVIOUS" ]; then
-  docker stop odoo_web
-  cd /opt/odoo/addons/custom && git checkout "$PREVIOUS" \
-  && docker exec odoo_db dropdb -U odoo artdubati_test \
-  && docker exec odoo_db createdb -U odoo artdubati_test \
-  && docker exec -i odoo_db pg_restore -U odoo -d artdubati_test --no-owner < "$BACKUP" \
-  && echo RESTORE OK && docker start odoo_web
-else
-  echo "STOP: backup or previous commit missing ($BACKUP / $PREVIOUS), nothing done"
-fi
+bash /tmp/phase4/docs/restore_db.sh phase4
 ```
 
-Check: `docker exec -i odoo_db psql -U odoo -d artdubati_test -Atc "select latest_version
-from ir_module_module where name='lartdubati_investor_home'"` prints `18.0.2.0.0`.
+`restore_db.sh` changes nothing before every check passed (manifest, both files and
+their SHA-256, dump and archive readable, code commit, clean working tree). Then, with
+`odoo_web` stopped: the dump is restored into a new database, and only when that
+succeeded the current database is **renamed** (kept, not dropped) and the restored one
+takes its name; the filestore is restored the same way (the current one renamed, kept);
+the code goes back to the commit of the backup; `odoo_web` is started. It prints the
+versions of the two modules: `18.0.2.0.0` and `18.0.4.0.0`. The kept database
+(`artdubati_test_before_restore_<stamp>`) and filestore are removed later, by hand,
+once Claude has read the logs. Rehearsed locally (backup, damage to the database, the
+filestore and the code, refused restore with a wrong checksum, restore, every damage
+undone; failed backup leaving no manifest): PLAN.md §9.
 
-## 7. Post-update check (must print no row)
+## 8. Post-update checks (must print MODULES OK, then no row)
 
 ```bash
+bash /tmp/phase4/docs/phase4/check_modules.sh after
 docker exec -i odoo_db psql -U odoo -d artdubati_test -At -F ' | ' \
   < /opt/odoo/addons/custom/docs/phase4/postcheck.sql
 ```
@@ -144,7 +135,7 @@ It lists: a home record not adopted, an investor screen whose buttons are not ex
 the module's four, a second screen named like the investor screen, an investor account
 without the new home action, a missing rule.
 
-## 8. Probe and interface checks
+## 9. Probe and interface checks
 
 The probe as `test_investor` (read-only, password typed, never stored):
 
