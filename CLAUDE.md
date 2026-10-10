@@ -262,7 +262,7 @@ tests on artdubati_test (47 passing, 08/10/2026).
    action load whitelist, `run()` refused, exact action per home button, forbidden
    groups refused), home page as module data (adoption of the script's records in any
    language, rehearsal finding), back link on the dashboard, precheck / post-check,
-   fr/fa; 209 tests passing locally; rehearsal on the phase 3 code clean. Before
+   fr/fa; audit of dff33cb corrected (public methods and external API guarded, home adoption by screen then its buttons, S2 a real return); 216 tests passing locally; rehearsals on the phase 3 code clean. Before
    deployment: Q7 (Purchase rights off `test_investor`), one atomic update.
 5. Translations, manual rewrite for all phases (cards citing removed or changed fields,
    new receiving procedures, Investor tab), deployment checklist
