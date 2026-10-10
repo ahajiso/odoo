@@ -77,6 +77,11 @@
   in INVESTOR_ROUTES or INVESTOR_PUBLIC_ROUTES with a reason and a test as an investor
   account; a new public route is read anyway (docs/phase4/ROUTES.md). Every future investor screen needs, explicitly, its
   action, models, methods, routes, menu, fields and tests.
+- Test database = server modules (first phase 4 deployment, 10/10/2026): the tests that
+  open screens (tours, Hoot, websocket) never run on the server (no Chrome). Before each
+  deployment, the list of modules installed on artdubati_test is compared with the
+  local test database (same 122 modules, docs/phase4/README.md section 0); a module
+  installed on the server is installed locally before the tests count.
 - Main rule: use standard Odoo and OCA data and features first; change the repo only
   when necessary.
 - Develop and test on artdubati_test only; production only on explicit request.

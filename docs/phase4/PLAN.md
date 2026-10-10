@@ -445,6 +445,29 @@ rehearsal, translations, docs). Additions and findings, each with its reason:
   too (`TestInvestorBusChannels`); mutation check: both tests fail without their
   guard. « VT » confirmed as workwear (ROADMAP H).
 
+- **First deployment attempt (10/10/2026), stopped by the tests, rolled back**: 5 errors
+  on artdubati_test. Cause: the local test database had about 70 modules, the server
+  122 (Calendar, Repair, Sales, CRM, OCA accounting and bank modules), and the screen
+  tests (tours, Hoot, websocket) never run on the server. Found and fixed with a
+  local database holding exactly the server's 122 modules:
+  - investor: Calendar adds « Today's Meetings » to the activity systray, read from
+    `calendar.attendee` as the user (refused by the default deny), so every page's mail
+    init failed: `_get_activity_groups` returns nothing for investor accounts;
+  - investor: the external API guard opened a read/write cursor to read groups:
+    read-only;
+  - tests logged in as `admin`/`admin` (unknown on a real database): users made by
+    the tests;
+  - phase 2f, already on the server: the equipment approver could not open a transfer
+    or a lot: Repair and Sales add repair and sale order counters to these forms.
+    Read access with an empty scope on `repair.order`, `sale.order`,
+    `sale.order.line`; `maintenance_shareholder_equipment` depends on `repair` and
+    `sale_stock` (installed on the server);
+  - the rollback used an empty backup path (placeholder): the database was dropped and
+    not restored, then restored by hand from the same backup. The procedure no longer
+    has placeholders, and the rollback refuses to start without the backup.
+  Rule: before each deployment, the server's installed modules are compared with the
+  local test database.
+
 Verified locally (Odoo 18, OCA heads, `web_quick_start_screen` c3120b0):
 - tests of both modules (see README for the count), including the investor tours
   (dashboard and home page) without any access error;

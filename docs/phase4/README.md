@@ -27,6 +27,21 @@ partial deployment.**
   Purchase empty, then Save. The precheck (step 3) refuses the update until every
   investor account is clean; nothing is removed automatically.
 
+- Installed modules (first deployment attempt, 10/10/2026: the tests had been run on a
+  smaller set of modules; Calendar, Repair and Sales changed the investor's and the
+  approver's screens). The tests of this version ran on a local database with exactly
+  the 122 modules of artdubati_test. The list must not have changed since, and
+  `repair` and `sale_stock` (new dependencies of `maintenance_shareholder_equipment`)
+  must be installed, otherwise the update would install them:
+
+  ```bash
+  docker exec -i odoo_db psql -U odoo -d artdubati_test -At -c \
+    "select count(*) from ir_module_module where state='installed'"            # 122
+  docker exec -i odoo_db psql -U odoo -d artdubati_test -At -c \
+    "select name, state from ir_module_module where name in ('repair','sale_stock','calendar')"
+  ```
+  Any other count: send the list to Claude before going on.
+
 ## 1. Backup (database and filestore)
 
 ```bash
