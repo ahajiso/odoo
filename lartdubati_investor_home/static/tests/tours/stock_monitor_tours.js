@@ -53,3 +53,27 @@ registry.category("web_tour.tours").add("stock_monitor_perf_tour", {
         },
     ],
 });
+
+// Investor home page (phase 4, docs/phase4/PLAN.md §3): the home action, the Financial
+// button to the dashboard, a « coming soon » button, no error under the investor rights.
+registry.category("web_tour.tours").add("investor_home_tour", {
+    steps: () => [
+        { content: "home buttons", trigger: ".o_kanban_record:contains('Financial')" },
+        { content: "four buttons", trigger: ".o_kanban_view:has(.o_kanban_record:contains('Production'))" },
+        {
+            content: "open Financial",
+            trigger: ".o_kanban_record:contains('Financial') a[name='run_action']",
+            run: "click",
+        },
+        { content: "dashboard figures", trigger: ".o_smm_card_inventory_value .o_smm_card_big" },
+        noError,
+        { content: "back home", trigger: ".o_smm_back:contains('Investor Home')", run: "click" },
+        {
+            content: "open Production",
+            trigger: ".o_kanban_record:contains('Production') a[name='run_action']",
+            run: "click",
+        },
+        { content: "coming soon", trigger: ".o_notification:contains('Coming soon')" },
+        noError,
+    ],
+});

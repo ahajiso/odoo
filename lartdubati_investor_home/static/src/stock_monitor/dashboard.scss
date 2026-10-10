@@ -390,3 +390,13 @@ $smm-radius: 12px;
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
+
+.o_smm_back {
+    display: inline-block;
+    margin-bottom: 4px;
+    font-size: 0.9rem;
+}
+// the arrow points to the start of the line in right-to-left languages too
+html[dir="rtl"] .o_smm_back .fa-arrow-left {
+    transform: scaleX(-1);
+}

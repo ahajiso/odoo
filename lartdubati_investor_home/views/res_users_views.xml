@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_users_form_investor_warning" model="ir.ui.view">
+        <field name="name">res.users.form.investor.warning</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <field name="investor_without_profile" invisible="1"/>
+                <div class="alert alert-warning mb-0" role="alert"
+                     invisible="not investor_without_profile" groups="base.group_erp_manager">
+                    Investor account without a Stock Access Profile: it sees no stock.
+                    Choose a profile in the « Stock Access » tab.
+                </div>
+            </xpath>
+        </field>
+    </record>
+
     <record id="view_users_form_stock_access" model="ir.ui.view">
         <field name="name">res.users.form.stock.access</field>
         <field name="model">res.users</field>

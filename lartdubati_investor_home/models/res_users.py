@@ -35,6 +35,29 @@ class ResUsers(models.Model):
             )
         if target == "monitor":
             return user.stock_access_id._monitor_domain()
+        # phase 4 (docs/phase4/PLAN.md §2, P4-2b): the few models an investor account
+        # may read, narrowed to its own records
+        if target == "menu":
+            root = self.env.ref("lartdubati_investor_home.menu_stock_monitor_root")
+            return [("id", "child_of", root.id)]
+        if target == "home_screen":
+            screen = self.env.ref("lartdubati_investor_home.investor_home_screen",
+                                  raise_if_not_found=False)
+            return [("id", "=", screen.id)] if screen else expression.FALSE_DOMAIN
+        if target == "home_button":
+            # the buttons named in INVESTOR_BUTTONS, not whatever the screen lists
+            from .investor_security import INVESTOR_BUTTONS
+            buttons = [self.env.ref(xmlid, raise_if_not_found=False)
+                       for xmlid in INVESTOR_BUTTONS]
+            return [("id", "in", [button.id for button in buttons if button])]
+        if target == "user":
+            return [("id", "=", user.id)]
+        if target == "partner":
+            return [("id", "in", (user.partner_id | user.company_ids.partner_id).ids)]
+        if target == "none":
+            return expression.FALSE_DOMAIN
+        if target == "users_settings":
+            return [("user_id", "=", user.id)]
         if target == "move_line":
             # standard stock gives every internal user read, write, create and delete
             # on all move lines (access_stock_move_line_all): an investor without

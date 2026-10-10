@@ -1,7 +1,6 @@
-from contextlib import contextmanager
-
 from odoo import Command
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, ValidationError
+from odoo.osv import expression
 from odoo.tests import TransactionCase, tagged
 
 
@@ -45,17 +44,25 @@ class TestStockAccess(TransactionCase):
         )
         cls.Profile = cls.env["lartdubati.stock.access"]
 
+    def _visible(self, domain):
+        """Locations the profile rule lets the user see. Since phase 4 an investor
+        account reads no location at all (default deny, test_investor_security): the
+        rule is kept for safety and checked through its computed domain."""
+        rule = self.env["ir.rule"].with_user(self.user)._compute_domain("stock.location", "read")
+        return self.env["stock.location"].search(expression.AND([rule or [], domain]))
+
     def _visible_stocks(self):
-        return self.env["stock.location"].with_user(self.user).search(
-            [("id", "in", (self.stock_a | self.stock_b).ids)]
-        )
+        return self._visible([("id", "in", (self.stock_a | self.stock_b).ids)])
 
     def test_no_profile_sees_nothing(self):
         self.assertFalse(self._visible_stocks())
         supplier = self.env.ref("stock.stock_location_suppliers")
-        self.assertTrue(
-            self.env["stock.location"].with_user(self.user).search([("id", "=", supplier.id)])
-        )
+        self.assertTrue(self._visible([("id", "=", supplier.id)]))
+
+    def test_investor_reads_no_location(self):
+        self.user.stock_access_id = self.Profile.create({"name": "All"})
+        with self.assertRaises(AccessError):
+            self.env["stock.location"].with_user(self.user).search([])
 
     def test_empty_profile_no_restriction(self):
         self.user.stock_access_id = self.Profile.create({"name": "All"})
@@ -82,8 +89,7 @@ class TestStockAccess(TransactionCase):
             {"name": "Shelf", "usage": "internal", "location_id": self.stock_a.id})
         self.user.stock_access_id = self.Profile.create(
             {"name": "France", "country_ids": [Command.set(self.france.ids)]})
-        Location = self.env["stock.location"].with_user(self.user)
-        self.assertEqual(Location.search([("id", "=", shelf.id)]), shelf)
+        self.assertEqual(self._visible([("id", "=", shelf.id)]), shelf)
 
     def test_new_address_country_applies_at_once(self):
         self.user.stock_access_id = self.Profile.create(
@@ -118,7 +124,8 @@ class TestStockAccess(TransactionCase):
 class TestInvestorMoveLines(TransactionCase):
     """Standard stock gives every internal user read, write, create and delete on all
     move lines (access_stock_move_line_all): an investor without Inventory rights gets
-    none of them (audit of 888d229)."""
+    none of them (audit of 888d229). Since phase 4 the default deny refuses the model
+    first and an investor account cannot hold Inventory rights at all."""
 
     @classmethod
     def setUpClass(cls):
@@ -141,25 +148,10 @@ class TestInvestorMoveLines(TransactionCase):
                 "groups_id": [Command.set([cls.env.ref(g).id for g in ("base.group_user",) + groups])],
             })
         cls.investor = user("inv_no_stock", "lartdubati_investor_home.group_stock_investor")
-        cls.investor_stock = user("inv_stock", "lartdubati_investor_home.group_stock_investor",
-                                  "stock.group_stock_user")
         cls.stock_user = user("plain_stock_user", "stock.group_stock_user")
         # a profile without restriction: only the move line rule is under test here
         everything = cls.env["lartdubati.stock.access"].create({"name": "All (test)"})
-        (cls.investor | cls.investor_stock).stock_access_id = everything
-
-    @contextmanager
-    def _denied_by_move_line_rule(self, *operations):
-        """AccessError raised by a record rule of stock.move.line for one of
-        `operations` (the message is generic for users without debug rights: the log
-        names the operation and the model)."""
-        with self.assertLogs("odoo.addons.base.models.ir_rule", "INFO") as logs, \
-                self.assertRaises(AccessError):
-            yield
-        self.assertTrue(any("operation: %s on" % operation in line
-                            and "model: stock.move.line" in line
-                            for line in logs.output for operation in operations),
-                        logs.output)
+        cls.investor.stock_access_id = everything
 
     def _values(self):
         return {"product_id": self.product.id, "location_id": self.supplier.id,
@@ -169,30 +161,23 @@ class TestInvestorMoveLines(TransactionCase):
 
     def test_investor_without_inventory_has_no_access(self):
         MoveLine = self.env["stock.move.line"].with_user(self.investor)
-        self.assertFalse(MoveLine.search([("id", "=", self.line.id)]))
-        with self.assertRaises(AccessError):
-            self.line.with_user(self.investor).read(["quantity"])
-        # a line without a move: standard stock alone would allow it; refused by the rule
-        # the new line is read back during its creation: the same rule refuses it
-        with self._denied_by_move_line_rule("create", "read"):
-            MoveLine.create(dict(self._values(), move_id=False))
-        with self.assertRaises(AccessError):
-            MoveLine.create(self._values())
-        # the line is invisible to them: write and unlink stop at its read check or at
-        # their own, both from the same rule (the only one refusing on move lines here)
-        with self._denied_by_move_line_rule("write", "read"):
-            self.line.with_user(self.investor).write({"quantity": 2.0})
-        with self._denied_by_move_line_rule("unlink", "read"):
-            self.line.with_user(self.investor).unlink()
+        for call in (lambda: MoveLine.search([("id", "=", self.line.id)]),
+                     lambda: self.line.with_user(self.investor).read(["quantity"]),
+                     lambda: MoveLine.create(dict(self._values(), move_id=False)),
+                     lambda: MoveLine.create(self._values()),
+                     lambda: self.line.with_user(self.investor).write({"quantity": 2.0}),
+                     lambda: self.line.with_user(self.investor).unlink()):
+            with self.assertRaises(AccessError):
+                call()
         self.assertTrue(self.line.exists())
         self.assertEqual(self.line.quantity, 1.0)
+        # the move-line rule of 2f stays behind the default deny
+        self.assertEqual(self.env["ir.rule"].with_user(self.investor)._compute_domain(
+            "stock.move.line", "read"), [(0, "=", 1)])
 
-    def test_investor_with_inventory_keeps_standard_rights(self):
-        line = self.env["stock.move.line"].with_user(self.investor_stock).create(self._values())
-        line.write({"quantity": 2.0})
-        self.assertEqual(self.env["stock.move.line"].with_user(self.investor_stock).search(
-            [("id", "in", (line | self.line).ids)]), line | self.line)
-        line.unlink()
+    def test_investor_with_inventory_refused(self):
+        with self.assertRaises(ValidationError):
+            self.investor.groups_id |= self.env.ref("stock.group_stock_user")
 
     def test_ordinary_inventory_user_unchanged(self):
         MoveLine = self.env["stock.move.line"].with_user(self.stock_user)

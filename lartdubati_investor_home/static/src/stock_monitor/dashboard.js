@@ -543,6 +543,12 @@ export class StockMonitorDashboard extends Component {
         const period = periods[row.rent_rule_type] || row.rent_rule_type || "";
         return `${this.money(row.rent_amount, row.rent_currency_id)} / ${every}${period}`;
     }
+    /** The previous screen (the investor home page), shown as a back link: the dashboard
+     * has no control panel and so no breadcrumbs of its own (phase 4). */
+    get previous() {
+        const breadcrumbs = this.env.config?.breadcrumbs || [];
+        return breadcrumbs.length > 1 ? breadcrumbs.at(-2) : null;
+    }
     get today() {
         return this.state.data ? this.date(this.state.data.date) : "";
     }

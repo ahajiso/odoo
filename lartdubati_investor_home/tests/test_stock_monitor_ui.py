@@ -39,3 +39,9 @@ class TestStockMonitorTours(MonitorAccessCommon, HttpCase):
                 user.password = user.login  # start_tour logs in with login = password
                 self.start_tour("/odoo/action-lartdubati_investor_home.action_stock_monitor",
                                 tour, login=user.login)
+
+    def test_investor_home_tour(self):
+        """Phase 4: the investor opens the home page (home action), the dashboard from
+        Financial, a « coming soon » notification; nothing refused on the way."""
+        self.investor.password = self.investor.login
+        self.start_tour("/odoo", "investor_home_tour", login=self.investor.login)

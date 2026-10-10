@@ -517,11 +517,15 @@ class TestMonitorAccess(MonitorAccessCommon):
         row.read(["accounting_value", "stock_value", "rent_paid"])
 
     def test_home_button_opens_the_dashboard(self):
-        """The server action behind the home page's Financial button (docs/investor_home)
-        opens the dashboard for an investor without Inventory rights."""
+        """The Financial button of the investor home page opens the dashboard (phase 4:
+        a client action; the phase 3 server action can no longer be run by an investor
+        account, P4-2d)."""
+        button = self.env.ref("lartdubati_investor_home.investor_button_financial")
+        self.assertEqual(button.with_user(self.investor).run_action()["tag"],
+                         "lartdubati_stock_monitor")
         action = self.env.ref("lartdubati_investor_home.action_server_stock_monitor")
-        result = action.with_user(self.investor).run()
-        self.assertEqual(result["tag"], "lartdubati_stock_monitor")
+        with self.assertRaises(AccessError):
+            action.with_user(self.investor).run()
 
     def test_nobody_writes(self):
         row = self._visible(self.store, [("city", "=", "Berlin")])

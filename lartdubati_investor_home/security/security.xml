@@ -37,4 +37,63 @@
         <field name="model_id" ref="stock.model_stock_move_line"/>
         <field name="domain_force">user.stock_access_rule_domain('move_line')</field>
     </record>
+
+    <!-- Phase 4 (docs/phase4/PLAN.md §2, P4-2b): the few models an investor account may
+         read (the others are refused by the default deny), narrowed to its own records.
+         Global rules computed per user: TRUE for every other user. -->
+    <record id="rule_menu_investor" model="ir.rule">
+        <field name="name">Menus: investor accounts see the stock monitor only</field>
+        <field name="model_id" ref="base.model_ir_ui_menu"/>
+        <field name="domain_force">user.stock_access_rule_domain('menu')</field>
+    </record>
+    <record id="rule_quick_start_screen_investor" model="ir.rule">
+        <field name="name">Quick start screens: investor accounts read the investor home</field>
+        <field name="model_id" ref="web_quick_start_screen.model_quick_start_screen"/>
+        <field name="domain_force">user.stock_access_rule_domain('home_screen')</field>
+    </record>
+    <record id="rule_quick_start_action_investor" model="ir.rule">
+        <field name="name">Quick start buttons: investor accounts read the investor buttons</field>
+        <field name="model_id" ref="web_quick_start_screen.model_quick_start_screen_action"/>
+        <field name="domain_force">user.stock_access_rule_domain('home_button')</field>
+    </record>
+    <record id="rule_users_investor" model="ir.rule">
+        <field name="name">Users: investor accounts read their own user</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="domain_force">user.stock_access_rule_domain('user')</field>
+    </record>
+    <record id="rule_partner_investor" model="ir.rule">
+        <field name="name">Contacts: investor accounts read their own and the company's</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="domain_force">user.stock_access_rule_domain('partner')</field>
+    </record>
+    <record id="rule_users_settings_investor" model="ir.rule">
+        <field name="name">User settings: investor accounts use their own</field>
+        <field name="model_id" ref="base.model_res_users_settings"/>
+        <field name="domain_force">user.stock_access_rule_domain('users_settings')</field>
+    </record>
+    <record id="rule_discuss_channel_investor" model="ir.rule">
+        <field name="name">Discussion channels: none for investor accounts</field>
+        <field name="model_id" ref="mail.model_discuss_channel"/>
+        <field name="domain_force">user.stock_access_rule_domain('none')</field>
+    </record>
+    <record id="rule_discuss_channel_member_investor" model="ir.rule">
+        <field name="name">Channel members: none for investor accounts</field>
+        <field name="model_id" ref="mail.model_discuss_channel_member"/>
+        <field name="domain_force">user.stock_access_rule_domain('none')</field>
+    </record>
+    <record id="rule_filters_investor" model="ir.rule">
+        <field name="name">Favourite filters: none for investor accounts</field>
+        <field name="model_id" ref="base.model_ir_filters"/>
+        <field name="domain_force">user.stock_access_rule_domain('none')</field>
+    </record>
+    <record id="rule_mail_message_investor" model="ir.rule">
+        <field name="name">Messages: none for investor accounts</field>
+        <field name="model_id" ref="mail.model_mail_message"/>
+        <field name="domain_force">user.stock_access_rule_domain('none')</field>
+    </record>
+    <record id="rule_mail_activity_investor" model="ir.rule">
+        <field name="name">Activities: none for investor accounts</field>
+        <field name="model_id" ref="mail.model_mail_activity"/>
+        <field name="domain_force">user.stock_access_rule_domain('none')</field>
+    </record>
 </odoo>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Investor home page (docs/phase4/PLAN.md §3, P4-0): the OCA quick start screen,
+         versioned here. It needs no server action: the screen opens through a window
+         action, the buttons through client actions (an investor account can run no
+         server action, P4-2d). -->
+
+    <!-- « Coming soon »: a notification in the user's language (static/src/investor_home) -->
+    <record id="action_coming_soon" model="ir.actions.client">
+        <field name="name">Coming soon</field>
+        <field name="tag">lartdubati_coming_soon</field>
+    </record>
+
+    <record id="investor_button_financial" model="quick.start.screen.action">
+        <field name="name">Financial</field>
+        <field name="sequence">10</field>
+        <field name="icon_name">fa-line-chart</field>
+        <field name="description"><![CDATA[<p>Stock monitor: quantities and values per stock.</p>]]></field>
+        <field name="action_ref_id" eval="'ir.actions.client,%d' % ref('action_stock_monitor')"/>
+    </record>
+    <record id="investor_button_administrative" model="quick.start.screen.action">
+        <field name="name">Administrative</field>
+        <field name="sequence">20</field>
+        <field name="icon_name">fa-building</field>
+        <field name="description"><![CDATA[<p>Coming soon.</p>]]></field>
+        <field name="action_ref_id" eval="'ir.actions.client,%d' % ref('action_coming_soon')"/>
+    </record>
+    <record id="investor_button_commerce" model="quick.start.screen.action">
+        <field name="name">Commerce &amp; Services</field>
+        <field name="sequence">30</field>
+        <field name="icon_name">fa-shopping-cart</field>
+        <field name="description"><![CDATA[<p>Coming soon.</p>]]></field>
+        <field name="action_ref_id" eval="'ir.actions.client,%d' % ref('action_coming_soon')"/>
+    </record>
+    <record id="investor_button_production" model="quick.start.screen.action">
+        <field name="name">Production</field>
+        <field name="sequence">40</field>
+        <field name="icon_name">fa-cogs</field>
+        <field name="description"><![CDATA[<p>Coming soon.</p>]]></field>
+        <field name="action_ref_id" eval="'ir.actions.client,%d' % ref('action_coming_soon')"/>
+    </record>
+
+    <record id="investor_home_screen" model="quick.start.screen">
+        <field name="name">Investor Home</field>
+        <field name="action_ids" eval="[(6, 0, [ref('investor_button_financial'), ref('investor_button_administrative'), ref('investor_button_commerce'), ref('investor_button_production')])]"/>
+    </record>
+
+    <!-- The investor's home action: loaded by /web/action/load (P4-2d whitelist) -->
+    <record id="action_investor_home" model="ir.actions.act_window">
+        <field name="name">Investor Home</field>
+        <field name="res_model">quick.start.screen.action</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_id" ref="web_quick_start_screen.quick_start_screen_action_kanban"/>
+        <field name="domain" eval="[('id', 'in', [ref('investor_button_financial'), ref('investor_button_administrative'), ref('investor_button_commerce'), ref('investor_button_production')])]"/>
+        <field name="target">current</field>
+    </record>
+
+    <!-- F1: only Settings may change home screens and buttons (OCA grants write to
+         every internal user; group rules are ORed: Settings keeps the rights) -->
+    <record id="rule_quick_start_screen_no_write" model="ir.rule">
+        <field name="name">Quick start screens: no change by internal users</field>
+        <field name="model_id" ref="web_quick_start_screen.model_quick_start_screen"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+    </record>
+    <record id="rule_quick_start_screen_settings" model="ir.rule">
+        <field name="name">Quick start screens: changed by Settings</field>
+        <field name="model_id" ref="web_quick_start_screen.model_quick_start_screen"/>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+    </record>
+    <record id="rule_quick_start_action_no_write" model="ir.rule">
+        <field name="name">Quick start buttons: no change by internal users</field>
+        <field name="model_id" ref="web_quick_start_screen.model_quick_start_screen_action"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[(0, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+    </record>
+    <record id="rule_quick_start_action_settings" model="ir.rule">
+        <field name="name">Quick start buttons: changed by Settings</field>
+        <field name="model_id" ref="web_quick_start_screen.model_quick_start_screen_action"/>
+        <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="False"/>
+    </record>
+</odoo>
