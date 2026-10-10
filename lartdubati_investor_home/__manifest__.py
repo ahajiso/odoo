@@ -1,6 +1,6 @@
 {
     "name": "L'Art du Bâti - Investor Home and Stock Monitor",
-    "version": "18.0.3.0.0",
+    "version": "18.0.3.0.1",
     "summary": "Stock place type, per-user stock access and a mandatory stock "
     "on equipment for the investor stock monitor.",
     "author": "L'Art du Bâti",

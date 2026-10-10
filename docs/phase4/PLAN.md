@@ -530,6 +530,21 @@ Not verified (server): the state of the script's records on artdubati_test (the
 precheck shows them); whether other users rely on `base_menu_visibility_restriction`
 (listed by the precheck).
 
+### 9.x Correction 18.0.3.0.1 (audit of the deployed phase 4, 10/10/2026)
+- Q6 was not applied: no step gave investors « Access to export feature »; the tests
+  added it by hand (`InvestorSecurityCommon`, `test_stock_monitor`), which hid it. Now
+  implied by `group_stock_investor`; the manual grants are removed from the tests, so
+  every investor test runs with the group's rights only.
+- The browser test of the fix found two more blocks the server check could not reach
+  (no Export menu there): the export dialog reads `ir.exports` (added to
+  INVESTOR_MODELS read, rule « none »: no staff template shown, saving one refused); the
+  CSV export of a grouped list is refused by Odoo for everyone, and the analysis was
+  grouped by `group_by` in the action context (no facet, so no way to ungroup): now
+  `search_default_group_currency` / `search_default_group_stock` (menu action and
+  dashboard button). Cross-currency sums stay impossible (read_group, §11.1 of phase 3).
+- `probe_investor.py`: menus through `/web/webclient/load_menus/<unique>`.
+- Deployment: README §10.
+
 ## Data cleaned after the phase 3 deployment (10/10/2026)
 Bg/TEST Paris (id 21): its 40 « TEST Cement bag » moved to Bg/Stock by a standard
 internal transfer (Bg/Stock now 46); « Outside Any Monitor Stock » alert gone; the

@@ -40,6 +40,9 @@ INVESTOR_MODELS = {
         "mail.message",  # same, mail client init: inbox / starred (rule: none)
         "mail.activity",  # activity systray of the web client (rule: none)
         "ir.filters",  # favourite filters loaded with the views (rule: none)
+        # the export dialog lists the saved export templates (rule: none; saving one is
+        # refused: no write or create), audit of the deployed phase 4
+        "ir.exports",
         # own password change (audit of 6063db1): the standard wizard and the password
         # check it asks for first (rules: own records only)
         "change.password.own",

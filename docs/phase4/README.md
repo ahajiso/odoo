@@ -197,3 +197,73 @@ Then in the browser:
    refused (message naming the group); a new investor user without profile shows the
    warning banner; the old « Investor Home: coming soon » server action is no longer
    used by any button (kept until phase 5).
+
+## 10. Correction 18.0.3.0.1 after the interface checks (10/10/2026)
+
+The interface checks of step 9 (audit of the deployed phase 4) found:
+1. **Export unavailable to investors**: `test_investor` did not hold « Access to export
+   feature » (`base.group_allow_export`), so the list had no Actions → Export. Q6
+   allows the export but nothing gave the group: the local tests added it by hand.
+   Now the investor group implies it (security.xml); the update adds it to every
+   existing member (standard `res.groups` implication). Found while testing the fix in
+   a browser: the export dialog reads the saved export templates (`ir.exports`), which
+   the default deny refused (error dialog), and Odoo refuses the CSV export of a
+   grouped list (for every user), while the analysis was grouped by the action's
+   context, with no facet to remove. Fixed: `ir.exports` readable with a rule showing
+   none (saving a template stays refused), the analysis grouped by removable facets
+   (Currency, Stock; amounts still never summed across currencies, phase 3 §11.1).
+   Tests: an account made only as an investor exports (route test, CSV and XLSX); a
+   member without the group gets it when the implication is linked (the server's
+   update); the investor tour selects a row, exports XLSX from the grouped list, then
+   ungroups and exports CSV, both files really saved by the browser; export templates
+   hidden and refused. The post-check also lists an active investor without the export
+   group and the new rule.
+2. **Probe**: `probe_investor.py` loaded the menus with `ir.ui.menu.load_menus` through
+   `call_kw`, refused to investors on purpose; it now uses the web client's route
+   `/web/webclient/load_menus/<unique>`.
+
+Module: `lartdubati_investor_home` 18.0.3.0.0 → 18.0.3.0.1;
+`maintenance_shareholder_equipment` unchanged (18.0.4.0.1, its tests run again).
+Expected tests on the server: **233 tests** (234 locally, same
+difference of one as in step 5).
+
+```bash
+# 1. fetch the code without touching the working tree
+cd /opt/odoo/addons/custom
+git fetch origin +refs/heads/main:refs/remotes/origin/main
+git log -1 --oneline origin/main        # the commit announced by Claude
+rm -rf /tmp/phase4 && mkdir -p /tmp/phase4
+git archive origin/main docs/phase4 docs/deploy_modules.sh docs/backup_db.sh \
+  docs/restore_db.sh | tar -x -C /tmp/phase4
+git status --short | head               # nothing
+
+# 2. platform: the phase 4 code is running (must print PLATFORM OK (before))
+bash /tmp/phase4/docs/phase4/check_modules.sh before
+
+# 3. precheck (must print PRECHECK OK)
+bash /tmp/phase4/docs/phase4/precheck.sh artdubati_test
+
+# 4. backup, checked (must print BACKUP OK, 0 missing attachment file)
+bash /tmp/phase4/docs/backup_db.sh phase4fix
+
+# 5 to 7. stop, code, update, tests, restart
+BACKUP=$(sed -n 's/^DUMP=//p' /opt/odoo/logs/phase4fix_backup)
+COMMIT=$(git -C /opt/odoo/addons/custom rev-parse --short origin/main)
+echo "$BACKUP $COMMIT"
+bash /tmp/phase4/docs/deploy_modules.sh "$BACKUP" 233 phase4fix "$COMMIT"
+
+# 8. post-update checks (PLATFORM OK (after), then no row)
+bash /tmp/phase4/docs/phase4/check_modules.sh after
+docker exec -i odoo_db psql -U odoo -d artdubati_test -At -F ' | ' \
+  < /opt/odoo/addons/custom/docs/phase4/postcheck.sql
+```
+
+Rollback, only after a FAILED and Claude's reading of the logs:
+`bash /tmp/phase4/docs/restore_db.sh phase4fix` (back to 9973c29, versions
+18.0.3.0.0 and 18.0.4.0.1).
+
+9. Probe (step 9, now going to the end: root menus « Stock Monitor » only, then the
+   table of models), then in the browser as `test_investor`: Detailed analysis → select
+   a row → Actions → Export: the dialog opens with no error; XLSX downloads; remove the
+   « Currency > Stock » facet, select a row, Export, CSV downloads. Then the log check of
+   step 9 (empty).

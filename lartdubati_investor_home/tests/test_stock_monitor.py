@@ -496,11 +496,9 @@ class TestMonitorAccess(MonitorAccessCommon):
             Monitor.read_group([], ["stock_value:sum"], ["currency_id"])
         with self.assertRaises(AccessError):
             Monitor.search([], order="accounting_value desc")
-        # export needs « Allow export » (base.group_allow_export), which investors do not
-        # have by default; with it, a staff field still cannot be exported
-        with self.assertRaises(UserError):
-            row.export_data(["inventory_value"])
-        self.investor.groups_id |= self.env.ref("base.group_allow_export")
+        # export needs « Allow export » (base.group_allow_export), implied by the
+        # investor group (Q6); a staff field still cannot be exported
+        self.assertTrue(self.investor.has_group("base.group_allow_export"))
         self.assertEqual(len(row.export_data(["inventory_value", "city"])["datas"]), 1)
         with self.assertRaises(AccessError):
             row.export_data(["stock_value"])
@@ -577,7 +575,7 @@ class TestMonitorCompanies(MonitorAccessCommon):
             "standard_price": 1.0, "categ_id": cls.categ_tools.id})
         cls.env["stock.quant"].with_company(cls.company_b)._update_available_quantity(
             cls.bolts, cls.stock_b, 7)
-        for user in (cls.investor, cls.store, cls.accountant):
+        for user in (cls.store, cls.accountant):  # investors: implied by their group
             user.groups_id |= cls.env.ref("base.group_allow_export")
 
     def _monitor(self, user, companies):

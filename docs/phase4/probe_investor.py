@@ -76,7 +76,10 @@ try:  # before phase 4 only: investors may not read res.groups afterwards
 except RuntimeError as error:
     print("Groups: not readable by this account (expected after phase 4):", str(error)[:60])
 
-menus = call("ir.ui.menu", "load_menus", False)
+# the route the web client loads its menus with (the ORM method through call_kw is
+# refused to investors, audit of the deployed phase 4); any key, it only names the cache
+with opener.open(URL + "/web/webclient/load_menus/probe", timeout=120) as response:
+    menus = json.load(response)
 roots = [menus[str(mid)]["name"] for mid in menus["root"]["children"]]
 print("Root menus:", ", ".join(roots))
 

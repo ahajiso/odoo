@@ -494,7 +494,8 @@ export class StockMonitorDashboard extends Component {
             res_model: MODEL,
             views: [[false, "list"], [false, "pivot"], [false, "graph"], [false, "form"]],
             domain: this.state.data ? this.state.data.domain : [],
-            context: { group_by: ["currency_id", "stock_name"] },
+            // removable facets: the CSV export needs an ungrouped list
+            context: { search_default_group_currency: 1, search_default_group_stock: 1 },
         });
     }
 

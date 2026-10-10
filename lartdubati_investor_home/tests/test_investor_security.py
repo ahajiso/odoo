@@ -56,7 +56,6 @@ class InvestorSecurityCommon(MonitorAccessCommon):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.investor.groups_id |= cls.env.ref("base.group_allow_export")
         cls.other_user = cls.store
 
     def _sample(self, model):
@@ -202,6 +201,40 @@ class TestInvestorGroups(InvestorSecurityCommon):
         self.investor.groups_id |= internal.trans_implied_ids \
             | self.env.ref("base.group_allow_export")
         self.investor.flush_recordset()
+
+    def test_export_implied_by_investor_group(self):
+        """Q6, audit of the deployed phase 4: an account made only as an investor
+        (Internal User + the investor group, as on the user form) can export, with no
+        manual step; an existing member lacking the group gets it when the module's data
+        links the implication (what the update does on the server)."""
+        export = self.env.ref("base.group_allow_export")
+        group = self.env.ref("lartdubati_investor_home.group_stock_investor")
+        fresh = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "Investor only", "login": "investor_only",
+            "groups_id": [Command.set([self.env.ref("base.group_user").id, group.id])]})
+        self.assertIn(export, fresh.groups_id)
+        self.assertTrue(fresh.has_group("base.group_allow_export"))
+        # an account of the previous version: the implication absent, no export group
+        group.implied_ids -= export
+        fresh.groups_id -= export
+        self.assertNotIn(export, fresh.groups_id)
+        group.write({"implied_ids": [Command.link(export.id)]})  # as security.xml does
+        fresh.invalidate_recordset(["groups_id"])
+        self.assertIn(export, fresh.groups_id)
+
+    def test_export_templates_none(self):
+        """The export dialog lists the model's saved templates (ir.exports): an investor
+        reads none (a staff template stays hidden) and cannot save one."""
+        Exports = self.env["ir.exports"]
+        self.store.groups_id |= self.env.ref("base.group_allow_export")
+        Exports.with_user(self.store).create({
+            "name": "Staff template", "resource": "lartdubati.stock.monitor",
+            "export_fields": [Command.create({"name": "product_name"})]})
+        mine = Exports.with_user(self.investor)
+        self.assertFalse(mine.search_read([("resource", "=", "lartdubati.stock.monitor")], []))
+        self.assertTrue(Exports.search([("resource", "=", "lartdubati.stock.monitor")]))
+        with self.assertRaises(AccessError):
+            mine.create({"name": "Investor template", "resource": "lartdubati.stock.monitor"})
 
     def test_home_action_set(self):
         home = self.env.ref("lartdubati_investor_home.action_investor_home")
@@ -410,15 +443,19 @@ class TestInvestorCalls(InvestorSecurityCommon, HttpCase):
         page = self.url_open("/odoo").text
         token = re.search(r'csrf_token: "(\w+)"', page).group(1)
 
-        def export(model, fields):
-            return self.url_open("/web/export/csv", data={"csrf_token": token, "data": json.dumps({
+        def export(model, fields, fmt="csv"):
+            return self.url_open(f"/web/export/{fmt}", data={"csrf_token": token, "data": json.dumps({
                 "model": model, "fields": [{"name": name, "label": name} for name in fields],
                 "ids": False, "domain": [], "import_compat": False})})
         refused = export("stock.quant", ["quantity"])
         self.assertNotEqual(refused.status_code, 200)
+        # the export group comes from the investor group alone (Q6, nothing added here)
         allowed = export("lartdubati.stock.monitor", ["product_name"])
         self.assertEqual(allowed.status_code, 200)
         self.assertIn("Screws", allowed.text)
+        xlsx = export("lartdubati.stock.monitor", ["product_name"], "xlsx")
+        self.assertEqual(xlsx.status_code, 200)
+        self.assertTrue(xlsx.content.startswith(b"PK"))  # an XLSX file is a zip archive
 
     def test_external_api_refused(self):
         db = self.env.cr.dbname

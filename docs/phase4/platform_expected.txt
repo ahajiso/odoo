@@ -3,6 +3,9 @@
 #   IMAGE_ID=<docker image id of odoo_web>        ODOO_VERSION=<odoo --version>
 #   MODULE <name> <version> <sha256 of the module's code (platform.py)>
 #   AFTER  <name> <version> <sha256>   (expected after the update; MODULE = before)
+# Since the correction 18.0.3.0.1 (README §10): MODULE = artdubati_test after the phase 4
+# deployment (9973c29, PLATFORM OK (after) on 10/10/2026); AFTER = the correction's
+# lartdubati_investor_home; maintenance_shareholder_equipment unchanged.
 # How the local tests match it (10/10/2026): Odoo source = branch 18.0 at 6ba80ed1
 # (07/09/2026, the build of the image 18.0-20260908): same code in every module, except
 # 155 PNG images recompressed when the image was built and 14 font files (12
@@ -75,7 +78,7 @@ MODULE l10n_fr 18.0.2.1 b30a42d2c77f423186e2599405f966b2887d8cd4b6d05063c9568077
 MODULE l10n_fr_account 18.0.2.2 27b64a2322204779d8400c06182dafcbdd036260eef8edc3f0fe501de3e0c1c0
 MODULE lartdubati_env_ribbon 18.0.1.0.0 bf5894e2131d7732be3d5e0cb5ac2be319915f82b28ed703eada38754a447bbf
 MODULE lartdubati_facturation 18.0.1.0.0 e3453593d3330651cdefb96f72effa0b78f1eab20c9eb8a4352c67c8e6c830c0
-MODULE lartdubati_investor_home 18.0.2.0.0 c8e6ce03eef8e8c789982991f0b6b6266cfb0efdcc0cf0c3ee79f66ae76c4c6b
+MODULE lartdubati_investor_home 18.0.3.0.0 40b90e8b4ca494c7f58aa5234d9d334b7d5986aa0b1fafffca92d94b1afb1573
 MODULE lartdubati_manual 18.0.1.0.0 80903c4fc6d07bb49958f0384b42c95f996db8245b9be6fd2ffbc623c2401f7c
 MODULE mail 18.0.1.18 2556eb85e705a00c1c0e2fca7620988ae3719b2a11543edfeb6094b51338df97
 MODULE mail_bot 18.0.1.2 78fd0c61d2d12c350bf5d6c0fa96e07829b0371f18dc12f733bb590eff30654f
@@ -87,7 +90,7 @@ MODULE maintenance_partner 18.0.1.0.1 efee24db71424aa23069a2c439cca2e5bb1421082e
 MODULE maintenance_product 18.0.1.0.2 3a03eafc76389078ca35defe98cbe45523aba8f91727c4d754fbe6e21536201d
 MODULE maintenance_request_purchase 18.0.1.0.0 77b4736f23489e6c6c41879313774f93dddd3f3ab00801c173b0fc47432c7ad6
 MODULE maintenance_request_repair 18.0.1.0.0 d839950f94ae1260939c81609d5ab24ac185c025b9b0f2273177295c886e692b
-MODULE maintenance_shareholder_equipment 18.0.4.0.0 ad790f636e1f4e0acb25396a05b54ae79d6b7c9203d9d7f6097cb86974c466c2
+MODULE maintenance_shareholder_equipment 18.0.4.0.1 f8dc5433ee48c9f4ceedfa21a162fd605086acb3122d9dbbb8ccfff4d628e30b
 MODULE mis_builder 18.0.1.10.0 ca69eff09cc2a3de161c5e9167ddd46dabaac82ed77c4b60a754ddaa82e5b24d
 MODULE onboarding 18.0.1.2 14d4c5a1eba207a6ec5c4759da8604fc0907b74e5345bc0427167113544dd41c
 MODULE partner_autocomplete 18.0.1.1 bbab70c95ba3fe97689877af00298da261bc229345c2a161159f5169c6d11314
@@ -137,5 +140,4 @@ MODULE web_editor 18.0.1.0 d9c30141b581d4e9369c56f2bed55501dd3a822fdc485d8a8db3d
 MODULE web_quick_start_screen 18.0.1.0.0 80ab11f7bd0c1e3ae0c4b27db430a4f799c70025258d3c646b2d4f71e3741461
 MODULE web_tour 18.0.1.0 1660f964aad7a234a656a1c32324e8b59d97258b4ad4d4018632dd6ce724f5b5
 MODULE web_unsplash 18.0.1.1 8b8eaeff4ae714bb6ab6fed01b53a2da77376a114987e6ca4a4d4f2b8bb02e5c
-AFTER lartdubati_investor_home 18.0.3.0.0 40b90e8b4ca494c7f58aa5234d9d334b7d5986aa0b1fafffca92d94b1afb1573
-AFTER maintenance_shareholder_equipment 18.0.4.0.1 f8dc5433ee48c9f4ceedfa21a162fd605086acb3122d9dbbb8ccfff4d628e30b
+AFTER lartdubati_investor_home 18.0.3.0.1 8338b3de9812a49a1874edf9889fc4763dd27f7dd102560f2872fd860a3c373c

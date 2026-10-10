@@ -10,6 +10,10 @@
         <field name="name">Stock Monitor Investor</field>
         <field name="category_id" ref="module_category_investor"/>
         <field name="comment">Stock access restricted by the user's Stock Access Profile.</field>
+        <!-- Q6 (export of the monitor): implied, so that every investor account has it
+             without a manual step; the update adds it to the existing members
+             (audit of the deployed phase 4, 10/10/2026). -->
+        <field name="implied_ids" eval="[Command.link(ref('base.group_allow_export'))]"/>
     </record>
 
     <!-- Global rules (no groups): Odoo ORs group rules, so a group rule could be
@@ -84,6 +88,13 @@
     <record id="rule_filters_investor" model="ir.rule">
         <field name="name">Favourite filters: none for investor accounts</field>
         <field name="model_id" ref="base.model_ir_filters"/>
+        <field name="domain_force">user.stock_access_rule_domain('none')</field>
+    </record>
+    <!-- the export dialog lists the saved export templates (ir.exports) of the model;
+         an investor sees none, so no staff template (audit of the deployed phase 4) -->
+    <record id="rule_exports_investor" model="ir.rule">
+        <field name="name">Export templates: none for investor accounts</field>
+        <field name="model_id" ref="base.model_ir_exports"/>
         <field name="domain_force">user.stock_access_rule_domain('none')</field>
     </record>
     <record id="rule_mail_message_investor" model="ir.rule">
