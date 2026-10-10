@@ -281,7 +281,9 @@ tests on artdubati_test (47 passing, 08/10/2026).
    2071e6e corrected (whitelist of public routes for investor sessions, no group channel
    on the investor's websocket, own presence); audit of 3326829 corrected (/mail/data
    options whitelisted for investors: `failures` dropped; websocket channels tested
-   without websocket-client); 230 tests
+   without websocket-client); first deployment attempt stopped and rolled back,
+   fixes tested on a local database with the server's 122 modules (Calendar, Repair,
+   Sales); 230 tests locally, 229 expected on the server
    passing locally; rehearsals on the phase 3 code clean. Before deployment: Q7
    (Purchase rights off `test_investor`), one atomic update.
 5. Translations, deployment checklist (docs/deployment/investor_home.md).

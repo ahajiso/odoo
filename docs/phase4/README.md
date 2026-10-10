@@ -7,11 +7,15 @@ HTTP routes and investor accounts: `docs/phase4/ROUTES.md`.
 
 Module: `lartdubati_investor_home` 18.0.2.0.0 → 18.0.3.0.0 (new dependency
 `web_quick_start_screen`, already installed on artdubati_test).
-`maintenance_shareholder_equipment` is updated too (unchanged, its tests run).
+`maintenance_shareholder_equipment` is updated too (approver: read access with an empty
+scope on repair and sale orders; new dependencies `repair` and `sale_stock`, both
+installed on the server).
 
-Expected tests: **230 tests** (both modules). The tours and the Hoot tests need
-Chrome and `websocket-client`: without them in `odoo_web` they are counted as skipped,
-as in phases 2f and 3; the interface checks of step 8 cover them. The JSON-RPC, action
+Expected tests on the server: **229 tests** (both modules; 230 locally). The tours and
+the Hoot tests need Chrome and `websocket-client`: without them in `odoo_web` they are
+counted as skipped, as in phases 2f and 3; the interface checks of step 8 cover them.
+The real websocket test class is skipped as a whole and not counted (first attempt:
+« of 229 tests »), hence 229. The JSON-RPC, action
 and URL tests of the investor security (actions, calls, routes, password change) do not need a browser; the
 real websocket test needs `websocket-client` (skipped on the server like the tours);
 the channel list is also tested without it (`TestInvestorBusChannels`, runs on the
@@ -94,7 +98,7 @@ precheck_home.sql):
 ```bash
 BACKUP=$(cat /opt/odoo/logs/phase4_backup); COMMIT=$(git -C /opt/odoo/addons/custom rev-parse --short origin/main)
 echo "$BACKUP $COMMIT"     # the dump of step 1 and the commit announced by Claude
-bash /tmp/phase4/docs/deploy_modules.sh "$BACKUP" TESTCOUNT phase4 "$COMMIT"
+bash /tmp/phase4/docs/deploy_modules.sh "$BACKUP" 229 phase4 "$COMMIT"
 ```
 
 Same script as phase 3: checks first, stops `odoo_web`, moves the working tree to the
