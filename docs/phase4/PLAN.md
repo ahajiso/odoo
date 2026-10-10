@@ -1,4 +1,4 @@
-# Phase 4 – home page and investor user setup: plan (revision 4, 10/10/2026)
+# Phase 4 – home page and investor user setup: plan (revision 5, 10/10/2026)
 
 Scope (CLAUDE.md): investor home page, investor user setup, review of the existing
 configuration, P4-1. **No code before the audit of this plan and the owner's go.**
@@ -18,7 +18,10 @@ History:
   `self.sudo()`, so refusing the model's ACL does not stop a run (a server action
   granted to Internal User, or without groups on a model the user may write, runs).
   New P4-2d: whitelist of loadable actions, central refusal of `run()`, exact check of
-  the action behind a home button, direct tests.
+  the action behind a home button, direct tests;
+- revision 5 (security design validated, development authorised on 10/10/2026): one
+  atomic update for steps 2 a-e (§6), each button checked against its own action; Q7
+  not yet done on the server (probe of the audit), the precheck blocks until it is.
 
 Owner's answers: Q1 A; Q2 nothing outside the monitor but the demonstrated technical
 minimum; Q3 whitelist, Discuss hidden, `base_menu_visibility_restriction` uninstalled
@@ -247,18 +250,28 @@ execution, history), our rule relaxed only inside it; accountant question C23. Q
 
 0. Done: server probe as `test_investor` (§1).
 1. P4-1 step 1, characterisation (independent, report only).
-2. Security, deployed first, as one update (it must not leave the home page broken):
+2. Security and home page, developed in this order but **deployed as one atomic update**
+   (audit of revision 4: the action checks use the external IDs of the screen and
+   buttons, so their adoption cannot come later):
    a. P4-2a central default deny, with the minimal list;
    b. P4-5 constraint and blocking precheck;
-   c. P4-2b record rules (menus included: P4-3) and P4-2d actions;
-   d. the home page adaptations P4-2 requires (window action, client actions, sudo
-      `run_action`, F1 rules) with the tests of §4.
-3. P4-0 rest: screen and buttons as module data, pre-migration, translations.
-4. P4-4 user setup and form warning.
-5. README and server procedure (backup, precheck with forbidden groups and menu
-   exclusions, `deploy_modules.sh`, post-check, probe again), DEFINITIONS.md (Access,
-   home page), CLAUDE.md.
-The security update (2) may be deployed alone, before 3 and 4, if the owner wants.
+   c. P4-2b record rules (menus included: P4-3) and P4-2d actions, each button checked
+      against **its own** expected action (button external ID → action external ID,
+      type, tag), not only against the whitelist;
+   d. P4-0: screen, buttons, home window action and client actions as module data, the
+      pre-migration adopting the script's records (external IDs bound before the
+      checks need them), F1 rules, translations;
+   e. P4-4 user setup and form warning;
+   with the tests of §4.
+3. README and server procedure (backup, precheck with forbidden groups, records to
+   adopt and menu exclusions, `deploy_modules.sh`, post-check, probe again),
+   DEFINITIONS.md (Access, home page), CLAUDE.md.
+No partial deployment. Prerequisite: Q7 done (Purchase groups removed from
+`test_investor`), checked by the precheck.
+
+Implementation criteria (audit of revision 4): filter `/web/action/load` before the
+standard controller runs; refuse `ir.actions.server.run()` before any `sudo()`; check
+each button's exact action; test numeric ids, external IDs, paths and breadcrumbs.
 
 ## 7. Questions for the owner
 All answered (Q1 to Q7, see the top). Q7 is done by the owner in Settings → Users before
