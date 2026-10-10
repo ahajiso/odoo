@@ -140,8 +140,9 @@ account, before the standard controller:
   `INVESTOR_METHODS` (standard reads for the listed models, plus the methods the pages
   need, each named: `get_dashboard_data`, `export_data` on the monitor, `run_action` on
   the buttons, `action_get`, `onchange`, `web_save`, `has_group`,
-  `preference_save`, `preference_change_password`, `systray_get_activities` on
-  `res.users`, `set_res_users_settings`); a method working in sudo on a listed model
+  `preference_save`, `preference_change_password` on `res.users`,
+  `set_res_users_settings`; `systray_get_activities`, listed at first, does not exist
+  in Odoo 18 and was removed after the first deployment attempt); a method working in sudo on a listed model
   (e.g. `discuss.channel.channel_get`) is refused too;
 - `resequence`: refused;
 - export routes taking a model (`/web/export/get_fields`, `namelist`, `csv`, `xlsx`):

@@ -4,6 +4,7 @@ Every check runs under the real investor account: the ORM with `with_user`, and 
 session for JSON-RPC, actions and URLs.
 """
 import base64
+from datetime import timedelta
 import importlib.util
 import json
 import os
@@ -12,7 +13,7 @@ import xmlrpc.client
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import HttpCase, tagged
 from odoo.tests.common import JsonRpcException
@@ -735,6 +736,27 @@ class TestInvestorPublicRoutes(InvestorSecurityCommon, HttpCase):
         # options outside the investor's list are ignored, not executed
         data = self.make_jsonrpc_request("/mail/data", {"canned_responses": True})
         self.assertFalse(data.get("mail.canned.response"))
+
+    def test_mail_data_activities_with_calendar(self):
+        """First deployment attempt (10/10/2026): Calendar adds « Today's Meetings » to
+        the activity systray, read from calendar.attendee as the user. For an investor
+        account the activity list is empty: no error, no meeting, no attendee."""
+        if "calendar.event" not in self.env:
+            self.skipTest("calendar not installed")
+        now = fields.Datetime.now()
+        self.env["calendar.event"].create({
+            "name": "Hidden Meeting", "start": now + timedelta(minutes=30),
+            "stop": now + timedelta(minutes=90),
+            "partner_ids": [Command.set([self.investor.partner_id.id,
+                                         self.store.partner_id.id])]})
+        self.authenticate(self.investor.login, self.investor.login)
+        data = self.make_jsonrpc_request("/mail/data", {
+            "init_messaging": {}, "systray_get_activities": True})
+        self.assertEqual(data["Store"]["activityGroups"], [])
+        self.assertEqual(data["Store"]["activityCounter"], 0)
+        dump = json.dumps(data)
+        for hidden in ("Hidden Meeting", self.store.name, "calendar"):
+            self.assertNotIn(hidden, dump)
 
     def test_messages_discuss_attachments_refused(self):
         members = self.general.channel_member_ids

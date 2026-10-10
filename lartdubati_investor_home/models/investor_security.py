@@ -81,11 +81,10 @@ INVESTOR_METHODS.update({
     # the home buttons (exact action check in run_action)
     "quick.start.screen.action": READ_METHODS | {"run_action"},
     # own preferences: the user menu opens them (action_get), the dialog saves them
-    # through the standard self-writeable fields; activity systray
+    # through the standard self-writeable fields
     # has_group: the list view asks whether the user may export (own groups only)
     "res.users": READ_METHODS | {"action_get", "onchange", "web_save", "has_group",
-                                 "preference_change_password", "preference_save",
-                                 "systray_get_activities"},
+                                 "preference_change_password", "preference_save"},
     # web client settings (rule: own record)
     "res.users.settings": READ_METHODS | {"set_res_users_settings"},
     # own password change: the wizard, then the password check (@check_identity)

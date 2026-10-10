@@ -406,6 +406,53 @@ class TestPhase2fApprover(EquipmentCommon):
         with self.assertRaises(AccessError):
             op.with_user(self.user_operator).action_execute()
 
+    def test_repair_and_sale_orders_empty_scope(self):
+        """First phase 4 deployment attempt (10/10/2026): Repair and Sales add repair and
+        sale order counters to the transfer and lot forms. The approver alone reads
+        these models with an empty scope: no record, never a write; users with a real
+        right keep their scope (an approver who is also a salesman included)."""
+        partner = self.env["res.partner"].create({"name": "Customer (scope test)"})
+        repair = self.env["repair.order"].create({
+            "product_id": self.drill.id, "partner_id": partner.id,
+            "company_id": self.company.id})
+        sale = self.env["sale.order"].create({
+            "partner_id": partner.id, "company_id": self.company.id,
+            "order_line": [Command.create({"product_id": self.drill.id,
+                                           "product_uom_qty": 1})]})
+        records = {"repair.order": repair, "sale.order": sale,
+                   "sale.order.line": sale.order_line}
+        for model, record in records.items():
+            with self.subTest(model=model, user="approver alone"):
+                as_approver = self.env[model].with_user(self.user_approver)
+                self.assertFalse(as_approver.search([("id", "in", record.ids)]))
+                self.assertEqual(as_approver.search_count([]), 0)
+                with self.assertRaises(AccessError):
+                    record.with_user(self.user_approver).check_access("read")
+                with self.assertRaises(AccessError):
+                    record.with_user(self.user_approver).read(["display_name"])
+                with self.assertRaises(AccessError):
+                    record.with_user(self.user_approver).write({})
+                with self.assertRaises(AccessError):
+                    record.with_user(self.user_approver).unlink()
+                with self.assertRaises(AccessError):
+                    as_approver.check_access("create")
+        salesman_approver = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "eq_approver_sales", "login": "eq_approver_sales",
+            "company_id": self.company.id, "company_ids": [Command.set(self.company.ids)],
+            "groups_id": [Command.set([
+                self.env.ref("sales_team.group_sale_salesman_all_leads").id,
+                self.env.ref("maintenance_shareholder_equipment.group_equipment_approver").id])],
+        })
+        for user, model in ((self.user_stock, "repair.order"),
+                            (salesman_approver, "sale.order"),
+                            (salesman_approver, "sale.order.line")):
+            with self.subTest(model=model, user=user.login):
+                record = records[model]
+                self.assertEqual(self.env[model].with_user(user).search(
+                    [("id", "in", record.ids)]), record)
+                record.with_user(user).check_access("read")
+        self.assertTrue(repair.exists() and sale.exists())
+
     def test_investor_without_inventory_rights_has_no_access(self):
         investor = self.env["res.users"].with_context(no_reset_password=True).create({
             "name": "Investor", "login": "eq_investor", "company_id": self.company.id,
