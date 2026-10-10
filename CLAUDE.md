@@ -79,9 +79,11 @@
   action, models, methods, routes, menu, fields and tests.
 - Test database = server modules (first phase 4 deployment, 10/10/2026): the tests that
   open screens (tours, Hoot, websocket) never run on the server (no Chrome). Before each
-  deployment, the list of modules installed on artdubati_test is compared with the
-  local test database (same 122 modules, docs/phase4/README.md section 0); a module
-  installed on the server is installed locally before the tests count.
+  deployment, the platform of artdubati_test (image, Odoo version, code fingerprint of
+  every installed module, docs/phase4/platform.py) is compared with the local test
+  database, which is rebuilt on the server's exact code (docs/phase4/
+  platform_expected.txt, check_modules.sh); a difference is resolved before the tests
+  count.
 - Main rule: use standard Odoo and OCA data and features first; change the repo only
   when necessary.
 - Develop and test on artdubati_test only; production only on explicit request.
@@ -284,9 +286,12 @@ tests on artdubati_test (47 passing, 08/10/2026).
    without websocket-client); first deployment attempt stopped and rolled back,
    fixes tested on a local database with the server's 122 modules (Calendar, Repair,
    Sales); audit of 86cf4ac..beacfeb corrected (checked backup and restore scripts,
-   exact module comparison with modules.txt, direct tests of the approver's repair /
+   exact module comparison, direct tests of the approver's repair /
    sale scope and of Calendar in /mail/data, maintenance_shareholder_equipment
-   18.0.4.0.1); 232 tests locally, 231 expected on the server
+   18.0.4.0.1); audit of d8d5b22..c3670fe corrected (backup with odoo_web stopped,
+   restore checks, platform fingerprint: image, Odoo version and code of every module
+   compared, local tests rebuilt on the server's exact code); TESTCOUNT tests locally,
+   SERVERCOUNT expected on the server
    passing locally; rehearsals on the phase 3 code clean. Before deployment: Q7
    (Purchase rights off `test_investor`), one atomic update.
 5. Translations, deployment checklist (docs/deployment/investor_home.md).

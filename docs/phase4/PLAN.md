@@ -481,8 +481,9 @@ rehearsal, translations, docs). Additions and findings, each with its reason:
       the restore then refuses;
     - found on the way: `grep -q` after a pipe fails under `pipefail` (listings now
       go through a file);
-  - `docs/phase4/modules.txt` (122 modules, name and version, with the Odoo and OCA
-    revisions) and `check_modules.sh before|after`, failing on any difference;
+  - `docs/phase4/modules.txt` (122 modules, name and version) and
+    `check_modules.sh before|after`, failing on any difference (replaced after the
+    next audit, below);
   - direct tests: the approver alone finds, reads, writes, creates and deletes no
     repair or sale order, stock users and a salesman approver keep their scope;
     Calendar's meeting of the day not returned by `/mail/data`; mutation check: both
@@ -491,6 +492,25 @@ rehearsal, translations, docs). Additions and findings, each with its reason:
     exist in Odoo 18);
   - `maintenance_shareholder_equipment` 18.0.4.0.1;
   - full log of the 232 tests on the server's modules: `docs/phase4/test_logs/`.
+- **Audit of d8d5b22..c3670fe**:
+  - backup with `odoo_web` stopped during the capture (database and filestore at the
+    same moment, through a temporary container with `odoo_web`'s volumes), started
+    again whatever happens; the dump's attachment files looked for in the archive;
+    restore: disk space checked first, restored counts compared with the backup
+    before the swap, extracted files counted, works when the database is missing.
+    Rehearsed again (failure during the capture restarting Odoo and publishing
+    nothing, damage undone, missing database restored);
+  - platform: the module versions did not prove the same code. A code fingerprint
+    of every installed module (`platform.py`) run on the server showed 67 Odoo and 5
+    OCA modules different from the local tests. Found: the image `18.0-20260908`
+    is the Odoo branch 18.0 at 6ba80ed1 (07/09/2026), identical file by file except
+    167 recompressed images and 2 font licence files; the 5 OCA modules at the
+    server's commits. The local test database was rebuilt on exactly that code
+    (every module fingerprint equal, those 9 image-only modules and our 2 aside) and
+    the tests run again on it; `platform_expected.txt` (image id, Odoo version,
+    fingerprint of the 122 modules, before and after) and `check_modules.sh`, which
+    compares all three and fails on any difference; `modules.txt` removed;
+  - roadmap: supplier consignment stock (section 0, item 7).
 
 Verified locally (Odoo 18, OCA heads, `web_quick_start_screen` c3120b0):
 - tests of both modules (see README for the count), including the investor tours

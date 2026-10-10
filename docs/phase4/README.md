@@ -44,18 +44,19 @@ ls /tmp/phase4/docs/ /tmp/phase4/docs/phase4/
 git status --short | head               # nothing changed in the working tree
 ```
 
-## 2. Same modules as the tested database (must print MODULES OK)
+## 2. Same platform as the tested one (must print PLATFORM OK)
 
 ```bash
 bash /tmp/phase4/docs/phase4/check_modules.sh before
 ```
 
-It compares, name and version, every module installed on artdubati_test with
-`docs/phase4/modules.txt` (the 122 modules of the local database that ran the tests; the
-two updated modules must still be at their current versions). Any difference stops
-(first deployment attempt, 10/10/2026: the tests had run on another set of modules).
-It also prints the image of `odoo_web` and its Odoo version, for the record; the Odoo
-and OCA revisions of the tested code are at the top of `modules.txt`.
+It compares with `docs/phase4/platform_expected.txt`: the Docker image of `odoo_web`,
+the Odoo version, and the code of every installed module (SHA-256 of its files,
+computed by `platform.py` through the Odoo shell), name and version included; the two
+updated modules must still have their current code. Any difference stops. The header of
+`platform_expected.txt` says how the local tests match this platform (Odoo source of
+the image's build, the server's OCA commits) and what is not verified (the Python
+libraries of the local test environment).
 
 ## 3. Precheck (must print PRECHECK OK)
 
@@ -79,14 +80,17 @@ precheck_home.sql):
 bash /tmp/phase4/docs/backup_db.sh phase4
 ```
 
-`backup_db.sh` (`set -euo pipefail`): dump and filestore archive under temporary
-names; the dump read back (`pg_restore --list`) and **restored completely into a
+`backup_db.sh` (`set -euo pipefail`): **`odoo_web` stopped** during the capture, so
+that the database and the filestore show the same moment (a few minutes; started again
+whatever happens); dump and filestore archive (through a temporary container with
+`odoo_web`'s volumes) under temporary names, then `odoo_web` started; the dump read back (`pg_restore --list`) and **restored completely into a
 temporary database**, whose modules and record counts are compared with artdubati_test,
-then dropped; the archive listed (`tar -tzf`) and its files counted; then the final
+then dropped; the archive listed (`tar -tzf`), its files counted and every file the dump's
+attachments point to looked for in it; then the final
 names, their SHA-256, and last the manifest `/opt/odoo/logs/phase4_backup`. Any failure
 leaves no manifest, so neither the deployment nor the rollback can use a bad backup.
-Read-only for artdubati_test (a few minutes; it needs free disk space for one more copy
-of the database).
+Read-only for artdubati_test; it needs free disk space for one more copy of the
+database.
 
 ## 5 to 7. Stop, update the working tree, update and test, restart
 
@@ -112,10 +116,13 @@ bash /tmp/phase4/docs/restore_db.sh phase4
 ```
 
 `restore_db.sh` changes nothing before every check passed (manifest, both files and
-their SHA-256, dump and archive readable, code commit, clean working tree). Then, with
+their SHA-256, dump and archive readable, code commit, clean working tree, disk space
+for keeping the current database and filestore). Then, with
 `odoo_web` stopped: the dump is restored into a new database, and only when that
-succeeded the current database is **renamed** (kept, not dropped) and the restored one
-takes its name; the filestore is restored the same way (the current one renamed, kept);
+succeeded with the backup's modules and record counts, the current database is
+**renamed** (kept, not dropped) and the restored one takes its name; the filestore is
+restored the same way, once the number of extracted files is the backup's (the current
+one renamed, kept);
 the code goes back to the commit of the backup; `odoo_web` is started. It prints the
 versions of the two modules: `18.0.2.0.0` and `18.0.4.0.0`. The kept database
 (`artdubati_test_before_restore_<stamp>`) and filestore are removed later, by hand,
@@ -123,7 +130,7 @@ once Claude has read the logs. Rehearsed locally (backup, damage to the database
 filestore and the code, refused restore with a wrong checksum, restore, every damage
 undone; failed backup leaving no manifest): PLAN.md §9.
 
-## 8. Post-update checks (must print MODULES OK, then no row)
+## 8. Post-update checks (must print PLATFORM OK, then no row)
 
 ```bash
 bash /tmp/phase4/docs/phase4/check_modules.sh after

@@ -1,4 +1,4 @@
-# Roadmap after phase 4 (audits of 6063db1, 2071e6e and 86cf4ac..beacfeb, 10/10/2026)
+# Roadmap after phase 4 (audits of 6063db1, 2071e6e, 86cf4ac..beacfeb and d8d5b22..c3670fe, 10/10/2026)
 
 Functional needs found by the audit, **not part of phase 4** (security). Each one becomes
 its own phase, with a plan audited before any code. The order is for the owner to set.
@@ -36,6 +36,18 @@ Not mixed with the phase 4 security deployment; each with its own plan and audit
    equipment keeps a provisional cost of 1 850 € (excl. tax).
 6. Audit of the accounts of every product and equipment category (accountant,
    `QUESTIONS_COMPTABLE.md`).
+7. Supplier consignment stock (consumables owned by the supplier until used), audit of
+   d8d5b22..c3670fe; not part of the phase 4 deployment:
+   - receipt with the supplier as owner on the quants (`stock.quant.owner_id`);
+   - no valuation and no bill at receipt;
+   - controlled consumption creating the purchase obligation;
+   - bill at once or periodically (e.g. monthly statement of what was used);
+   - return to the supplier without a bill;
+   - losses, breakage and expiry (who pays, which document);
+   - ordinary exits of consigned stock refused;
+   - accounting question of its own (`QUESTIONS_COMPTABLE.md`);
+   - characterisation of the change of owner in Odoo 18 first (P4-1 found that
+     « Assign Owner » does not transfer ownership: `docs/phase4/CHARACTERISATION.md`).
 
 Then the functional phases below, and the manual last.
 
