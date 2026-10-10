@@ -8,6 +8,13 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DB="${1:-artdubati_test}"
 [ -f "$DIR/precheck.sql" ] || { echo "precheck.sql not found next to $0"; exit 2; }
 OUT=$(docker exec -i odoo_db psql -U odoo -d "$DB" -At -F ' | ' -v ON_ERROR_STOP=1 < "$DIR/precheck.sql")
+if [ -f "$DIR/stock_addresses.sql" ]; then
+  echo "Addresses of the candidate monitor stocks (stock | city | country | address),"
+  echo "to confirm by eye (the precheck only checks that city and country are filled):"
+  docker exec -i odoo_db psql -U odoo -d "$DB" -At -F ' | ' -v ON_ERROR_STOP=1 \
+    < "$DIR/stock_addresses.sql"
+  echo
+fi
 if [ -n "$OUT" ]; then
   echo "PRECHECK FAILED on $DB (check | id | detail):"
   echo "$OUT"

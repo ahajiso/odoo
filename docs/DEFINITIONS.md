@@ -9,7 +9,9 @@ pending owner validation. Points marked "to confirm" are open; points marked
 A stock is a stock.location declared for the monitor: an internal location flagged
 « Monitor Stock » (`is_monitor_stock`, phase 3; the place type alone no longer decides,
 since every location has one). Attributes:
-- place type: physical / off-site (held by a third party) / virtual (later);
+- place type: physical / off-site (held by a third party) / virtual (later); the type
+  shown for a stock is the monitor stock's own (a shelf created under an off-site stock
+  keeps the default « physical » as location type, its stock is still off-site);
 - address: `address_id` from OCA `stock_location_address`, mandatory on every monitor
   stock (sub-locations inherit it for display only; the monitor and the access rules
   use the stored address of the stock itself);
@@ -255,6 +257,10 @@ such entry exists today.
 ## Currency
 Each stock is reported in its own currency. Totals are only ever summed within one
 currency and shown grouped by currency. No consolidation in this version.
+This holds in every interface (audit of 643f95e): the dashboard totals per currency; in
+the standard views (pivot and its grand total, graph, grouped list, grouped export) a
+group holding amounts in more than one currency shows no amount, whatever the grouping
+chosen; the ungrouped list has no amount total.
 Net book value, stock valuation and posted rents are in company currency at source.
 Conversion to the stock's currency (phase 3, test choice C12): as
 `res.currency._convert()` (company rate first, then the global one; the last rate on or
@@ -283,6 +289,9 @@ records behind them; every figure they may not read is absent from the dashboard
 analysis views and exports (exports also need « Allow export »). The profile filters the
 monitor rows (family, ownership, stocks and their sub-locations, country of the stock's
 own address) and the internal locations (country of the monitor stock above them).
+Multi-company (audit of 643f95e): every user, investor or staff, sees only the monitor
+rows of their active companies (global rule `company_id in company_ids`, ANDed with the
+profile rule), in the dashboard, the analysis views and exports.
 Move lines (decided after the audit of 888d229, phase 2f): standard stock gives every
 internal user read, write, create and delete on all of them. An investor without
 Inventory / User has no access at all to them; an equipment approver without

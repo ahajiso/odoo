@@ -224,7 +224,8 @@ tests on artdubati_test (47 passing, 08/10/2026).
    Then (09/10/2026): the saw's bill BILL/2026/10/0006 (P00165) posted on 607000, no
    fixed asset (test choice, C19 open), equipment 484 cost 15 € HT final from the bill;
    addresses set on Bg/Stock (Bougival, FR), TIST/Stock (Istanbul, TR) and TBER/Stock
-   (DE; its contact's city « PARIS CEDEX 20 » to correct to Berlin before phase 3).
+   (DE; its contact's city « PARIS CEDEX 20 », corrected to Berlin by the owner on
+   09/10/2026).
 3. Stock monitor on revision 2 (SQL view, OWL dashboard, access rules) and rework of the
    existing code: docs/phase3/PLAN.md revision 5, green light on 09/10/2026 after 2f.
    Developed on the branch (steps 4 to 10, implementation notes in PLAN.md §11):
@@ -232,7 +233,10 @@ tests on artdubati_test (47 passing, 08/10/2026).
    contract currency, view `lartdubati.stock.monitor` (values, set-based conversions as
    `_convert`, rent, alerts, `groups=` per field), access rules, standard views, OWL
    dashboard (3 RPCs, Hoot tests, tours), obsolete fields removed, precheck and
-   post-check, translations fr/fa, screenshots. 186 tests passing locally; monitor_perf
+   post-check, translations fr/fa, screenshots. Audit of 643f95e: 5 points corrected
+   (multi-company rule, no sum across currencies in the standard views, deployment
+   stops odoo_web before moving the code, stock place type, TBER address), PLAN.md §11.1.
+   191 tests passing locally; monitor_perf
    on 10,000 rows: 0.65-0.74 s server, 1.1 s browser; migration rehearsed on a database
    made with the 2f code. Pending: audit of the code, then deployment by the owner
    (docs/phase3/README.md).

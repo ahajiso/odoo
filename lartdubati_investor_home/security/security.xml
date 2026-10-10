@@ -24,6 +24,13 @@
         <field name="model_id" ref="model_lartdubati_stock_monitor"/>
         <field name="domain_force">user.stock_access_rule_domain('monitor')</field>
     </record>
+    <!-- Multi-company (global, ANDed with the profile rule): only the rows of the
+         user's active companies, for every user. -->
+    <record id="rule_stock_monitor_company" model="ir.rule">
+        <field name="name">Stock monitor: multi-company</field>
+        <field name="model_id" ref="model_lartdubati_stock_monitor"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
     <!-- Move lines: no access for an investor without Inventory rights (all modes) -->
     <record id="rule_stock_move_line_investor" model="ir.rule">
         <field name="name">Move lines: investor without Inventory rights</field>

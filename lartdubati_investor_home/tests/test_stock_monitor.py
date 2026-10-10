@@ -5,6 +5,7 @@ from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 
+from odoo.addons.lartdubati_investor_home.models.stock_monitor import AMOUNT_CURRENCY
 from odoo.addons.maintenance_shareholder_equipment.tests.test_operation import (
     TestOperationCommon,
 )
@@ -204,6 +205,21 @@ class TestMonitorPlacement(MonitorCommon):
         self.assertEqual(rows[detached].alert_outside_stock, 0)
         self.assertFalse(rows[loose].stock_id)
         self.assertEqual(rows[loose].alert_outside_stock, 1)
+
+    def test_sub_location_of_a_lent_out_stock(self):
+        """Audit of 643f95e, point 4: a shelf under a lent-out stock keeps the default
+        « physical »; the stock's own type is the one the cards show."""
+        lent = self.env["stock.location"].create(self._lent_out_vals(name="Site (test)"))
+        shelf = self._internal("Site shelf", lent)
+        self.assertEqual(shelf.place_type, "physical")
+        self.env["stock.quant"]._update_available_quantity(self.screws, shelf, 3)
+        row = self._quant_rows(self.screws).filtered(lambda r: r.location_id == shelf)
+        self.assertEqual(row.stock_id, lent)
+        self.assertEqual((row.stock_place_type, row.place_type), ("lent_out", "physical"))
+        self.env.flush_all()
+        cards = self.Monitor.get_dashboard_data({})["stocks"]
+        card = next(card for card in cards if card["name"] == lent.complete_name)
+        self.assertEqual(card["place_type"], "lent_out")
 
     def test_serial_with_two_positions_is_one_row(self):
         equipment = self._receive(self._order(self.drill, 1), ["MON-P1"])
@@ -532,6 +548,123 @@ class TestMonitorAccess(MonitorAccessCommon):
                 if user == self.store:
                     self.assertIn('"stock_value"', arch)
                     self.assertNotIn('"accounting_value"', arch)
+
+
+@tagged("post_install", "-at_install")
+class TestMonitorCompanies(MonitorAccessCommon):
+    """Audit of 643f95e, point 1: only the rows of the user's active companies, for
+    every profile, in search, read_group, export and the dashboard."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company_b = cls.env["res.company"].create({"name": "Monitor B (test)"})
+        warehouse_b = cls.env["stock.warehouse"].search(
+            [("company_id", "=", cls.company_b.id)], limit=1)
+        cls.stock_b = cls.env["stock.location"].create({
+            "name": "Lyon", "usage": "internal", "company_id": cls.company_b.id,
+            "location_id": warehouse_b.view_location_id.id, "is_monitor_stock": True,
+            "monitor_currency_id": cls.company_b.currency_id.id,
+            "address_id": cls.env["res.partner"].create({
+                "name": "Entrepôt Lyon (test)", "city": "Lyon B",
+                "country_id": cls.france.id}).id})
+        cls.bolts = cls.env["product.product"].create({
+            "name": "Bolts (B)", "type": "consu", "is_storable": True,
+            "standard_price": 1.0, "categ_id": cls.categ_tools.id})
+        cls.env["stock.quant"].with_company(cls.company_b)._update_available_quantity(
+            cls.bolts, cls.stock_b, 7)
+        for user in (cls.investor, cls.store, cls.accountant):
+            user.groups_id |= cls.env.ref("base.group_allow_export")
+
+    def _monitor(self, user, companies):
+        self.env.flush_all()
+        self.Monitor.invalidate_model()
+        return self.Monitor.with_user(user).with_context(allowed_company_ids=companies.ids)
+
+    def test_other_company_hidden_everywhere(self):
+        self.env.flush_all()
+        row_b = self.Monitor.search([("city", "=", "Lyon B")])
+        self.assertEqual(len(row_b), 1)
+        for user in (self.investor, self.store, self.accountant):
+            with self.subTest(user=user.login):
+                Monitor = self._monitor(user, self.company)
+                self.assertFalse(Monitor.search([("city", "=", "Lyon B")]))
+                self.assertTrue(Monitor.search([("city", "=", "Berlin")]))
+                cities = {group["city"] for group in Monitor.read_group(
+                    [], ["inventory_value:sum"], ["city"])}
+                self.assertNotIn("Lyon B", cities)
+                self.assertIn("Berlin", cities)
+                data = Monitor.get_dashboard_data({})
+                self.assertNotIn("Lyon B", {card["city"] for card in data["stocks"]})
+                self.assertNotIn("Lyon B", {choice["city"] for choice in data["choices"]})
+                self.assertEqual(data["count"], Monitor.search_count([]))
+                with self.assertRaises(AccessError):
+                    Monitor.browse(row_b.id).export_data(["city", "inventory_value"])
+
+    def test_allowed_company_seen_when_active(self):
+        self.store.company_ids |= self.company_b
+        Monitor = self._monitor(self.store, self.company)
+        self.assertFalse(Monitor.search([("city", "=", "Lyon B")]),
+                         "allowed but not active: hidden")
+        Monitor = self._monitor(self.store, self.company | self.company_b)
+        row = Monitor.search([("city", "=", "Lyon B")])
+        self.assertEqual(len(row), 1)
+        self.assertEqual(row.export_data(["city"])["datas"], [["Lyon B"]])
+        self.assertIn("Lyon B", {card["city"] for card in
+                                 Monitor.get_dashboard_data({})["stocks"]})
+
+
+@tagged("post_install", "-at_install")
+class TestMonitorNoCrossCurrencySum(MonitorAccessCommon):
+    """Audit of 643f95e, point 2: the standard views never add amounts of different
+    currencies (pivot and grand total, graph, grouped list, grouped export)."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.berlin.monitor_currency_id = cls.usd
+        cls.env["res.currency.rate"].create({
+            "currency_id": cls.usd.id, "name": fields.Date.today() - timedelta(days=1),
+            "rate": 2.0, "company_id": cls.company.id})
+
+    def _groups(self, groupby, specs=("inventory_value:sum",), domain=(), lazy=True):
+        self.env.flush_all()
+        self.Monitor.invalidate_model()
+        return self.Monitor.with_user(self.accountant).read_group(
+            [("company_id", "=", self.company.id), ("product_id.name", "=", "Screws"),
+             *domain], list(specs), groupby, lazy=lazy)
+
+    def test_mixed_groups_have_no_amount(self):
+        price = self.screws.standard_price
+        specs = ("inventory_value:sum", "accounting_value:sum", "asset_count:sum",
+                 "total:sum(inventory_value)", "stock_value")
+        total, = self._groups([], specs)  # pivot's grand total
+        for name in ("inventory_value", "accounting_value", "total", "stock_value"):
+            self.assertIs(total[name], False, name)
+        self.assertEqual(total["__count"], 2, "counts stay")
+        self.assertEqual(total["asset_count"], 0)
+        family, = self._groups(["family"], specs)
+        self.assertIs(family["inventory_value"], False)
+        by_currency = {group["currency_id"][0]: group["inventory_value"]
+                       for group in self._groups(["currency_id"])}
+        self.assertAlmostEqual(by_currency[self.company.currency_id.id], 4 * price)
+        self.assertAlmostEqual(by_currency[self.usd.id], 6 * price * 2.0)
+        by_stock = {group["stock_name"]: group["inventory_value"]
+                    for group in self._groups(["stock_name", "family"], lazy=False)}
+        self.assertAlmostEqual(by_stock[self.berlin.complete_name], 6 * price * 2.0)
+        berlin, = self._groups([], domain=[("city", "=", "Berlin")])
+        self.assertAlmostEqual(berlin["inventory_value"], 6 * price * 2.0,
+                               msg="one currency: the sum stays")
+        listed = self.Monitor.with_user(self.accountant).web_read_group(
+            [("company_id", "=", self.company.id), ("product_id.name", "=", "Screws")],
+            ["inventory_value:sum"], ["family"])
+        self.assertIs(listed["groups"][0]["inventory_value"], False, "grouped list")
+
+    def test_list_has_no_amount_total(self):
+        arch = self.Monitor.with_user(self.accountant).get_views(
+            [(False, "list")])["views"]["list"]["arch"]
+        for name in AMOUNT_CURRENCY:
+            self.assertNotRegex(arch, rf'name="{name}"[^>]*sum=', name)
 
 
 @tagged("post_install", "-at_install")

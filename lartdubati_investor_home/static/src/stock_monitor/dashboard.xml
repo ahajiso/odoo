@@ -302,7 +302,7 @@
         <dl>
           <dt>Rent</dt><dd><bdi t-esc="rentLabel(r)"/></dd>
           <dt>Period</dt><dd>from <t t-esc="date(r.rent_start)"/><t t-if="r.rent_end"> to <t t-esc="date(r.rent_end)"/></t><t t-else=""> (no end)</t></dd>
-          <t t-if="has('rent_paid')"><dt t-esc="fields.rent_paid.string"/><dd><t t-if="r.rent_paid_rate_missing"><span class="o_smm_unconverted"><bdi t-esc="whole(r.rent_paid_source_amount, state.data.company_currency_id)"/> <span class="o_smm_tag">not converted</span></span></t><t t-else="" t-esc="whole(r.rent_paid, r.currency_id)"/></dd></t>
+          <t t-if="has('rent_paid')"><dt t-esc="fields.rent_paid.string"/><dd><t t-if="r.rent_paid_rate_missing"><span class="o_smm_unconverted"><bdi t-esc="whole(r.rent_paid_source_amount, r.company_currency_id)"/> <span class="o_smm_tag">not converted</span></span></t><t t-else="" t-esc="whole(r.rent_paid, r.currency_id)"/></dd></t>
         </dl>
       </t>
 

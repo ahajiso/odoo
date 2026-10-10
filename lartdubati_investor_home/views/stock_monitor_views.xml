@@ -4,7 +4,9 @@
          views on lartdubati.stock.monitor. Fields reserved to staff or accountants are
          removed by Odoo for users who may not read them; filters on them carry the same
          groups. An unknown amount (rate missing, cost unknown) is hidden, not shown as 0:
-         the ORM reads a NULL Float as 0, the « known » flag tells them apart. -->
+         the ORM reads a NULL Float as 0, the « known » flag tells them apart.
+         No amount total in the list: rows of several currencies may be listed together;
+         grouped, read_group leaves the amount of a group with several currencies empty. -->
     <record id="view_stock_monitor_list" model="ir.ui.view">
         <field name="name">lartdubati.stock.monitor.list</field>
         <field name="model">lartdubati.stock.monitor</field>
@@ -29,22 +31,22 @@
                 <field name="asset_count" sum="Total"/>
                 <field name="quantity"/>
                 <field name="uom_name" optional="hide"/>
-                <field name="inventory_value" widget="monetary" sum="Total"
+                <field name="inventory_value" widget="monetary"
                        options="{'currency_field': 'currency_id'}"
                        invisible="not inventory_value_known"/>
                 <field name="replacement_value" widget="monetary" optional="hide"
                        options="{'currency_field': 'currency_id'}"
                        invisible="not replacement_value_known"/>
-                <field name="stock_value" widget="monetary" sum="Total" optional="show"
+                <field name="stock_value" widget="monetary" optional="show"
                        options="{'currency_field': 'currency_id'}"
                        invisible="not stock_value_known"/>
-                <field name="accounting_value" widget="monetary" sum="Total" optional="show"
+                <field name="accounting_value" widget="monetary" optional="show"
                        options="{'currency_field': 'currency_id'}"
                        invisible="not accounting_value_known"/>
-                <field name="rent_monthly" widget="monetary" sum="Total" optional="hide"
+                <field name="rent_monthly" widget="monetary" optional="hide"
                        options="{'currency_field': 'currency_id'}"
                        invisible="not rent_monthly_known"/>
-                <field name="rent_paid" widget="monetary" sum="Total" optional="hide"
+                <field name="rent_paid" widget="monetary" optional="hide"
                        options="{'currency_field': 'currency_id'}"/>
                 <field name="alert_count" sum="Total" optional="show"
                        decoration-danger="alert_count &gt; 0"/>
@@ -101,6 +103,7 @@
                             <field name="city"/>
                             <field name="state_name"/>
                             <field name="country_name"/>
+                            <field name="stock_place_type"/>
                             <field name="place_type"/>
                         </group>
                         <group string="Item">

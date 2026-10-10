@@ -479,9 +479,10 @@ column, and the counts of rows per family match the source tables.
 2. Phase 2f deployed and checked.
 3. Remove the two bi_sql_editor reports; uninstall `maintenance_equipment_contract`
    once its data are decided.
-4. `precheck.sh`, which must pass.
-5. `git pull`.
-6. `deploy_modules.sh`.
+4. `precheck.sh`, which must pass; it prints the stock addresses to confirm by eye.
+5. and 6. `deploy_modules.sh <dump> <count> phase3 <commit>`, run from the extracted
+   copy: stops odoo_web, then moves the working tree to the commit, then updates and
+   tests (audit of 643f95e, point 3; same order as 2f §5).
 7. Post-update check (6.3).
 8. `setup_phase3.py` (dry run, then `--apply`): repoints the home button, lists the
    staff controls.
@@ -623,7 +624,7 @@ translations). Departures from the plan, each with its reason:
   test.
 
 Verified locally (Odoo 18, local OCA heads):
-- 186 tests in both modules (5 Hoot tests run headless by one of them, 3 tour
+- 191 tests in both modules (186, then 5 for the audit of 643f95e) (5 Hoot tests run headless by one of them, 3 tour
   tests), plus the `monitor_perf` test on request;
 - migration rehearsal on a database made with the deployed 2f code (d63608c): precheck
   failing on an old report reading `owner_type` / `acquisition_mode`, rows in the
@@ -637,3 +638,31 @@ Not verified (server):
 - whether the quick start screen also accepts a client action (not needed with the
   server action);
 - the times on the server's hardware (4 GB VPS) and with its rate history.
+
+### 11.1 Corrections after the audit of 643f95e (10/10/2026)
+1. **Multi-company**: global rule `rule_stock_monitor_company`
+   (`[('company_id', 'in', company_ids)]`), ANDed with the profile rule, for every user.
+   The unconverted rent paid is grouped by each row's company currency
+   (`company_currency_id`), no longer by the current company's. Tests with a second
+   company: search, read_group, export and get_dashboard_data for the investor, the
+   store user and the accountant; a company allowed but not active stays hidden.
+2. **No sum across currencies in the standard views**: `read_group` (pivot and grand
+   total, graph, grouped list, grouped export) counts the distinct currencies of each
+   group (`count_distinct` of the amount's currency: stock currency, source currency,
+   company currency for the rent paid in it, rent currency) and leaves the amount empty
+   (`False`) when there is more than one, whatever the aggregate spec (`name`,
+   `name:sum`, `alias:sum(name)`); counts stay. The list has no amount total any more.
+   Tests: grand total, grouped by family, by currency, by stock, one currency, grouped
+   list, list arch.
+3. **Deployment order**: `deploy_modules.sh` takes the announced commit, checks it
+   (origin/main, clean working tree, fast-forward) before anything, stops odoo_web,
+   checks it is stopped, then moves the working tree and updates. Run from the copy
+   extracted at step 2. Simulated locally with a stub docker: stop seen on the old
+   commit, update and tests on the new one.
+4. **Place type**: new column `stock_place_type` (the monitor stock's type), used by
+   the dashboard cards; `place_type` stays the location's own. Test with a shelf under
+   a lent-out stock.
+5. **TBER/Stock address**: corrected to Berlin by the owner on 09/10/2026; the README
+   no longer says only « done », and the precheck prints every candidate stock's
+   address to confirm by eye (`stock_addresses.sql`).
+Each new test was checked to fail with its fix removed (6 failures, subtests included).

@@ -6,6 +6,7 @@ alerts §3.7. The only SQL object is the view; no PostgreSQL function.
 """
 from odoo import _, api, fields, models, tools
 from odoo.exceptions import UserError
+from odoo.models import regex_field_agg
 from odoo.osv import expression
 
 from odoo.addons.maintenance_shareholder_equipment.models.maintenance_equipment import (
@@ -17,6 +18,8 @@ from odoo.addons.maintenance_shareholder_equipment.models.maintenance_equipment 
 STAFF = "stock.group_stock_user,account.group_account_readonly"
 ACCOUNTANTS = "account.group_account_readonly"
 
+PLACE_TYPES = [("physical", "Physical"), ("lent_out", "Lent Out"), ("virtual", "Virtual")]
+
 # converted measures: field name -> short name of its source columns in the SQL
 MEASURES = {
     "inventory_value": "inventory",
@@ -26,6 +29,15 @@ MEASURES = {
     "depreciated_value": "depreciated",
     "accounting_value": "accounting",
     "rent_monthly": "rent_m",
+}
+# summable amounts and the currency of each: read_group never adds amounts of different
+# currencies (pivot, graph, grouped list and grouped export, DEFINITIONS.md « Currency »)
+AMOUNT_CURRENCY = {
+    **dict.fromkeys(MEASURES, "currency_id"),
+    **{f"{name}_source_amount": f"{name}_source_currency_id" for name in MEASURES},
+    "rent_paid": "currency_id",
+    "rent_paid_source_amount": "company_currency_id",
+    "rent_amount": "rent_currency_id",
 }
 # dashboard filters (§4.3): key -> type of its value; text labels, never ids (ids are
 # reserved to staff, a domain on them would be refused to an investor)
@@ -136,9 +148,11 @@ class StockMonitor(models.Model):
     family = fields.Selection([("asset", "Asset"), ("consumable", "Consumable")],
                               readonly=True)
     ownership_status = fields.Selection(OWNERSHIP_STATUS, readonly=True)
-    place_type = fields.Selection(
-        [("physical", "Physical"), ("lent_out", "Lent Out"), ("virtual", "Virtual")],
-        readonly=True)
+    # place type of the monitor stock (a shelf created under a lent-out stock keeps the
+    # default « physical »: the stock's type is the one shown) and of the location itself
+    stock_place_type = fields.Selection(PLACE_TYPES, string="Stock Place Type",
+                                        readonly=True)
+    place_type = fields.Selection(PLACE_TYPES, string="Location Place Type", readonly=True)
     product_name = fields.Char(string="Product", translate=True, readonly=True)
     category_name = fields.Char(string="Product Category", readonly=True)
     equipment_name = fields.Char(string="Equipment", translate=True, readonly=True)
@@ -239,6 +253,8 @@ class StockMonitor(models.Model):
                              groups=ACCOUNTANTS)
     rent_paid_source_amount = fields.Float(string="Rent Paid (excl. tax, company currency)",
                                            readonly=True, groups=ACCOUNTANTS)
+    company_currency_id = fields.Many2one("res.currency", string="Company Currency",
+                                          readonly=True, groups=ACCOUNTANTS)
     rent_paid_rate_missing = fields.Integer(string="Rent Paid – Rate Missing", readonly=True,
                                             groups=ACCOUNTANTS)
     rent_paid_known = fields.Integer(string="Rent Paid – Known", readonly=True,
@@ -353,7 +369,8 @@ WITH company_defaults AS MATERIALIZED (
       FROM res_company c
 ),
 stocks AS (
-    SELECT l.id, l.parent_path, l.complete_name, l.monitor_currency_id, l.address_id
+    SELECT l.id, l.parent_path, l.complete_name, l.monitor_currency_id, l.address_id,
+           l.place_type
       FROM stock_location l
      WHERE l.is_monitor_stock AND l.active AND l.usage = 'internal'
 ),
@@ -361,7 +378,8 @@ location_stock AS MATERIALIZED (
     -- nearest monitor stock of every internal location (longest parent_path prefix),
     -- resolved once per location rather than once per row
     SELECT DISTINCT ON (loc.id) loc.id AS location_id, st.id AS stock_id,
-           st.complete_name AS stock_name, st.monitor_currency_id, st.address_id
+           st.complete_name AS stock_name, st.monitor_currency_id, st.address_id,
+           st.place_type AS stock_place_type
       FROM stock_location loc
       JOIN stocks st ON loc.parent_path LIKE st.parent_path || '%'
      WHERE loc.usage = 'internal'
@@ -444,9 +462,9 @@ source_rows AS (
 ),
 placed AS (
     -- stock = nearest monitor stock at or above the location (parent_path prefix)
-    SELECT src.*, s.stock_id, s.stock_name,
+    SELECT src.*, s.stock_id, s.stock_name, s.stock_place_type,
            loc.complete_name AS location_name, loc.place_type,
-           c.currency_id AS company_currency,
+           c.currency_id AS company_currency, c.currency_id AS company_currency_id,
            split_part(c.parent_path, '/', 1)::integer AS root_company,
            COALESCE(s.monitor_currency_id, c.currency_id) AS target_currency,
            (c.stock_monitor_currency_mode = 'latest') AS latest_mode,
@@ -652,6 +670,38 @@ alerted AS (
 SELECT a.*, ({alert_sum}) AS alert_count FROM alerted a
 """
 
+    # ------------------------------------------------------------------ grouping
+
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False,
+                   lazy=True):
+        """No sum across currencies in the standard views: a group whose rows hold
+        an amount in more than one currency gets no amount (empty cell in the pivot
+        and the grouped list, no bar in the graph), whatever the grouping chosen.
+        The dashboard groups by currency itself (get_dashboard_data)."""
+        fields = list(fields)
+        checks = {}  # result key of an amount -> alias of its currency count
+        for spec in list(fields):
+            match = regex_field_agg.match(spec)
+            if not match:
+                continue
+            name, func, fname = match.groups()
+            currency = AMOUNT_CURRENCY.get(fname or name)
+            if currency and func not in ("count", "count_distinct"):
+                alias = f"smm_currencies_{currency}"
+                if alias not in checks.values():
+                    fields.append(f"{alias}:count_distinct({currency})")
+                checks[name] = alias
+        groups = super().read_group(domain, fields, groupby, offset=offset, limit=limit,
+                                    orderby=orderby, lazy=lazy)
+        aliases = set(checks.values())
+        for group in groups:
+            mixed = {alias for alias in aliases if (group.pop(alias, 0) or 0) > 1}
+            for name, alias in checks.items():
+                if alias in mixed and name in group:
+                    group[name] = False
+        return groups
+
     # ------------------------------------------------------------------ dashboard
 
     def _readable(self, names):
@@ -719,8 +769,8 @@ SELECT a.*, ({alert_sum}) AS alert_count FROM alerted a
         staff = self._fields["stock_id"].is_accessible(self.env)
         accountant = "accounting_value" in measures
 
-        dims = ["country_name", "city", "stock_name", "place_type", "currency_id", "family",
-                "ownership_status"]
+        dims = ["country_name", "city", "stock_name", "stock_place_type", "currency_id",
+                "family", "ownership_status"]
         sums = ["asset_count"] + measures + [f"{m}_rate_missing" for m in measures] + [
             f"{m}_known" for m in measures] + alerts
         if rent_paid:
@@ -782,10 +832,12 @@ SELECT a.*, ({alert_sum}) AS alert_count FROM alerted a
             if not sum(group.get(f"{name}_rate_missing") or 0 for group in rows):
                 continue
             if name == "rent_paid":
-                amount = self._read_group(domain + [("rent_paid_rate_missing", "=", 1)], [],
-                                          ["rent_paid_source_amount:sum"])[0][0]
+                # in the company currency of each row (several companies may be active)
                 totals[name]["missing"] = [
-                    {"currency_id": self.env.company.currency_id.id, "amount": amount}]
+                    {"currency_id": currency.id, "amount": amount}
+                    for currency, amount in self._read_group(
+                        domain + [("rent_paid_rate_missing", "=", 1)],
+                        ["company_currency_id"], ["rent_paid_source_amount:sum"])]
                 continue
             totals[name]["missing"] = [
                 {"currency_id": currency.id, "amount": amount}
@@ -808,7 +860,8 @@ SELECT a.*, ({alert_sum}) AS alert_count FROM alerted a
             key = (group["stock_name"] or OUTSIDE_STOCK, group["currency_id"])
             card = cards.setdefault(key, {
                 "name": key[0], "city": group["city"] or "",
-                "country": group["country_name"] or "", "place_type": group["place_type"] or "",
+                "country": group["country_name"] or "",
+                "place_type": group["stock_place_type"] or "",
                 "currency_id": group["currency_id"], "count": 0, "assets": 0,
                 "inventory_value": 0.0, "missing": 0, "alerts": 0,
             })

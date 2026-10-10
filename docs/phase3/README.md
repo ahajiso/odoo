@@ -11,7 +11,7 @@ Modules:
   contract currency, obsolete fields removed);
 - `lartdubati_investor_home` 18.0.1.6.0 → 18.0.2.0.0 (monitor, dashboard, access).
 
-Expected tests: **186 tests** (both modules). They include 3 tour tests and the
+Expected tests: **191 tests** (both modules). They include 3 tour tests and the
 Hoot tests of the dashboard, which need Chrome and the Python module `websocket-client`:
 without them in `odoo_web` (the case of the 2f deployment) they are counted as skipped,
 and the interface checks of step 8 cover them. The performance test (`monitor_perf`) is
@@ -52,8 +52,16 @@ the precheck refuses to go on while a view still reads them. Uninstalling
 
 ### 0c. Stock addresses
 Every warehouse stock and lent-out location becomes a monitor stock: each needs an
-address with a city and a country (done on 09/10/2026 for Bg/Stock, TBER/Stock,
-TIST/Stock).
+address with a city and a country. Set on 09/10/2026 for Bg/Stock (Bougival, FR),
+TIST/Stock (Istanbul, TR) and TBER/Stock (DE); TBER/Stock's contact first read
+« PARIS CEDEX 20 », corrected to Berlin by the owner on 09/10/2026. The precheck can
+only check that city and country are filled: it prints every candidate stock with its
+address (step 3), to confirm by eye, TBER/Stock with **Berlin | DE**. To read it now:
+
+```bash
+docker exec -i odoo_db psql -U odoo -d artdubati_test -At -F ' | ' \
+  < /tmp/phase3/docs/phase3/stock_addresses.sql   # after step 2
+```
 
 ## 1. Backup (database and filestore)
 
@@ -78,8 +86,9 @@ cd /opt/odoo/addons/custom
 git fetch origin +refs/heads/main:refs/remotes/origin/main
 git log -1 --oneline origin/main        # must be the commit announced by Claude
 rm -rf /tmp/phase3 && mkdir -p /tmp/phase3
-git archive origin/main docs/phase3 docs/investor_home | tar -x -C /tmp/phase3
-ls /tmp/phase3/docs/phase3/             # precheck.sh  precheck.sql  postcheck.sql ...
+git archive origin/main docs/phase3 docs/investor_home docs/deploy_modules.sh \
+  | tar -x -C /tmp/phase3
+ls /tmp/phase3/docs/phase3/             # precheck.sh  precheck.sql  stock_addresses.sql ...
 git status --short | head               # nothing changed in the working tree
 ```
 
@@ -89,22 +98,35 @@ git status --short | head               # nothing changed in the working tree
 bash /tmp/phase3/docs/phase3/precheck.sh artdubati_test
 ```
 
+It first prints the addresses of the candidate stocks: check each city and country
+(TBER/Stock: Berlin | DE); if one is wrong, correct the contact and run it again.
 It refuses (exit 1) while a view still reads a removed column (step 0b), the
 equipment-contract table holds rows (0a), or a candidate stock has no address with a
 city and a country (0c). Fix what it lists and run it again. Do not go on.
 
 ## 4 to 6. Stop, update the working tree, update and test, restart
 
+One command, run from the copy of step 2 (the working tree still holds the previous
+script), with the commit announced by Claude:
+
 ```bash
-cd /opt/odoo/addons/custom && git merge --ff-only origin/main && git log -1 --oneline
-bash /opt/odoo/addons/custom/docs/deploy_modules.sh \
-  /opt/odoo/backups/<dump of step 1> 186 phase3
+bash /tmp/phase3/docs/deploy_modules.sh \
+  /opt/odoo/backups/<dump of step 1> 191 phase3 <commit announced by Claude>
 ```
 
-`deploy_modules.sh` stops `odoo_web`, updates both modules (the migration flags the
-monitor stocks in company currency and moves a company still on « No Conversion » to
-« Latest Rate »), runs the tests and restarts only if everything passed. On « FAILED »
-it leaves `odoo_web` stopped: go to the rollback.
+In this order, nothing changed until the stop (audit of 643f95e, point 3):
+1. checks before anything: the commit is `origin/main`, the working tree has no local
+   change, the commit follows the current one (fast-forward);
+2. stops `odoo_web` and checks it is stopped: the running server never reads the new
+   files;
+3. moves the working tree to the commit (`git merge --ff-only`) and checks `HEAD`;
+4. updates both modules (the migration flags the monitor stocks in company currency and
+   moves a company still on « No Conversion » to « Latest Rate »);
+5. runs the tests;
+6. restarts `odoo_web` only if everything passed.
+
+A refusal at 1 changes nothing (`odoo_web` keeps running). On « FAILED » from 2 on, it
+leaves `odoo_web` stopped: go to the rollback.
 
 ### Rollback (only after a FAILED)
 

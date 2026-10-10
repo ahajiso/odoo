@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# Update the two modules on artdubati_test and run their tests, with odoo_web
-# STOPPED. odoo_web serves every database of the server: acceptable only while there is
+# Stop odoo_web, move the code to the announced commit, then update the two modules on
+# artdubati_test and run their tests, with odoo_web STOPPED: the running server never
+# sees the new files (audit of 643f95e, point 3). odoo_web serves every database of the server: acceptable only while there is
 # no real production (see docs/deployment/investor_home.md, section 0).
 #
-# Usage: bash deploy_modules.sh <backup.dump> <expected number of tests> <label, e.g. phase2>
+# Usage: bash deploy_modules.sh <backup.dump> <expected number of tests> <label, e.g. phase3> \
+#          <commit announced by Claude, fetched as origin/main>
 #
 # Stops at the first failure and leaves odoo_web STOPPED: Odoo commits after each
 # module, so a failure can leave the database partly updated. Then follow
@@ -15,12 +17,14 @@ DB=artdubati_test
 MODULES=maintenance_shareholder_equipment,lartdubati_investor_home
 TAGS=/maintenance_shareholder_equipment,/lartdubati_investor_home
 EXPECTED_TESTS=${2:-}
-LOGDIR=/opt/odoo/logs
+LOGDIR=${LOGDIR:-/opt/odoo/logs}
 LABEL=${3:-update}
 STAMP=$(date +%F_%H%M)
 LOG="$LOGDIR/${LABEL}_update_$STAMP.log"
 LOGT="$LOGDIR/${LABEL}_tests_$STAMP.log"
 BACKUP=${1:-}
+COMMIT=${4:-}
+ADDONS=${ADDONS:-/opt/odoo/addons/custom}
 
 fail() {
   echo
@@ -34,6 +38,15 @@ fail() {
   echo "Give the backup of step 1 as first argument (non-empty file)."; exit 1; }
 [[ "$EXPECTED_TESTS" =~ ^[0-9]+$ ]] || {
   echo "Give the expected number of tests as second argument."; exit 1; }
+[ -n "$COMMIT" ] || { echo "Give the commit announced by Claude as fourth argument."; exit 1; }
+TARGET=$(git -C "$ADDONS" rev-parse --verify --quiet "$COMMIT^{commit}") || {
+  echo "Commit $COMMIT not found: run the fetch step of the README first."; exit 1; }
+[ "$(git -C "$ADDONS" rev-parse origin/main)" = "$TARGET" ] || {
+  echo "origin/main is not $COMMIT: fetch again or check the commit with Claude."; exit 1; }
+[ -z "$(git -C "$ADDONS" status --porcelain --untracked-files=no)" ] || {
+  echo "The working tree of $ADDONS has local changes: nothing done, send them to Claude."; exit 1; }
+git -C "$ADDONS" merge-base --is-ancestor HEAD "$TARGET" || {
+  echo "$COMMIT does not follow the current commit (no fast-forward): send this to Claude."; exit 1; }
 mkdir -p "$LOGDIR"
 
 IMG=$(docker inspect -f '{{.Config.Image}}' odoo_web)
@@ -57,6 +70,13 @@ echo "Image: $IMG, network: $NET"
 echo "Stopping odoo_web (every database unavailable until the end)..."
 docker stop odoo_web > /dev/null || {
   echo "FAILED: docker stop odoo_web. Nothing was changed; check « docker ps -a »."; exit 1; }
+[ "$(docker inspect -f '{{.State.Running}}' odoo_web)" = "false" ] || {
+  echo "FAILED: odoo_web still running. Nothing was changed."; exit 1; }
+
+echo "Moving the code to $COMMIT (odoo_web stopped)..."
+git -C "$ADDONS" merge --ff-only "$TARGET" > /dev/null || fail "git merge --ff-only $COMMIT"
+[ "$(git -C "$ADDONS" rev-parse HEAD)" = "$TARGET" ] || fail "the code is not at $COMMIT"
+echo "CODE OK: $(git -C "$ADDONS" log -1 --oneline)"
 
 echo "Updating $MODULES on $DB..."
 if ! run_odoo -d "$DB" -u "$MODULES" --stop-after-init > "$LOG" 2>&1; then

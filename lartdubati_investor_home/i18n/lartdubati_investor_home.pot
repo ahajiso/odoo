@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 21:22+0000\n"
-"PO-Revision-Date: 2026-10-09 21:22+0000\n"
+"POT-Creation-Date: 2026-10-10 05:51+0000\n"
+"PO-Revision-Date: 2026-10-10 05:51+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -277,6 +277,11 @@ msgstr ""
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__company_id
 msgid "Company"
+msgstr ""
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__company_currency_id
+msgid "Company Currency"
 msgstr ""
 
 #. module: lartdubati_investor_home
@@ -650,6 +655,7 @@ msgstr ""
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_ownership_type__code__lent_out
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__ownership_status__lent_out
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__place_type__lent_out
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__stock_place_type__lent_out
 #: model:lartdubati.ownership.type,name:lartdubati_investor_home.ownership_lent_out
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_search
 msgid "Lent Out"
@@ -676,6 +682,11 @@ msgstr ""
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__location_id
 msgid "Location (record)"
+msgstr ""
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__place_type
+msgid "Location Place Type"
 msgstr ""
 
 #. module: lartdubati_investor_home
@@ -945,6 +956,7 @@ msgstr ""
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__place_type__physical
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__stock_place_type__physical
 msgid "Physical"
 msgstr ""
 
@@ -953,11 +965,6 @@ msgstr ""
 #: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_form
 msgid "Place"
-msgstr ""
-
-#. module: lartdubati_investor_home
-#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__place_type
-msgid "Place Type"
 msgstr ""
 
 #. module: lartdubati_investor_home
@@ -1349,6 +1356,11 @@ msgid "Stock Monitor – Detailed Analysis"
 msgstr ""
 
 #. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__stock_place_type
+msgid "Stock Place Type"
+msgstr ""
+
+#. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__stock_value
 msgid "Stock Value (excl. tax)"
 msgstr ""
@@ -1486,6 +1498,7 @@ msgstr ""
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__place_type__virtual
+#: model:ir.model.fields.selection,name:lartdubati_investor_home.selection__lartdubati_stock_monitor__stock_place_type__virtual
 msgid "Virtual"
 msgstr ""
 
