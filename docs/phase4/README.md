@@ -40,7 +40,10 @@ docker exec odoo_web ls -d $FS/artdubati_test   # must print the folder
 docker exec odoo_web tar -czf - -C $FS artdubati_test \
   > /opt/odoo/backups/artdubati_test_${STAMP}_phase4_filestore.tar.gz && echo FILESTORE BACKUP OK
 ls -l /opt/odoo/backups/*phase4*
+# the backup's path, read by steps 4-6 and the rollback (no name to type by hand)
+echo /opt/odoo/backups/artdubati_test_${STAMP}_phase4.dump > /opt/odoo/logs/phase4_backup
 cd /opt/odoo/addons/custom && git rev-parse HEAD > /opt/odoo/logs/phase4_previous_commit
+cat /opt/odoo/logs/phase4_backup /opt/odoo/logs/phase4_previous_commit
 ```
 
 ## 2. Fetch the new code without touching the working tree
@@ -74,8 +77,9 @@ precheck_home.sql):
 ## 4 to 6. Stop, update the working tree, update and test, restart
 
 ```bash
-bash /tmp/phase4/docs/deploy_modules.sh \
-  /opt/odoo/backups/<dump of step 1> 230 phase4 <commit announced by Claude>
+BACKUP=$(cat /opt/odoo/logs/phase4_backup); COMMIT=$(git -C /opt/odoo/addons/custom rev-parse --short origin/main)
+echo "$BACKUP $COMMIT"     # the dump of step 1 and the commit announced by Claude
+bash /tmp/phase4/docs/deploy_modules.sh "$BACKUP" TESTCOUNT phase4 "$COMMIT"
 ```
 
 Same script as phase 3: checks first, stops `odoo_web`, moves the working tree to the
@@ -88,15 +92,27 @@ stopped: rollback.
 
 ### Rollback (only after a FAILED)
 
+One block: it does nothing unless the backup of step 1 exists (first deployment,
+10/10/2026: a placeholder left the path empty, the database was dropped and nothing
+restored; restored by hand from the same backup).
+
 ```bash
-BACKUP=/opt/odoo/backups/<dump of step 1>
-cd /opt/odoo/addons/custom && git checkout "$(cat /opt/odoo/logs/phase4_previous_commit)"
-docker exec odoo_db dropdb -U odoo artdubati_test
-docker exec odoo_db createdb -U odoo artdubati_test
-docker exec -i odoo_db pg_restore -U odoo -d artdubati_test --no-owner < "$BACKUP" \
-  && echo RESTORE OK
-docker start odoo_web
+BACKUP=$(cat /opt/odoo/logs/phase4_backup 2>/dev/null)
+PREVIOUS=$(cat /opt/odoo/logs/phase4_previous_commit 2>/dev/null)
+if [ -s "$BACKUP" ] && [ -n "$PREVIOUS" ]; then
+  docker stop odoo_web
+  cd /opt/odoo/addons/custom && git checkout "$PREVIOUS" \
+  && docker exec odoo_db dropdb -U odoo artdubati_test \
+  && docker exec odoo_db createdb -U odoo artdubati_test \
+  && docker exec -i odoo_db pg_restore -U odoo -d artdubati_test --no-owner < "$BACKUP" \
+  && echo RESTORE OK && docker start odoo_web
+else
+  echo "STOP: backup or previous commit missing ($BACKUP / $PREVIOUS), nothing done"
+fi
 ```
+
+Check: `docker exec -i odoo_db psql -U odoo -d artdubati_test -Atc "select latest_version
+from ir_module_module where name='lartdubati_investor_home'"` prints `18.0.2.0.0`.
 
 ## 7. Post-update check (must print no row)
 

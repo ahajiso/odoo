@@ -269,6 +269,16 @@ class ResUsers(models.Model):
                     "Remove: %(groups)s.", user=user.name,
                     groups=", ".join(sorted(forbidden.mapped("full_name")))))
 
+    @api.model
+    def _get_activity_groups(self):
+        # first deployment attempt (10/10/2026): other modules add their own groups to
+        # the activity systray, read as the user (Calendar: « Today's Meetings » from
+        # calendar.attendee), which the default deny refuses, so every page's mail init
+        # failed. An investor account sees no activity: none, without calling them.
+        if is_investor(self.env):
+            return []
+        return super()._get_activity_groups()
+
     def _set_investor_home(self):
         """P4-4: an investor account opens the investor home page."""
         group = self.env.ref(INVESTOR_GROUP)

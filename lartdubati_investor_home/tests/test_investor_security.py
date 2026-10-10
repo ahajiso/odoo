@@ -458,6 +458,16 @@ class TestInvestorRoutes(InvestorSecurityCommon, HttpCase):
             "move_type": "out_invoice", "partner_id": partner.id,
             "invoice_line_ids": [Command.create({"name": "Secret line", "quantity": 1,
                                                  "price_unit": 10})]})
+        # staff, for the standard behaviour: a user made by the test (the database's
+        # admin password is unknown on a real database: first deployment, 10/10/2026)
+        admin = cls.env.ref("base.user_admin")
+        cls.staff = cls.env["res.users"].create({
+            "name": "Staff (routes test)", "login": "routes_staff",
+            "password": "routes_staff", "company_id": admin.company_id.id,
+            "company_ids": [Command.set(admin.company_ids.ids)],
+            "groups_id": [Command.set([cls.env.ref(xmlid).id for xmlid in (
+                "base.group_system", "base.group_allow_export",
+                "stock.group_stock_manager", "purchase.group_purchase_manager")])]})
 
     def _token(self):
         return re.search(r'csrf_token: "(\w+)"', self.url_open("/odoo").text).group(1)
@@ -477,7 +487,7 @@ class TestInvestorRoutes(InvestorSecurityCommon, HttpCase):
                     response = self._definitions(route, key, [model])
                     self.assertEqual(response.status_code, 403)
                     self.assertNotIn(b'"fields"', response.content)
-        self.authenticate("admin", "admin")
+        self.authenticate(self.staff.login, self.staff.login)
         response = self._definitions("/web/model/get_definitions", "model_names",
                                      ["account.move"])
         self.assertEqual(response.status_code, 200)
@@ -512,7 +522,7 @@ class TestInvestorRoutes(InvestorSecurityCommon, HttpCase):
         self.assertEqual(response.status_code, 403)
         self.assertNotIn("records", response.text)
         # staff: standard behaviour
-        self.authenticate("admin", "admin")
+        self.authenticate(self.staff.login, self.staff.login)
         response = self.url_open("/json/1/action-stock.action_picking_tree_all",
                                  headers=BROWSER_HEADERS)
         self.assertEqual(response.status_code, 200)
@@ -547,7 +557,7 @@ class TestInvestorRoutes(InvestorSecurityCommon, HttpCase):
             "partner_id": self.order.partner_id.id, "order_line": [Command.create({
                 "name": "Line", "product_id": self.drill.id, "product_qty": 1,
                 "price_unit": 10})]})
-        self.authenticate("admin", "admin")
+        self.authenticate(self.staff.login, self.staff.login)
         response = self.url_open(f"/report/html/purchase.report_purchaseorder/{order.id}")
         self.assertEqual(response.status_code, 200)
         self.assertIn(order.name.encode(), response.content)
