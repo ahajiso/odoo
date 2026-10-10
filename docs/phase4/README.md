@@ -214,17 +214,36 @@ The interface checks of step 9 (audit of the deployed phase 4) found:
    (Currency, Stock; amounts still never summed across currencies, phase 3 §11.1).
    Tests: an account made only as an investor exports (route test, CSV and XLSX); a
    member without the group gets it when the implication is linked (the server's
-   update); the investor tour selects a row, exports XLSX from the grouped list, then
-   ungroups and exports CSV, both files really saved by the browser; export templates
-   hidden and refused. The post-check also lists an active investor without the export
+   update); the investor tour checks the grouping facet « Currency > Stock » (in this
+   order, removable) and the group levels, selects a row, exports XLSX from the grouped
+   list, then ungroups and exports CSV, both downloads triggered in the browser (the
+   files' content is checked by the HTTP test); export templates hidden and refused. The post-check also lists an active investor without the export
    group and the new rule.
-2. **Probe**: `probe_investor.py` loaded the menus with `ir.ui.menu.load_menus` through
+2. **Messaging badge « 2 »** (seen in the local browser test, audit of bdb8428). The
+   badge (`.o-mail-MessagingMenu-counter`, mail `MessagingMenu.counter`) adds the inbox
+   counter and the failures from `/mail/data` (`Store.inbox.counter`, `failures`, the
+   latter dropped for investors) and two prompts of the browser itself: « Install Odoo »
+   (`pwa.canPromptToInstall`) and « Turn on notifications » (push permission
+   `prompt`). Measured in the tour: badge 2 = install 1 + notifications 1; inbox,
+   starred, failures and unread channels 0, while another user of the test has a
+   message to process, a starred message, a failed email, an activity and an unread
+   chat. The menu shows only the two prompts. They depend on the browser (a dismissed
+   install prompt, a granted or refused permission: no badge, as in the audit's
+   browser), not on any user's data. Tests: the tour step (counter broken down, menu
+   content); `/mail/data` as the investor with that data (counters 0, no content), the
+   other user seeing them as a control; the websocket channels (neither the other
+   user's partner nor its chat).
+3. **Grouping priorities**: `search_default_group_currency: 1`,
+   `search_default_group_stock: 2` (action and dashboard button), the order checked by
+   the tour.
+
+4. **Probe**: `probe_investor.py` loaded the menus with `ir.ui.menu.load_menus` through
    `call_kw`, refused to investors on purpose; it now uses the web client's route
    `/web/webclient/load_menus/<unique>`.
 
 Module: `lartdubati_investor_home` 18.0.3.0.0 → 18.0.3.0.1;
 `maintenance_shareholder_equipment` unchanged (18.0.4.0.1, its tests run again).
-Expected tests on the server: **233 tests** (234 locally, same
+Expected tests on the server: **235 tests** (236 locally, same
 difference of one as in step 5).
 
 ```bash
@@ -250,7 +269,7 @@ bash /tmp/phase4/docs/backup_db.sh phase4fix
 BACKUP=$(sed -n 's/^DUMP=//p' /opt/odoo/logs/phase4fix_backup)
 COMMIT=$(git -C /opt/odoo/addons/custom rev-parse --short origin/main)
 echo "$BACKUP $COMMIT"
-bash /tmp/phase4/docs/deploy_modules.sh "$BACKUP" 233 phase4fix "$COMMIT"
+bash /tmp/phase4/docs/deploy_modules.sh "$BACKUP" 235 phase4fix "$COMMIT"
 
 # 8. post-update checks (PLATFORM OK (after), then no row)
 bash /tmp/phase4/docs/phase4/check_modules.sh after

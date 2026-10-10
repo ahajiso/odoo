@@ -242,7 +242,7 @@
         <!-- grouping as removable facets (audit of the deployed phase 4): an ungrouped
              list is needed for the CSV export, which Odoo refuses on grouped data; the
              amounts never sum across currencies (read_group, phase 3 §11.1 point 2) -->
-        <field name="context">{'search_default_group_currency': 1, 'search_default_group_stock': 1}</field>
+        <field name="context">{'search_default_group_currency': 1, 'search_default_group_stock': 2}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No item in the stocks you may see.</p>
             <p>Your access profile decides which stocks, families and ownership statuses

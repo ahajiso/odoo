@@ -26,6 +26,9 @@ class TestStockMonitorUnit(HttpCase):
         )
 
 
+from odoo.addons.lartdubati_investor_home.tests.test_investor_security import (  # noqa: E402
+    make_others_mail_activity,
+)
 from odoo.addons.lartdubati_investor_home.tests.test_stock_monitor import (  # noqa: E402
     MonitorAccessCommon,
 )
@@ -48,5 +51,8 @@ class TestStockMonitorTours(MonitorAccessCommon, HttpCase):
     def test_investor_home_tour(self):
         """Phase 4: the investor opens the home page (home action), the dashboard from
         Financial, a « coming soon » notification; nothing refused on the way."""
+        # audit of bdb8428: another user's messages, failures, activity and unread chat
+        # must not count in the investor's messaging badge (checked by the tour)
+        make_others_mail_activity(self.env, self.store, self.accountant)
         self.investor.password = self.investor.login
         self.start_tour("/odoo", "investor_home_tour", login=self.investor.login)

@@ -51,6 +51,35 @@ PNG = base64.b64encode(
     b"\xbd\x00\x00\x00\x00IEND\xaeB`\x82")
 
 
+def make_others_mail_activity(env, other, sender):
+    """Audit of bdb8428 (badge « 2 »): what another user's messaging menu counts, made
+    for `other` (a staff user): a message to process (inbox), a starred message, a
+    failed email it wrote, a to-do activity and an unread chat from `sender` (another
+    staff user of the same company). Returns the texts that must never reach an
+    investor."""
+    other.notification_type = "inbox"  # its messages to process go to its Odoo inbox
+    document = env["res.partner"].create({"name": "Hidden Mail Document"})
+    needaction = document.message_post(
+        body="Hidden Needaction", message_type="comment", subtype_xmlid="mail.mt_comment",
+        partner_ids=other.partner_id.ids)
+    needaction.starred_partner_ids = [Command.link(other.partner_id.id)]
+    failed = env["mail.message"].create({
+        "model": "res.partner", "res_id": document.id, "message_type": "comment",
+        "body": "<p>Hidden Failure</p>", "author_id": other.partner_id.id})
+    env["mail.notification"].create({
+        "mail_message_id": failed.id, "res_partner_id": sender.partner_id.id,
+        "author_id": other.partner_id.id, "notification_type": "email",
+        "notification_status": "exception", "failure_type": "mail_smtp"})
+    document.activity_schedule("mail.mail_activity_data_todo", summary="Hidden Activity",
+                               user_id=other.id)
+    chat = env["discuss.channel"].with_user(sender).channel_get(
+        partners_to=other.partner_id.ids)
+    chat.with_user(sender).message_post(body="Hidden Chat", message_type="comment",
+                                       subtype_xmlid="mail.mt_comment")
+    return ("Hidden Mail Document", "Hidden Needaction", "Hidden Failure",
+            "Hidden Activity", "Hidden Chat", other.name)
+
+
 class InvestorSecurityCommon(MonitorAccessCommon):
 
     @classmethod
@@ -737,6 +766,36 @@ class TestInvestorPublicRoutes(InvestorSecurityCommon, HttpCase):
             self.assertNotIn(secret, dump)
         self.assertFalse(data.get("discuss.channel"))
 
+    def test_mail_data_others_counters_hidden(self):
+        """Audit of bdb8428: another user's messages to process, starred messages, failed
+        emails, activities and unread chats reach neither the content nor the counters
+        of an investor's /mail/data (what the messaging and activity badges show). The
+        other user, as a control, sees them."""
+        hidden = make_others_mail_activity(self.env, self.store, self.accountant)
+        params = {"init_messaging": {"channel_types": ["channel", "chat", "group"]},
+                  "failures": True, "systray_get_activities": True}
+        self.store.password = self.store.login
+        self.authenticate(self.store.login, self.store.login)
+        control = self.make_jsonrpc_request("/mail/data", params)["Store"]
+        self.assertGreaterEqual(control["inbox"]["counter"], 1)
+        self.assertGreaterEqual(control["starred"]["counter"], 1)
+        self.assertGreaterEqual(control["activityCounter"], 1)
+        self.assertGreaterEqual(control["initChannelsUnreadCounter"], 1)
+        self.authenticate(self.investor.login, self.investor.login)
+        data = self.make_jsonrpc_request("/mail/data", params)
+        store = data["Store"]
+        self.assertEqual(store["inbox"]["counter"], 0)
+        self.assertEqual(store["starred"]["counter"], 0)
+        self.assertEqual(store["activityCounter"], 0)
+        self.assertEqual(store["activityGroups"], [])
+        self.assertEqual(store.get("initChannelsUnreadCounter", 0), 0)
+        for model in ("mail.message", "mail.notification", "discuss.channel",
+                      "mail.activity"):
+            self.assertFalse(data.get(model), model)
+        dump = json.dumps(data)
+        for text in hidden:
+            self.assertNotIn(text, dump)
+
     def test_mail_data_failures_of_own_messages(self):
         """Audit of 3326829: an investor account may be the author of messages on
         documents it can no longer read (test_investor once had Purchase rights).
@@ -903,6 +962,22 @@ class TestInvestorBusChannels(InvestorSecurityCommon):
         # staff: Odoo's standard subscription to the groups' channels
         staff = self._channels(self.store)
         self.assertIn(self.env.ref("base.group_user"), staff)
+
+
+    def test_others_channels_not_subscribed(self):
+        """Audit of bdb8428: the investor's websocket never listens to another user's
+        partner channel nor to a chat it is not a member of (what pushes the other
+        user's counters)."""
+        make_others_mail_activity(self.env, self.store, self.accountant)
+        chat = self.env["discuss.channel"].search(
+            [("channel_type", "=", "chat"),
+             ("channel_member_ids.partner_id", "=", self.store.partner_id.id)])
+        self.assertTrue(chat)
+        channels = self._channels(self.investor, [f"discuss.channel_{chat.id}"])
+        self.assertNotIn(self.store.partner_id, channels)
+        self.assertFalse(set(chat.ids) & {c.id for c in channels
+                                          if getattr(c, "_name", None) == "discuss.channel"})
+        self.assertIn(self.store.partner_id, self._channels(self.store))  # control
 
 
 @tagged("post_install", "-at_install")
