@@ -71,13 +71,21 @@
 
 ## Rules
 - Odoo standards: extend by inheritance, no raw SQL writes, no core patches.
+- HTTP routes (audit of 6063db1): every installation or update of a module comes with the
+  inventory of its HTTP routes (docs/phase4/routes.py, compared with the previous output).
+  A new authenticated route stays refused to investor accounts until listed in
+  INVESTOR_ROUTES with a reason and a test; a new public route is read, and if it reads a
+  model, an action or a report or runs a method in sudo, it is tested as an investor
+  account (docs/phase4/ROUTES.md). Every future investor screen needs, explicitly, its
+  action, models, methods, routes, menu, fields and tests.
 - Main rule: use standard Odoo and OCA data and features first; change the repo only
   when necessary.
 - Develop and test on artdubati_test only; production only on explicit request.
 - Never guess an external ID: look it up and show it first.
-- Manual: for phases 1 to 5 of this project, the manual is rewritten once, at the end of
+- Manual: for the phases of this project, the manual is rewritten once, at the end of
   the last phase (owner's decision, 08/10/2026: nobody uses it before and it would
-  change again). Outside this project, every Odoo change requires the manual update
+  change again; since the audit of 6063db1, after the functional phases of
+  docs/ROADMAP.md). Outside this project, every Odoo change requires the manual update
   (FR, then EN/FA) and a changelog line.
   The manual's cards are edited directly in lartdubati_manual/manual/<lang>/*.html,
   then `lartdubati_manual/tools/refresh.py` and `check.py` are run. Procedure and
@@ -262,8 +270,16 @@ tests on artdubati_test (47 passing, 08/10/2026).
    action load whitelist, `run()` refused, exact action per home button, forbidden
    groups refused), home page as module data (adoption of the script's records in any
    language, rehearsal finding), back link on the dashboard, precheck / post-check,
-   fr/fa; audit of dff33cb corrected (public methods and external API guarded, home adoption by screen then its buttons, S2 a real return); 216 tests passing locally; rehearsals on the phase 3 code clean. Before
-   deployment: Q7 (Purchase rights off `test_investor`), one atomic update.
-5. Translations, manual rewrite for all phases (cards citing removed or changed fields,
-   new receiving procedures, Investor tab), deployment checklist
-   (docs/deployment/investor_home.md).
+   fr/fa; audit of dff33cb corrected (public methods and external API guarded, home
+   adoption by screen then its buttons, S2 a real return); audit of 6063db1 corrected
+   (whitelist of authenticated routes for investor accounts: get_definitions, /json,
+   /report refused, docs/phase4/ROUTES.md; own password change tested); 222 tests
+   passing locally; rehearsals on the phase 3 code clean. Before deployment: Q7
+   (Purchase rights off `test_investor`), one atomic update.
+5. Translations, deployment checklist (docs/deployment/investor_home.md).
+6. Functional phases proposed by the audit of 6063db1, order to set by the owner
+   (docs/ROADMAP.md): recurring expenses and contracts, bill payment and bank
+   reconciliation, insurance register (ten-year liability included), Fleet linked to
+   equipment and assets, worksites and stock consumption, workwear / PPE.
+Last. Manual rewrite for all phases (cards citing removed or changed fields, new
+   receiving procedures, Investor tab), after every functional phase.

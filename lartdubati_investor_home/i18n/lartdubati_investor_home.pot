@@ -530,6 +530,11 @@ msgid "Group By"
 msgstr ""
 
 #. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_ir_http
+msgid "HTTP Routing"
+msgstr ""
+
+#. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
 msgid ""
 "How amounts are converted into the currency of a stock located in another "
@@ -1564,6 +1569,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/lartdubati_investor_home/models/investor_security.py:0
 msgid "This operation is not available to investor accounts."
+msgstr ""
+
+#. module: lartdubati_investor_home
+#. odoo-python
+#: code:addons/lartdubati_investor_home/models/investor_security.py:0
+msgid "This page is not available to investor accounts."
 msgstr ""
 
 #. module: lartdubati_investor_home

@@ -532,6 +532,11 @@ msgid "Group By"
 msgstr "گروه‌بندی بر اساس"
 
 #. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_ir_http
+msgid "HTTP Routing"
+msgstr "مسیریابی HTTP"
+
+#. module: lartdubati_investor_home
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.res_config_settings_view_form_stock_monitor
 msgid ""
 "How amounts are converted into the currency of a stock located in another "
@@ -1581,6 +1586,12 @@ msgstr "این بخش هنوز در دسترس نیست."
 #: code:addons/lartdubati_investor_home/models/investor_security.py:0
 msgid "This operation is not available to investor accounts."
 msgstr "این عملیات برای حساب‌های سرمایه‌گذار در دسترس نیست."
+
+#. module: lartdubati_investor_home
+#. odoo-python
+#: code:addons/lartdubati_investor_home/models/investor_security.py:0
+msgid "This page is not available to investor accounts."
+msgstr "این صفحه برای حساب‌های سرمایه‌گذار در دسترس نیست."
 
 #. module: lartdubati_investor_home
 #. odoo-javascript
