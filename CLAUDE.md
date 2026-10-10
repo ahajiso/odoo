@@ -283,7 +283,10 @@ tests on artdubati_test (47 passing, 08/10/2026).
    options whitelisted for investors: `failures` dropped; websocket channels tested
    without websocket-client); first deployment attempt stopped and rolled back,
    fixes tested on a local database with the server's 122 modules (Calendar, Repair,
-   Sales); 230 tests locally, 229 expected on the server
+   Sales); audit of 86cf4ac..beacfeb corrected (checked backup and restore scripts,
+   exact module comparison with modules.txt, direct tests of the approver's repair /
+   sale scope and of Calendar in /mail/data, maintenance_shareholder_equipment
+   18.0.4.0.1); 232 tests locally, 231 expected on the server
    passing locally; rehearsals on the phase 3 code clean. Before deployment: Q7
    (Purchase rights off `test_investor`), one atomic update.
 5. Translations, deployment checklist (docs/deployment/investor_home.md).

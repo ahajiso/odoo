@@ -11,7 +11,7 @@ Module: `lartdubati_investor_home` 18.0.2.0.0 → 18.0.3.0.0 (new dependency
 scope on repair and sale orders; new dependencies `repair` and `sale_stock`, both
 installed on the server).
 
-Expected tests on the server: **SERVERTESTS tests** (both modules; LOCALTESTS locally on a
+Expected tests on the server: **231 tests** (both modules; 232 locally on a
 database with the server's 122 modules, log kept in `docs/phase4/test_logs/`). The tours
 and the Hoot tests need Chrome and `websocket-client`: without them in `odoo_web` they
 are counted as skipped, as in phases 2f and 3; the interface checks of step 9 cover
@@ -94,7 +94,7 @@ of the database).
 BACKUP=$(sed -n 's/^DUMP=//p' /opt/odoo/logs/phase4_backup)
 COMMIT=$(git -C /opt/odoo/addons/custom rev-parse --short origin/main)
 echo "$BACKUP $COMMIT"     # the dump of step 4 and the commit announced by Claude
-bash /tmp/phase4/docs/deploy_modules.sh "$BACKUP" SERVERTESTS phase4 "$COMMIT"
+bash /tmp/phase4/docs/deploy_modules.sh "$BACKUP" 231 phase4 "$COMMIT"
 ```
 
 Same script as phase 3: checks first, stops `odoo_web`, moves the working tree to the

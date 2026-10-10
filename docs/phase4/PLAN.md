@@ -468,6 +468,29 @@ rehearsal, translations, docs). Additions and findings, each with its reason:
     has placeholders, and the rollback refuses to start without the backup.
   Rule: before each deployment, the server's installed modules are compared with the
   local test database.
+- **Audit of 86cf4ac..beacfeb**:
+  - `docs/backup_db.sh` and `docs/restore_db.sh` replace the hand-typed backup and
+    rollback. Rehearsed locally with a stand-in for `docker`:
+    - backup of a copy of a database and its filestore (471 files), complete restore
+      into a temporary database compared, manifest written;
+    - damage: a module version changed, user settings deleted, a filestore file
+      deleted, the code moved forward;
+    - restore refused with a wrong checksum, nothing changed;
+    - restore: every damage undone, the damaged database kept under another name;
+    - a failed backup leaves no manifest, no partial file, no temporary database, and
+      the restore then refuses;
+    - found on the way: `grep -q` after a pipe fails under `pipefail` (listings now
+      go through a file);
+  - `docs/phase4/modules.txt` (122 modules, name and version, with the Odoo and OCA
+    revisions) and `check_modules.sh before|after`, failing on any difference;
+  - direct tests: the approver alone finds, reads, writes, creates and deletes no
+    repair or sale order, stock users and a salesman approver keep their scope;
+    Calendar's meeting of the day not returned by `/mail/data`; mutation check: both
+    fail without their fix;
+  - `res.users.systray_get_activities` removed from `INVESTOR_METHODS` (does not
+    exist in Odoo 18);
+  - `maintenance_shareholder_equipment` 18.0.4.0.1;
+  - full log of the 232 tests on the server's modules: `docs/phase4/test_logs/`.
 
 Verified locally (Odoo 18, OCA heads, `web_quick_start_screen` c3120b0):
 - tests of both modules (see README for the count), including the investor tours
