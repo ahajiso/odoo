@@ -289,6 +289,15 @@ records behind them; every figure they may not read is absent from the dashboard
 analysis views and exports (exports also need « Allow export »). The profile filters the
 monitor rows (family, ownership, stocks and their sub-locations, country of the stock's
 own address) and the internal locations (country of the monitor stock above them).
+Investor accounts (phase 4, docs/phase4/PLAN.md §2): a user of « Stock Monitor
+Investor » holds no other right than Internal User, what Internal User implies and
+export (refused otherwise). Outside sudo, every model is refused to it except a short
+list (the monitor, the home page, its own user, partner, company, currencies, languages,
+settings, menus), narrowed by rules to its own records; the web client's mail and
+filter models are readable with no record visible. It loads only four actions (home
+page, dashboard, detailed analysis, « coming soon »), runs no server action, and sees
+only the Stock Monitor menu. Its home page is the « Investor Home » screen of the
+module.
 Multi-company (audit of 643f95e): every user, investor or staff, sees only the monitor
 rows of their active companies (global rule `company_id in company_ids`, ANDed with the
 profile rule), in the dashboard, the analysis views and exports.

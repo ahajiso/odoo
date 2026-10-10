@@ -6,14 +6,24 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-10 05:51+0000\n"
-"PO-Revision-Date: 2026-10-10 05:51+0000\n"
+"POT-Creation-Date: 2026-10-10 08:35+0000\n"
+"PO-Revision-Date: 2026-10-10 08:35+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
+
+#. module: lartdubati_investor_home
+#. odoo-python
+#: code:addons/lartdubati_investor_home/models/investor_security.py:0
+msgid ""
+"%(user)s is an investor account: it may not hold other rights. Remove: "
+"%(groups)s."
+msgstr ""
+"%(user)s یک حساب سرمایه‌گذار است و نمی‌تواند حق دسترسی دیگری داشته باشد. حذف"
+" کنید: %(groups)s."
 
 #. module: lartdubati_investor_home
 #. odoo-javascript
@@ -87,10 +97,20 @@ msgid "Accumulated Depreciation – Source Currency"
 msgstr "استهلاک انباشته – ارز مبدأ"
 
 #. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_quick_start_screen_action
+msgid "Actions to be launched from a quick start screen"
+msgstr "اقدام‌هایی که از صفحهٔ شروع سریع اجرا می‌شوند"
+
+#. module: lartdubati_investor_home
 #. odoo-javascript
 #: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
 msgid "Active rentals, monthly equivalent"
 msgstr "اجاره‌های فعال، معادل ماهانه"
+
+#. module: lartdubati_investor_home
+#: model:quick.start.screen.action,name:lartdubati_investor_home.investor_button_administrative
+msgid "Administrative"
+msgstr "اداری"
 
 #. module: lartdubati_investor_home
 #. odoo-javascript
@@ -190,6 +210,11 @@ msgid "Assets"
 msgstr "تجهیزات"
 
 #. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_base
+msgid "Base"
+msgstr "پایه"
+
+#. module: lartdubati_investor_home
 #. odoo-javascript
 #: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
 msgid "Blocking:"
@@ -268,6 +293,25 @@ msgstr "بستن جزئیات"
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_ownership_type__code
 msgid "Code"
 msgstr "کد"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/investor_home/coming_soon.js:0
+#: model:ir.actions.client,name:lartdubati_investor_home.action_coming_soon
+msgid "Coming soon"
+msgstr "به‌زودی"
+
+#. module: lartdubati_investor_home
+#: model_terms:quick.start.screen.action,description:lartdubati_investor_home.investor_button_administrative
+#: model_terms:quick.start.screen.action,description:lartdubati_investor_home.investor_button_commerce
+#: model_terms:quick.start.screen.action,description:lartdubati_investor_home.investor_button_production
+msgid "Coming soon."
+msgstr "به‌زودی."
+
+#. module: lartdubati_investor_home
+#: model:quick.start.screen.action,name:lartdubati_investor_home.investor_button_commerce
+msgid "Commerce & Services"
+msgstr "بازرگانی و خدمات"
 
 #. module: lartdubati_investor_home
 #: model:ir.model,name:lartdubati_investor_home.model_res_company
@@ -463,6 +507,11 @@ msgid "Figures on"
 msgstr "ارقام در تاریخ"
 
 #. module: lartdubati_investor_home
+#: model:quick.start.screen.action,name:lartdubati_investor_home.investor_button_financial
+msgid "Financial"
+msgstr "مالی"
+
+#. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_asset_missing
 msgid "Fixed Asset Missing"
 msgstr "دارایی ثابت موجود نیست"
@@ -598,6 +647,32 @@ msgid "Investor"
 msgstr "سرمایه‌گذار"
 
 #. module: lartdubati_investor_home
+#: model:ir.actions.act_window,name:lartdubati_investor_home.action_investor_home
+#: model:quick.start.screen,name:lartdubati_investor_home.investor_home_screen
+msgid "Investor Home"
+msgstr "خانه سرمایه‌گذار"
+
+#. module: lartdubati_investor_home
+#: model:ir.model.fields,field_description:lartdubati_investor_home.field_res_users__investor_without_profile
+msgid "Investor Without Profile"
+msgstr "سرمایه‌گذار بدون پروفایل"
+
+#. module: lartdubati_investor_home
+#: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_users_form_investor_warning
+msgid ""
+"Investor account without a Stock Access Profile: it sees no stock.\n"
+"                    Choose a profile in the « Stock Access » tab."
+msgstr ""
+"حساب سرمایه‌گذار بدون پروفایل دسترسی انبار: هیچ انباری را نمی‌بیند.\n"
+"                    در زبانهٔ « دسترسی انبار » یک پروفایل انتخاب کنید."
+
+#. module: lartdubati_investor_home
+#. odoo-python
+#: code:addons/lartdubati_investor_home/models/investor_security.py:0
+msgid "Investor accounts cannot run server actions."
+msgstr "حساب‌های سرمایه‌گذار نمی‌توانند اقدام سروری اجرا کنند."
+
+#. module: lartdubati_investor_home
 #. odoo-javascript
 #: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
 #: model_terms:ir.ui.view,arch_db:lartdubati_investor_home.view_stock_monitor_form
@@ -687,12 +762,17 @@ msgstr "مکان (رکورد)"
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__place_type
 msgid "Location Place Type"
-msgstr "نوع محل مکان"
+msgstr "نوع محل"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,help:lartdubati_investor_home.field_lartdubati_stock_monitor__alert_replacement_missing
 msgid "Mandatory for a borrowed or rented item."
 msgstr "برای قلم امانت‌گرفته یا اجاره‌ای الزامی است."
+
+#. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_ir_model_access
+msgid "Model Access"
+msgstr "دسترسی مدل"
 
 #. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__rent_monthly
@@ -999,6 +1079,11 @@ msgid "Product Category"
 msgstr "دسته کالا"
 
 #. module: lartdubati_investor_home
+#: model:quick.start.screen.action,name:lartdubati_investor_home.investor_button_production
+msgid "Production"
+msgstr "تولید"
+
+#. module: lartdubati_investor_home
 #: model:ir.model.fields,field_description:lartdubati_investor_home.field_lartdubati_stock_monitor__inventory_provisional
 msgid "Provisional Inventory Value"
 msgstr "ارزش موجودی موقت"
@@ -1265,6 +1350,11 @@ msgstr ""
 "مکان."
 
 #. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_ir_actions_server
+msgid "Server Action"
+msgstr "کنش کارپذیر"
+
+#. module: lartdubati_investor_home
 #. odoo-javascript
 #: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
 msgid ""
@@ -1418,6 +1508,11 @@ msgid "Stock access restricted by the user's Stock Access Profile."
 msgstr "دسترسی انبار محدود به پروفایل دسترسی انبار کاربر."
 
 #. module: lartdubati_investor_home
+#: model_terms:quick.start.screen.action,description:lartdubati_investor_home.investor_button_financial
+msgid "Stock monitor: quantities and values per stock."
+msgstr "پایش انبار: مقادیر و ارزش‌ها برای هر انبار."
+
+#. module: lartdubati_investor_home
 #. odoo-javascript
 #: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
 msgid "Stocks"
@@ -1433,6 +1528,12 @@ msgstr "زیرمکان‌های یک انبار مجاز نیز مجاز هست�
 #: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
 msgid "Summary"
 msgstr "خلاصه"
+
+#. module: lartdubati_investor_home
+#. odoo-python
+#: code:addons/lartdubati_investor_home/controllers/action.py:0
+msgid "The action “%s” does not exist."
+msgstr "اقدام «%s» وجود ندارد."
 
 #. module: lartdubati_investor_home
 #. odoo-javascript
@@ -1462,6 +1563,18 @@ msgstr "قرارداد اجاره پایان یافته اما قلم هنوز �
 msgid ""
 "The server did not answer. No figure is shown rather than outdated ones."
 msgstr "سرور پاسخ نداد. به جای ارقام قدیمی، هیچ رقمی نمایش داده نمی‌شود."
+
+#. module: lartdubati_investor_home
+#. odoo-python
+#: code:addons/lartdubati_investor_home/models/investor_security.py:0
+msgid "This button is not available to investor accounts."
+msgstr "این دکمه برای حساب‌های سرمایه‌گذار در دسترس نیست."
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/investor_home/coming_soon.js:0
+msgid "This function is not available yet."
+msgstr "این بخش هنوز در دسترس نیست."
 
 #. module: lartdubati_investor_home
 #. odoo-javascript

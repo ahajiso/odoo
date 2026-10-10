@@ -292,6 +292,58 @@ the update; the precheck checks it.
   mail init runs partly in sudo); to prove by the tours, otherwise the plan is revised
   before adding anything.
 
+## 9. Implementation notes (10/10/2026), for the code audit
+
+Developed as planned (§6 step 2, one commit for the security core, then precheck,
+rehearsal, translations, docs). Additions and findings, each with its reason:
+- **Web client minimum, found by the tours** (§8 hypothesis disproved: the mail init
+  does not run in sudo). With the bare list, the investor's web client raised access
+  errors from `/mail/data` (`discuss.channel`, `discuss.channel.member`,
+  `mail.message`), the activity systray (`mail.activity`) and the views' favourite
+  filters (`ir.filters`). These five models are readable (read only) with a rule
+  returning **no record** for investor accounts: the searches come back empty, no
+  data is visible, and the websocket subscription (`ir.websocket`, which searches the
+  user's channels as the user) subscribes to no channel, so nothing posted in
+  #general reaches an investor account. `ir.module.module` is also refused once per
+  page load; Odoo catches it (no dialog, no RPC error): left refused.
+- **Export of `id`**: `export_data(["id"])` reads nothing in standard Odoo (external IDs
+  are built in sudo), so it escaped the default deny. For investor accounts
+  `export_data` checks read access first (override on `base`). Found by the tests.
+- **`res.users` not in the write list**: own preferences are written through the
+  standard self-writeable fields (in sudo); `res.users.settings` is the only write.
+- **Home button rule**: the investor buttons are those named in `INVESTOR_BUTTONS`
+  (external IDs), not whatever the screen lists, so the rule does not depend on data an
+  administrator may change.
+- **Back to the home page**: the dashboard (client action, no control panel) shows a
+  back link to the previous screen (« ← Investor Home »), with Odoo's `oi-arrow-left`,
+  mirrored by Odoo in right-to-left languages.
+- **Adoption of the script's records** (rehearsal finding): the old
+  `setup_investor_home.py` wrote the translations so that the last one (Persian) could
+  end up in the source value `en_US` (screen « خانه سرمایه‌گذار », buttons « مالی »…).
+  Adopting by English name created duplicates; the pre-migration now finds each record
+  by its name in any of the three languages, the precheck counts duplicates the same
+  way, and the post-check lists every screen or button not bound to the module.
+- **Exact action check proven**: a look-alike client action (same type and tag as the
+  dashboard, another record) is refused only by the exact check; mutation tests:
+  without the default deny, the `run()` refusal, the load filter, the export check or
+  the exact button check, the tests fail.
+
+Verified locally (Odoo 18, OCA heads, `web_quick_start_screen` c3120b0):
+- tests of both modules (see README for the count), including the investor tours
+  (dashboard and home page) without any access error;
+- rehearsal on a database built with the deployed phase 3 code (70648a2), configured by
+  the real `setup_investor_home.py`, with `test_investor` holding Purchase rights:
+  precheck refusing `test_investor: Purchase / User, Purchase / Administrator`, then
+  passing once removed; update; adoption of the 5 records (English names restored,
+  French and Persian kept); post-check clean; probe as `test_investor`: only the
+  monitor, home page, own user / partner / company, currencies, empty messages and
+  channels; root menu Stock Monitor only; browser check: home page, Financial, back
+  link, « coming soon », no RPC error.
+
+Not verified (server): the state of the script's records on artdubati_test (the
+precheck shows them); whether other users rely on `base_menu_visibility_restriction`
+(listed by the precheck).
+
 ## Data cleaned after the phase 3 deployment (10/10/2026)
 Bg/TEST Paris (id 21): its 40 « TEST Cement bag » moved to Bg/Stock by a standard
 internal transfer (Bg/Stock now 46); « Outside Any Monitor Stock » alert gone; the

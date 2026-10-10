@@ -16,7 +16,7 @@
     <header class="o_smm_header">
       <div>
         <a t-if="previous" href="#" class="o_smm_back" t-on-click.prevent="() => previous.onSelected()">
-          <i class="fa fa-arrow-left me-1" aria-hidden="true"/><t t-esc="previous.name"/>
+          <i class="oi oi-arrow-left me-1" aria-hidden="true"/><t t-esc="previous.name"/>
         </a>
         <h1 class="o_smm_title">Stock Monitor</h1>
         <div class="o_smm_subtitle">Figures on <t t-esc="today"/> · amounts in the currency of each stock</div>

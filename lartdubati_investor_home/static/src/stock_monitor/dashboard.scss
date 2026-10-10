@@ -396,7 +396,4 @@ $smm-radius: 12px;
     margin-bottom: 4px;
     font-size: 0.9rem;
 }
-// the arrow points to the start of the line in right-to-left languages too
-html[dir="rtl"] .o_smm_back .fa-arrow-left {
-    transform: scaleX(-1);
-}
+// the arrow (oi-arrow-left) is turned by Odoo itself in right-to-left languages (.o_rtl)

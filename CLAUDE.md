@@ -44,7 +44,8 @@
    monitor, investor home page.
    - Home page: one button per main function (Administrative, Financial, Commerce &
      Services, Production); only Financial is implemented, the others are "coming soon".
-     Currently configured with OCA web_quick_start_screen (docs/investor_home/).
+     OCA web_quick_start_screen screen versioned as module data since phase 4
+     (docs/investor_home/README.md, docs/phase4/).
    - Financial -> Stock monitor: model `lartdubati.stock.monitor` (one SQL view), OWL
      dashboard `lartdubati_investor_home.action_stock_monitor` and standard views
      (phase 3, docs/phase3/; replaces the two OCA bi_sql_editor reports).
