@@ -56,7 +56,9 @@ computed by `platform.py` through the Odoo shell), name and version included; th
 updated modules must still have their current code. Any difference stops. The header of
 `platform_expected.txt` says how the local tests match this platform (Odoo source of
 the image's build, the server's OCA commits) and what is not verified (the Python
-libraries of the local test environment).
+libraries of the local test environment). The proof of that parity is in
+`docs/phase4/parity/` (`check_parity.sh`, from the server's and the local fingerprints
+and the server's file report).
 
 ## 3. Precheck (must print PRECHECK OK)
 
@@ -82,11 +84,16 @@ bash /tmp/phase4/docs/backup_db.sh phase4
 
 `backup_db.sh` (`set -euo pipefail`): **`odoo_web` stopped** during the capture, so
 that the database and the filestore show the same moment (a few minutes; started again
-whatever happens); dump and filestore archive (through a temporary container with
-`odoo_web`'s volumes) under temporary names, then `odoo_web` started; the dump read back (`pg_restore --list`) and **restored completely into a
+whatever happens: a failed restart, or `odoo_web` not answering `/web/health`, fails
+the backup and publishes nothing); dump and filestore archive (through a temporary
+container with `odoo_web`'s volumes) under temporary names, sizes of the database and
+of the filestore recorded; the dump read back (`pg_restore --list`) and **restored completely into a
 temporary database**, whose modules and record counts are compared with artdubati_test,
 then dropped; the archive listed (`tar -tzf`), its files counted and every file the dump's
-attachments point to looked for in it; then the final
+attachments point to looked for in it: **a missing one stops the backup**, the list is
+kept in `/opt/odoo/logs/phase4_missing_attachments_<stamp>.txt`; send it to Claude (going
+on needs an explicit exception agreed after reading it,
+`ALLOW_MISSING_ATTACHMENTS=<exact number>`); then the final
 names, their SHA-256, and last the manifest `/opt/odoo/logs/phase4_backup`. Any failure
 leaves no manifest, so neither the deployment nor the rollback can use a bad backup.
 Read-only for artdubati_test; it needs free disk space for one more copy of the
@@ -116,14 +123,13 @@ bash /tmp/phase4/docs/restore_db.sh phase4
 ```
 
 `restore_db.sh` changes nothing before every check passed (manifest, both files and
-their SHA-256, dump and archive readable, code commit, clean working tree, disk space
-for keeping the current database and filestore). Then, with
-`odoo_web` stopped: the dump is restored into a new database, and only when that
-succeeded with the backup's modules and record counts, the current database is
-**renamed** (kept, not dropped) and the restored one takes its name; the filestore is
-restored the same way, once the number of extracted files is the backup's (the current
-one renamed, kept);
-the code goes back to the commit of the backup; `odoo_web` is started. It prints the
+their SHA-256, dump and archive readable, code commit, clean working tree, free disk
+space for the sizes recorded at backup time with a margin). Then, with
+`odoo_web` stopped: the database and the filestore are both prepared under temporary
+names and checked (modules and record counts, number of files); only then the two
+switches (the current database renamed and kept, in one transaction; the current
+filestore renamed and kept); if the filestore switch fails, the database switch is
+undone; the code goes back to the commit of the backup; `odoo_web` is started and must answer. It prints the
 versions of the two modules: `18.0.2.0.0` and `18.0.4.0.0`. The kept database
 (`artdubati_test_before_restore_<stamp>`) and filestore are removed later, by hand,
 once Claude has read the logs. Rehearsed locally (backup, damage to the database, the

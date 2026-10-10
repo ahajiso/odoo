@@ -66,16 +66,40 @@ WAS_RUNNING=$(docker inspect -f '{{.State.Running}}' odoo_web)
 
 # odoo_web is stopped while the database and the filestore are captured, so that both
 # show the same moment (audit of 796fba5..c3670fe); it is started again whatever
-# happens (trap), if it was running
+# happens, if it was running. A failed restart fails the backup: no manifest is
+# published, and the trap tries once more (audit of 7197751..b9979b9).
+ODOO_PORT=${ODOO_PORT:-8069}
 STOPPED_BY_US=false
-restart_odoo() {
-  if [ "$STOPPED_BY_US" = true ]; then
-    docker start odoo_web > /dev/null && echo "odoo_web started again." \
-      || echo "WARNING: docker start odoo_web failed: start it by hand."
-    STOPPED_BY_US=false
-  fi
+odoo_ready() {  # running and answering /web/health (up to about 90 s)
+  local i
+  for i in $(seq 1 30); do
+    if [ "$(docker inspect -f '{{.State.Running}}' odoo_web)" = true ] \
+        && docker exec odoo_web python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:$ODOO_PORT/web/health', timeout=3)" \
+           > /dev/null 2>&1; then
+      return 0
+    fi
+    sleep "${POLL_SECONDS:-3}"
+  done
+  return 1
 }
-trap 'restart_odoo; cleanup' EXIT
+restart_odoo() {
+  [ "$STOPPED_BY_US" = true ] || return 0
+  local attempt
+  for attempt in 1 2; do
+    if docker start odoo_web > /dev/null && odoo_ready; then
+      STOPPED_BY_US=false
+      echo "odoo_web started again and answering."
+      return 0
+    fi
+    echo "odoo_web not running or not answering after start (attempt $attempt)."
+  done
+  return 1
+}
+on_exit() {
+  restart_odoo || echo "ODOO_WEB IS NOT RUNNING: run « docker start odoo_web », check « docker logs --tail 50 odoo_web », send this to Claude."
+  cleanup
+}
+trap on_exit EXIT
 in_volume() {  # a command run next to odoo_web's volumes (filestore), odoo_web stopped
   docker run --rm --volumes-from odoo_web --entrypoint "$1" "$IMG" "${@:2}"
 }
@@ -93,11 +117,14 @@ step "capture: state of $DB, database dump, filestore archive (odoo_web stopped)
 LIVE_MODULES=$(sql "$DB" "$FINGERPRINT_SQL")
 LIVE_COUNTS=$(sql "$DB" "$COUNT_SQL")
 LIVE_FILES=$(in_volume find "$FS/$DB" -type f | wc -l)
+# sizes of what a restore has to write again (restore_db.sh checks the free space)
+DB_BYTES=$(sql "$DB" "select pg_database_size(current_database())")
+FILESTORE_BYTES=$(in_volume du -sb "$FS/$DB" | cut -f1)
 docker exec odoo_db pg_dump -U odoo -Fc "$DB" > "$DUMP.partial"
 [ -s "$DUMP.partial" ] || { echo "Empty dump."; exit 1; }
 in_volume tar -czf - -C "$FS" "$DB" > "$TGZ.partial"
 [ -s "$TGZ.partial" ] || { echo "Empty filestore archive."; exit 1; }
-restart_odoo
+restart_odoo || { echo "BACKUP FAILED: odoo_web did not start again."; exit 1; }
 
 step "dump readable (pg_restore --list)"
 # listings go through a file: with pipefail, « grep -q » closing the pipe early would
@@ -127,15 +154,24 @@ ARCHIVE_FILES=$(grep -c -v '/$' "$TGZ.list" || true)
   echo "Archive has $ARCHIVE_FILES files, the filestore had $LIVE_FILES."; exit 1; }
 grep -q "^$DB/" "$TGZ.list" || { echo "Archive does not hold $DB/."; exit 1; }
 # every file the attachments of the dump point to must be in the archive (captured at
-# the same moment); missing ones already were before the backup: listed, kept in the
-# manifest, sent to Claude
-MISSING=0
+# the same moment). Missing ones stop the backup; their list is kept in
+# $MISSING_LIST. Going on anyway needs an explicit exception:
+# ALLOW_MISSING_ATTACHMENTS=<the exact number>, after Claude has read the list.
+MISSING_LIST="$LOGDIR/${LABEL}_missing_attachments_$STAMP.txt"
+: > "$MISSING_LIST"
 while IFS= read -r fname; do
   [ -n "$fname" ] || continue
-  grep -qxF "$DB/$fname" "$TGZ.list" || { MISSING=$((MISSING + 1)); echo "  attachment file missing: $fname"; }
+  grep -qxF "$DB/$fname" "$TGZ.list" || echo "$fname" >> "$MISSING_LIST"
 done <<< "$ATTACHMENT_FILES"
-echo "archive readable: $ARCHIVE_FILES files; attachment files missing: $MISSING"
+MISSING=$(wc -l < "$MISSING_LIST")
+echo "archive readable: $ARCHIVE_FILES files; attachment files missing: $MISSING ($MISSING_LIST)"
 rm -f "$TGZ.list"
+if [ "$MISSING" -gt 0 ] && [ "${ALLOW_MISSING_ATTACHMENTS:-}" != "$MISSING" ]; then
+  head -20 "$MISSING_LIST"
+  echo "BACKUP REFUSED: $MISSING attachment files missing from the filestore (list above and"
+  echo "in $MISSING_LIST). Send the list to Claude; continue only with the exception agreed."
+  exit 1
+fi
 docker exec odoo_db dropdb -U odoo "$VERIFY_DB"
 
 step "publish"
@@ -152,6 +188,9 @@ FILESTORE=$TGZ
 FILESTORE_SHA256=$TGZ_SHA
 FILESTORE_FILES=$ARCHIVE_FILES
 ATTACHMENT_FILES_MISSING=$MISSING
+ATTACHMENT_MISSING_LIST=$MISSING_LIST
+DB_BYTES=$DB_BYTES
+FILESTORE_BYTES=$FILESTORE_BYTES
 MODULES_MD5=$DUMP_MODULES
 COUNTS=$DUMP_COUNTS
 COMMIT=$COMMIT
