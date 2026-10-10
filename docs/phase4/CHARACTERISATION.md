@@ -16,7 +16,8 @@ PostgreSQL 16, Python 3.12, French chart of accounts.
 
 Product: storable consumable, category AVCO with automated valuation, cost 5.00.
 Starting stock in WH/Stock: 10 owned, received at 5.00; 15 owned by « Consignor »,
-received with « Assign Owner ».
+received with « Assign Owner ». Revised on 10/10/2026 (audit of dff33cb): S2 is a real
+return to the consignor, S2b added.
 
 ## Results: standard Odoo 18
 
@@ -24,11 +25,11 @@ received with « Assign Owner ».
 Odoo 18.0.1.3 | modules: l10n_fr, purchase_stock, stock_account
 
 ## S0 starting stock: 10 owned received at 5.00, then 15 received with « Assign Owner » = consignor
-  move line: Partners/Vendors -> WH/Stock qty 10.0 owner - state done [WH/IN/00011]
-  move line: Partners/Vendors -> WH/Stock qty 15.0 owner Consignor (charac) state done [WH/IN/00012]
+  move line: Partners/Vendors -> WH/Stock qty 10.0 owner - state done [WH/IN/00017]
+  move line: Partners/Vendors -> WH/Stock qty 15.0 owner Consignor (charac) state done [WH/IN/00018]
   quant: WH/Stock qty 10.0 owner -
   quant: WH/Stock qty 15.0 owner Consignor (charac)
-  valuation layer: qty 10.0 value 50.0 unit 5.0 (WH/IN/00011 - Cement bag (charac))
+  valuation layer: qty 10.0 value 50.0 unit 5.0 (WH/IN/00017 - Cement bag (charac))
   journal item: STJ 110200 Stock Interim (Received) D 0.0 C 50.0 (posted)
   journal item: STJ 110100 Stock Valuation D 50.0 C 0.0 (posted)
   product: qty_available 10.0 average cost 5.0
@@ -43,9 +44,17 @@ Odoo 18.0.1.3 | modules: l10n_fr, purchase_stock, stock_account
 
 ==============================================================================
 
-## S2 consigned goods delivered back to the consignor (owner on the delivery)
-  move line: WH/Stock -> Partners/Customers qty 10.0 owner Consignor (charac) state done [WH/OUT/00003]
-  move line: WH/Stock -> Partners/Customers qty 5.0 owner Consignor (charac) state done [WH/OUT/00003]
+## S2 consigned goods returned to the consignor (supplier return to Partners/Vendors, owner on the transfer)
+  move line: WH/Stock -> Partners/Vendors qty 10.0 owner Consignor (charac) state done [WH/OUT/00005]
+  move line: WH/Stock -> Partners/Vendors qty 5.0 owner Consignor (charac) state done [WH/OUT/00005]
+  quant: WH/Stock qty 10.0 owner -
+  quant: WH/Stock qty 0.0 owner Consignor (charac)
+  product: qty_available 10.0 average cost 5.0
+
+==============================================================================
+
+## S2b the same with the standard « Return » wizard on the consigned receipt
+  move line: WH/Stock -> Partners/Vendors qty 15.0 owner Consignor (charac) state done [WH/OUT/00006]
   quant: WH/Stock qty 10.0 owner -
   quant: WH/Stock qty 0.0 owner Consignor (charac)
   product: qty_available 10.0 average cost 5.0
@@ -53,8 +62,8 @@ Odoo 18.0.1.3 | modules: l10n_fr, purchase_stock, stock_account
 ==============================================================================
 
 ## S3 internal transfer on the same location, « Assign Owner » = company
-  move line: WH/Stock -> WH/Stock qty 10.0 owner My Company state done [WH/INT/00003]
-  move line: WH/Stock -> WH/Stock qty 5.0 owner My Company state done [WH/INT/00003]
+  move line: WH/Stock -> WH/Stock qty 10.0 owner My Company state done [WH/INT/00005]
+  move line: WH/Stock -> WH/Stock qty 5.0 owner My Company state done [WH/INT/00005]
   quant: WH/Stock qty 10.0 owner -
   quant: WH/Stock qty 15.0 owner Consignor (charac)
   quant: WH/Stock qty 0.0 owner My Company
@@ -63,11 +72,11 @@ Odoo 18.0.1.3 | modules: l10n_fr, purchase_stock, stock_account
 ==============================================================================
 
 ## S4 purchase from the consignor (order 15 at 6.00, receipt, bill), then S1
-  move line: Partners/Vendors -> WH/Stock qty 15.0 owner - state done [WH/IN/00013]
+  move line: Partners/Vendors -> WH/Stock qty 15.0 owner - state done [WH/IN/00019]
   move line: WH/Stock -> Virtual Locations/Inventory adjustment qty 15.0 owner Consignor (charac) state done [Product Quantity Updated, inventory]
   quant: WH/Stock qty 25.0 owner -
   quant: WH/Stock qty 0.0 owner Consignor (charac)
-  valuation layer: qty 15.0 value 90.0 unit 6.0 (WH/IN/00013 - Cement bag (charac))
+  valuation layer: qty 15.0 value 90.0 unit 6.0 (WH/IN/00019 - Cement bag (charac))
   journal item: STJ 110200 Stock Interim (Received) D 0.0 C 90.0 (posted)
   journal item: STJ 110100 Stock Valuation D 90.0 C 0.0 (posted)
   journal item: BILL 110200 Stock Interim (Received) D 90.0 C 0.0 (posted)
@@ -108,7 +117,7 @@ Odoo 18.0.1.3 | modules: l10n_fr, lartdubati_investor_home, maintenance_sharehol
 
 ==============================================================================
 
-## S2 consigned goods delivered back to the consignor (owner on the delivery)
+## S2 consigned goods returned to the consignor (supplier return to Partners/Vendors, owner on the transfer)
   REFUSED: ValidationError: Cement bag (charac) : an owner other than the company is only allowed for a serial number of a borrowed or rented equipment of that owner (Consignor (charac)).
 
 ==============================================================================
@@ -137,12 +146,15 @@ Odoo 18.0.1.3 | modules: l10n_fr, lartdubati_investor_home, maintenance_sharehol
 ## Conclusions
 
 1. **Consigned goods are never valued.** Receipt (S0), removal by adjustment (S1) and
-   delivery back to the consignor (S2) create **no valuation layer and no journal
+   return to the consignor (S2, S2b) create **no valuation layer and no journal
    item**: `stock_account` excludes every move whose owner is not the company
    (`_should_exclude_for_valuation`).
 2. **Removal**: the standard ways are an inventory adjustment counted 0 (S1, consigned
-   quant → inventory loss) or a delivery to the consignor carrying the owner (S2). Both
-   are refused by our phase 2 rule `_check_third_party_owner`.
+   quant → inventory loss) or a **return to the consignor** carrying the owner, to
+   Partners/Vendors (S2 outgoing transfer, S2b the standard « Return » wizard on the
+   consigned receipt; same result). Corrected after the audit of dff33cb: the first
+   version of S2 sent the goods to the customers location. All are refused by our phase
+   2 rule `_check_third_party_owner`.
 3. **« Assign Owner » does not change the owner of goods** (S3, the audit was right).
    The transfer moved 15 units « owned by the company » from a quant that did not
    exist (a 0-quant « My Company » appears) and left the consigned quant intact.
@@ -170,7 +182,7 @@ Odoo 18.0.1.3 | modules: l10n_fr, lartdubati_investor_home, maintenance_sharehol
   - Reason required, approval separated from execution, history in the chatter, like
     `equipment.operation`.
   - Its execution makes the standard S1 move (adjustment counted 0, no valuation) or
-    the S2 move (delivery back to the consignor, if the goods physically leave).
+    the S2 move (return to the consignor, if the goods physically leave).
   - Our rule is relaxed only inside that execution: `running` context, untracked
     consumables only, owner = the quant's owner.
 - **Passage to the company**: no new mechanism. A purchase from the consignor through

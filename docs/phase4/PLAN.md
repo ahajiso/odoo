@@ -130,6 +130,25 @@ For an investor account (`not env.su`):
    action is refused to investors.
 The data of whatever an allowed action opens stays governed by P4-2a / P4-2b.
 
+### P4-2e. Public methods, export routes, external API (audit of dff33cb)
+`_get_allowed_models` protects ORM operations, but `/web/dataset/call_kw` and
+`call_button` call any public method, and a public method may work in sudo or in SQL
+without any ORM check (e.g. `stock.picking.type.get_action_picking_tree_ready()` returns
+an action read in sudo, verified through the ORM as an investor). For an investor
+account, before the standard controller:
+- `call_kw`, `call_button`: the model **and** the method must be in
+  `INVESTOR_METHODS` (standard reads for the listed models, plus the methods the pages
+  need, each named: `get_dashboard_data`, `export_data` on the monitor, `run_action` on
+  the buttons, `action_get`, `onchange`, `web_save`, `has_group`,
+  `preference_save`, `preference_change_password`, `systray_get_activities` on
+  `res.users`, `set_res_users_settings`); a method working in sudo on a listed model
+  (e.g. `discuss.channel.channel_get`) is refused too;
+- `resequence`: refused;
+- export routes taking a model (`/web/export/get_fields`, `namelist`, `csv`, `xlsx`):
+  the same check;
+- external API (`/xmlrpc`, `/xmlrpc/2`, `/jsonrpc`, service `object`): refused to
+  investor accounts (« Access Denied », as wrong credentials).
+
 ### P4-2b. Record rules on the listed models
 Global rules computed per user (pattern `stock_access_rule_domain`), TRUE for staff:
 - `ir.ui.menu`: only the Stock Monitor menu tree (this is also P4-3: the same rule hides
@@ -327,6 +346,22 @@ rehearsal, translations, docs). Additions and findings, each with its reason:
   dashboard, another record) is refused only by the exact check; mutation tests:
   without the default deny, the `run()` refusal, the load filter, the export check or
   the exact button check, the tests fail.
+
+- **Audit of dff33cb** (§2 P4-2e, migration):
+  - P4-2e added (public methods, resequence, export routes, external API), each
+    guard tested through the HTTP routes and by mutation (without it, the direct calls
+    and the external API tests fail; resequence and the export routes stay refused by
+    the default deny too);
+  - the pre-migration first identifies the old investor screen (one screen named
+    « Investor Home » in any language), then searches its buttons **only among that
+    screen's buttons**, checking each one's sequence and current action; another
+    profile's screen is never adopted; a mismatch stops the update and is reported by
+    the precheck first (`precheck_home.sql`); the post-check no longer treats other
+    screens as duplicates (it checks the investor screen's buttons and the absence of a
+    second investor screen); tested (`TestHomeAdoption`) and rehearsed with a
+    « Workshop » screen holding buttons named « Production » and « Financial »;
+  - P4-1 characterisation: S2 is now a real return to the consignor (Partners/
+    Vendors), S2b the standard « Return » wizard; same conclusion.
 
 Verified locally (Odoo 18, OCA heads, `web_quick_start_screen` c3120b0):
 - tests of both modules (see README for the count), including the investor tours

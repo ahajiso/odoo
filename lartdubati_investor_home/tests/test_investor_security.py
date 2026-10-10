@@ -4,6 +4,11 @@ Every check runs under the real investor account: the ORM with `with_user`, and 
 session for JSON-RPC, actions and URLs.
 """
 import base64
+import importlib.util
+import json
+import os
+import re
+import xmlrpc.client
 
 from odoo import Command
 from odoo.exceptions import AccessError, ValidationError
@@ -323,3 +328,182 @@ class TestInvestorActions(InvestorSecurityCommon, HttpCase):
         self.assertNotEqual(content.content, b"secret")
         image = self.url_open(f"/web/image/product.product/{product.id}/image_128")
         self.assertNotEqual(image.content, base64.b64decode(PNG))
+
+
+@tagged("post_install", "-at_install")
+class TestInvestorCalls(InvestorSecurityCommon, HttpCase):
+    """P4-2e (audit of dff33cb): public methods, export routes and the external API.
+    A public method may work in sudo or SQL without any ORM check: the model and the
+    method must both be listed for an investor account."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.investor.password = cls.investor.login
+        cls.store.password = cls.store.login
+        cls.picking_type = cls.env["stock.picking.type"].search([], limit=1)
+
+    def _call(self, model, method, args, kwargs=None, route="/web/dataset/call_kw"):
+        return self.make_jsonrpc_request(route, {
+            "model": model, "method": method, "args": args, "kwargs": kwargs or {}})
+
+    def test_public_methods_without_orm_check(self):
+        # through the ORM the method works for the investor: it reads the action in sudo
+        # and checks nothing (this is what the controller check stops)
+        self.assertEqual(self.env["stock.picking.type"].with_user(self.investor)
+                         .get_action_picking_tree_ready()["type"], "ir.actions.act_window")
+        self.authenticate(self.investor.login, self.investor.login)
+        channels = self.env["discuss.channel"].search_count([])
+        for model, method, args, kwargs in (
+                ("stock.picking.type", "get_action_picking_tree_ready",
+                 [self.picking_type.ids], {}),
+                ("stock.picking.type", "get_action_picking_tree_ready", [[]], {}),
+                # a listed model, an unlisted method working in sudo
+                ("discuss.channel", "channel_get", [],
+                 {"partners_to": [self.store.partner_id.id]}),
+                ("res.users", "name_create", ["Someone"], {}),
+                ("res.partner", "message_post", [[self.investor.partner_id.id]],
+                 {"body": "x"}),
+                ("lartdubati.stock.monitor", "init", [], {}),
+                ("ir.actions.actions", "get_bindings", ["res.partner"], {})):
+            for route in ("/web/dataset/call_kw", "/web/dataset/call_button"):
+                with self.subTest(model=model, method=method, route=route), \
+                        self.assertRaises(JsonRpcException):
+                    self._call(model, method, args, kwargs, route=route)
+        self.assertEqual(self.env["discuss.channel"].search_count([]), channels)
+        # what the investor's pages use still works
+        self.assertTrue(self._call("lartdubati.stock.monitor", "get_dashboard_data", [{}]))
+        financial = self.env.ref("lartdubati_investor_home.investor_button_financial")
+        self.assertEqual(self._call("quick.start.screen.action", "run_action",
+                                    [financial.ids], route="/web/dataset/call_button")["tag"],
+                         "lartdubati_stock_monitor")
+
+    def test_resequence_refused(self):
+        buttons = self.env["quick.start.screen.action"].browse(
+            [self.env.ref(xmlid).id for xmlid in INVESTOR_BUTTONS])
+        before = buttons.mapped("sequence")
+        self.authenticate(self.investor.login, self.investor.login)
+        with self.assertRaises(JsonRpcException):
+            self.make_jsonrpc_request("/web/dataset/resequence", {
+                "model": "quick.start.screen.action", "ids": list(reversed(buttons.ids))})
+        buttons.invalidate_recordset()
+        self.assertEqual(buttons.mapped("sequence"), before)
+
+    def test_export_routes(self):
+        self.authenticate(self.investor.login, self.investor.login)
+        with self.assertRaises(JsonRpcException):
+            self.make_jsonrpc_request("/web/export/get_fields",
+                                      {"model": "stock.quant", "domain": []})
+        self.assertTrue(self.make_jsonrpc_request(
+            "/web/export/get_fields", {"model": "lartdubati.stock.monitor", "domain": [],
+                                       "import_compat": False}))
+        page = self.url_open("/odoo").text
+        token = re.search(r'csrf_token: "(\w+)"', page).group(1)
+
+        def export(model, fields):
+            return self.url_open("/web/export/csv", data={"csrf_token": token, "data": json.dumps({
+                "model": model, "fields": [{"name": name, "label": name} for name in fields],
+                "ids": False, "domain": [], "import_compat": False})})
+        refused = export("stock.quant", ["quantity"])
+        self.assertNotEqual(refused.status_code, 200)
+        allowed = export("lartdubati.stock.monitor", ["product_name"])
+        self.assertEqual(allowed.status_code, 200)
+        self.assertIn("Screws", allowed.text)
+
+    def test_external_api_refused(self):
+        db = self.env.cr.dbname
+        for proxy_call in (
+                lambda login, uid: self.xmlrpc_object.execute_kw(
+                    db, uid, login, "res.currency", "search_count", [[]]),
+                lambda login, uid: self.make_jsonrpc_request("/jsonrpc", {
+                    "service": "object", "method": "execute_kw",
+                    "args": [db, uid, login, "res.currency", "search_count", [[]]]})):
+            try:
+                proxy_call(self.investor.login, self.investor.id)
+            except (xmlrpc.client.Fault, JsonRpcException):
+                pass
+            else:
+                self.fail("external API not refused to the investor")
+            self.assertTrue(proxy_call(self.store.login, self.store.id))
+
+
+def _pre_migrate():
+    path = os.path.join(os.path.dirname(__file__), "..", "migrations", "18.0.3.0.0",
+                        "pre-migrate.py")
+    spec = importlib.util.spec_from_file_location("p4_pre_migrate", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.migrate
+
+
+@tagged("post_install", "-at_install")
+class TestHomeAdoption(InvestorSecurityCommon):
+    """P4-0 pre-migration (audit of dff33cb): the old investor screen is found first,
+    then its buttons among its own buttons only, by name in any language, sequence and
+    current action; another profile's screen is never adopted."""
+
+    def setUp(self):
+        super().setUp()
+        Data = self.env["ir.model.data"]
+        names = ["investor_home_screen", "investor_button_financial",
+                 "investor_button_administrative", "investor_button_commerce",
+                 "investor_button_production"]
+        self.new_records = self.env["quick.start.screen"].browse(
+            self.env.ref("lartdubati_investor_home.investor_home_screen").id)
+        new_buttons = self.env["quick.start.screen.action"].browse(
+            [self.env.ref(f"lartdubati_investor_home.{n}").id for n in names[1:]])
+        Data.search([("module", "=", "lartdubati_investor_home"),
+                     ("name", "in", names)]).unlink()
+        # the module's own records renamed so that only the old ones match
+        for lang in ("en_US", "fr_FR", "fa_IR"):  # translations of the module's records
+            self.new_records.with_context(lang=lang).write({"name": "Removed for the test"})
+            new_buttons.with_context(lang=lang).write({"name": "Removed for the test"})
+        Server = self.env["ir.actions.server"]
+        self.soon = Server.create({"name": "Investor Home: coming soon", "state": "code",
+                                   "model_id": self.env.ref("base.model_res_users").id,
+                                   "code": "action = False"})
+        monitor = self.env.ref("lartdubati_investor_home.action_server_stock_monitor")
+        Button = self.env["quick.start.screen.action"]
+
+        def button(name, sequence, action):
+            record = Button.create({"name": name, "sequence": sequence,
+                                    "action_ref_id": f"{action._name},{action.id}"})
+            return record
+        # the old screen as the script left it: Persian in en_US
+        self.old_buttons = (button("مالی", 10, monitor) | button("اداری", 20, self.soon)
+                            | button("بازرگانی و خدمات", 30, self.soon)
+                            | button("تولید", 40, self.soon))
+        self.old_screen = self.env["quick.start.screen"].create({
+            "name": "خانه سرمایه‌گذار", "action_ids": [Command.set(self.old_buttons.ids)]})
+        # another profile's screen with buttons of the same names
+        self.other_buttons = button("Production", 40, self.soon) | button("Financial", 10,
+                                                                          monitor)
+        self.other_screen = self.env["quick.start.screen"].create({
+            "name": "Workshop", "action_ids": [Command.set(self.other_buttons.ids)]})
+        self.env.flush_all()
+
+    def _bound(self, name):
+        return self.env["ir.model.data"].search([
+            ("module", "=", "lartdubati_investor_home"), ("name", "=", name)]).res_id
+
+    def test_adopts_only_the_investor_screen_and_its_buttons(self):
+        _pre_migrate()(self.env.cr, "18.0.2.0.0")
+        self.assertEqual(self._bound("investor_home_screen"), self.old_screen.id)
+        for name, button in zip(("financial", "administrative", "commerce", "production"),
+                                self.old_buttons):
+            self.assertEqual(self._bound(f"investor_button_{name}"), button.id)
+        bound = {self._bound(f"investor_button_{n}") for n in
+                 ("financial", "administrative", "commerce", "production")}
+        self.assertFalse(bound & set(self.other_buttons.ids))
+
+    def test_mismatch_stops(self):
+        self.old_buttons[0].sequence = 15
+        self.env.flush_all()
+        with self.assertRaises(RuntimeError):
+            _pre_migrate()(self.env.cr, "18.0.2.0.0")
+
+    def test_two_investor_screens_stop(self):
+        self.env["quick.start.screen"].create({"name": "Accueil investisseur"})
+        self.env.flush_all()
+        with self.assertRaises(RuntimeError):
+            _pre_migrate()(self.env.cr, "18.0.2.0.0")

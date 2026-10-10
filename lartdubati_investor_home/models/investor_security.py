@@ -8,8 +8,12 @@ to export feature » (P4-5). For such an account, outside sudo:
 - P4-2d: no server action runs; the home buttons open only their own action.
 The record rules (security.xml) narrow the few listed models.
 """
+import logging
+
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, ValidationError
+
+_logger = logging.getLogger(__name__)
 
 INVESTOR_GROUP = "lartdubati_investor_home.group_stock_investor"
 
@@ -42,6 +46,44 @@ INVESTOR_MODELS = {
     "create": frozenset(),
     "unlink": frozenset(),
 }
+
+# P4-2e (audit of dff33cb): the public methods an investor account may call through
+# /web/dataset/call_kw and call_button. A public method may work in sudo or in SQL
+# without any ORM check (e.g. stock.picking.type.get_action_picking_tree_ready returns
+# an action read in sudo), so the model whitelist alone is not enough: the model must be
+# listed AND the method. Standard reads only, plus what the web client needs (found by
+# the tours, each one named here).
+READ_METHODS = frozenset({
+    "fields_get", "get_views", "read", "web_read", "search", "search_read",
+    "web_search_read", "search_count", "read_group", "web_read_group", "name_search",
+    "has_access",
+})
+INVESTOR_METHODS = {
+    model: READ_METHODS for model in INVESTOR_MODELS["read"]
+}
+INVESTOR_METHODS.update({
+    # the dashboard's aggregates (under the user's rights and rules)
+    "lartdubati.stock.monitor": READ_METHODS | {"get_dashboard_data", "export_data"},
+    # the home buttons (exact action check in run_action)
+    "quick.start.screen.action": READ_METHODS | {"run_action"},
+    # own preferences: the user menu opens them (action_get), the dialog saves them
+    # through the standard self-writeable fields; activity systray
+    # has_group: the list view asks whether the user may export (own groups only)
+    "res.users": READ_METHODS | {"action_get", "onchange", "web_save", "has_group",
+                                 "preference_change_password", "preference_save",
+                                 "systray_get_activities"},
+    # web client settings (rule: own record)
+    "res.users.settings": READ_METHODS | {"set_res_users_settings"},
+})
+
+
+def check_investor_call(env, model, method):
+    """P4-2e: refuse to an investor account any call outside INVESTOR_METHODS, before
+    the standard controller runs (raises AccessError)."""
+    if is_investor(env) and method not in INVESTOR_METHODS.get(model, ()):
+        _logger.info("Investor call refused: %s.%s, uid %s", model, method, env.uid)
+        raise AccessError(_("This operation is not available to investor accounts."))
+
 
 # P4-2d: actions an investor account may load, by external ID
 INVESTOR_ACTIONS = (

@@ -295,8 +295,9 @@ export (refused otherwise). Outside sudo, every model is refused to it except a 
 list (the monitor, the home page, its own user, partner, company, currencies, languages,
 settings, menus), narrowed by rules to its own records; the web client's mail and
 filter models are readable with no record visible. It loads only four actions (home
-page, dashboard, detailed analysis, « coming soon »), runs no server action, and sees
-only the Stock Monitor menu. Its home page is the « Investor Home » screen of the
+page, dashboard, detailed analysis, « coming soon »), runs no server action, calls only
+the public methods its pages need (a short named list), cannot use the external API,
+and sees only the Stock Monitor menu. Its home page is the « Investor Home » screen of the
 module.
 Multi-company (audit of 643f95e): every user, investor or staff, sees only the monitor
 rows of their active companies (global rule `company_id in company_ids`, ANDed with the

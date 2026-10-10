@@ -1,5 +1,6 @@
 -- Phase 4 precheck (read-only). Every row is a blocking finding; no row = OK.
--- Run by precheck.sh before the update (docs/phase4/README.md).
+-- Run by precheck.sh before the update (docs/phase4/README.md); the home page records
+-- are checked by precheck_home.sql.
 
 -- groups an investor account may hold: the investor group, Internal User and every group
 -- it implies (transitively), « Access to export feature » (docs/phase4/PLAN.md §2, P4-5)
@@ -34,23 +35,4 @@ SELECT 'forbidden_group' AS check_name, u.id AS record_id,
   LEFT JOIN ir_module_category c ON c.id = g.category_id
  WHERE rg.gid NOT IN (SELECT gid FROM allowed)
  GROUP BY u.id, u.login, u.active
-UNION ALL
--- 2. home page records the update adopts by name (in any of the three languages the
---    setup script wrote): at most one of each
-SELECT 'home_record_duplicate', n, label || ': ' || n || ' records'
-  FROM (SELECT names[1] AS label, tbl,
-               CASE WHEN to_regclass(tbl) IS NULL THEN 0 ELSE
-               (xpath('/row/n/text()', query_to_xml(format(
-                 'SELECT count(*) AS n FROM %I WHERE name->>''en_US'' = ANY(%L::text[])'
-                 ' OR name->>''fr_FR'' = ANY(%L::text[]) OR name->>''fa_IR'' = ANY(%L::text[])',
-                 tbl, names, names, names), false, true, '')))[1]::text::int END AS n
-          FROM (VALUES
-            ('quick_start_screen', ARRAY['Investor Home', 'Accueil investisseur', 'خانه سرمایه‌گذار']),
-            ('quick_start_screen_action', ARRAY['Financial', 'Financier', 'مالی']),
-            ('quick_start_screen_action', ARRAY['Administrative', 'Administratif', 'اداری']),
-            ('quick_start_screen_action', ARRAY['Commerce & Services', 'Commerce et services',
-                                                'بازرگانی و خدمات']),
-            ('quick_start_screen_action', ARRAY['Production', 'تولید'])) v(tbl, names)
-       ) counts
- WHERE n > 1
 ORDER BY 1, 2;

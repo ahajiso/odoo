@@ -6,14 +6,24 @@ SELECT 'home_record_not_adopted', d.name, '' FROM (VALUES
  WHERE NOT EXISTS (SELECT 1 FROM ir_model_data x
                     WHERE x.module = 'lartdubati_investor_home' AND x.name = d.name)
 UNION ALL
--- every screen or button not bound to our external IDs: a duplicate the adoption missed
-SELECT 'unbound_' || t.tbl, t.id::text, t.name
-  FROM (SELECT 'quick_start_screen' AS tbl, id, name->>'en_US' AS name FROM quick_start_screen
-        UNION ALL
-        SELECT 'quick_start_screen_action', id, name->>'en_US' FROM quick_start_screen_action) t
- WHERE NOT EXISTS (SELECT 1 FROM ir_model_data x
-                    WHERE x.module = 'lartdubati_investor_home' AND x.res_id = t.id
-                      AND x.model = replace(t.tbl, '_', '.'))
+-- the investor screen holds exactly the module's four buttons
+SELECT 'investor_screen_buttons', string_agg(r.quick_start_screen_action_id::text, ', '), ''
+  FROM quick_start_screen_quick_start_screen_action_rel r
+ WHERE r.quick_start_screen_id = (SELECT res_id FROM ir_model_data
+        WHERE module = 'lartdubati_investor_home' AND name = 'investor_home_screen')
+HAVING array_agg(r.quick_start_screen_action_id ORDER BY 1) IS DISTINCT FROM (
+       SELECT array_agg(res_id ORDER BY 1) FROM ir_model_data
+        WHERE module = 'lartdubati_investor_home' AND name LIKE 'investor_button_%')
+UNION ALL
+-- no second screen named like the investor screen (a duplicate the adoption missed);
+-- other profiles' screens are not concerned
+SELECT 'duplicate_investor_screen', s.id::text, s.name->>'en_US'
+  FROM quick_start_screen s
+ WHERE (s.name->>'en_US' = ANY(ARRAY['Investor Home', 'Accueil investisseur', 'خانه سرمایه‌گذار'])
+        OR s.name->>'fr_FR' = ANY(ARRAY['Investor Home', 'Accueil investisseur', 'خانه سرمایه‌گذار'])
+        OR s.name->>'fa_IR' = ANY(ARRAY['Investor Home', 'Accueil investisseur', 'خانه سرمایه‌گذار']))
+   AND s.id <> (SELECT res_id FROM ir_model_data
+                 WHERE module = 'lartdubati_investor_home' AND name = 'investor_home_screen')
 UNION ALL
 SELECT 'investor_home_action', u.login, COALESCE(a.name->>'en_US', '-')
   FROM res_users u

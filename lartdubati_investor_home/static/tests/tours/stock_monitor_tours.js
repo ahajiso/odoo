@@ -75,5 +75,12 @@ registry.category("web_tour.tours").add("investor_home_tour", {
         },
         { content: "coming soon", trigger: ".o_notification:contains('Coming soon')" },
         noError,
+        // own preferences (language, time zone): action_get, web_read, web_save
+        { content: "user menu", trigger: ".o_user_menu button", run: "click" },
+        { content: "preferences", trigger: ".dropdown-item[data-menu='settings']", run: "click" },
+        { content: "preferences form", trigger: ".modal .o_form_view .o_field_widget[name='tz']" },
+        { content: "save", trigger: ".modal .modal-footer button.btn-primary", run: "click" },
+        { content: "saved", trigger: "body:not(:has(.modal .o_form_view))" },
+        noError,
     ],
 });

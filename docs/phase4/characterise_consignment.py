@@ -9,7 +9,9 @@ Scenarios, each from a fresh savepoint (same starting stock: 10 owned bought at 
 15 consigned by the consignor received through a standard receipt with an owner):
   S0 the consigned receipt itself;
   S1 consigned quant removed by an inventory adjustment (counted 0);
-  S2 consigned goods returned to the consignor (delivery with the owner);
+  S2 consigned goods returned to the consignor: a supplier return (outgoing transfer to
+     Partners/Vendors carrying the owner), audit of dff33cb (the first version went to
+     the customers location);
   S3 internal transfer on the same location with « Assign Owner » = the company;
   S4 purchase from the consignor (order, receipt, bill), then S1 on the consigned quant;
   S5 inventory adjustment adding 15 owned units (the « swap » done by hand).
@@ -127,9 +129,11 @@ def run(title, fn):
 # starting stock, kept for every scenario
 m0 = marks()
 ours = "maintenance_shareholder_equipment" in env.registry._init_modules
+consigned_receipt = None
 if not ours:
     picking(warehouse.in_type_id, supplier_loc, stock, 10)
-    picking(warehouse.in_type_id, supplier_loc, stock, 15, partner=consignor, owner=consignor)
+    consigned_receipt = picking(warehouse.in_type_id, supplier_loc, stock, 15,
+                                partner=consignor, owner=consignor)
     snapshot("S0 starting stock: 10 owned received at 5.00, then 15 received with "
              "« Assign Owner » = consignor", m0)
 else:
@@ -152,8 +156,22 @@ def s1():
 
 
 def s2():
-    picking(warehouse.out_type_id, stock, customer_loc, 15, partner=consignor,
+    picking(warehouse.out_type_id, stock, supplier_loc, 15, partner=consignor,
             owner=consignor)
+
+
+def s2b():
+    """The standard « Return » wizard on the consigned receipt."""
+    wizard = env["stock.return.picking"].with_context(
+        active_id=consigned_receipt.id, active_ids=consigned_receipt.ids,
+        active_model="stock.picking").create({"picking_id": consigned_receipt.id})
+    for line in wizard.product_return_moves:
+        line.quantity = 15
+    returned = env["stock.picking"].browse(wizard.action_create_returns()["res_id"])
+    returned.action_assign()
+    for move in returned.move_ids:
+        move.quantity = 15
+    returned.button_validate()
 
 
 def s3():
@@ -186,7 +204,10 @@ def s5():
 
 
 run("S1 consigned quant counted 0 (inventory adjustment)", s1)
-run("S2 consigned goods delivered back to the consignor (owner on the delivery)", s2)
+run("S2 consigned goods returned to the consignor (supplier return to Partners/Vendors, "
+    "owner on the transfer)", s2)
+if consigned_receipt:
+    run("S2b the same with the standard « Return » wizard on the consigned receipt", s2b)
 run("S3 internal transfer on the same location, « Assign Owner » = company", s3)
 run("S4 purchase from the consignor (order 15 at 6.00, receipt, bill), then S1", s4)
 run("S5 inventory adjustment adding 15 owned units (no owner)", s5)

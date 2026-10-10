@@ -10,17 +10,22 @@ PSQL=(docker exec -i odoo_db psql -U odoo -d "$DB" -At -F ' | ' -v ON_ERROR_STOP
 [ -f "$DIR/precheck.sql" ] || { echo "precheck.sql not found next to $0"; exit 2; }
 echo "Investor accounts (login | home action | profile), information:"
 "${PSQL[@]}" < "$DIR/info.sql"
+HOME=""
+if [ "$("${PSQL[@]}" -c "SELECT to_regclass('quick_start_screen') IS NOT NULL")" = t ]; then
+  HOME=$("${PSQL[@]}" < "$DIR/precheck_home.sql")
+fi
 if [ "$("${PSQL[@]}" -c "SELECT to_regclass('ir_ui_menu_excluded_group_rel') IS NOT NULL")" = t ]; then
   echo "Menus hidden by base_menu_visibility_restriction (menu | group), information:"
   "${PSQL[@]}" < "$DIR/menus.sql"
 fi
 echo
 OUT=$("${PSQL[@]}" < "$DIR/precheck.sql")
+[ -n "$HOME" ] && OUT=$(printf '%s\n%s' "$OUT" "$HOME" | sed '/^$/d')
 if [ -n "$OUT" ]; then
   echo "PRECHECK FAILED on $DB (check | id | detail):"
   echo "$OUT"
   echo "forbidden_group: remove those rights from the investor account (Settings → Users),"
-  echo "nothing is removed automatically. home_record_duplicate: send it to Claude."
+  echo "nothing is removed automatically. home_*: send it to Claude (the update would stop)."
   exit 1
 fi
 echo "PRECHECK OK: no blocking finding on $DB"

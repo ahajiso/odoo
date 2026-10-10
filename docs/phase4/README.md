@@ -58,11 +58,14 @@ bash /tmp/phase4/docs/phase4/precheck.sh artdubati_test
 ```
 
 It prints, for information, the investor accounts (home action, profile) and the menus
-hidden by `base_menu_visibility_restriction`, then refuses (exit 1) while:
+hidden by `base_menu_visibility_restriction`, then refuses (exit 1) while (precheck.sql,
+precheck_home.sql):
 - an investor account holds a forbidden right (`forbidden_group`, with the groups to
   remove): fix it in Settings → Users, run it again;
-- a home page record would be adopted twice (`home_record_duplicate`): send it to
-  Claude.
+- the old investor screen is ambiguous or one of its buttons does not match its
+  expected name, sequence and action (`home_screen_ambiguous`, `home_button_duplicate`,
+  `home_button_mismatch`): send it to Claude (the update would stop). Other profiles'
+  quick start screens are not concerned.
 
 ## 4 to 6. Stop, update the working tree, update and test, restart
 
@@ -98,8 +101,9 @@ docker exec -i odoo_db psql -U odoo -d artdubati_test -At -F ' | ' \
   < /opt/odoo/addons/custom/docs/phase4/postcheck.sql
 ```
 
-It lists: a home record not adopted, a screen or button not bound to the module (a
-duplicate), an investor account without the new home action, a missing rule.
+It lists: a home record not adopted, an investor screen whose buttons are not exactly
+the module's four, a second screen named like the investor screen, an investor account
+without the new home action, a missing rule.
 
 ## 8. Probe and interface checks
 
@@ -116,8 +120,8 @@ unset ODOO_PASSWORD
 Expected: « Groups: not readable », root menus « Stock Monitor » only; ACL `r...` and
 records for: the monitor (the profile's rows), `quick.start.screen` (1),
 `quick.start.screen.action` (4), `res.users` (1), `res.partner` (own and company's),
-`res.company`, `res.currency`, `mail.message` (0), `discuss.channel` (0); `....` for
-every other model.
+`res.company`, `res.currency`, `mail.message` (0), `discuss.channel` (0); « not
+installed or refused » for every other model (the call itself is refused since P4-2e).
 
 Then in the browser:
 1. `test_investor` (English, then French, then Persian after logging in again): the
