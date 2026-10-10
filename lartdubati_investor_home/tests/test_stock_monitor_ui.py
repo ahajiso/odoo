@@ -12,10 +12,11 @@ class TestStockMonitorUnit(HttpCase):
     display, the fields from fields_get only, keyboard and focus, RPC error."""
 
     def test_dashboard_unit(self):
-        # a user made by the test: the admin password is unknown on a real database
+        # a user made by the test: the admin password is unknown on a real database;
+        # Settings rights: the test runner reads the modules' dependencies
         self.env["res.users"].create({
             "name": "Hoot runner", "login": "hoot_runner", "password": "hoot_runner",
-            "groups_id": [(6, 0, [self.env.ref("base.group_user").id])]})
+            "groups_id": [(6, 0, [self.env.ref("base.group_system").id])]})
         self.browser_js(
             "/web/tests?headless&loglevel=2&preset=desktop&timeout=15000"
             "&filter=stock_monitor_dashboard",
