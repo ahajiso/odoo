@@ -65,6 +65,9 @@ user = call("res.users", "read", [uid], ["login", "groups_id"])[0]
 groups = call("res.groups", "read", user["groups_id"], ["full_name"])
 print("User:", user["login"])
 print("Groups:", ", ".join(sorted(g["full_name"] for g in groups)))
+if not any(g["full_name"] == "Investor / Stock Monitor Investor" for g in groups):
+    raise SystemExit("STOP: this account is not in « Stock Monitor Investor ». Log in with "
+                     "the investor's login (e.g. test_investor), not an administrator.")
 
 menus = call("ir.ui.menu", "load_menus", False)
 roots = [menus[str(mid)]["name"] for mid in menus["root"]["children"]]
