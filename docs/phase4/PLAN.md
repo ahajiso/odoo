@@ -1,4 +1,4 @@
-# Phase 4 – home page and investor user setup: plan (revision 3, 10/10/2026)
+# Phase 4 – home page and investor user setup: plan (revision 4, 10/10/2026)
 
 Scope (CLAUDE.md): investor home page, investor user setup, review of the existing
 configuration, P4-1. **No code before the audit of this plan and the owner's go.**
@@ -11,13 +11,21 @@ History:
   2. the probe no longer reads `res.groups`;
   3. no model-wide access to `ir.actions.*`, menus restricted by rule;
   4. allowed groups = full transitive closure of Internal User;
-  5. security first in the order of work (§6).
+  5. security first in the order of work (§6);
+- revision 4 answers the audit of revision 3 (actions bypass the ACL): revision 3 was
+  wrong on two points, checked in the Odoo 18 source: `/web/action/load` reads the
+  action in sudo and does **not** check its groups; `ir.actions.server.run()` loops on
+  `self.sudo()`, so refusing the model's ACL does not stop a run (a server action
+  granted to Internal User, or without groups on a model the user may write, runs).
+  New P4-2d: whitelist of loadable actions, central refusal of `run()`, exact check of
+  the action behind a home button, direct tests.
 
 Owner's answers: Q1 A; Q2 nothing outside the monitor but the demonstrated technical
 minimum; Q3 whitelist, Discuss hidden, `base_menu_visibility_restriction` uninstalled
-only once nothing else uses it; Q4 cumulated rights refused. Recommended by the audit,
-to confirm by the owner: Q5 keep Technical Features (standard implication of Internal
-User); Q6 export allowed, from the monitor only, on the fields the investor may read.
+only once nothing else uses it; Q4 cumulated rights refused; Q5 keep Technical Features
+(standard implication of Internal User); Q6 export allowed, from the monitor only, on
+the fields the investor may read; Q7 Purchase / Administrator and Purchase / User
+removed from `test_investor` by the owner.
 
 Sources: `docs/investor_home/`, OCA `web_quick_start_screen` (OCA/web 18.0, c3120b0) and
 `base_menu_visibility_restriction` (OCA/server-ux 18.0, 737262e), Odoo 18 source
@@ -79,12 +87,10 @@ whatever ACL another module grants.
   `res.users.settings`;
 - create / delete: none.
 Deliberately **not** listed:
-- `ir.actions.*` (in particular `ir.actions.server`): `/web/action/load` reads actions
-  in sudo and checks their groups itself, so the investor needs no read access; and
-  `/web/action/run` runs a server action as the user, so refusing the model means no
-  server action can be run by an investor, by any path. The home page is adapted so
-  that it needs none (P4-0: a window action for the screen, client actions for the
-  buttons);
+- `ir.actions.*`: the investor needs no read access to the action models
+  (`/web/action/load` reads in sudo). Refusing them is **not** what protects actions:
+  `load` does not check groups and `run()` works in sudo; actions are protected by
+  P4-2d;
 - `ir.ui.view`, `ir.model`, `ir.model.fields`: views are loaded in sudo by
   `get_views`; added only if a test proves otherwise, with a record rule;
 - `res.groups` (the probe no longer needs it), stock, products, equipment,
@@ -92,6 +98,34 @@ Deliberately **not** listed:
   `discuss.channel`, `calendar.event`, `lartdubati.stock.access`, everything else.
 Any addition found necessary by the tests is written in this plan with its reason and
 its record rule before being coded.
+
+### P4-2d. Actions: whitelist and central refusal of server actions
+For an investor account (`not env.su`):
+1. **Loadable actions** (override of the `Action` controller's `load`, `@http.route()`
+   kept; `load_breadcrumbs` and `/odoo/action-…` URLs go through it): the action is
+   resolved (id, external ID or path) and returned only if it is one of
+   `INVESTOR_ACTIONS`, explicit external IDs:
+   - the home window action of P4-0 (`lartdubati_investor_home.action_investor_home`);
+   - the dashboard client action `lartdubati_investor_home.action_stock_monitor`;
+   - the detailed analysis `lartdubati_investor_home.action_stock_monitor_analysis`;
+   - the « coming soon » client action of P4-0;
+   any other action, by any id, raises « action not found » (no metadata returned).
+   Any addition proved necessary by the tests (e.g. an action of the user menu) is
+   added here with its reason before being coded.
+2. **Server actions**: override of `ir.actions.server.run()`: for an investor account,
+   outside sudo, refused before anything (AccessError), whatever its groups and model;
+   no server action is in the investor's whitelist. Base automations are not affected:
+   `base_automation` runs its actions from `self.sudo()` (checked in the source), and
+   so are framework internals.
+3. **Home buttons** (override of OCA `quick.start.screen.action.run_action`): for an
+   investor account, the action dictionary is built in sudo only if
+   - the button belongs to the « Investor Home » screen (external ID), and
+   - its `action_ref_id` is one of `INVESTOR_ACTIONS` with the expected type and tag
+     (`ir.actions.client` `lartdubati_stock_monitor`, `ir.actions.client`
+     `lartdubati_coming_soon`),
+   otherwise AccessError. A button an administrator pointed by mistake to another
+   action is refused to investors.
+The data of whatever an allowed action opens stays governed by P4-2a / P4-2b.
 
 ### P4-2b. Record rules on the listed models
 Global rules computed per user (pattern `stock_access_rule_domain`), TRUE for staff:
@@ -143,11 +177,8 @@ exclusions of the script uses it.
   - the three « coming soon » buttons → a client action of our module (tag
     `lartdubati_coming_soon`) showing a translated notification (`_t`, .po); the
     « Investor Home: coming soon » server action is retired;
-  - the buttons' `run_action` (an object method run as the user) reads the referenced
-    action as the user, which P4-2a refuses: override in our module to build the action
-    dictionary in sudo **only for a button the user can read** (P4-2b limits that to the
-    investor screen); the action returned is then run by the client under the user's
-    own rights.
+  - the buttons' `run_action` reads the referenced action as the user, which P4-2a
+    refuses: override of P4-2d point 3 (exact screen, exact action, type and tag).
 - F1: write / create / delete on screens and buttons only for Settings (two group
   rules; investors are already read-only through P4-2a).
 - The screen, buttons and translations become data of `lartdubati_investor_home`
@@ -174,9 +205,18 @@ JSON-RPC and URLs):
   `/web/dataset/call_kw`, `/web/content/<attachment>`,
   `/web/image/product.product/<id>/image_128`, `/odoo/action-<other action>`;
 - a model no rule of ours mentions is refused (default deny, not a list);
-- `/web/action/run` on any server action (the OCA start screen action, a standard one)
-  refused; `/web/action/load` of an action whose menu is hidden returns nothing usable
-  (its model refused);
+- actions (P4-2d), through the real HTTP routes:
+  - `/web/action/load` by id, by external ID and by path of an action outside the
+    whitelist (a staff window action, a hidden menu's action, a report): refused, no
+    metadata returned; `/web/action/load_breadcrumbs` and `/odoo/action-<id>` the same;
+    each whitelisted action loads;
+  - `/web/action/run` and `ir.actions.server.run()` by RPC on a server action granted
+    to `base.group_user`, on one without groups on `res.users` (a model the investor may
+    write), and on the OCA start screen action: refused; a base automation triggered by
+    an investor's allowed write still runs;
+  - a home button of the investor screen re-pointed (as admin, in the test) to a
+    foreign action, to a server action, or to the right action with another tag:
+    refused to the investor; the 4 correct buttons run;
 - `ir.ui.menu`: `load_menus` and a direct `search_read` return only the Stock Monitor
   tree;
 - listed models: only the allowed records (own user, own and company partner, the
@@ -210,7 +250,7 @@ execution, history), our rule relaxed only inside it; accountant question C23. Q
 2. Security, deployed first, as one update (it must not leave the home page broken):
    a. P4-2a central default deny, with the minimal list;
    b. P4-5 constraint and blocking precheck;
-   c. P4-2b record rules (menus included: P4-3);
+   c. P4-2b record rules (menus included: P4-3) and P4-2d actions;
    d. the home page adaptations P4-2 requires (window action, client actions, sudo
       `run_action`, F1 rules) with the tests of §4.
 3. P4-0 rest: screen and buttons as module data, pre-migration, translations.
@@ -221,17 +261,15 @@ execution, history), our rule relaxed only inside it; accountant question C23. Q
 The security update (2) may be deployed alone, before 3 and 4, if the owner wants.
 
 ## 7. Questions for the owner
-- Q5. Keep Technical Features as Odoo implies it for every internal user (audit's
-  recommendation)?
-- Q6. Export allowed for investors, monitor only, readable fields only (audit's
-  recommendation)?
-- Q7. Remove Purchase / Administrator and Purchase / User from `test_investor` before
-  the update (required by P4-5)?
+All answered (Q1 to Q7, see the top). Q7 is done by the owner in Settings → Users before
+the update; the precheck checks it.
 
 ## 8. Verified / not verified / hypotheses
 - Verified: F1 (OCA ACL); F2, F3, F5 by the server probe as `test_investor`; F4 in
   `base_groups.xml`; `_get_allowed_models` is the single source of `check()`;
-  `/web/action/load` reads in sudo, `/web/action/run` runs as the user;
+  `/web/action/load` reads in sudo without checking groups, `ir.actions.server.run()`
+  loops on `self.sudo()` (revision 3 was wrong on both); `load_breadcrumbs` goes
+  through `load` and `run`; `base_automation` runs actions from sudo;
   `_visible_menu_ids` searches menus as the user (a rule on `ir.ui.menu` applies).
 - Not verified: the minimal list of models the web client needs with `mail` and the
   installed apps (built by the step 2 tests); whether other profiles use
