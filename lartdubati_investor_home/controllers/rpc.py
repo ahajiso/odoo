@@ -19,7 +19,9 @@ def _refuse_investor(params):
         db, uid = params[0], int(params[1])
     except (IndexError, TypeError, ValueError):
         return
-    with Registry(db).cursor() as cr:
+    # read only: it only reads the user's groups (a read/write cursor opened from a
+    # read-only request is refused in tests)
+    with Registry(db).cursor(readonly=True) as cr:
         user = api.Environment(cr, SUPERUSER_ID, {})["res.users"].browse(uid).exists()
         if user and user._has_group(INVESTOR_GROUP):
             raise AccessDenied()
