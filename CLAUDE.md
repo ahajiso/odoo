@@ -247,9 +247,13 @@ tests on artdubati_test (47 passing, 08/10/2026).
    TIST/Stock, currency mode « latest », post-check clean, Financial button repointed,
    interface checks validated by the audit (investor, store, accountant, fa_IR RTL,
    pivot and graph with two currencies, saw 484: 15 € HT, 0, 0, « No Fixed Asset »).
-   Phase 3 done. Data to examine (shown by the monitor): Integrity alert on the cement
-   of TBER/Stock, Bg/TEST Paris outside any monitor stock.
-4. Home page and investor user setup (review the existing configuration).
+   Phase 3 done. Data found by the monitor: Integrity alert on the cement of TBER/Stock
+   (phase 4, P4-1), Bg/TEST Paris outside any monitor stock (emptied, 10/10/2026).
+4. Home page and investor user setup (review the existing configuration). Decided
+   items before the plan in docs/phase4/PLAN.md: P4-1 regularisation of third-party
+   consumables (owner's option 2, 10/10/2026: removal by inventory adjustment or passage
+   to the company, for TBER/Stock quant 10). Bg/TEST Paris emptied into Bg/Stock
+   (internal transfer, 10/10/2026).
 5. Translations, manual rewrite for all phases (cards citing removed or changed fields,
    new receiving procedures, Investor tab), deployment checklist
    (docs/deployment/investor_home.md).
