@@ -37,8 +37,11 @@ APPROVER_SCOPE = {
                               ("contract_id.equipment_operation_created_ids", "!=", False)],
     # the bill form loads the name of its journal: only the journals of those bills
     "account.journal": [("equipment_move_ids.equipment_operation_ids", "!=", False)],
-    # the transfer and lot forms count their repair orders (repair): none shown
+    # the transfer and lot forms count their repair orders (repair) and sale orders
+    # (sale_stock): none shown
     "repair.order": expression.FALSE_DOMAIN,
+    "sale.order": expression.FALSE_DOMAIN,
+    "sale.order.line": expression.FALSE_DOMAIN,
 }
 
 
