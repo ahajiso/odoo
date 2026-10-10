@@ -504,7 +504,9 @@ rehearsal, translations, docs). Additions and findings, each with its reason:
     of every installed module (`platform.py`) run on the server showed 67 Odoo and 5
     OCA modules different from the local tests. Found: the image `18.0-20260908`
     is the Odoo branch 18.0 at 6ba80ed1 (07/09/2026), identical file by file except
-    167 recompressed images and 2 font licence files; the 5 OCA modules at the
+    155 recompressed PNG images and 14 font files absent from the image (12 Roboto
+    .ttf, 2 licences; first counted as « 167 images and 2 licences », corrected by the
+    file report, `docs/phase4/parity/`); the 5 OCA modules at the
     server's commits. The local test database was rebuilt on exactly that code
     (every module fingerprint equal, those 9 image-only modules and our 2 aside) and
     the tests run again on it; `platform_expected.txt` (image id, Odoo version,

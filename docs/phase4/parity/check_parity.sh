@@ -25,4 +25,8 @@ case "$COUNTS" in
   *" different_other=0 "*" only_on_server=0") ;;
   *) echo "PARITY FAILED: differences other than images in the file report"; exit 1;;
 esac
-echo "PARITY OK: same code except the phase 4 modules, images and the files listed as missing on the server."
+# the files missing from the image must be font files and their licences only
+OTHER_MISSING=$(sed -n '/^## missing_on_server/,/^## /p' odoo_files_report_20261010.txt \
+  | grep -v '^## ' | grep -vE '^web/static/fonts/google/[^/]+/([^/]+\.ttf|LICENSE\.txt)$' || true)
+[ -z "$OTHER_MISSING" ] || { echo "PARITY FAILED: missing files other than fonts: $OTHER_MISSING"; exit 1; }
+echo "PARITY OK: same code; apart from the phase 4 modules, only images (recompressed in the image) and font files with their licences (absent from the image) differ."

@@ -5,8 +5,8 @@
 #   AFTER  <name> <version> <sha256>   (expected after the update; MODULE = before)
 # How the local tests match it (10/10/2026): Odoo source = branch 18.0 at 6ba80ed1
 # (07/09/2026, the build of the image 18.0-20260908): same code in every module, except
-# 167 images (PNG/SVG recompressed when the image was built) and 2 font licence files
-# missing from the image, in account, barcodes, base, board, mail, payment, product,
+# 155 PNG images recompressed when the image was built and 14 font files (12
+# Roboto .ttf, 2 licences) absent from the image, in account, barcodes, base, board, mail, payment, product,
 # sale_management and web (compared file by file on the server). OCA: the 5 modules that
 # differed taken at the server's commits (contract 3c849d8, account_financial_report
 # 95c63a6, account_reconcile_oca 8a24fc4, bi_sql_editor 89f82caa, sql_request_abstract
