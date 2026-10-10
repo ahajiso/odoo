@@ -254,7 +254,16 @@ tests on artdubati_test (47 passing, 08/10/2026).
    items before the plan in docs/phase4/PLAN.md: P4-1 regularisation of third-party
    consumables (owner's option 2, 10/10/2026: removal by inventory adjustment or passage
    to the company, for TBER/Stock quant 10). Bg/TEST Paris emptied into Bg/Stock
-   (internal transfer, 10/10/2026).
+   (internal transfer, 10/10/2026). Plan revision 5 (security design validated,
+   development authorised on 10/10/2026). P4-1 step 1 done (CHARACTERISATION.md;
+   step 2 = separate plan, C23). Developed on the branch, audit pending: investor
+   accounts read only the monitor (default deny in `_get_allowed_models`, rules on the
+   few listed models, mail and filter models readable with no record, export checked,
+   action load whitelist, `run()` refused, exact action per home button, forbidden
+   groups refused), home page as module data (adoption of the script's records in any
+   language, rehearsal finding), back link on the dashboard, precheck / post-check,
+   fr/fa; 209 tests passing locally; rehearsal on the phase 3 code clean. Before
+   deployment: Q7 (Purchase rights off `test_investor`), one atomic update.
 5. Translations, manual rewrite for all phases (cards citing removed or changed fields,
    new receiving procedures, Investor tab), deployment checklist
    (docs/deployment/investor_home.md).
