@@ -2,7 +2,10 @@
 
 Logs in AS THE INVESTOR (credentials typed, never stored) and reports, without writing
 anything:
-- the investor's groups;
+- that the session is the expected investor login (ODOO_EXPECT_LOGIN) and that it reads
+  the stock monitor; it never needs `res.groups`, which investors may not read after
+  phase 4;
+- the investor's groups when they are still readable (before phase 4);
 - the root menus shown to the investor;
 - for a list of models: the read / write / create / delete access rights (ACL) and the
   number of records the investor can read (record rules applied).
@@ -10,6 +13,7 @@ anything:
 Usage:
     read -r -p "Login: " ODOO_LOGIN && read -r -s -p "Password: " ODOO_PASSWORD && echo
     export ODOO_URL=https://erp.lartdubati.com ODOO_DB=artdubati_test ODOO_LOGIN ODOO_PASSWORD
+    export ODOO_EXPECT_LOGIN=test_investor
     python3 probe_investor.py
     unset ODOO_PASSWORD
 """
@@ -60,14 +64,17 @@ def call(model, method, *args, **kwargs):
 
 session = post("/web/session/authenticate", {
     "db": DB, "login": os.environ["ODOO_LOGIN"], "password": os.environ["ODOO_PASSWORD"]})
-uid = session["uid"]
-user = call("res.users", "read", [uid], ["login", "groups_id"])[0]
-groups = call("res.groups", "read", user["groups_id"], ["full_name"])
-print("User:", user["login"])
-print("Groups:", ", ".join(sorted(g["full_name"] for g in groups)))
-if not any(g["full_name"] == "Investor / Stock Monitor Investor" for g in groups):
-    raise SystemExit("STOP: this account is not in « Stock Monitor Investor ». Log in with "
-                     "the investor's login (e.g. test_investor), not an administrator.")
+expected = os.environ["ODOO_EXPECT_LOGIN"]
+print("User:", session.get("username"))
+if session.get("username") != expected or expected != os.environ["ODOO_LOGIN"]:
+    raise SystemExit(f"STOP: the session is not the expected investor login « {expected} ».")
+print("Stock monitor rows readable:", call("lartdubati.stock.monitor", "search_count", []))
+try:  # before phase 4 only: investors may not read res.groups afterwards
+    user = call("res.users", "read", [session["uid"]], ["groups_id"])[0]
+    groups = call("res.groups", "read", user["groups_id"], ["full_name"])
+    print("Groups:", ", ".join(sorted(g["full_name"] for g in groups)))
+except RuntimeError as error:
+    print("Groups: not readable by this account (expected after phase 4):", str(error)[:60])
 
 menus = call("ir.ui.menu", "load_menus", False)
 roots = [menus[str(mid)]["name"] for mid in menus["root"]["children"]]

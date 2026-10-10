@@ -1,238 +1,245 @@
-# Phase 4 – home page and investor user setup: plan (revision 2, 10/10/2026)
+# Phase 4 – home page and investor user setup: plan (revision 3, 10/10/2026)
 
 Scope (CLAUDE.md): investor home page, investor user setup, review of the existing
 configuration, P4-1. **No code before the audit of this plan and the owner's go.**
 
-Revision 2 answers the audit of revision 1 (10/10/2026): data perimeter as a whitelist
-with a central default deny (point 1), every leak covered (point 2), cumulated rights
-refused with a blocking precheck (point 3), security tested through the real investor
-account and JSON-RPC / URLs (point 4), P4-1 reduced to a characterisation first and a
-controlled business action, accountant question C23 (point 5). Owner's answers: Q1 A,
-Q2 nothing outside the monitor but the demonstrated technical minimum, Q3 whitelist with
-Discuss hidden, uninstall `base_menu_visibility_restriction` only once nothing else uses
-it, Q4 cumulated rights refused.
+History:
+- revision 2 answered the audit of revision 1: default-deny data whitelist, every leak
+  covered, cumulated rights refused, real security tests, P4-1 characterised first, C23;
+- revision 3 answers the audit of revision 2:
+  1. the server probe as `test_investor` is the reference (§1);
+  2. the probe no longer reads `res.groups`;
+  3. no model-wide access to `ir.actions.*`, menus restricted by rule;
+  4. allowed groups = full transitive closure of Internal User;
+  5. security first in the order of work (§6).
 
-Sources: `docs/investor_home/` (README, setup_investor_home.py), OCA sources of
-`web_quick_start_screen` (OCA/web 18.0, c3120b0) and `base_menu_visibility_restriction`
-(OCA/server-ux 18.0, 737262e), Odoo 18 `ir.model.access` (`_get_allowed_models`,
-`check`), our `lartdubati_investor_home`, the probe `probe_investor.py`.
+Owner's answers: Q1 A; Q2 nothing outside the monitor but the demonstrated technical
+minimum; Q3 whitelist, Discuss hidden, `base_menu_visibility_restriction` uninstalled
+only once nothing else uses it; Q4 cumulated rights refused. Recommended by the audit,
+to confirm by the owner: Q5 keep Technical Features (standard implication of Internal
+User); Q6 export allowed, from the monitor only, on the fields the investor may read.
+
+Sources: `docs/investor_home/`, OCA `web_quick_start_screen` (OCA/web 18.0, c3120b0) and
+`base_menu_visibility_restriction` (OCA/server-ux 18.0, 737262e), Odoo 18 source
+(`ir.model.access._get_allowed_models` / `check`, `ir.ui.menu._visible_menu_ids`,
+`web/controllers/action.py` load / run, `base_groups.xml`), our module, the probe.
 
 ## 1. Findings
 
-F1. **Every internal user may modify the home page**: `web_quick_start_screen` grants
-`base.group_user` read and write on `quick.start.screen` and `quick.start.screen.action`.
+**Server probe as `test_investor` (10/10/2026, read-only), the reference:**
+- groups: Stock Monitor Investor, Internal User, **Purchase / Administrator, Purchase /
+  User**, Technical Features, Multi Currencies, Different Stock Owners, Lots / Serial
+  Numbers, Multiple Stock Locations, Multiple Warehouses, delivery reminder;
+- root menus: Calendar, Contacts, Dashboards, Stock Monitor, Purchase, Maintenance,
+  Apps, Manuel;
+- data (ACL, records read): monitor r (2 rows); quick start screens and buttons **rw**;
+  `res.partner` rwc (16); `res.users` r (5); quants r (8); warehouses r (3); locations r
+  (15); stock moves, pickings rwcd (12, 6); products and categories rwcd (13, 12);
+  maintenance requests rwcd; **journal entries and lines rwcd (8, 24)**; **purchase
+  orders rwcd (2)**; chart of accounts r (660); **messages rwcd (134), attachments
+  rwcd (90), channels rwc (2)**; calendar rwcd; equipment operations, assets, contracts,
+  access profiles: none.
+(An earlier run with an administrator account is not used.)
 
-F2. **An internal user's standard rights are far wider than the monitor.** Local probe,
-investor without other groups: all quants, products with their cost (`standard_price`
-is `groups="base.group_user"`), warehouses, the chart of accounts, maintenance requests
-(read, write, create, delete), messages, attachments, channels.
+What it shows:
+- F1. The home page is writable by investors (OCA ACL: `base.group_user` read and
+  write on `quick.start.screen` and `quick.start.screen.action`).
+- F2. An internal user's standard rights reach quants, warehouses, products and costs,
+  the chart of accounts, messages, attachments, channels, calendar, contacts; the
+  Purchase groups add purchase orders, journal entries, moves and pickings.
+- F3. Menus hidden by a blacklist: every app open to internal users is shown.
+- F4. Technical Features is implied by Internal User in standard Odoo 18
+  (`base_groups.xml`); not changed (Q5).
+- F5. `test_investor` holds Purchase / Administrator and Purchase / User: forbidden for
+  an investor (§2, P4-5); to be removed by the owner before the update.
 
-F3. **Menus hidden by a blacklist**: Maintenance, Apps and any app installed later are
-shown to investors.
+## 2. Security model for investors
 
-F4. **Technical Features** (developer tools) is implied by Internal User on the local
-database; to check on artdubati_test.
+### Investor account
+A user of « Stock Monitor Investor ». It may hold only: that group, Internal User,
+**every group in the transitive closure of Internal User** (`trans_implied_ids` of
+`base.group_user`, which includes Technical Features, Multi Currencies, stock technical
+groups when the settings imply them), and « Access to export feature » (Q6). Anything
+else is refused (P4-5). Staff accounts are not affected by anything in this section.
 
-**Server probe of 10/10/2026: run with the wrong account.** Its « Groups » line has no
-« Investor / Stock Monitor Investor » but has « Administration / Settings »,
-« Administration / Access Rights », Inventory / Purchase / Sales / Invoicing
-administrator, and it reads `lartdubati.stock.access` (reserved to Access Rights): it is
-an administrator account (most likely `test@test.com`, used for the setup script just
-before), not `test_investor`. The figures it shows (Purchase menus, 8 moves, 2 purchase
-orders…) are an administrator's and do not describe `test_investor`. The probe now stops
-when the account is not an investor; it must be run again with `test_investor`'s login
-(step 0). The conclusions of the audit stand anyway: F2 is true for any internal user,
-so the plan below does not depend on that run.
+### P4-2a. Central default deny of data
+Every non-sudo access to a model goes through `ir.model.access.check()`, which reads the
+set of allowed models from `_get_allowed_models(mode)` (ormcache per uid and mode,
+cleared when groups change). Override (inheritance): for an investor account the set
+becomes `super() ∩ INVESTOR_MODELS[mode]`. Any model not listed, including models of
+modules installed later, is refused in every mode through the ORM, JSON-RPC and URLs,
+whatever ACL another module grants.
 
-## 2. Security model for investors (P4-2, P4-5)
+`INVESTOR_MODELS` starts empty; each entry is justified here and tested (§4). Proposed:
+- read: `lartdubati.stock.monitor`; `quick.start.screen`, `quick.start.screen.action`
+  (home page); `res.users`, `res.partner`, `res.company`, `res.currency`, `res.lang`
+  (web client session, amounts, language switch); `res.users.settings` (web client);
+  `ir.ui.menu` (menu loading runs as the user, `_visible_menu_ids`);
+- write: `res.users` (own preferences through the standard self-writeable fields),
+  `res.users.settings`;
+- create / delete: none.
+Deliberately **not** listed:
+- `ir.actions.*` (in particular `ir.actions.server`): `/web/action/load` reads actions
+  in sudo and checks their groups itself, so the investor needs no read access; and
+  `/web/action/run` runs a server action as the user, so refusing the model means no
+  server action can be run by an investor, by any path. The home page is adapted so
+  that it needs none (P4-0: a window action for the screen, client actions for the
+  buttons);
+- `ir.ui.view`, `ir.model`, `ir.model.fields`: views are loaded in sudo by
+  `get_views`; added only if a test proves otherwise, with a record rule;
+- `res.groups` (the probe no longer needs it), stock, products, equipment,
+  maintenance, accounting, purchase, sales, contracts, `mail.*`, `ir.attachment`,
+  `discuss.channel`, `calendar.event`, `lartdubati.stock.access`, everything else.
+Any addition found necessary by the tests is written in this plan with its reason and
+its record rule before being coded.
 
-### Definitions
-- **Investor account**: a user of the group « Stock Monitor Investor ». From phase 4 an
-  investor account holds **only** that group, Internal User and the groups Odoo implies
-  automatically for every internal user (`base.group_user.implied_ids`, e.g. Multi
-  Currencies, Multiple Stock Locations); optionally « Access to export feature ».
-  Anything else (Inventory, Accounting / Invoicing, Purchase, Sales, Maintenance,
-  equipment groups, Settings, Access Rights, Technical Features given directly, SQL
-  Request…) is **refused** (P4-5). There is no « investor with staff rights » any more,
-  so no ambiguous rule.
-- Staff keep their standard rights; nothing in this section applies to them.
-
-### P4-2a. Central default deny (data whitelist)
-Odoo checks every non-sudo access to a model through `ir.model.access.check()`, which
-reads the set of models allowed to the user from `_get_allowed_models(mode)`
-(ormcache per user and mode). Override (inheritance, no core patch): for an investor
-account, the allowed set becomes `super() ∩ INVESTOR_MODELS[mode]`. Every model not
-listed, including those of modules installed later, is refused to investors in every
-mode, through the ORM, JSON-RPC, URLs (`/web/content`, `/web/image`, exports, reports),
-whatever ACL another module adds. Sudo code (framework internals) is unaffected.
-
-`INVESTOR_MODELS` starts empty and receives only what the investor's web client and
-pages need, **each model justified and tested** (§4). Expected, to be confirmed by the
-tests and the tours (a model refused that the client needs shows up as an access error
-in the tour):
-- read: `lartdubati.stock.monitor` (profile rule), `quick.start.screen`,
-  `quick.start.screen.action` (home page), `res.users` (own record), `res.partner` (own
-  partner and the company's), `res.company` (own company), `res.currency` (amounts),
-  `res.lang` (language switch), `ir.ui.menu`, `ir.ui.view`, `ir.actions.*` (client
-  loading; read only), `res.users.settings`, `ir.model`/`ir.model.fields` only if the
-  views require them;
-- write: `res.users` (own preferences: language, password, through the standard
-  self-writeable fields only), `res.users.settings`;
-- create / delete: none, unless a test shows the client needs one (e.g. the web
-  client's own settings record), justified in the plan before being added.
-Not listed, so refused: stock, products, equipment, maintenance, accounting, purchase,
-sales, contracts, `mail.message`, `mail.activity`, `ir.attachment`, `discuss.channel`,
-`calendar.event`, `lartdubati.stock.access`, everything else.
-
-### P4-2b. Record rules on the whitelisted models
+### P4-2b. Record rules on the listed models
 Global rules computed per user (pattern `stock_access_rule_domain`), TRUE for staff:
-- `res.users`: the investor's own record only;
-- `res.partner`: the investor's own partner and the company's partner only;
-- `res.company`: the investor's companies (standard);
-- `quick.start.screen` / `quick.start.screen.action`: read only, the « Investor Home »
-  screen and its buttons;
-- `lartdubati.stock.monitor`: unchanged (profile, multi-company).
-The `stock.location` and `stock.move.line` rules of phases 2f and 3 stay for safety, but
-are no longer what protects investors.
+- `ir.ui.menu`: only the Stock Monitor menu tree (this is also P4-3: the same rule hides
+  the other menus and refuses reading them by RPC);
+- `quick.start.screen`: the « Investor Home » screen; `quick.start.screen.action`: its
+  buttons;
+- `res.users`: own record; `res.partner`: own partner and the company's partner;
+  `res.company`: own companies; `res.users.settings`: own record;
+- `lartdubati.stock.monitor`: unchanged (profile and multi-company rules).
+The `stock.location` and `stock.move.line` rules of phases 2f and 3 stay.
 
 ### P4-2c. Fields
-Sensitive fields of whitelisted models stay protected by their `groups=` (monitor:
-staff and accountant fields; `res.users`: groups, login history…). Tested by reading
-them as the investor (§4).
+`groups=` keep protecting sensitive fields of the listed models (monitor staff and
+accountant fields, `res.users` technical fields). Export (Q6): only the monitor is
+readable, so only the monitor can be exported, and only the fields readable by the
+investor; tested on every staff and accountant field and on personal fields.
 
 ### P4-5. Cumulated rights refused
-- Constraint on `res.users` (create / write of groups): an investor account holding a
-  group outside the allowed list raises an error naming the groups to remove. The
-  allowed list is computed (investor group, Internal User, its implied groups, export),
-  not hard-coded, so a setting that implies a group for every internal user does not
-  break it.
-- Precheck of the deployment, **blocking**: lists every investor account holding a
-  forbidden group (and every investor without access profile, as information). The
-  owner corrects each one in Settings → Users (nothing is removed automatically); the
-  update runs only on an empty list. `test_investor` is expected in it if it holds
-  Purchase or Technical Features directly.
-- Technical Features: if, as locally, it is implied by Internal User for everyone
-  (developer mode setting), it cannot be removed from investors alone; the menu
-  whitelist (P4-3) and the data deny (P4-2a) make it harmless, and the owner decides
-  whether to turn the global setting off (Q5).
+- Constraint on `res.users` (create and write of groups): an investor account holding a
+  group outside the allowed set raises an error naming the groups to remove. The
+  allowed set is computed (investor group, Internal User and its transitive closure,
+  export), never hard-coded.
+- Deployment precheck, **blocking**: lists every investor account with a forbidden
+  group (and, as information, investors without access profile). The owner removes the
+  groups in Settings → Users; nothing is removed automatically; the update runs only on
+  an empty list. Expected today: `test_investor` (Purchase / Administrator, Purchase /
+  User).
 
-## 3. Interface (P4-0, P4-3, P4-4)
+## 3. Interface
 
-### P4-0. Home page: OCA quick start screen, hardened and versioned (owner's Q1: A)
-- F1: write / create / delete on `quick.start.screen` and `quick.start.screen.action`
-  only for Settings (two group rules: FALSE for Internal User, TRUE for Settings; group
-  rules are ORed). Investors are already limited to read by P4-2a.
-- The screen, its 4 buttons, the « coming soon » server action and their EN/FR/FA texts
-  become data of `lartdubati_investor_home` (external IDs, translations in the .po from
-  `--i18n-export`), installed in production by the module update. The records the
-  script created are adopted by a pre-migration (found by English name; it stops if a
-  name matches zero or several records). New dependency: `web_quick_start_screen`.
-- Financial points to the client action `lartdubati_investor_home.action_stock_monitor`
-  directly (the quick start screen accepts `ir.actions.client` without a model check);
-  the server action stays until phase 5.
-- To test first: the buttons (`run_action`, an object button) run for a user without
-  write access.
+### P4-3. Menus by whitelist
+By the `ir.ui.menu` rule of P4-2b: the investor's menu tree is the Stock Monitor tree
+(the home page is the home action, it needs no menu). Discuss, Calendar, Contacts,
+Dashboards, Purchase, Maintenance, Apps, « Manuel » and any future app disappear, and
+their menu records cannot be read by RPC. Staff unchanged.
+`base_menu_visibility_restriction`: the precheck lists every menu with
+`excluded_group_ids`; uninstalled by the owner only if nothing but the four investor
+exclusions of the script uses it.
 
-### P4-3. Menus by whitelist (owner's Q3)
-For investor accounts, `ir.ui.menu._visible_menu_ids` keeps only the Stock Monitor menu
-tree (and the quick start « Start » menu if used). Discuss, Calendar, Contacts,
-Dashboards, Maintenance, Apps, « Manuel » and any future app disappear. Staff
-unchanged. Menus only hide; access is P4-2. `base_menu_visibility_restriction`: the
-precheck lists every menu with `excluded_group_ids` and the groups used; it is
-uninstalled (owner) only if nothing but the four investor exclusions of the script uses
-it.
+### P4-0. Home page (Q1: A), adapted to P4-2
+- The home page needs no server action:
+  - the user's home action becomes a **window action** of our module (kanban
+    `web_quick_start_screen.quick_start_screen_action_kanban` on the « Investor Home »
+    buttons), loaded by `/web/action/load` in sudo; instead of the OCA server action
+    `web_quick_start_screen.start_screen_action`, which `/web/action/run` would run as
+    the user;
+  - Financial → the client action `lartdubati_investor_home.action_stock_monitor`;
+  - the three « coming soon » buttons → a client action of our module (tag
+    `lartdubati_coming_soon`) showing a translated notification (`_t`, .po); the
+    « Investor Home: coming soon » server action is retired;
+  - the buttons' `run_action` (an object method run as the user) reads the referenced
+    action as the user, which P4-2a refuses: override in our module to build the action
+    dictionary in sudo **only for a button the user can read** (P4-2b limits that to the
+    investor screen); the action returned is then run by the client under the user's
+    own rights.
+- F1: write / create / delete on screens and buttons only for Settings (two group
+  rules; investors are already read-only through P4-2a).
+- The screen, buttons and translations become data of `lartdubati_investor_home`
+  (external IDs, `--i18n-export`); the script's records are adopted by a pre-migration
+  (found by English name, stops on zero or several). New dependency
+  `web_quick_start_screen`.
 
-### P4-4. Investor user setup without a script
-- On create / write making a user an investor account: home screen « Investor Home »
-  and home action « Quick Start Screen » set if empty; the migration does it for
-  existing investors.
-- Warning on the user form: investor without access profile (sees no stock).
-- `setup_investor_home.py` retired once P4-0 is in the module; README: create the user,
-  Internal User + investor group only, choose the profile.
-- Manual (« Investor » tab): phase 5.
+### P4-4. Investor user setup
+- Making a user an investor account sets its home action (window action above) if
+  empty; the migration does it for existing investors.
+- Warning on the user form: investor without access profile.
+- `setup_investor_home.py` retired once P4-0 is in the module; README updated. Manual
+  (« Investor » tab): phase 5.
 
-## 4. Tests (point 4 of the audit)
+## 4. Tests
 
-Under the real investor account (`with_user` for the ORM, an HttpCase session for
+Under the real investor account (`with_user` for the ORM; an HttpCase session for
 JSON-RPC and URLs):
-- for a sample of refused models from every installed area (stock, product, equipment,
-  maintenance, account, purchase, contract, mail, attachment, channel, calendar if
-  installed, access profiles): `search`, `read`, `search_read`, `read_group`,
-  `web_search_read`, `export_data`, `create`, `write`, `unlink` all refused; same
-  through `/web/dataset/call_kw` (JSON-RPC), `/web/content/<attachment>`,
-  `/web/image/product.product/<id>/image_128`, `/odoo/action-stock.action_picking_tree_all`;
-- a model installed by no rule of ours (a test model or a standard one not listed) is
-  refused: the deny is by default, not by list;
-- whitelisted models: only the allowed records (own user, own and company partner),
-  sensitive fields refused (`res.users.groups_id` of others, monitor staff fields,
-  product cost not reachable at all);
-- messages and attachments: none readable, none creatable (chatter, upload);
-- writes: no create / write / unlink anywhere except the investor's own preferences;
-- the pages still work: home page (4 buttons, Financial opens the dashboard), dashboard
-  (3 RPCs, figures), detailed analysis (list, pivot, graph), language switch, logout:
-  tours, plus Python checks of each RPC they make;
-- staff unchanged: an Inventory user and an accountant keep their accesses;
-- P4-5: the constraint refuses each forbidden group; the precheck lists them;
-- P4-3: investor root menus = Stock Monitor (and Start); staff still see Inventory.
-The probe (`probe_investor.py`) run again on artdubati_test after the update, as
-`test_investor`, is the server-side evidence.
+- refused models, a sample from every installed area (stock, product, equipment,
+  maintenance, account, purchase, contract, `mail.message`, `ir.attachment`,
+  `discuss.channel`, calendar, `res.groups`, `ir.actions.server`, `ir.actions.client`,
+  access profiles): `search`, `read`, `search_read`, `read_group`, `web_search_read`,
+  `export_data`, `create`, `write`, `unlink` all refused; the same through
+  `/web/dataset/call_kw`, `/web/content/<attachment>`,
+  `/web/image/product.product/<id>/image_128`, `/odoo/action-<other action>`;
+- a model no rule of ours mentions is refused (default deny, not a list);
+- `/web/action/run` on any server action (the OCA start screen action, a standard one)
+  refused; `/web/action/load` of an action whose menu is hidden returns nothing usable
+  (its model refused);
+- `ir.ui.menu`: `load_menus` and a direct `search_read` return only the Stock Monitor
+  tree;
+- listed models: only the allowed records (own user, own and company partner, the
+  investor screen and its 4 buttons), no write except own preferences;
+- export: allowed on the monitor only; staff, accountant and personal fields refused;
+- pages after restriction: home page (4 buttons; Financial opens the dashboard; coming
+  soon notification in EN/FR/FA), dashboard (3 RPCs, figures), detailed analysis
+  (list, pivot, graph), language switch, logout: tours and Python checks;
+- staff unchanged: Inventory user and accountant keep their accesses and menus;
+- P4-5: each forbidden group refused, Technical Features and the other implied groups
+  accepted; the precheck lists offenders.
+On the server after the update: the probe as `test_investor`, expected: monitor readable,
+quick start screen and buttons read-only, every other model refused, root menu Stock
+Monitor only.
 
-## 5. P4-1. Third-party consumables: characterise first, then a controlled action
+## 5. P4-1. Third-party consumables (separate plan)
 
-Revision 1 proposed to relax `_check_third_party_owner` for an inventory adjustment and
-for an internal transfer « assigning » the company as owner. The audit is right: in
-Odoo the owner of a move line is the owner of the goods both at the source and at the
-destination, so a transfer on the same location does not change the quant's owner and
-produces no valuation; and a third party's goods becoming the company's is an
-accounting event (purchase from the consignor or other), not a stock correction.
-
-Step 1, characterisation (local Odoo 18, no change to our rules except in the test):
-how the standard handles (a) the removal of a consigned quant (inventory adjustment,
-return to the owner by a delivery), (b) the consigned goods becoming the company's (the
-standard consignment flow: purchase order to the consignor and receipt / bill; what
-happens to the consigned quant and its valuation), with the move lines, quants,
-valuation layers and entries of each; written in `docs/phase4/CHARACTERISATION.md`.
-
-Step 2, proposal from the results (plan revision, owner, then accountant C23): a
-business action in `equipment.operation` style (reason required, approval separated
-from execution, chatter history), allowing only the case characterised, our rule
-relaxed only inside that action (`running` context as for receipts). Quant 10 of
-TBER/Stock is handled with it after deployment.
+Independent of the security work. Step 1, characterisation on local Odoo 18 (no change
+to our rules outside the test): standard handling of (a) the removal of a consigned
+quant (inventory adjustment, return to the owner), (b) consigned goods becoming the
+company's (purchase from the consignor: order, receipt, bill), with move lines, quants,
+valuation layers and entries; report in `docs/phase4/CHARACTERISATION.md`. Step 2: a
+separate plan for a controlled business action (reason, approval separated from
+execution, history), our rule relaxed only inside it; accountant question C23. Quant
+10 of TBER/Stock waits for it.
 
 ## 6. Order of work (one commit per step, after the go)
 
-0. Probe again as `test_investor` (read-only, owner) → F4 and the real current
-   perimeter; investors holding forbidden groups listed.
-1. P4-1 step 1 (characterisation), report, then P4-1 step 2 is planned separately.
-2. P4-2a default deny + P4-2b rules + P4-5 constraint, with the tests of §4 (the
-   whitelist built from the failing tours, each addition justified in this plan).
-3. P4-3 menu whitelist.
-4. P4-0 home page as module data, F1 rules, pre-migration.
-5. P4-4 user setup.
-6. Translations, precheck (forbidden groups, profiles, menu exclusions, quick start
-   records to adopt), README and server procedure, DEFINITIONS.md (Access, home page),
-   CLAUDE.md.
+0. Done: server probe as `test_investor` (§1).
+1. P4-1 step 1, characterisation (independent, report only).
+2. Security, deployed first, as one update (it must not leave the home page broken):
+   a. P4-2a central default deny, with the minimal list;
+   b. P4-5 constraint and blocking precheck;
+   c. P4-2b record rules (menus included: P4-3);
+   d. the home page adaptations P4-2 requires (window action, client actions, sudo
+      `run_action`, F1 rules) with the tests of §4.
+3. P4-0 rest: screen and buttons as module data, pre-migration, translations.
+4. P4-4 user setup and form warning.
+5. README and server procedure (backup, precheck with forbidden groups and menu
+   exclusions, `deploy_modules.sh`, post-check, probe again), DEFINITIONS.md (Access,
+   home page), CLAUDE.md.
+The security update (2) may be deployed alone, before 3 and 4, if the owner wants.
 
 ## 7. Questions for the owner
-
-- Q5. Technical Features: is it implied for every internal user on artdubati_test
-  (Settings → developer mode / « Technical Features » group)? If so, keep it or turn it
-  off globally?
-- Q6. « Access to export feature » for investors: allowed (exports stay limited to the
-  monitor fields they may read) or refused?
+- Q5. Keep Technical Features as Odoo implies it for every internal user (audit's
+  recommendation)?
+- Q6. Export allowed for investors, monitor only, readable fields only (audit's
+  recommendation)?
+- Q7. Remove Purchase / Administrator and Purchase / User from `test_investor` before
+  the update (required by P4-5)?
 
 ## 8. Verified / not verified / hypotheses
-
-- Verified: F1 in the OCA source; F2, F3 by the local probe; F4 locally; Odoo 18
-  `_get_allowed_models` is the single source of the model set for `check()` (cached per
-  uid and mode, cleared when groups change).
-- Not verified: the server probe as `test_investor` (the one run was an administrator);
-  the exact minimum list of models the investor's web client needs with `mail` and the
-  installed apps (built by the tests of step 2); whether other profiles use
-  `base_menu_visibility_restriction`.
-- Hypotheses: the web client works for a user refused `mail.*` and `discuss.channel`
-  through ACL (the mail init runs partly in sudo; to prove by the tours); the quick
-  start buttons run for a read-only user.
+- Verified: F1 (OCA ACL); F2, F3, F5 by the server probe as `test_investor`; F4 in
+  `base_groups.xml`; `_get_allowed_models` is the single source of `check()`;
+  `/web/action/load` reads in sudo, `/web/action/run` runs as the user;
+  `_visible_menu_ids` searches menus as the user (a rule on `ir.ui.menu` applies).
+- Not verified: the minimal list of models the web client needs with `mail` and the
+  installed apps (built by the step 2 tests); whether other profiles use
+  `base_menu_visibility_restriction`; whether `get_views` needs any `ir.ui.view` read for
+  the quick start kanban.
+- Hypotheses: the web client works with `mail.*` and `discuss.channel` refused (the
+  mail init runs partly in sudo); to prove by the tours, otherwise the plan is revised
+  before adding anything.
 
 ## Data cleaned after the phase 3 deployment (10/10/2026)
 Bg/TEST Paris (id 21): its 40 « TEST Cement bag » moved to Bg/Stock by a standard
