@@ -290,8 +290,8 @@ tests on artdubati_test (47 passing, 08/10/2026).
    sale scope and of Calendar in /mail/data, maintenance_shareholder_equipment
    18.0.4.0.1); audit of d8d5b22..c3670fe corrected (backup with odoo_web stopped,
    restore checks, platform fingerprint: image, Odoo version and code of every module
-   compared, local tests rebuilt on the server's exact code); TESTCOUNT tests locally,
-   SERVERCOUNT expected on the server
+   compared, local tests rebuilt on the server's exact code); 232 tests locally (on the server's exact code),
+   231 expected on the server
    passing locally; rehearsals on the phase 3 code clean. Before deployment: Q7
    (Purchase rights off `test_investor`), one atomic update.
 5. Translations, deployment checklist (docs/deployment/investor_home.md).
