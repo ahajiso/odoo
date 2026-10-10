@@ -1832,6 +1832,11 @@ msgid "to"
 msgstr "au"
 
 #. module: lartdubati_investor_home
+#: model:ir.model,name:lartdubati_investor_home.model_ir_websocket
+msgid "websocket message handling"
+msgstr "traitement des messages du websocket "
+
+#. module: lartdubati_investor_home
 #. odoo-javascript
 #: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
 msgid "week"

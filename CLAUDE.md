@@ -73,10 +73,9 @@
 - Odoo standards: extend by inheritance, no raw SQL writes, no core patches.
 - HTTP routes (audit of 6063db1): every installation or update of a module comes with the
   inventory of its HTTP routes (docs/phase4/routes.py, compared with the previous output).
-  A new authenticated route stays refused to investor accounts until listed in
-  INVESTOR_ROUTES with a reason and a test; a new public route is read, and if it reads a
-  model, an action or a report or runs a method in sudo, it is tested as an investor
-  account (docs/phase4/ROUTES.md). Every future investor screen needs, explicitly, its
+  A new route, authenticated or public, stays refused to investor sessions until listed
+  in INVESTOR_ROUTES or INVESTOR_PUBLIC_ROUTES with a reason and a test as an investor
+  account; a new public route is read anyway (docs/phase4/ROUTES.md). Every future investor screen needs, explicitly, its
   action, models, methods, routes, menu, fields and tests.
 - Main rule: use standard Odoo and OCA data and features first; change the repo only
   when necessary.
@@ -273,13 +272,17 @@ tests on artdubati_test (47 passing, 08/10/2026).
    fr/fa; audit of dff33cb corrected (public methods and external API guarded, home
    adoption by screen then its buttons, S2 a real return); audit of 6063db1 corrected
    (whitelist of authenticated routes for investor accounts: get_definitions, /json,
-   /report refused, docs/phase4/ROUTES.md; own password change tested); 222 tests
+   /report refused, docs/phase4/ROUTES.md; own password change tested); audit of
+   2071e6e corrected (whitelist of public routes for investor sessions, no group channel
+   on the investor's websocket, own presence); 228 tests
    passing locally; rehearsals on the phase 3 code clean. Before deployment: Q7
    (Purchase rights off `test_investor`), one atomic update.
 5. Translations, deployment checklist (docs/deployment/investor_home.md).
 6. Functional phases proposed by the audit of 6063db1, order to set by the owner
    (docs/ROADMAP.md): recurring expenses and contracts, bill payment and bank
    reconciliation, insurance register (ten-year liability included), Fleet linked to
-   equipment and assets, worksites and stock consumption, workwear / PPE.
+   equipment and assets, worksites and stock consumption, workwear / PPE (meaning of
+   « VT » to confirm), operational maintenance, supplier bill intake, one-off and
+   employee expenses.
 Last. Manual rewrite for all phases (cards citing removed or changed fields, new
    receiving procedures, Investor tab), after every functional phase.
