@@ -1,4 +1,4 @@
-# Roadmap after phase 4 (proposed by the audit of 6063db1, 10/10/2026)
+# Roadmap after phase 4 (audits of 6063db1 and 2071e6e, 10/10/2026)
 
 Functional needs found by the audit, **not part of phase 4** (security). Each one becomes
 its own phase, with a plan audited before any code. The order is for the owner to set.
@@ -105,12 +105,49 @@ Then a worksite exit / consumption document:
 - return of surplus; scrap / loss with a reason; supporting documents.
 
 ## H. Workwear and PPE (« VT/EPI ») of the workers
+**To confirm by the owner: the meaning of « VT ».** This section reads it as
+« vêtements de travail » (workwear). If it means work vehicles (see F) or another kind of
+expense, the scope changes.
+
 - employee or contractor; product and size; quantity given; date given;
 - useful life or renewal date; return;
 - mandatory PPE, certification and expiry;
 - signature or proof of delivery.
 
 `hr`, `hr_expense` and `project` are not installed.
+
+## I. Operational maintenance
+A maintenance contract (A) and a maintenance job are two different objects. Standard
+`maintenance` (installed) and the OCA modules already there (`maintenance_request_repair`,
+`maintenance_request_purchase`, `maintenance_equipment_usage`...) first. To cover:
+- preventive and periodic maintenance; next due date and alerts;
+- corrective requests and jobs;
+- provider, parts, labour and duration;
+- equipment downtime;
+- bill and cost linked to the equipment;
+- full history;
+- job covered or not by the warranty (the equipment's warranty fields, phase 1).
+
+## J. Supplier bill intake
+Recurring bills (A) do not cover every entry. To cover:
+- PDF upload or bills received by email;
+- one-off bill without a contract;
+- duplicate check (supplier, reference, amount, date);
+- supplier, reference, dates, taxes, accounting and analytic distribution;
+- order – receipt – bill matching where there is an order (phase 1 and 2 integration);
+- approval circuit; handling of differences;
+- link to a contract, equipment, vehicle, worksite or warehouse.
+
+Target: a persistent controlled document, as for the other entries.
+
+## K. One-off expenses and expenses paid by employees
+- tolls, fuel, parking, small purchases;
+- paid by an employee or with a company card;
+- receipts and reimbursements;
+- assignment to a worksite, vehicle or cost centre;
+- bill without an order and without a contract.
+
+Standard `hr_expense` first (not installed; it needs `hr`).
 
 ## Last. Manual
 Rewrite of the three manuals (FR, then EN / FA) for all phases. The procedure is in

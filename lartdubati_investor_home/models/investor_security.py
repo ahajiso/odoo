@@ -44,14 +44,20 @@ INVESTOR_MODELS = {
         # check it asks for first (rules: own records only)
         "change.password.own",
         "res.users.identitycheck",
+        # own online status, written by the websocket as the user (rule: own record)
+        "bus.presence",
+        # the websocket subscription searches the guests whose presence the client asks
+        # for, as the user (rule: none)
+        "mail.guest",
     }),
     "write": frozenset({
         "res.users.settings",  # web client settings (rule: own record)
         "change.password.own",
         "res.users.identitycheck",  # the password typed (the check runs in sudo)
+        "bus.presence",
     }),
     # res.users.identitycheck is created in sudo by @check_identity
-    "create": frozenset({"change.password.own"}),
+    "create": frozenset({"change.password.own", "bus.presence"}),
     "unlink": frozenset({"change.password.own"}),  # change_password() unlinks it
 }
 
@@ -113,6 +119,25 @@ INVESTOR_ROUTES = frozenset({
     "/web/export/csv",
     "/web/export/xlsx",
     "/web/pivot/export_xlsx",
+})
+
+# P4-2g (audit of 2071e6e): the public routes (auth « public ») an investor account may
+# reach once logged in. A public route runs as the logged-in user and may behave
+# differently than for an anonymous visitor (internal-user branches, sudo): for an
+# investor session every other one is refused. Anonymous requests are not concerned
+# (login page, assets, token links). Found by the tours (docs/phase4/ROUTES.md).
+INVESTOR_PUBLIC_ROUTES = frozenset({
+    "/web/assets/<string:unique>/<string:filename>",  # the web client's assets
+    "/web/bundle/<string:bundle_name>",  # list of a lazy bundle's asset files
+    "/web/webclient/translations/<string:unique>",
+    "/web/manifest.webmanifest",
+    "/web/service-worker.js",
+    "/odoo/offline",  # page the service worker keeps for offline use
+    "/web/image",  # avatars: read access checked as the user (default deny, rules)
+    "/web/image/<string:model>/<int:id>/<string:field>",
+    "/bus/websocket_worker_bundle",
+    "/websocket",  # no group channel for investors (ir.websocket below)
+    "/mail/data",  # mail client init: own data only (tested with every option)
 })
 
 
@@ -281,10 +306,28 @@ class IrHttp(models.AbstractModel):
 
     @classmethod
     def _pre_dispatch(cls, rule, args):
-        # P4-2f: before the standard pre-dispatch and the controller
-        if rule.endpoint.routing.get("auth") in ("user", "bearer") \
-                and rule.rule not in INVESTOR_ROUTES and request.env.uid \
+        # P4-2f, P4-2g: before the standard pre-dispatch and the controller; auth
+        # « none » routes have no user environment
+        allowed = {"user": INVESTOR_ROUTES, "bearer": INVESTOR_ROUTES,
+                   "public": INVESTOR_PUBLIC_ROUTES}.get(rule.endpoint.routing.get("auth"))
+        if allowed is not None and rule.rule not in allowed and request.env.uid \
                 and is_investor(request.env):
             _logger.info("Investor route refused: %s, uid %s", rule.rule, request.env.uid)
             raise AccessError(_("This page is not available to investor accounts."))
         return super()._pre_dispatch(rule, args)
+
+
+class IrWebsocket(models.AbstractModel):
+    _inherit = "ir.websocket"
+
+    def _build_bus_channel_list(self, channels):
+        # P4-2g: Odoo subscribes every user to the channels of their groups; an investor
+        # account would receive what is sent to all internal users (channels
+        # auto-subscribing Internal User, shared canned responses). Kept: its own
+        # partner, broadcast, and the discussion channels it can read (none, rule).
+        channels = super()._build_bus_channel_list(channels)
+        if is_investor(self.env):
+            channels = [channel for channel in channels
+                        if not (isinstance(channel, models.BaseModel)
+                                and channel._name == "res.groups")]
+        return channels

@@ -168,6 +168,17 @@ It goes through the password check (`res.users.identitycheck`, created in sudo b
 (`create_uid`), and their methods (`web_save`, `onchange`, `run_check`,
 `change_password`) are named in `INVESTOR_METHODS`.
 
+### P4-2g. Public routes for an investor session (audit of 2071e6e)
+A public route runs as the logged-in user when there is a session, and may then behave
+differently (internal-user branches, sudo). For an investor session, public routes are
+refused before their controller unless they are in `INVESTOR_PUBLIC_ROUTES` (11, from
+the tours); anonymous requests are not filtered. The websocket subscribes an investor
+account to no group channel (Odoo subscribes every user to their groups' channels, which
+would deliver what is sent to all internal users). Found and fixed on the way: the
+investor's websocket could not subscribe (`mail.guest` searched and `bus.presence`
+written as the user, refused): `mail.guest` readable with no record, own
+`bus.presence` only. Details: `docs/phase4/ROUTES.md`.
+
 ### P4-2b. Record rules on the listed models
 Global rules computed per user (pattern `stock_access_rule_domain`), TRUE for staff:
 - `ir.ui.menu`: only the Stock Monitor menu tree (this is also P4-3: the same rule hides
@@ -276,7 +287,15 @@ JSON-RPC and URLs):
   transfer, a purchase order and an invoice, `/report/download`, `/stock/pdf/...`;
   other authenticated routes (`/my`, `/web/become`, `/mail/thread/messages`...): all
   refused to the investor, standard for the administrator; own password change end to
-  end, another user's wizard unreadable.
+  end, another user's wizard unreadable;
+- P4-2g: for an investor session, `/mail/data` with every option (own counters only),
+  then refused: `/mail/action`, `/mail/thread/data`, posting, editing, deleting and
+  reacting to messages, uploading, zipping and deleting attachments, link preview,
+  Discuss routes, `/websocket/peek_notifications`, `/web/content` (a public attachment
+  included); `/web/image` gives only the own avatar; anonymous login page and public
+  attachment unchanged; websocket: own partner subscribed, no group channel, no
+  requested discussion channel (needs `websocket-client`); another user's password
+  wizard: neither read, written, deleted, nor used by `change_password`.
 On the server after the update: the probe as `test_investor`, expected: monitor readable,
 quick start screen and buttons read-only, every other model refused, root menu Stock
 Monitor only.
@@ -404,6 +423,14 @@ rehearsal, translations, docs). Additions and findings, each with its reason:
     in);
   - public routes not filtered (reachable anonymously, default deny as the user): the
     reason and the alternative are in `ROUTES.md`, for the owner.
+
+- **Audit of 2071e6e** (§2 P4-2g): the public whitelist rather than a review of the
+  120 public routes (a route added later is refused until listed); the websocket's group
+  channels removed for investor accounts (found while reading `ir.websocket`: shared
+  canned responses and auto-subscribed channels are sent to the Internal User group);
+  the investor's websocket now subscribes (it failed on `mail.guest` and
+  `bus.presence` before, an error in the log on each page, unnoticed by the tours);
+  mutation check: 13 checks fail without the public whitelist or the websocket filter.
 
 Verified locally (Odoo 18, OCA heads, `web_quick_start_screen` c3120b0):
 - tests of both modules (see README for the count), including the investor tours

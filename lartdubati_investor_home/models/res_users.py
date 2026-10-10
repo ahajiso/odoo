@@ -58,6 +58,8 @@ class ResUsers(models.Model):
             return expression.FALSE_DOMAIN
         if target == "users_settings":
             return [("user_id", "=", user.id)]
+        if target == "own_presence":
+            return [("user_id", "=", user.id)]
         if target == "own_created":
             return [("create_uid", "=", user.id)]
         if target == "move_line":

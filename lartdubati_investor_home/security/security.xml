@@ -107,4 +107,15 @@
         <field name="model_id" ref="base.model_res_users_identitycheck"/>
         <field name="domain_force">user.stock_access_rule_domain('own_created')</field>
     </record>
+    <!-- own online status, written by the websocket (audit of 2071e6e) -->
+    <record id="rule_bus_presence_investor" model="ir.rule">
+        <field name="name">Presence: investor accounts use their own</field>
+        <field name="model_id" ref="bus.model_bus_presence"/>
+        <field name="domain_force">user.stock_access_rule_domain('own_presence')</field>
+    </record>
+    <record id="rule_mail_guest_investor" model="ir.rule">
+        <field name="name">Guests: none for investor accounts</field>
+        <field name="model_id" ref="mail.model_mail_guest"/>
+        <field name="domain_force">user.stock_access_rule_domain('none')</field>
+    </record>
 </odoo>

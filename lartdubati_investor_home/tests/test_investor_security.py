@@ -15,9 +15,12 @@ from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import HttpCase, tagged
 from odoo.tests.common import JsonRpcException
 
+from odoo.addons.bus.models.bus import channel_with_db, dispatch, hashable
+from odoo.addons.bus.tests.common import WebsocketCase
 from odoo.addons.lartdubati_investor_home.models.investor_security import (
     INVESTOR_ACTIONS,
     INVESTOR_BUTTONS,
+    INVESTOR_PUBLIC_ROUTES,
     INVESTOR_ROUTES,
 )
 from odoo.addons.lartdubati_investor_home.tests.test_stock_monitor import MonitorAccessCommon
@@ -607,6 +610,189 @@ class TestInvestorRoutes(InvestorSecurityCommon, HttpCase):
         self.authenticate(self.investor.login, new)
         self.assertEqual(self.make_jsonrpc_request("/web/session/get_session_info", {})["uid"],
                          self.investor.id)
+
+    def test_other_users_password_wizard(self):
+        """Another user's wizard: neither read, written nor deleted (rule « own
+        records »), through the ORM and through the routes."""
+        others = self.env["change.password.own"].with_user(self.store).create(
+            {"new_password": "store-secret-1", "confirm_password": "store-secret-1"})
+        wizard = others.with_user(self.investor)
+        for operation in (lambda: wizard.read(["new_password"]),
+                          lambda: wizard.write({"new_password": "x", "confirm_password": "x"}),
+                          lambda: wizard.unlink()):
+            with self.assertRaises(AccessError):
+                operation()
+        self.authenticate(self.investor.login, self.investor.login)
+        for method, args, kwargs in (
+                ("web_save", [others.ids, {"new_password": "x", "confirm_password": "x"}],
+                 {"specification": {}}),
+                ("unlink", [others.ids], {})):
+            with self.subTest(method=method), self.assertRaises(JsonRpcException):
+                self.make_jsonrpc_request("/web/dataset/call_kw", {
+                    "model": "change.password.own", "method": method, "args": args,
+                    "kwargs": kwargs})
+        # change_password on another user's wizard: after the password check, reading
+        # the wizard is refused (the investor's password is not changed to the store's)
+        check = self.make_jsonrpc_request("/web/dataset/call_button", {
+            "model": "change.password.own", "method": "change_password",
+            "args": [others.ids], "kwargs": {}})
+        self.assertEqual(check["res_model"], "res.users.identitycheck")
+        self.make_jsonrpc_request("/web/dataset/call_kw", {
+            "model": "res.users.identitycheck", "method": "web_save",
+            "args": [[check["res_id"]], {"password": self.investor.login}],
+            "kwargs": {"specification": {}}})
+        with self.assertRaises(JsonRpcException):
+            self.make_jsonrpc_request("/web/dataset/call_button", {
+                "model": "res.users.identitycheck", "method": "run_check",
+                "args": [[check["res_id"]]], "kwargs": {}})
+        others.invalidate_recordset()
+        self.assertEqual(others.exists().new_password, "store-secret-1")
+        self.authenticate(self.investor.login, self.investor.login)  # unchanged
+
+
+@tagged("post_install", "-at_install")
+class TestInvestorPublicRoutes(InvestorSecurityCommon, HttpCase):
+    """P4-2g (audit of 2071e6e): a public route runs as the logged-in user. For an
+    investor session only INVESTOR_PUBLIC_ROUTES are reachable; anonymous requests are
+    unchanged."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.investor.password = cls.investor.login
+        cls.general = cls.env.ref("mail.channel_all_employees")
+        cls.secret = cls.env["res.partner"].create({"name": "Secret Partner",
+                                                    "image_1920": PNG})
+        cls.message = cls.secret.message_post(body="Secret message",
+                                              message_type="comment")
+        cls.general_message = cls.general.message_post(body="Secret general",
+                                                       message_type="comment")
+        cls.attachment = cls.env["ir.attachment"].create({
+            "name": "secret.txt", "datas": base64.b64encode(b"secret-file"),
+            "res_model": "res.partner", "res_id": cls.secret.id})
+        cls.public_attachment = cls.env["ir.attachment"].create({
+            "name": "public.txt", "datas": base64.b64encode(b"public-file"),
+            "public": True})
+
+    def _token(self):
+        return re.search(r'csrf_token: "(\w+)"', self.url_open("/odoo").text).group(1)
+
+    def test_mail_data_own_data_only(self):
+        self.authenticate(self.investor.login, self.investor.login)
+        data = self.make_jsonrpc_request("/mail/data", {
+            "init_messaging": {"channel_types": ["channel", "chat", "group"]},
+            "failures": True, "systray_get_activities": True})
+        dump = json.dumps(data)
+        for secret in ("Secret", "general", self.store.name, self.general.name):
+            self.assertNotIn(secret, dump)
+        self.assertFalse(data.get("discuss.channel"))
+        # canned responses: refused by the default deny
+        with self.assertRaises(JsonRpcException):
+            self.make_jsonrpc_request("/mail/data", {"canned_responses": True})
+
+    def test_messages_discuss_attachments_refused(self):
+        members = self.general.channel_member_ids
+        messages = self.env["mail.message"].search([], order="id desc", limit=1).id
+        self.authenticate(self.investor.login, self.investor.login)
+        for route, params in (
+                ("/mail/action", {"init_messaging": {}}),
+                ("/mail/thread/data", {"thread_model": "res.partner",
+                                       "thread_id": self.secret.id,
+                                       "request_list": ["attachments", "followers"]}),
+                ("/mail/message/post", {"thread_model": "discuss.channel",
+                                        "thread_id": self.general.id,
+                                        "post_data": {"body": "x",
+                                                      "message_type": "comment"}}),
+                ("/mail/message/update_content", {"message_id": self.message.id,
+                                                  "body": "", "attachment_ids": []}),
+                ("/mail/message/reaction", {"message_id": self.general_message.id,
+                                            "content": "x", "action": "add"}),
+                ("/mail/attachment/delete", {"attachment_id": self.attachment.id}),
+                ("/mail/link_preview", {"message_id": self.general_message.id}),
+                ("/discuss/channel/messages", {"channel_id": self.general.id}),
+                ("/discuss/channel/info", {"channel_id": self.general.id}),
+                ("/discuss/channel/join", {"channel_id": self.general.id}),
+                ("/discuss/channel/members", {"channel_id": self.general.id}),
+                ("/websocket/peek_notifications", {"channels": [], "last": 0})):
+            with self.subTest(route=route), self.assertRaises(JsonRpcException):
+                self.make_jsonrpc_request(route, params)
+        token = self._token()
+        for url, data, files in (
+                (f"/web/content/{self.attachment.id}", None, None),
+                (f"/web/content/{self.public_attachment.id}", None, None),
+                (f"/discuss/channel/{self.general.id}", None, None),
+                (f"/mail/message/{self.general_message.id}", None, None),
+                ("/mail/attachment/zip", {"csrf_token": token,
+                                          "file_ids": str(self.attachment.id),
+                                          "zip_name": "x.zip"}, None),
+                ("/mail/attachment/upload", {"csrf_token": token,
+                                             "thread_id": self.secret.id,
+                                             "thread_model": "res.partner"},
+                 {"ufile": ("x.txt", b"uploaded", "text/plain")})):
+            with self.subTest(url=url):
+                response = self.url_open(url, data=data, files=files,
+                                         allow_redirects=False)
+                self.assertEqual(response.status_code, 403)
+                self.assertNotIn(b"secret-file", response.content)
+                self.assertNotIn(b"Secret", response.content)
+        # nothing changed
+        self.assertEqual(self.general.channel_member_ids, members)
+        # (OdooBot's welcome chat, if mail_bot is installed, is created at the first
+        # mail init: it is not the investor's doing)
+        self.assertFalse(self.env["mail.message"].search([
+            ("id", ">", messages), "|", ("author_id", "=", self.investor.partner_id.id),
+            "&", ("model", "in", ("res.partner", "discuss.channel")),
+            ("res_id", "in", (self.secret.id, self.general.id))]))
+        self.assertTrue(self.attachment.exists())
+        self.assertFalse(self.general_message.reaction_ids)
+        self.assertEqual(self.message.body, "<p>Secret message</p>")
+        self.assertFalse(self.env["ir.attachment"].search([("name", "=", "x.txt")]))
+
+    def test_images(self):
+        self.authenticate(self.investor.login, self.investor.login)
+        own = self.url_open(f"/web/image/res.partner/{self.investor.partner_id.id}/avatar_128")
+        self.assertEqual(own.status_code, 200)
+        foreign = self.url_open(f"/web/image/res.partner/{self.secret.id}/image_128")
+        self.assertNotEqual(foreign.content,
+                            self.secret.sudo().image_128 and base64.b64decode(self.secret.sudo().image_128))
+        sized = self.url_open(f"/web/image/res.partner/{self.secret.id}/image_128/64x64")
+        self.assertEqual(sized.status_code, 403)
+
+    def test_anonymous_unchanged(self):
+        """The filter applies only to an investor session: the login page and public
+        resources work anonymously; the same public route is refused to the investor
+        session (it gets no internal-user behaviour from it)."""
+        self.assertEqual(self.url_open("/web/login").status_code, 200)
+        self.assertEqual(self.url_open("/web/manifest.webmanifest").status_code, 200)
+        public = self.url_open(f"/web/content/{self.public_attachment.id}")
+        self.assertEqual(public.content, b"public-file")
+        self.authenticate(self.investor.login, self.investor.login)
+        self.assertEqual(self.url_open(f"/web/content/{self.public_attachment.id}")
+                         .status_code, 403)
+        self.assertEqual(self.url_open("/web/manifest.webmanifest").status_code, 200)
+        self.assertIn("/mail/data", INVESTOR_PUBLIC_ROUTES)
+
+
+@tagged("post_install", "-at_install")
+class TestInvestorWebsocket(InvestorSecurityCommon, WebsocketCase):
+    """P4-2g: the websocket of an investor account subscribes to no group channel (what
+    Odoo sends to every internal user) and to no channel it asks for."""
+
+    def test_no_group_channel(self):
+        self.investor.password = self.investor.login
+        general = self.env.ref("mail.channel_all_employees")
+        session = self.authenticate(self.investor.login, self.investor.login)
+        websocket = self.websocket_connect(cookie=f"session_id={session.sid}")
+        self.subscribe(websocket, [f"discuss.channel_{general.id}"], last=0)
+        db = self.registry.db_name
+
+        def subscribed(channel):
+            return bool(dispatch._channels_to_ws.get(hashable(channel_with_db(db, channel))))
+        self.assertTrue(subscribed(self.investor.partner_id))
+        for channel in (self.env.ref("base.group_user"), general,
+                        self.env.ref("lartdubati_investor_home.group_stock_investor")):
+            with self.subTest(channel=channel.display_name):
+                self.assertFalse(subscribed(channel))
 
 
 def _pre_migrate():
