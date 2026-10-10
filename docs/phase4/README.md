@@ -13,8 +13,9 @@ Expected tests: **228 tests** (both modules). The tours and the Hoot tests need
 Chrome and `websocket-client`: without them in `odoo_web` they are counted as skipped,
 as in phases 2f and 3; the interface checks of step 8 cover them. The JSON-RPC, action
 and URL tests of the investor security (actions, calls, routes, password change) do not need a browser; the
-websocket test needs `websocket-client` (skipped on the server like the tours, covered
-by the log check of step 8).
+real websocket test needs `websocket-client` (skipped on the server like the tours);
+the channel list is also tested without it (`TestInvestorBusChannels`, runs on the
+server).
 
 **Run nothing before the audit of the code and the owner's go. One atomic update: no
 partial deployment.**

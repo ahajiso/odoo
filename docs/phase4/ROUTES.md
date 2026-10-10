@@ -57,7 +57,17 @@ before.
 | `/web/manifest.webmanifest`, `/web/service-worker.js`, `/odoo/offline` | installable web app (the page loads them) | static content |
 | `/web/image`, `/web/image/<model>/<id>/<field>` | avatars (own, company) | read access checked as the user: default deny and the rules; other records give the placeholder (tested) |
 | `/bus/websocket_worker_bundle`, `/websocket` | real-time bus | only its own partner, its own presence and `broadcast`: Odoo's subscription to the **group channels** is removed for investor accounts (`ir.websocket`), otherwise an investor would receive what is sent to every internal user (channels auto-subscribing Internal User, shared canned responses); a discussion channel asked for by the client is not subscribed (rule: none) |
-| `/mail/data` | mail client init (every page) | own counters only: no channel, message, partner or activity (tested with every option; canned responses refused by the default deny) |
+| `/mail/data` | mail client init (every page) | only the options `init_messaging`, `systray_get_activities` and `context` (`INVESTOR_MAIL_DATA_OPTIONS`, `controllers/mail.py`): own counters, no channel, message, partner or activity. Every other option is dropped, not refused (the client sends several in one request), so an option added by a later Odoo version is not run either |
+
+`/mail/data` and `failures` (audit of 3326829): the web client sends `failures` with
+every init. Odoo then searches in sudo the failed notifications of the messages the user
+wrote, checks only that each document still exists, and returns the message body, the
+document (model, id, name) and the recipients. An investor account may be the author of
+messages on documents it can no longer read: `test_investor` once had Purchase rights.
+Reproduced in a test (a purchase order, a message whose author is the investor, a
+notification in error): the body and the order came back. The option is now dropped for
+investor accounts; the test checks that no body, document or recipient is returned, and
+fails without the filter.
 
 Found while doing it:
 - the websocket of an investor account could not subscribe at all: the subscription
@@ -73,7 +83,13 @@ Found while doing it:
   attachment, readable anonymously) and the sized `/web/image/.../<w>x<h>`. Nothing is
   created, changed or deleted;
 - mutation check: without the public whitelist or without the websocket filter,
-  13 checks fail.
+  13 checks fail;
+- the websocket check also runs without `websocket-client` (as on the server):
+  `TestInvestorBusChannels` builds the channel list directly
+  (`ir.websocket._build_bus_channel_list`) for an investor (no `res.groups`, no
+  requested discussion channel, own partner and `broadcast`) and for a staff user (the
+  standard group channels). `broadcast` stays: Odoo uses it to announce changes of the
+  asset bundles, not business data.
 
 ## Inventory (rehearsal database with the modules of artdubati_test, 10/10/2026)
 

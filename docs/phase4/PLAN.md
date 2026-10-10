@@ -177,7 +177,10 @@ account to no group channel (Odoo subscribes every user to their groups' channel
 would deliver what is sent to all internal users). Found and fixed on the way: the
 investor's websocket could not subscribe (`mail.guest` searched and `bus.presence`
 written as the user, refused): `mail.guest` readable with no record, own
-`bus.presence` only. Details: `docs/phase4/ROUTES.md`.
+`bus.presence` only. `/mail/data` (audit of 3326829): for investor accounts only the
+options `init_messaging`, `systray_get_activities` and `context` are kept; `failures`
+(failed notifications of the user's own messages, read in sudo with the body and the
+document) and any other option are dropped. Details: `docs/phase4/ROUTES.md`.
 
 ### P4-2b. Record rules on the listed models
 Global rules computed per user (pattern `stock_access_rule_domain`), TRUE for staff:
@@ -294,8 +297,12 @@ JSON-RPC and URLs):
   Discuss routes, `/websocket/peek_notifications`, `/web/content` (a public attachment
   included); `/web/image` gives only the own avatar; anonymous login page and public
   attachment unchanged; websocket: own partner subscribed, no group channel, no
-  requested discussion channel (needs `websocket-client`); another user's password
-  wizard: neither read, written, deleted, nor used by `change_password`.
+  requested discussion channel (with `websocket-client`, and without it by building the
+  channel list directly); another user's password wizard: neither read, written,
+  deleted, nor used by `change_password`;
+- `/mail/data` with `failures`: a purchase order the investor cannot read, a message
+  whose author is the investor, a notification in error: no body, document or
+  recipient returned; unknown options ignored.
 On the server after the update: the probe as `test_investor`, expected: monitor readable,
 quick start screen and buttons read-only, every other model refused, root menu Stock
 Monitor only.
@@ -431,6 +438,12 @@ rehearsal, translations, docs). Additions and findings, each with its reason:
   the investor's websocket now subscribes (it failed on `mail.guest` and
   `bus.presence` before, an error in the log on each page, unnoticed by the tours);
   mutation check: 13 checks fail without the public whitelist or the websocket filter.
+
+- **Audit of 3326829**: `/mail/data` `failures` leak reproduced (the body of a message
+  on a purchase order came back to its investor author), then fixed by a whitelist of
+  options (`controllers/mail.py`); the websocket check runs without `websocket-client`
+  too (`TestInvestorBusChannels`); mutation check: both tests fail without their
+  guard. « VT » confirmed as workwear (ROADMAP H).
 
 Verified locally (Odoo 18, OCA heads, `web_quick_start_screen` c3120b0):
 - tests of both modules (see README for the count), including the investor tours

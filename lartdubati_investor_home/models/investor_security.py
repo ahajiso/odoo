@@ -137,8 +137,13 @@ INVESTOR_PUBLIC_ROUTES = frozenset({
     "/web/image/<string:model>/<int:id>/<string:field>",
     "/bus/websocket_worker_bundle",
     "/websocket",  # no group channel for investors (ir.websocket below)
-    "/mail/data",  # mail client init: own data only (tested with every option)
+    "/mail/data",  # mail client init: only INVESTOR_MAIL_DATA_OPTIONS (controllers/mail.py)
 })
+
+# Audit of 3326829: the /mail/data options kept for investor accounts (the web client's
+# init and activity systray); every other one is dropped, `failures` in particular
+INVESTOR_MAIL_DATA_OPTIONS = frozenset({"init_messaging", "systray_get_activities",
+                                        "context"})
 
 
 def check_investor_call(env, model, method):

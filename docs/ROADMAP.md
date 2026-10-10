@@ -105,9 +105,7 @@ Then a worksite exit / consumption document:
 - return of surplus; scrap / loss with a reason; supporting documents.
 
 ## H. Workwear and PPE (« VT/EPI ») of the workers
-**To confirm by the owner: the meaning of « VT ».** This section reads it as
-« vêtements de travail » (workwear). If it means work vehicles (see F) or another kind of
-expense, the scope changes.
+« VT » means « vêtements de travail » (workwear), confirmed on 10/10/2026.
 
 - employee or contractor; product and size; quantity given; date given;
 - useful life or renewal date; return;

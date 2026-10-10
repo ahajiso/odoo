@@ -9,6 +9,8 @@ import json
 import os
 import re
 import xmlrpc.client
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from odoo import Command
 from odoo.exceptions import AccessError, ValidationError
@@ -686,9 +688,43 @@ class TestInvestorPublicRoutes(InvestorSecurityCommon, HttpCase):
         for secret in ("Secret", "general", self.store.name, self.general.name):
             self.assertNotIn(secret, dump)
         self.assertFalse(data.get("discuss.channel"))
-        # canned responses: refused by the default deny
-        with self.assertRaises(JsonRpcException):
-            self.make_jsonrpc_request("/mail/data", {"canned_responses": True})
+
+    def test_mail_data_failures_of_own_messages(self):
+        """Audit of 3326829: an investor account may be the author of messages on
+        documents it can no longer read (test_investor once had Purchase rights).
+        `failures` searches the author's failed notifications in sudo, checks only that
+        the document exists and returns the body, the document and the recipients: it is
+        dropped for investor accounts, the other options still answer."""
+        partner = self.env["res.partner"].create({"name": "Supplier Hidden"})
+        recipient = self.env["res.partner"].create({"name": "Recipient Hidden",
+                                                    "email": "hidden@example.com"})
+        order = self.env["purchase.order"].create({
+            "partner_id": partner.id, "order_line": [Command.create({
+                "product_id": self.drill.id, "product_qty": 1, "price_unit": 10})]})
+        message = self.env["mail.message"].create({
+            "model": "purchase.order", "res_id": order.id, "message_type": "comment",
+            "body": "<p>Body Hidden</p>", "author_id": self.investor.partner_id.id})
+        self.env["mail.notification"].create({
+            # author_id is written by Odoo when it sends the message
+            "mail_message_id": message.id, "res_partner_id": recipient.id,
+            "author_id": self.investor.partner_id.id,
+            "notification_type": "email", "notification_status": "exception",
+            "failure_type": "mail_smtp"})
+        self.authenticate(self.investor.login, self.investor.login)
+        for params in ({"failures": True},
+                       {"init_messaging": {}, "failures": True,
+                        "systray_get_activities": True}):
+            with self.subTest(params=params):
+                data = self.make_jsonrpc_request("/mail/data", params)
+                dump = json.dumps(data)
+                for hidden in ("Body Hidden", "Supplier Hidden", "Recipient Hidden",
+                               order.name, "hidden@example.com"):
+                    self.assertNotIn(hidden, dump)
+                self.assertFalse(data.get("mail.message"))
+                self.assertFalse(data.get("mail.notification"))
+        # options outside the investor's list are ignored, not executed
+        data = self.make_jsonrpc_request("/mail/data", {"canned_responses": True})
+        self.assertFalse(data.get("mail.canned.response"))
 
     def test_messages_discuss_attachments_refused(self):
         members = self.general.channel_member_ids
@@ -771,6 +807,33 @@ class TestInvestorPublicRoutes(InvestorSecurityCommon, HttpCase):
                          .status_code, 403)
         self.assertEqual(self.url_open("/web/manifest.webmanifest").status_code, 200)
         self.assertIn("/mail/data", INVESTOR_PUBLIC_ROUTES)
+
+
+@tagged("post_install", "-at_install")
+class TestInvestorBusChannels(InvestorSecurityCommon):
+    """Audit of 3326829: the channel list of the websocket subscription, without a real
+    websocket (runs where websocket-client is missing, as on the server)."""
+
+    def _channels(self, user, requested=()):
+        env = self.env(user=user)
+        fake_request = SimpleNamespace(session=SimpleNamespace(uid=user.id), cookies={},
+                                       env=env, update_context=lambda **kwargs: None)
+        with patch("odoo.addons.bus.models.ir_websocket.request", fake_request), \
+                patch("odoo.addons.mail.models.discuss.mail_guest.request", fake_request):
+            return env["ir.websocket"]._build_bus_channel_list(list(requested))
+
+    def test_no_group_channel_for_investors(self):
+        general = self.env.ref("mail.channel_all_employees")
+        channels = self._channels(self.investor, [f"discuss.channel_{general.id}"])
+        records = [channel for channel in channels if not isinstance(channel, str)]
+        self.assertFalse([channel for channel in records
+                          if getattr(channel, "_name", None) == "res.groups"])
+        self.assertNotIn(general, records)
+        self.assertIn(self.investor.partner_id, records)
+        self.assertIn("broadcast", channels)
+        # staff: Odoo's standard subscription to the groups' channels
+        staff = self._channels(self.store)
+        self.assertIn(self.env.ref("base.group_user"), staff)
 
 
 @tagged("post_install", "-at_install")
