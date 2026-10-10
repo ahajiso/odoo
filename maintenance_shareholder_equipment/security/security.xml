@@ -98,6 +98,15 @@
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
+    <record id="rule_approver_scope_repair_order" model="ir.rule">
+        <field name="name">Repair orders: equipment approver scope (none)</field>
+        <field name="model_id" ref="repair.model_repair_order"/>
+        <field name="domain_force">user._equipment_approver_domain('repair.order')</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
     <record id="rule_approver_scope_stock_move" model="ir.rule">
         <field name="name">Stock moves: equipment approver scope</field>
         <field name="model_id" ref="stock.model_stock_move"/>

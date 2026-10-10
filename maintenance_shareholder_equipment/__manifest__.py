@@ -17,6 +17,10 @@
         "contract_line_successor",
         "maintenance_equipment_usage",
         "stock_location_address",
+        # installed on artdubati_test: its transfer and lot forms read repair orders,
+        # which the approver must be able to read (empty scope, first deployment of
+        # phase 4, 10/10/2026)
+        "repair",
     ],
     "data": [
         "security/security.xml",

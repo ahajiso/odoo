@@ -28,3 +28,4 @@ access_equipment_cost_correction,equipment.cost.correction,model_equipment_cost_
 access_account_move_line_equipment_approver,account.move.line equipment approver,account.model_account_move_line,group_equipment_approver,1,0,0,0
 access_contract_modification_equipment_approver,contract.modification equipment approver,contract.model_contract_modification,group_equipment_approver,1,0,0,0
 access_account_journal_equipment_approver,account.journal equipment approver,account.model_account_journal,group_equipment_approver,1,0,0,0
+access_repair_order_equipment_approver,repair.order equipment approver,repair.model_repair_order,group_equipment_approver,1,0,0,0
