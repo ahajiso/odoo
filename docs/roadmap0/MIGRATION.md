@@ -148,6 +148,23 @@ post-check, tests again on the migrated data.
 
 ## 7. Rehearsal results
 
+### 7.00 First server window (11/10/2026, 7a5ea9b): dry run refused, corrected in 6761511
+
+Steps 0 to 4 on artdubati_test were conform (precheck no row, PLATFORM OK, BACKUP OK,
+update OK, 270 tests 0 failed, odoo_web left stopped). The dry run of step 5 stopped
+before any change: `ERROR | equipment saw: 0 record(s)`; nothing written, as designed.
+Cause: the script (and the seed, hence the rehearsals) used the name of equipment 484
+abridged in EXTRACT.md, « 1800W corded table saw – 1234 »; the server's name (raw
+complement, `EQUIP | id=484`) is « 1800W corded table saw, 254mm blade, with wheeled
+stand – 1234 ». Every other record was found with its inventory id (single ERROR line).
+Correction: the exact name in the script and the seed; every name the script looks for
+checked against the server's raw outputs (all present, except Computer, Matériaux de
+construction and TEST Bought compressor, which come from the inventory, not versioned
+raw, and were found on the server with their ids; and the two new target names).
+Lesson: the seed copies the raw outputs, never the summaries. Replayed locally on
+6761511 (logs in test_logs/rehearsal_6761511/): seed, update, 77 / 77 / 0, post-check
+no row, the six mutations refused without commit.
+
 ### 7.0 Revision 3 (commit de5bd82, logs in test_logs/rehearsal_de5bd82/)
 
 Only the script, its mutation, the seed and the documentation changed (no module code):
