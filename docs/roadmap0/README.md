@@ -120,7 +120,10 @@ bash /tmp/roadmap0/docs/restore_db.sh roadmap0
 ```
 
 Back to ae31573 (code), the database and the filestore of step 3 (`restore_db.sh`
-checks everything before changing anything; current copies kept).
+checks everything before changing anything; current copies kept). It also restores
+the worktree permissions from Git's executable bits before starting Odoo; this avoids
+the unreadable manifests caused by the script's protective `umask 077` during the
+first rollback of 11/10/2026.
 
 ### Interface checks after « WINDOW OK » (owner, browser)
 

@@ -165,6 +165,15 @@ Lesson: the seed copies the raw outputs, never the summaries. Replayed locally o
 6761511 (logs in test_logs/rehearsal_6761511/): seed, update, 77 / 77 / 0, post-check
 no row, the six mutations refused without commit.
 
+The required rollback restored the database, filestore and commit, but exposed a
+second deployment-tool defect before the next window: `restore_db.sh` kept its private
+`umask 077` during `git checkout`, so rewritten addon files were 0600 and unreadable by
+the Odoo container. The platform check failed safely before a new backup. Permissions
+were normalized from the Git index on the server and `PLATFORM OK (before)` passed
+again. The restore script now reapplies Git's modes (0644 / 0755, directories 0755,
+`.git` untouched) before starting Odoo, preventing the same failure on a future
+rollback.
+
 ### 7.0 Revision 3 (commit de5bd82, logs in test_logs/rehearsal_de5bd82/)
 
 Only the script, its mutation, the seed and the documentation changed (no module code):

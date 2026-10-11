@@ -167,6 +167,25 @@ git -C "$ADDONS" checkout --quiet "$COMMIT" \
   || stop "git checkout $COMMIT failed (database and filestore already restored), odoo_web stopped. Send this to Claude."
 [ "$(git -C "$ADDONS" rev-parse HEAD)" = "$COMMIT" ] || stop "code not at $COMMIT, odoo_web stopped."
 
+# The script runs with umask 077 to protect backup material.  A git checkout made
+# under that umask can create rewritten worktree files as 0600 and directories as
+# 0700, which prevents the unprivileged Odoo user in the container from reading an
+# addon's manifest.  Git records only the executable bit: normal tracked files must
+# therefore be 0644, executable tracked files 0755, and worktree directories 0755.
+# Do not touch .git, and use NUL-delimited index entries so every tracked path is safe.
+find "$ADDONS" -path "$ADDONS/.git" -prune -o -type d -exec chmod 755 {} + \
+  || stop "cannot restore worktree directory permissions, odoo_web stopped."
+while IFS= read -r -d '' entry; do
+  mode=${entry%% *}
+  path=${entry#*$'\t'}
+  case "$mode" in
+    100644) chmod 644 -- "$ADDONS/$path" ;;
+    100755) chmod 755 -- "$ADDONS/$path" ;;
+  esac
+done < <(git -C "$ADDONS" ls-files --stage -z)
+[ -r "$ADDONS/maintenance_shareholder_equipment/__manifest__.py" ] \
+  || stop "restored addon manifest is not readable, odoo_web stopped."
+
 step "starting odoo_web"
 docker start odoo_web > /dev/null || true
 odoo_ready || stop "odoo_web not running or not answering after the restore (database, filestore and code restored). Check « docker logs --tail 50 odoo_web »; send this to Claude."
