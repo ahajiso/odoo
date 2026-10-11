@@ -6,8 +6,18 @@ Read-only, rolled back. One company: « Docteur Bain » (the company's name in t
 database).
 
 ## 1. Product categories (12)
-- Every category uses **manual valuation** (`manual_periodic`): no stock input, output
-  or valuation account anywhere, consistent with phase 0.
+- Every category uses **manual valuation** (`manual_periodic`). Correction (audit of
+  f19873d): manual does not mean « not valued ». Odoo still values every storable
+  product (valuation layers, quantity × cost, the value the monitor shows); it only
+  posts no journal entry at receipt or delivery, so the stock input, output and
+  valuation accounts are not used, hence empty everywhere. The stock value is then not
+  in the general ledger: it is booked by hand at closing (accountant).
+- The cost method decides that value: `All` is at **standard** cost, the consumable
+  categories 20 to 25 at **average** cost (phase 0). The storable products that are not
+  equipment (TEST Cement bag, Green cross laser, Laser rangefinder 823; quantities not
+  listed by the inventory) sit in `All`: their value is the standard price typed on the
+  product, not the purchase cost. The phase 0 choice
+  (average cost for consumables) does not apply to any product today.
 - `All` (id 1): standard cost, expense 607000, **14 products**, linked to the
   equipment category `All`.
 - `All / Expenses / Consumables & Accessories` and its six children 20 to 25 (ids 11
@@ -73,6 +83,17 @@ translation). Wanted: « Can be maintained », « Peut être maintenu », Persia
 - « Owner on stock » enabled (group: 5 users).
 - One real quant: 15 TEST Cement bags in TBER/Stock owned by « TEST Supplier (owner) »
   (P4-1, quant 10); the −15 in Inventory adjustment is its counterpart.
+
+## Owner's decisions (11/10/2026)
+- The company name « Docteur Bain » is right.
+- The 28 imported equipment categories are a first draft: they may be renamed, merged,
+  removed or completed; unused ones are not kept only because they were imported. The
+  equipment tree describes the nature and use of physical goods, never the accounting
+  treatment.
+- Four classifications kept apart: equipment categories, product categories, contract
+  natures, business registers (docs/roadmap0/NOMENCLATURE.md).
+- Persian label proposed by the audit: « قابل تعمیر و نگهداری است ».
+- Before any data change: the read-only complement (complement.py), then the mapping.
 
 ## Proposed order (each item: its own plan and audit)
 1. **Label** (independent, small): local inheritance of `maintenance_ok` string,
