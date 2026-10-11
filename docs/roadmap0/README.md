@@ -78,30 +78,39 @@ KEEP_STOPPED=1 bash /tmp/roadmap0/docs/deploy_modules.sh "$BACKUP" 270 roadmap0 
 #    MIGRATION OK (dryrun) and « END | dry run, 77 change(s) rolled back »
 bash /tmp/roadmap0/docs/roadmap0/run_migration.sh
 
-# 6. compare with the expected lines below; then apply (« END | applied, 77 change(s)
-#    committed »), then the control dry run (« END | dry run, 0 change(s) rolled back »)
+# 6. apply: « END | applied, 77 change(s) committed » (the script itself refuses the
+#    commit on any ERROR, KEPT, BLOCKED or count other than the expected one)
 bash /tmp/roadmap0/docs/roadmap0/run_migration.sh --apply
-bash /tmp/roadmap0/docs/roadmap0/run_migration.sh
 
-# 7. start, platform after, post-check (PLATFORM OK (after), then no row)
-docker start odoo_web
-bash /tmp/roadmap0/docs/phase4/check_modules.sh after
-docker exec -i odoo_db psql -U odoo -d artdubati_test -At -F ' | ' \
-  < /tmp/roadmap0/docs/roadmap0/postcheck_catalogue.sql
+# 7. end of the window, odoo_web still stopped: control dry run (0 change), post-check
+#    (no row), the 270 tests on the migrated data; only then start, /web/health,
+#    PLATFORM OK (after), post-check again; odoo_web stopped again on any failure.
+#    Must end with « WINDOW OK »
+bash /tmp/roadmap0/docs/roadmap0/finish_window.sh 270
 ```
 
-Expected in the dry run of step 5 (artdubati_test, inventory of 11/10/2026), by section
-(the launcher prints the counts): `M1 2`, `M2 18`, `M3 9`, `M4 4`, `M5 5`, `M6 31`,
-`M7 8`; no `ERROR`, no `KEPT`, no `BLOCKED` (otherwise: the lines are read before
-going on); `FOUND` with the inventory's ids (checked by the script); `M6`: `All` (89)
-**archived** (bill line of BILL/2026/10/0006), `Fixed Assets` (481) and the 29
-imported **deleted**; `M3`: the Mac Mini « stock 1.0 … cost of 0.0 », no journal
-entry; `WAITING` 6 lines; `H3` the table saw's layers and bill.
+Expected in the dry run of step 5 (artdubati_test, inventory of 11/10/2026): `COUNTS |
+M1=2 M2=18 M3=9 M4=4 M5=5 M6=31 M7=8 | expected 77`; `FOUND` with the inventory's ids;
+`CONTRACT | TEST Scaffold rental … lines=1 checked=OK`; `M6`: `All` (89) **archived**
+(bill line of BILL/2026/10/0006), `Fixed Assets` (481) and the 29 imported
+**deleted**; `M3`: the Mac Mini « stock 1.0 … cost of 0.0 », no journal entry;
+`WAITING` 6 lines; `H3` the table saw's layers and bill.
 
-**Stop rules.** Any FAILED, unexpected count, `ERROR`, `KEPT` or `BLOCKED` line in
-steps 4 to 6: nothing more is run, `odoo_web` stays stopped, the outputs
+**Stop rules, automated (audit of 9c407ae).** `migrate_catalogue.py` turns into `ERROR`,
+and rolls back before any commit: a `KEPT` product, a `BLOCKED` document, a section
+count other than the one above (first run) or any change at all (migrated database), a
+TEST Scaffold rental contract differing from the inventory (company, partner, type,
+one line, product, no equipment, quantity, price, start, recurrence). `run_migration.sh`
+refuses the same lines and any total other than 77 / 0 as a second protection.
+`deploy_modules.sh` and `finish_window.sh` stop at the first failure. After any
+FAILED: nothing more is run, `odoo_web` stays (or is put back) stopped, the outputs
 (`/opt/odoo/logs/roadmap0_*`) go to Claude; then the rollback below. Without the
 migration the code of items 1 and 2 must not stay in service (« Not deployed alone »).
+
+Not tried with Docker (no Docker in the development session): the one-shot container
+of `run_migration.sh` and `finish_window.sh`, `KEEP_STOPPED=1`. They copy the `docker
+run` of `deploy_modules.sh`, already used on the server; step 5 (a dry run, rolled
+back) is the first use and writes nothing: if it fails, the window stops there.
 
 ### Rollback (only after a FAILED or a stop rule)
 
@@ -112,7 +121,7 @@ bash /tmp/roadmap0/docs/restore_db.sh roadmap0
 Back to ae31573 (code), the database and the filestore of step 3 (`restore_db.sh`
 checks everything before changing anything; current copies kept).
 
-### Interface checks after step 7 (owner, browser)
+### Interface checks after « WINDOW OK » (owner, browser)
 
 - a catalogue manager creates a request for a service (« Telecom & Internet »),
   another approves, it is executed: one product created, in its category;

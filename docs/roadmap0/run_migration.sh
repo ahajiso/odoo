@@ -3,8 +3,10 @@
 # Odoo shell (superuser mode), after the update to 18.0.5.0.0 (docs/roadmap0/README.md).
 #   bash run_migration.sh           dry run: changes made, checked, printed, rolled back
 #   bash run_migration.sh --apply   the same, committed only when no ERROR line
-# Odoo's exit code checked (pipefail), stderr kept, no Python error, no ERROR line, and
-# the last line must be the expected END; otherwise MIGRATION FAILED and exit 1.
+# Odoo's exit code checked (pipefail), stderr kept, no Python error, no ERROR, KEPT or
+# BLOCKED line, and the last line must be the expected END with 77 changes (first run)
+# or 0 (migrated); otherwise MIGRATION FAILED and exit 1. The script itself refuses the
+# commit on the same conditions (exact count per section), before committing.
 # Local rehearsal only: ODOO_SHELL="python3 odoo-bin shell -c <conf> -d <db> --no-http"
 # and ROADMAP0_REHEARSAL=1 replace the container.
 set -euo pipefail
@@ -26,6 +28,7 @@ OUT="$LOGDIR/roadmap0_migration_${MODE}_$STAMP.txt"
 fail() { echo "MIGRATION FAILED: $*"; echo "output: $RAW"; echo "stderr: $ERR"; exit 1; }
 
 [ -s "$SCRIPT" ] || fail "$SCRIPT missing"
+mkdir -p "$LOGDIR"
 if [ -n "${ODOO_SHELL:-}" ]; then
   RUN() { ROADMAP0_APPLY=$APPLY $ODOO_SHELL; }
 elif [ "$(docker inspect -f '{{.State.Running}}' odoo_web)" = true ]; then
@@ -53,14 +56,18 @@ grep -E '^[A-Z0-9]+ \|' "$RAW" > "$OUT" || true
 if grep -qE '^Traceback|Error:|^REFUSED' "$RAW" "$ERR"; then
   grep -nE -A3 '^Traceback|Error:|^REFUSED' "$RAW" "$ERR" | tail -20; fail "a Python error or a refusal was printed"
 fi
-if grep -q '^ERROR |' "$OUT"; then
-  grep '^ERROR |' "$OUT"; fail "ERROR lines: nothing was written"
+if grep -qE '^(ERROR|KEPT|BLOCKED) \|' "$OUT"; then
+  grep -E '^(ERROR|KEPT|BLOCKED) \|' "$OUT"
+  fail "ERROR, KEPT or BLOCKED lines: the script refused the commit, nothing was written"
 fi
+# second protection (audit of 9c407ae): the exact total, 77 on the inventory's data
+# before the migration, 0 once migrated (the script already refuses any other count)
+if grep -q '^STATE | already migrated' "$OUT"; then TOTAL=0; else TOTAL=77; fi
 LAST=$(tail -1 "$OUT")
 if [ "$APPLY" = 1 ]; then
-  [[ "$LAST" =~ ^END\ \|\ applied,\ [0-9]+\ change\(s\)\ committed$ ]] || fail "unexpected last line: $LAST"
+  [ "$LAST" = "END | applied, $TOTAL change(s) committed" ] || fail "unexpected last line: $LAST (expected $TOTAL changes)"
 else
-  [[ "$LAST" =~ ^END\ \|\ dry\ run,\ [0-9]+\ change\(s\)\ rolled\ back$ ]] || fail "unexpected last line: $LAST"
+  [ "$LAST" = "END | dry run, $TOTAL change(s) rolled back" ] || fail "unexpected last line: $LAST (expected $TOTAL changes)"
 fi
 echo "MIGRATION OK ($MODE): $OUT ($(wc -l < "$OUT") lines)"
 echo "$LAST"

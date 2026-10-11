@@ -42,6 +42,10 @@ env = env(context=dict(env.context, active_test=False, lang="en_US"))  # noqa: F
 DB = env.cr.dbname
 CHECK_IDS = DB == SERVER_DB
 errors, changes = [], []
+counts = {}
+# audit of 9c407ae: the exact changes of the first run on the inventory's data; a
+# migrated database must give none. Any difference is an ERROR, checked BEFORE commit.
+EXPECTED_COUNTS = {"M1": 2, "M2": 18, "M3": 9, "M4": 4, "M5": 5, "M6": 31, "M7": 8}
 
 
 def out(section, *parts):
@@ -55,7 +59,14 @@ def error(message):
 
 def change(section, message):
     changes.append(message)
+    counts[section] = counts.get(section, 0) + 1
     out(section, ("APPLY " if APPLY else "WOULD ") + message)
+
+
+def stop(section, message):
+    """KEPT and BLOCKED are not information: they refuse the commit (audit of 9c407ae)."""
+    out(section, message)
+    error(f"{section}: {message}")
 
 
 def expect_id(label, record, server_id):
@@ -359,7 +370,42 @@ for key, ecat_xmlid, new_name in EQUIPMENT:
 # M5 archiving after dependency checks -----------------------------------------------
 Contract = env["contract.contract"]
 scaffold_contract = find("contract TEST Scaffold rental", "contract.contract",
-                         [("name", "=", "TEST Scaffold rental")], None, required=False)
+                         [("name", "=", "TEST Scaffold rental")], None)
+
+
+def check_scaffold_contract(contract):
+    """Audit of 9c407ae: the contract is archived with its product only if it is still
+    exactly the one of the inventory; any other line or object is an ERROR."""
+    problems = []
+    if contract.company_id != company:
+        problems.append(f"company {contract.company_id.name}")
+    if contract.partner_id.name != "TEST Supplier (owner)":
+        problems.append(f"partner {contract.partner_id.name}")
+    if contract.contract_type != "purchase":
+        problems.append(f"type {contract.contract_type}")
+    lines = env["contract.line"].search([("contract_id", "=", contract.id)])
+    if len(lines) != 1:
+        problems.append(f"{len(lines)} lines instead of 1")
+    for line in lines:
+        if line.product_id.product_tmpl_id != P["test_scaffold"]:
+            problems.append(f"line {line.id}: product {line.product_id.display_name}")
+        if line.equipment_id or line.equipment_nature:
+            problems.append(f"line {line.id}: equipment {line.equipment_id.display_name or '-'} "
+                            f"relation {line.equipment_nature or '-'}")
+        if (line.quantity, line.price_unit) != (1, 250):
+            problems.append(f"line {line.id}: quantity {line.quantity} price {line.price_unit}")
+        if str(line.date_start) != "2026-09-01" or line.recurring_rule_type != "monthly":
+            problems.append(f"line {line.id}: start {line.date_start} {line.recurring_rule_type}")
+        if line.is_canceled:
+            problems.append(f"line {line.id}: cancelled")
+    for problem in problems:
+        error(f"contract {contract.name} id={contract.id} differs from the inventory: {problem}")
+    out("CONTRACT", f"{contract.name} id={contract.id} active={contract.active} "
+        f"lines={len(lines)} checked={'ERROR' if problems else 'OK'}")
+    return not problems
+
+
+scaffold_ok = bool(scaffold_contract) and check_scaffold_contract(scaffold_contract)
 
 
 def product_dependencies(tmpl, allowed_contracts=Contract):
@@ -401,7 +447,7 @@ def product_dependencies(tmpl, allowed_contracts=Contract):
     draft = env["account.move.line"].search([("product_id", "in", variants.ids),
                                              ("parent_state", "=", "draft")])
     if draft:
-        deps.append(f"draft entries {draft.move_id.mapped('name')}")
+        deps.append(f"draft entries {draft.move_id.mapped('display_name')}")
     operations = env["equipment.operation.line"].search([
         ("product_id", "in", variants.ids),
         ("operation_id.state", "not in", ("done", "cancel"))])
@@ -422,6 +468,8 @@ for key, reason in [("ranger_dup", "duplicate of Laser rangefinder 828, no equip
     product = P[key]
     if not product or not product.active:
         continue
+    if key == "test_scaffold" and not scaffold_ok:
+        continue  # ERROR already printed: nothing archived, the run is refused
     allowed = scaffold_contract if key == "test_scaffold" else Contract
     deps = product_dependencies(product, allowed)
     if key == "test_scaffold" and scaffold_contract:
@@ -429,8 +477,8 @@ for key, reason in [("ranger_dup", "duplicate of Laser rangefinder 828, no equip
         if drafts:
             deps.append(f"draft bills of its contract {drafts.mapped('name')}")
     if deps:
-        out("KEPT", f"product {product.display_name} id={product.id} not archived: "
-            + "; ".join(deps))
+        stop("KEPT", f"product {product.display_name} id={product.id} not archived: "
+             + "; ".join(deps))
         continue
     if key == "test_scaffold" and scaffold_contract.active:
         scaffold_contract.active = False
@@ -551,14 +599,14 @@ maintainable = Tmpl.search([("maintenance_ok", "=", True), ("active", "=", True)
 variants = maintainable.product_variant_ids
 for line in env["equipment.operation.line"].search([("product_id", "in", variants.ids),
                                                     ("operation_id.state", "not in", ("done", "cancel"))]):
-    out("BLOCKED", f"operation {line.operation_id.name} ({line.operation_id.state}): "
-        f"{line.product_id.display_name} has no default equipment category")
+    stop("BLOCKED", f"operation {line.operation_id.name} ({line.operation_id.state}): "
+         f"{line.product_id.display_name} has no default equipment category")
 for line in env["account.move.line"].search([("product_id", "in", variants.ids),
                                              ("parent_state", "=", "draft"),
                                              ("equipment_category_id", "=", False),
                                              ("move_id.move_type", "in", ("in_invoice", "in_refund"))]):
-    out("BLOCKED", f"draft bill {line.move_id.name}: {line.product_id.display_name} has no "
-        "default equipment category")
+    stop("BLOCKED", f"draft bill {line.move_id.display_name}: {line.product_id.display_name} has no "
+         "default equipment category")
 
 to_classify = ref(f"{MODULE}.ecat_to_classify")
 for equipment in Equipment.search([("active", "=", True)]):
@@ -581,6 +629,14 @@ for categ in Categ.search([("request_ready", "=", True)]):
         problems = [f"family {categ._catalogue_family()} is not opened by this migration"]
     for problem in problems:
         error(f"category {categ.complete_name}: {problem}")
+
+# exact counts, before any commit (audit of 9c407ae)
+expected = {section: 0 for section in EXPECTED_COUNTS} if MIGRATED else EXPECTED_COUNTS
+for section in sorted(set(expected) | set(counts)):
+    if counts.get(section, 0) != expected.get(section, 0):
+        error(f"{section}: {counts.get(section, 0)} change(s), expected {expected.get(section, 0)}")
+out("COUNTS", " ".join(f"{k}={counts.get(k, 0)}" for k in sorted(expected)),
+    f"expected {'0 (migrated)' if MIGRATED else sum(expected.values())}")
 
 if errors:
     env.cr.rollback()
