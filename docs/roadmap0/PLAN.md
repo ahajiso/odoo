@@ -1,10 +1,15 @@
-# ROADMAP section 0 – plan (revision 2, 11/10/2026, no code yet)
+# ROADMAP section 0 – plan (revision 3, 11/10/2026, no code yet)
 
 Basis: NOMENCLATURE.md (retained), REPORT.md (facts, anomalies), EXTRACT.md and data/.
 Nothing runs on artdubati_test before the audit and the owner's go. Standard Odoo and
 OCA first; changes by inheritance; no raw SQL writes.
 
-Revision 2 answers the audit of c8d2d66: a persistent creation request instead of a
+Revision 3 answers the audit of a811786: no direct creation for anyone (§2.4),
+stored equipment wait for C24 / C25 (§3.2, §3.3), archiving instead of deleting
+referenced equipment categories (§3.4), comparative characterisation of
+`base_tier_validation` for D7 (§2.6), checks only on structural changes (§2.2).
+
+Revision 2 answered the audit of c8d2d66: a persistent creation request instead of a
 transient assistant (§2), no `product_family` and no `classification_pending` on the
 product (§2.2), the complete data of the request (§2.3), no provisional mass move of
 stored products (§3.2), guarded deletion of categories (§3.4), Mac Mini bill posted by
@@ -34,6 +39,9 @@ an accounting user only (§4), decisions D1 to D6 applied.
 - H3: origin of the table saw's 329 € (standard price) against its 15 € bill.
 - H4: an existing untracked stock unit (Green cross laser 824) can become a serial item
   integrated as equipment by a controlled operation.
+- H5: no standard flow of the installed modules needs to create products as a normal
+  user (variants from attribute lines, other modules' shortcuts); to list by the tests
+  and a search of `create` calls on product models before coding the guard (§2.4).
 
 ---
 
@@ -79,7 +87,11 @@ materials, consumables, goods for resale, intangible assets, services purchased,
 sales); the checks read the root's external ID, not a new column. No
 `classification_pending`: every product is classified at the end of the migration.
 
-Checks on `product.template` (every path: form, import, quick create, API), per branch:
+Checks on `product.template` (every path: form, import, quick create, API), **only when a
+structural field is written** (category, type, storable, tracking, `maintenance_ok`,
+default equipment category, units, accounts): an ordinary edit (name, price, picture,
+description, supplier line) of a product still waiting in `All` (§3.2) is never
+refused. Per branch:
 equipment = storable, serial, maintainable, equipment category mandatory and valid;
 materials, consumables, goods = storable, not maintainable; services = service type;
 intangible = not storable. `All`, the automatic equipment categories and « To classify »
@@ -99,21 +111,47 @@ Duplicate detection (archived products included) on name (normalised), internal
 reference, barcode and supplier reference: exact barcode or internal reference blocks
 the approval; a similar name or supplier reference must be confirmed by the approver.
 
-### 2.4 Rights and quick creation (D6)
-- New group « Product Catalogue Manager » (own category): approves and executes requests,
-  edits products.
-- Requesters: Equipment Operator, Purchase User, Inventory User: create and follow
-  their requests.
-- Product creation outside a request is refused to everyone but catalogue managers
-  (guard on `product.template` / `product.product` `create`, so quick create in purchase
-  lines and imports are covered, with a message pointing to the request); `no_create`
-  on the product fields of the purchase and operation lines for the others. The
-  migration script runs as superuser.
+### 2.4 Rights and creation (D6, audit of a811786)
+- New group « Product Catalogue Manager » (own category, not the phase 2 groups): approves
+  and executes requests, administers existing products. Proposed: the approver of a
+  request is not its requester.
+- Requesters: Equipment Operator, Purchase User, Inventory User (create and follow their
+  requests).
+- **Nobody creates a product directly, the catalogue manager included.** The guard on
+  `product.template.create` and `product.product.create` (and therefore `copy`) refuses
+  any call outside superuser mode (`env.su`): only the request's execution, which runs
+  the creation in `sudo()` on the server after its own checks, and the migration script
+  (Odoo shell, superuser) create products. No context key opens it: an RPC client cannot
+  obtain superuser mode, whatever context it sends. Quick creation in purchase and
+  operation lines and imports are refused with a message pointing to the request;
+  `no_create` on those product fields for a clean interface.
+- Structural changes of existing products (category, type, tracking, accounts, units)
+  will follow the same controlled mechanism later (modification request, its own plan);
+  until then they are reserved to catalogue managers.
 
 ### 2.5 Silent creation of equipment categories removed
 `maintenance_account` and our receipt take the product's default equipment category
 (`product.template.equipment_category_id`, a link, not a classification flag);
 without one they refuse with a message naming the product, never create a category.
+
+### 2.6 Approval mechanism (D7): comparison
+OCA `base_tier_validation` 18.0.3.5.2 (server-ux), read in its source:
+
+| Need | base_tier_validation | Phase 2 pattern (`equipment.operation`) |
+|---|---|---|
+| Configurable approvers | yes: a user, a group or a field of the record, per company, with a domain | one approver group (new group here) |
+| Several levels | yes (tiers with sequence, ordered approval optional) | no (one level) |
+| History | `tier.review` (who, when, comment) **deleted** by `restart_validation` and by a return to draft or cancel; chatter notifications only if enabled | chatter tracking and approval snapshot kept |
+| Change after approval → new approval | no: under validation the write is **refused**; after validation it is **allowed** unless « tier validation exceptions » are configured; no reset on change | yes: signature of the decisive data, any change returns to « to approve » with the changed values listed (2f) |
+| Block before execution | yes (state transition refused until validated) | yes (execution only from « approved ») |
+| Bypass | context keys `skip_validation_check` and `skip_check_state_condition`, readable from any RPC call | none (no context key) |
+| Platform | new module: install, platform fingerprint and parity, JS assets (systray), audit; no HTTP route | already deployed and audited |
+
+Covering the need with the OCA module would require: a reset on change (signature and
+`restart_validation`), keeping the review history before each restart, and stripping
+the two context keys from client calls. Those are significant workarounds of its design.
+Proposal: the phase 2 pattern, with its own new approver group and one level; several
+levels can be added later if the catalogue needs them (D8).
 
 Tests: each family requested, approved, executed; re-approval after a change;
 duplicates; refusals by family; quick create refused to a purchase user, allowed to a
@@ -132,39 +170,51 @@ created; fr / fa translations; HTTP routes inventory (new module data only, no r
   goods and small-equipment branches wait for §3.2.
 - Contract tags (NOMENCLATURE.md §5).
 
-### 3.2 Stored products: no provisional move (audit point 4)
-Only what does not depend on the stock accounts moves now: services (no stock), the Mac
-Mini (fixed asset, manual valuation is its final treatment), the two lasers (third-party
-owned: no company value whatever the category). The table saw, Green cross laser 824 and
-TEST Cement bag stay in their category until the accountant's stock accounts (C25) and
-the small-equipment answer (C24); they then move once, directly to the final
-configuration. One revaluation, never two.
+### 3.2 Stored products: no provisional move (audits of c8d2d66 and a811786)
+Only what does not depend on the stock accounts moves now: services (no stock) and the
+Mac Mini (fixed asset, manual valuation is its final treatment). **Every other stored
+item waits for C24 / C25**: the table saw, Green cross laser 824, the two lasers
+836 / 828 and TEST Cement bag keep their product category, valuation and product
+settings; their final product category, product transformation (storable, serial) and
+stock entry happen once, directly into the final configuration. Their **equipment
+category** (business tree) is corrected now: it has no accounting effect. Their
+products get no default equipment category yet (a structural change refused while they
+are in `All`); nothing is received for them in the meantime.
 
 ### 3.3 Products and equipment
 - Equipment: moved to the tree and renamed (NOMENCLATURE.md §3).
-- Lasers (D3): a controlled equipment operation reusing the equipment and their contracts
-  EQOP/2026/0738-0739: internal serial, receipt into stock with Manager as quant owner,
-  monitor location emptied; products 836 / 828 storable with serial (H2; if the existing
-  receipt branches cannot reuse an equipment, a « regularisation into stock » operation
-  type, planned and audited first).
-- Green cross laser 824 (D5): integrated as a serial equipment by a controlled
-  operation (H4), unless its explicit deletion as test data is decided.
+- Lasers (D3), **after C24 / C25**: a controlled equipment operation reusing the
+  equipment and their contracts EQOP/2026/0738-0739: internal serial, receipt into stock
+  with Manager as quant owner, monitor location emptied, products 836 / 828 storable
+  with serial (H2; if the existing receipt branches cannot reuse an equipment, a
+  « regularisation into stock » operation type, planned and audited first). Now: only
+  their equipment category (Measuring, inspection & setting-out); anomaly 1 stays open
+  and listed.
+- Green cross laser 824 (D5), **after C24 / C25**: integrated as a serial equipment by a
+  controlled operation (H4), unless its explicit deletion as test data is decided.
 - Computer 837 (D5): archived if it has no stock, document or use (checked in the dry
   run); duplicates and TEST products archived after the same check.
 - Table saw (D4): nothing aligned automatically; the dry run reads its bill
   BILL/2026/10/0006 and the origin of the 329 € (valuation layers, product history); if
   15 € is the real total price, a controlled and traced revaluation afterwards.
-- At the end no product is in `All` or « To classify » except those §3.2 keeps waiting,
-  listed in the report.
+- At the end of this migration no product is in « To classify »; the products §3.2
+  keeps waiting stay in their current category and are listed in the report.
 
-### 3.4 Deleting equipment categories
-Refused while a category is referenced by: an equipment (active or archived), a product
-(default equipment category), a product category, a bill line
-(`account.move.line.equipment_category_id`), or any other field pointing to
-`maintenance.equipment.category` (found dynamically through `ir.model.fields`); defaults
-and saved filters mentioning their ids are listed. Their `__import__.cat_*` external IDs
-are deleted with them and listed in the report, with the old code → new category
-correspondence.
+### 3.4 Old equipment categories: archive when referenced (audit of a811786)
+- `active` added by inheritance to `maintenance.equipment.category` (standard archiving;
+  archived categories leave the selection lists, references keep displaying them).
+- The script moves the active equipment to the new tree, then for each old category
+  (the 29 imported, `All` 89, `Fixed Assets` 481): **archives** it while anything
+  references it, **deletes** it only when nothing does.
+- References checked: equipment (active or archived), products (default equipment
+  category), bill lines (`account.move.line.equipment_category_id`, any state), and any
+  other field pointing to `maintenance.equipment.category` (found through
+  `ir.model.fields`); defaults and saved filters mentioning their ids are listed.
+  Expected: `All` (89) stays referenced by the posted bill line of the table saw
+  (BILL/2026/10/0006) and is archived.
+- **A posted accounting line is never modified** to allow a deletion.
+- External IDs: kept for archived categories; deleted with the record only for a deleted
+  category; both lists, with the old code → new category correspondence, in the report.
 
 ## 4. Mac Mini (after §3, rehearsed locally first: H1)
 1. Product into fixed assets / IT; equipment renamed « Mac Mini – 877790 », category
@@ -195,6 +245,12 @@ Insurance and financing registers: standard / OCA search reported separately fir
   creation refused to them.
 - Mac Mini bill posted by an authorised accounting user only.
 
-## Decision asked
-- D7: approval mechanism of the request: phase 2 pattern (proposed) or OCA
-  `base_tier_validation`.
+- Audit of a811786: no direct creation for anyone; stored equipment wait for C24 / C25
+  (equipment category corrected now); referenced old categories archived; checks on
+  structural changes only.
+
+## Decisions asked
+- D7: approval mechanism: phase 2 pattern with a new approver group (proposed, §2.6) or
+  OCA `base_tier_validation` with the workarounds listed.
+- D8: one approval level enough for now?
+- D9: the approver of a request may not be its requester (proposed)?
