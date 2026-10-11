@@ -6,6 +6,7 @@
 #
 # Usage: bash deploy_modules.sh <backup.dump> <expected number of tests> <label, e.g. phase3> \
 #          <commit announced by Claude, fetched as origin/main>
+# KEEP_STOPPED=1: odoo_web is not started at the end (a data migration follows).
 #
 # Stops at the first failure and leaves odoo_web STOPPED: Odoo commits after each
 # module, so a failure can leave the database partly updated. Then follow
@@ -99,6 +100,12 @@ if ! grep -q "0 failed, 0 error(s) of $EXPECTED_TESTS tests" "$LOGT"; then
 fi
 echo "TESTS OK: 0 failed, 0 error(s) of $EXPECTED_TESTS tests"
 
+if [ "${KEEP_STOPPED:-0}" = 1 ]; then
+  # ROADMAP section 0 (docs/roadmap0/README.md): the data migration runs next, with
+  # odoo_web still stopped; the README says when to start it
+  echo "Update $LABEL done. odoo_web left STOPPED on request (KEEP_STOPPED=1)."
+  exit 0
+fi
 docker start odoo_web > /dev/null || {
   echo "FAILED: docker start odoo_web, although update and tests passed."
   echo "Run « docker start odoo_web » and « docker logs --tail 50 odoo_web », send them to Claude."

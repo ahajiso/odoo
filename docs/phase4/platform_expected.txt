@@ -5,7 +5,8 @@
 #   AFTER  <name> <version> <sha256>   (expected after the update; MODULE = before)
 # Since ROADMAP section 0 items 1-2 (docs/roadmap0/README.md): MODULE = artdubati_test
 # after the correction 18.0.3.0.1 (ae31573, PLATFORM OK (after) on 10/10/2026); AFTER =
-# maintenance_shareholder_equipment 18.0.5.0.0; lartdubati_investor_home unchanged.
+# maintenance_shareholder_equipment 18.0.5.0.0 (module code of c010a82, unchanged since;
+# recomputed with platform.py for item 3); lartdubati_investor_home unchanged.
 # How the local tests match it (10/10/2026): Odoo source = branch 18.0 at 6ba80ed1
 # (07/09/2026, the build of the image 18.0-20260908): same code in every module, except
 # 155 PNG images recompressed when the image was built and 14 font files (12
@@ -140,4 +141,4 @@ MODULE web_editor 18.0.1.0 d9c30141b581d4e9369c56f2bed55501dd3a822fdc485d8a8db3d
 MODULE web_quick_start_screen 18.0.1.0.0 80ab11f7bd0c1e3ae0c4b27db430a4f799c70025258d3c646b2d4f71e3741461
 MODULE web_tour 18.0.1.0 1660f964aad7a234a656a1c32324e8b59d97258b4ad4d4018632dd6ce724f5b5
 MODULE web_unsplash 18.0.1.1 8b8eaeff4ae714bb6ab6fed01b53a2da77376a114987e6ca4a4d4f2b8bb02e5c
-AFTER maintenance_shareholder_equipment 18.0.5.0.0 5b8b03c5c9c32bff7718f1e1168f5181ef154bf3235a6b7e827221c10fb994ea
+AFTER maintenance_shareholder_equipment 18.0.5.0.0 4ef140a28896aaf9aeea8ea3c97b91cb448b69757408be298d3d909d67c287ff
