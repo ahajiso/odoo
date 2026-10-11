@@ -3777,6 +3777,17 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"Supplier lines are created by the product request or, for a new vendor, by "
+"the confirmation of a purchase order; never directly."
+msgstr ""
+"Les lignes fournisseur sont créées par la demande de produit ou, pour un "
+"nouveau fournisseur, par la confirmation d'une commande d'achat ; jamais "
+"directement."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
 msgid ""
 "Supplier refund %(move)s has lines on a fixed-asset account (%(accounts)s). "

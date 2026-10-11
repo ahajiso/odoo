@@ -324,6 +324,18 @@ class ProductProduct(models.Model):
 class ProductSupplierinfo(models.Model):
     _inherit = "product.supplierinfo"
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        """A new supplier line brings a supplier reference without request nor
+        reservation (audit of baff2c7): created only in superuser mode (the request's
+        execution, the migration, Odoo's own addition of a vendor when an order is
+        confirmed, which writes the product's seller_ids in sudo())."""
+        if not self.env.su:
+            raise AccessError(_(
+                "Supplier lines are created by the product request or, for a new vendor, "
+                "by the confirmation of a purchase order; never directly."))
+        return super().create(vals_list)
+
     def write(self, vals):
         if not self.env.su:
             for info in self:

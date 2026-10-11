@@ -38,55 +38,21 @@ What changes for the users, from the update:
 
 No new HTTP route (no controller added): the investor route lists are unchanged.
 
-**Run nothing before the audit of this commit and the owner's go.**
+## Procedure
+
+**No deployment procedure yet.** The deployment steps (backup, update, tests, post-check,
+interface checks) are written with item 3, after its audit, for one window: code of
+items 1 and 2 and the migration together. Until then only the read-only precheck below
+may be run, for information.
 
 ```bash
-# 1. fetch the code without touching the working tree
+# read-only: open operations and draft bills of maintainable products that the update
+# would block until the migration; no row = nothing in progress is affected
+# (the file is on the development branch: read from it, the working tree untouched)
 cd /opt/odoo/addons/custom
-git fetch origin +refs/heads/main:refs/remotes/origin/main
-git log -1 --oneline origin/main        # the commit announced by Claude
-rm -rf /tmp/roadmap0 && mkdir -p /tmp/roadmap0
-git archive origin/main docs/phase4 docs/roadmap0 docs/deploy_modules.sh \
-  docs/backup_db.sh docs/restore_db.sh | tar -x -C /tmp/roadmap0
-git status --short | head               # nothing
-
-# 2. platform (must print PLATFORM OK (before))
-bash /tmp/roadmap0/docs/phase4/check_modules.sh before
-
-# 3. what the update would block (read-only): open operations and draft bills of
-#    maintainable products; no row = nothing in progress is affected
-docker exec -i odoo_db psql -U odoo -d artdubati_test -At -F ' | ' \
-  < /tmp/roadmap0/docs/roadmap0/precheck_catalogue.sql
-
-# 4. backup, checked (must print BACKUP OK, 0 missing attachment file)
-bash /tmp/roadmap0/docs/backup_db.sh roadmap0
-
-# 5 to 7. stop, code, update, tests, restart
-BACKUP=$(sed -n 's/^DUMP=//p' /opt/odoo/logs/roadmap0_backup)
-COMMIT=$(git -C /opt/odoo/addons/custom rev-parse --short origin/main)
-echo "$BACKUP $COMMIT"
-bash /tmp/roadmap0/docs/deploy_modules.sh "$BACKUP" 259 roadmap0 "$COMMIT"
-
-# 8. post-update checks: PLATFORM OK (after), then no row
-bash /tmp/roadmap0/docs/phase4/check_modules.sh after
-docker exec -i odoo_db psql -U odoo -d artdubati_test -At -F ' | ' \
-  < /opt/odoo/addons/custom/docs/roadmap0/postcheck_catalogue.sql
+git fetch origin claude/clever-rubin-z76iba
+git show FETCH_HEAD:docs/roadmap0/precheck_catalogue.sql \
+  | docker exec -i odoo_db psql -U odoo -d artdubati_test -At -F ' | '
 ```
 
-Step 3 rows: send them to Claude before going on (an open receipt of a maintainable
-product would be refused until item 3).
-
-Rollback, only after a FAILED and Claude's reading of the logs:
-`bash /tmp/roadmap0/docs/restore_db.sh roadmap0`.
-
-9. Interface checks (after the go of the audit):
-- Settings → Users: give « Product Catalogue Manager » to the manager who will approve;
-- as a buyer or an operator: Inventory → Products → Product Requests → New: the form,
-  the accounting treatment shown, the duplicates; Submit refused with « waits for the
-  accountant » (no category available yet: expected until item 3);
-- as anybody: Products → New, or a new product typed in a purchase line: refused with
-  the message pointing to the requests;
-- a product form: the label « Can be maintained » (« Peut être maintenu »,
-  « قابل تعمیر و نگهداری است »), changing its category refused, its name allowed;
-- the log: `docker logs odoo_web --since 30m 2>&1 | grep -E "ERROR|Traceback"` (only
-  the expected lines of the tests, none from the interface checks).
+The post-check (`postcheck_catalogue.sql`, read-only) is kept for that procedure.

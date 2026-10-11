@@ -76,8 +76,9 @@ class ProductCreationRequest(models.Model):
     execution_date = fields.Datetime(readonly=True, copy=False)
     decision_note = fields.Text(string="Reason", tracking=True, copy=False,
                                 help="Reason of a refusal or a cancellation.")
+    # restrict: the proof of what was created is never lost (archiving stays possible)
     product_tmpl_id = fields.Many2one("product.template", string="Product Created",
-                                      readonly=True, copy=False)
+                                      readonly=True, copy=False, ondelete="restrict")
     similar_confirmed = fields.Boolean(
         string="Similar Products Checked", copy=False,
         help="The approver checked the products with a similar name or supplier reference.")

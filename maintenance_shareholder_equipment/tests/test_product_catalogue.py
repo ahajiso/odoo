@@ -619,3 +619,55 @@ class TestRequestBypasses(CatalogueCommon):
         self.assertTrue(categ.request_ready_date)
         with self.assertRaises(AccessError):
             categ.with_user(accountant).write({"request_ready_user_id": self.manager.id})
+
+
+@tagged("post_install", "-at_install")
+class TestSupplierLinesAndProof(CatalogueCommon):
+    """Audit of baff2c7: supplier lines created only in superuser mode; the created
+    product cannot be deleted."""
+
+    def _executed(self):
+        request = self._approved(default_code="SUP-1", barcode=False, supplier_code="SUP-REF-1")
+        request.with_user(self.manager).action_execute()
+        return request
+
+    def test_supplier_line_creation_refused(self):
+        tmpl = self._executed().product_tmpl_id
+        for user in (self.manager, self.buyer):
+            with self.subTest(user=user.login):
+                with self.assertRaises(AccessError):
+                    self.env["product.supplierinfo"].with_user(user).create({
+                        "product_tmpl_id": tmpl.id, "partner_id": self.lender.id,
+                        "product_code": "NEW-REF"})
+        with self.assertRaises(AccessError):
+            tmpl.with_user(self.manager).write({"seller_ids": [Command.create({
+                "partner_id": self.lender.id, "product_code": "NEW-REF"})]})
+        self.assertEqual(tmpl.seller_ids.mapped("product_code"), ["SUP-REF-1"])
+
+    def test_purchase_confirmation_adds_the_vendor(self):
+        """Characterisation: Odoo adds a new vendor to the product when a buyer confirms
+        an order (in sudo()); it keeps working and brings no supplier reference."""
+        request = self._executed()
+        tmpl = request.product_tmpl_id
+        po = self.env["purchase.order"].with_user(self.buyer).create({
+            "partner_id": self.lender.id,
+            "order_line": [Command.create({"product_id": tmpl.product_variant_id.id,
+                                           "product_qty": 1, "price_unit": 1000.0})]})
+        po.with_user(self.buyer).button_confirm()
+        new_line = tmpl.seller_ids.filtered(lambda s: s.partner_id == self.lender)
+        self.assertEqual(len(new_line), 1)
+        self.assertFalse(new_line.product_code)
+        self.assertEqual(request.key_supplier,
+                         "%s:SUP-REF-1" % self.vendor.commercial_partner_id.id)
+
+    def test_created_product_kept(self):
+        request = self._executed()
+        tmpl = request.product_tmpl_id
+        with self.assertRaises(Exception), self.env.cr.savepoint():
+            tmpl.with_user(self.manager).unlink()
+        with self.assertRaises(Exception), self.env.cr.savepoint():
+            tmpl.sudo().unlink()
+        tmpl.with_user(self.manager).write({"active": False})
+        request.invalidate_recordset()
+        self.assertEqual(request.product_tmpl_id, tmpl)
+        self.assertEqual(request.state, "done")
