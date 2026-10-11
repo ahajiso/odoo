@@ -1,4 +1,9 @@
-# ROADMAP section 0, item 3 – migration plan (revision 1, 11/10/2026)
+# ROADMAP section 0, item 3 – migration plan (revision 2, 11/10/2026)
+
+Revision 2 answers the audit of 9c407ae: stop rules enforced by the script before
+any commit (§1), exact check of the TEST contract before archiving it (§2, M5), end of
+the window with `odoo_web` stopped until every check passed (`finish_window.sh`,
+README.md), refusals proven by mutations (§7).
 
 Basis: PLAN.md §3 (revision 5, validated), NOMENCLATURE.md, REPORT.md, EXTRACT.md
 (inventory and complement of 11/10/2026). Script: `migrate_catalogue.py`, launcher
@@ -18,6 +23,14 @@ migration and of its deployment procedure (README.md).**
   `--apply`; then `ROLLBACK`. `--apply` runs the same code and commits only if no
   `ERROR` line was printed. A **control dry run** after `--apply` must end with
   « 0 change(s) » (every step first compares the wanted state with the current one).
+- **Stop rules in the script, before the commit** (audit of 9c407ae): a `KEPT` product
+  or a `BLOCKED` document is an `ERROR`; the changes are counted per section and must
+  be exactly `M1=2 M2=18 M3=9 M4=4 M5=5 M6=31 M7=8` on a first run (the inventory's
+  data) and exactly 0 on a migrated database (`STATE` line, from the external ID
+  `roadmap0.asset_profile_it`); any difference is an `ERROR` and the transaction is
+  rolled back. `run_migration.sh` refuses `ERROR`, `KEPT` and `BLOCKED` lines and any
+  total other than 77 / 0 as a second protection (it reads the output after the
+  script's own decision, so it cannot be the only one).
 - Preconditions refused before any change: database `artdubati` (production), any
   database other than artdubati_test without `ROADMAP0_REHEARSAL=1`, module not
   installed in 18.0.5.0.0, more than one company.
@@ -40,7 +53,7 @@ migration and of its deployment procedure (README.md).**
 | M2 | Product categories under the roots of item 2, made « Available for Product Requests » (superuser, traced: who, when): Fixed Assets (catalogue) / **IT Equipment** (218300) and **Plant & Tools** (215400, profile 4, 5 years): fixed-asset flag, average cost, manual valuation; Services Purchased / **Equipment Rentals & Loans** (613500), **Telecom & Internet** (626000), **Bank Services** (627800), **Administrative Supplies & Fees** (606400); Sales / **Consulting** (706000), **Works** (704000), **Equipment Rentals** (708300) | C25 |
 | M3 | Products moved now (no stock account involved): the 8 services to their category; Mac Mini to Fixed Assets / IT Equipment with default equipment category IT & Communications / Computers & Servers. The Mac Mini's stock (1 unit, standard price 0) is emptied and replenished by Odoo at the same cost: value 0 before and after, manual valuation, **no journal entry** | – |
 | M4 | Equipment: 484 → Workshop Machinery / Wood, renamed « Scie sur table – 1234 »; 871 → IT & Communications / Computers & Servers, renamed « Mac Mini – 877790 »; 869, 870 → Measuring, Inspection & Setting-out | – |
-| M5 | Archived **only if nothing depends on them** (stock, open moves, open purchase or sale lines, active contracts, active equipment, draft entries, open equipment operations; otherwise listed `KEPT`): Laser rangefinder 823 (duplicate), Computer 837 (D5), TEST Bought compressor 13, TEST Scaffold rent 11 **with** its contract « TEST Scaffold rental » (no draft bill of the contract) | – |
+| M5 | Archived **only if nothing depends on them** (stock, open moves, open purchase or sale lines, active contracts, active equipment, draft entries, open equipment operations; otherwise `KEPT`, which refuses the run): Laser rangefinder 823 (duplicate), Computer 837 (D5), TEST Bought compressor 13, TEST Scaffold rent 11 **with** its contract « TEST Scaffold rental » (no draft bill of the contract). The contract is first checked against the inventory: company, partner « TEST Supplier (owner) », supplier type, exactly one line (cancelled ones included), product TEST Scaffold rent, no equipment nor relation, quantity 1, price 250, start 01/09/2026, monthly, not cancelled; any difference is an `ERROR` (`CONTRACT … checked=OK` otherwise) | – |
 | M6 | Old equipment categories (29 imported `__import__.cat_*`, `All` 89, `Fixed Assets` 481): leaves first; **archived** while anything references them (every stored many2one / many2many to `maintenance.equipment.category` found through `ir.model.fields`, archived records included, or a remaining child: `parent_id` is `ondelete="cascade"`, so a parent with children is never deleted), **deleted** otherwise (their `__import__` external ID goes with them). A posted accounting line is never modified. Defaults (`ir.default`) and saved filters on these fields are listed | – |
 | M7 | OCA contract tags: Insurance, Maintenance, Rental, Leasing, Telecom & Internet, Software & SaaS, Energy & Charges, Other Subscription (company Docteur Bain) | – |
 
@@ -59,8 +72,9 @@ Product category names are not translatable in Odoo 18 (`product.category.name` 
   anomaly 1), TEST Cement bag 10 (consignment, §5), Matériaux de construction 6
   (generic goods sold: goods family, C25). They keep their product category, valuation
   and settings; no default equipment category yet, so a receipt or a bill of a
-  maintainable one among them stays refused until then (`BLOCKED` lists the open
-  documents concerned; expected none).
+  maintainable one among them stays refused until then. An open document concerned
+  (operation or draft bill) is printed `BLOCKED` and **refuses the run** (expected
+  none; to finish or cancel before the window, see the precheck).
 - `H3` (read only): the table saw's standard price, valuation layers and bill lines,
   to explain 329 € against 15 € (D4: no automatic alignment).
 - Mac Mini bill (item 4), consignment (item 5): their own plans.
@@ -114,11 +128,51 @@ chart loaded on the company; the other modules: a single `-i` of the 122 fails b
 loaded, default language en_US as in `srv2`. Then `rehearsal/seed_server_state.py`
 (old code) recreates the records of the inventory (ids differ; the three products of
 `lartdubati_facturation`'s install hook already exist and are completed, as on the
-server). Then `rehearsal/rehearse.sh`, in the order of the window (README.md):
+server).
+
+**Not reproduced** (server data the migration does not change, or only reads): the
+purchase order P00381, its receipt Bg/IN/00006 and the Mac Mini's cost history; the
+equipment operations (EQOP/2026/0437, 0738 to 0740) and their pickings; the stocks
+TBER/Stock and TIST/Stock, their addresses and their cement quants (15 owned by TEST
+Supplier, 10 by the company); the monitor stocks' settings and access profiles; the
+users and groups of the server; the product attributes, supplier lines and prices
+beyond those listed. The migration's own checks cover them on the server: the ids and
+counts of the inventory, `KEPT` / `BLOCKED`, the contract check. The rehearsal proves
+the code and the order, not the absence of other data on the server. Then `rehearsal/rehearse.sh`, in the order of the window (README.md):
 precheck, update to 18.0.5.0.0, tests, dry run, `--apply`, control dry run,
 post-check, tests again on the migrated data.
 
-## 7. Rehearsal results (11/10/2026, commit 0f8650d, logs in test_logs/rehearsal_0f8650d/)
+## 7. Rehearsal results
+
+### 7.1 Revision 2 (commit 7ff7b57, logs in test_logs/rehearsal_7ff7b57/)
+
+Same seeded database and order as 7.2, with the window's end of `finish_window.sh`
+(control dry run, post-check, tests on the migrated data, all before the start):
+- precheck: no row; update: no error;
+- tests before the migration: **0 failed, 0 error(s) of 271 tests**;
+- dry run: `COUNTS | M1=2 M2=18 M3=9 M4=4 M5=5 M6=31 M7=8 | expected 77`,
+  `CONTRACT | TEST Scaffold rental … lines=1 checked=OK`, no `ERROR`, `KEPT`,
+  `BLOCKED`; `--apply`: the same, committed;
+- control dry run: `COUNTS | … all 0 | expected 0 (migrated)`, 0 change;
+- post-check: no row;
+- tests after the migration: **0 failed, 0 error(s) of 271 tests**; REHEARSAL OK.
+
+Mutations (`rehearsal/mutations.sh`, each on a copy of the updated, not migrated
+database; `--apply` must fail and commit nothing): all five refused, nothing committed
+(`MUTATIONS OK`):
+
+| Mutation | Refused by |
+|---|---|
+| draft bill of « Computer » (to archive) | `ERROR \| KEPT: product Computer … draft entries ['Draft Bill']` |
+| draft bill of the table saw (no default equipment category) | `ERROR \| BLOCKED: draft bill Draft Bill: …` |
+| contract tag « Insurance » already present | `ERROR \| M7: 7 change(s), expected 8` |
+| second line on « TEST Scaffold rental » | `ERROR \| contract TEST Scaffold rental … 2 lines instead of 1` |
+| migrated, then « Computer » unarchived | `ERROR \| M5: 1 change(s), expected 0` (the product stays active) |
+
+In each case `run_migration.sh` prints MIGRATION FAILED; no external ID `roadmap0.*`
+exists afterwards (migrated case: the mutated product unchanged).
+
+### 7.2 Revision 1 (commit 0f8650d, logs in test_logs/rehearsal_0f8650d/)
 
 - Precheck: no row. Update: no error.
 - Tests before the migration: **0 failed, 0 error(s) of 271 tests** (on the server 270:
@@ -146,13 +200,16 @@ Rehearsal environment findings (not migration defects, for the audit):
 - With fr_FR as default language (first rebuild), 21 to 44 tests fail: their messages
   are compared with English expressions. The server passed its 235 tests in phase 4,
   so its test users get en_US; the rehearsal uses en_US like `srv2`. The test suite
-  depends on that default (to know, not changed here).
+  depends on that default. Audit of 9c407ae (not blocking): the tests should set their
+  language themselves. Not changed in this window (a module change would alter the
+  tested code and its fingerprint); proposed as a separate small correction after it.
 - A PostgreSQL crash of the local container (session restart) left one seeded copy
   with sequences behind their tables; detected by the update (duplicate key),
   rebuilt from the clean base and checked (no sequence behind any table) before the
   final run.
 
-Not verified locally: the server's real records beyond the inventory (the script
-stops on any id or count difference), the one-shot container of `run_migration.sh`
-(no Docker here; the same `docker run` as `deploy_modules.sh`), `KEEP_STOPPED=1`
-(two lines, read by the audit).
+Not verified locally: the server's real records beyond the inventory (§6, « Not
+reproduced »; the script stops on any id or count difference), the one-shot containers
+of `run_migration.sh` and `finish_window.sh` and `KEEP_STOPPED=1` (no Docker here; the
+same `docker run` as `deploy_modules.sh`; the window's first use of them is the dry
+run of step 5, which writes nothing).

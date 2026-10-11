@@ -1,0 +1,16 @@
+== kept: a draft bill of « Computer » (to archive) -> KEPT
+  refused, nothing committed: ERROR | KEPT: product Computer id=5 not archived: draft entries ['Draft Bill']
+  MIGRATION FAILED: ERROR, KEPT or BLOCKED lines: the script refused the commit, nothing was written
+== blocked: a draft bill of the table saw (maintainable, no default category) -> BLOCKED
+  refused, nothing committed: ERROR | BLOCKED: draft bill Draft Bill: 1800W corded table saw, 254mm blade, with wheeled stand has no default equipment category
+  MIGRATION FAILED: ERROR, KEPT or BLOCKED lines: the script refused the commit, nothing was written
+== count: the tag « Insurance » already exists -> M7=7, not 8
+  refused, nothing committed: ERROR | M7: 7 change(s), expected 8
+  MIGRATION FAILED: ERROR, KEPT or BLOCKED lines: the script refused the commit, nothing was written
+== contract: a second line on « TEST Scaffold rental » -> contract differs
+  refused, nothing committed: ERROR | contract TEST Scaffold rental id=4 differs from the inventory: 2 lines instead of 1
+  MIGRATION FAILED: ERROR, KEPT or BLOCKED lines: the script refused the commit, nothing was written
+== migrated: migrated, then « Computer » unarchived -> 1 change on a migrated database
+  refused, nothing committed: ERROR | M5: 1 change(s), expected 0
+  MIGRATION FAILED: ERROR, KEPT or BLOCKED lines: the script refused the commit, nothing was written
+MUTATIONS OK: every mutation refused, nothing committed

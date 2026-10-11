@@ -1,0 +1,70 @@
+== copy r0seed to r0reh
+== precheck (read-only, no row expected)
+no row
+== update maintenance_shareholder_equipment,lartdubati_investor_home
+== tests before the migration
+2026-10-11 12:53:20,624 876 INFO r0reh odoo.tests.result: 0 failed, 0 error(s) of 271 tests when loading database 'r0reh' 
+== migration dry run
+MIGRATION OK (dryrun): /tmp/claude-0/-home-user-odoo/6365910f-4627-5391-bf50-cbfc6ff082e6/scratchpad/reh/roadmap0_migration_dryrun_2026-10-11_125321.txt (151 lines)
+END | dry run, 77 change(s) rolled back
+  ACCOUNT  11
+  CATEG    9
+  COMPANY  1
+  CONTRACT 1
+  COUNTS   1
+  FOUND    29
+  H3       3
+  LANGS    1
+  M1       2
+  M2       18
+  M3       9
+  M4       4
+  M5       5
+  M6       31
+  M7       8
+  READY    9
+  START    1
+  STATE    1
+  WAITING  6
+== migration --apply
+MIGRATION OK (apply): /tmp/claude-0/-home-user-odoo/6365910f-4627-5391-bf50-cbfc6ff082e6/scratchpad/reh/roadmap0_migration_apply_2026-10-11_125324.txt (151 lines)
+END | applied, 77 change(s) committed
+  ACCOUNT  11
+  CATEG    9
+  COMPANY  1
+  CONTRACT 1
+  COUNTS   1
+  FOUND    29
+  H3       3
+  LANGS    1
+  M1       2
+  M2       18
+  M3       9
+  M4       4
+  M5       5
+  M6       31
+  M7       8
+  READY    9
+  START    1
+  STATE    1
+  WAITING  6
+== migration dry run
+MIGRATION OK (dryrun): /tmp/claude-0/-home-user-odoo/6365910f-4627-5391-bf50-cbfc6ff082e6/scratchpad/reh/roadmap0_migration_dryrun_2026-10-11_125328.txt (73 lines)
+END | dry run, 0 change(s) rolled back
+  ACCOUNT  11
+  CATEG    9
+  COMPANY  1
+  CONTRACT 1
+  COUNTS   1
+  FOUND    28
+  H3       3
+  LANGS    1
+  READY    9
+  START    1
+  STATE    1
+  WAITING  6
+== post-check (no row expected)
+no row
+== tests after the migration
+2026-10-11 12:59:49,346 2600 INFO r0reh odoo.tests.result: 0 failed, 0 error(s) of 271 tests when loading database 'r0reh' 
+REHEARSAL OK

@@ -1,0 +1,151 @@
+START | database=r0reh | DRY RUN | compare ids=False
+COMPANY | 1 | Docteur Bain
+ACCOUNT | 218300 | Office and computing equipment | asset_fixed | id=157 | asset profile=-
+ACCOUNT | 281800 | Other tangible fixed assets (same allocation as for Account 218) | asset_fixed | id=212 | asset profile=-
+ACCOUNT | 681120 | Appropriations to depreciation on Tangible fixed assets | expense | id=590 | asset profile=-
+ACCOUNT | 215400 | Plant and machinery | asset_fixed | id=152 | asset profile=Matériel et outillage (test)
+ACCOUNT | 613500 | Movable property rental | expense | id=458 | asset profile=-
+ACCOUNT | 626000 | Postal and telecommunication costs | expense | id=502 | asset profile=-
+ACCOUNT | 627800 | Other expenses and commissions on services supplied | expense | id=507 | asset profile=-
+ACCOUNT | 606400 | Administrative supplies | expense | id=443 | asset profile=-
+ACCOUNT | 706000 | Services supplied | income | id=620 | asset profile=-
+ACCOUNT | 704000 | Works | income | id=618 | asset profile=-
+ACCOUNT | 708300 | Sundry rentals | income | id=624 | asset profile=-
+FOUND | product category All / Fixed Assets | product.category id=12 | All / Fixed Assets
+FOUND | product category Frais généraux | product.category id=11 | All / Expenses / Frais généraux
+FOUND | product saw | product.template id=4 | 1800W corded table saw, 254mm blade, with wheeled stand
+FOUND | product computer | product.template id=5 | Computer
+FOUND | product consulting | product.template id=3 | Conseil / Prestation intellectuelle
+FOUND | product green_cross | product.template id=6 | Green cross laser
+FOUND | product ranger_dup | product.template id=7 | Laser rangefinder
+FOUND | product rent_sold | product.template id=8 | Location de matériel (facturée)
+FOUND | product rent_paid | product.template id=9 | Location de matériel (payée)
+FOUND | product mac | product.template id=10 | [MM1220] Mac Mini
+FOUND | product works | product.template id=1 | Main d'œuvre - Finition / Façade (horaire)
+FOUND | product materials | product.template id=2 | Matériaux de construction (finition/façade)
+FOUND | product loan | product.template id=11 | Prêt de matériel
+FOUND | product test_compressor | product.template id=12 | TEST Bought compressor
+FOUND | product test_cement | product.template id=13 | TEST Cement bag
+FOUND | product test_scaffold | product.template id=14 | TEST Scaffold rent
+FOUND | product telecom | product.template id=15 | Abonnement téléphonique
+FOUND | product admin | product.template id=16 | Frais administratifs
+FOUND | product bank | product.template id=17 | Frais bancaires
+FOUND | product green360 | product.template id=18 | [00000002] 360° green laser
+FOUND | product ranger | product.template id=19 | [00000001] Laser rangefinder
+FOUND | equipment saw | maintenance.equipment id=1 | 1800W corded table saw – 1234
+FOUND | equipment green360 | maintenance.equipment id=3 | 360° green laser
+FOUND | equipment ranger | maintenance.equipment id=4 | Laser rangefinder
+FOUND | equipment mac | maintenance.equipment id=2 | Device 1
+FOUND | equipment category All (automatic) | maintenance.equipment.category id=30 | All
+STATE | not migrated yet
+FOUND | equipment category Fixed Assets (automatic) | maintenance.equipment.category id=31 | Fixed Assets
+FOUND | asset profile Matériel et outillage (test) | account.asset.profile id=1 | Matériel et outillage (test)
+M1 | WOULD create asset profile asset_profile_it Matériel informatique (test) id=51 (218300 / 281800 / 681120, linear, 3 years, one asset per item, journal Miscellaneous Operations)
+M1 | WOULD account 218300 carries the profile (set by account_asset_management at the profile's creation)
+M2 | WOULD create product category All / Fixed Assets (catalogue) / IT Equipment id=134
+M2 | WOULD make All / Fixed Assets (catalogue) / IT Equipment available for product requests (superuser, traced: OdooBot, 2026-10-11 12:53:23)
+CATEG | All / Fixed Assets (catalogue) / IT Equipment | id=134 | family=durable_equipment | expense=218300 | income=707000 | cost=average | valuation=manual_periodic | fixed asset flag=True
+M2 | WOULD create product category All / Fixed Assets (catalogue) / Plant & Tools id=135
+M2 | WOULD make All / Fixed Assets (catalogue) / Plant & Tools available for product requests (superuser, traced: OdooBot, 2026-10-11 12:53:23)
+CATEG | All / Fixed Assets (catalogue) / Plant & Tools | id=135 | family=durable_equipment | expense=215400 | income=707000 | cost=average | valuation=manual_periodic | fixed asset flag=True
+M2 | WOULD create product category All / Services Purchased / Equipment Rentals & Loans id=136
+M2 | WOULD make All / Services Purchased / Equipment Rentals & Loans available for product requests (superuser, traced: OdooBot, 2026-10-11 12:53:23)
+CATEG | All / Services Purchased / Equipment Rentals & Loans | id=136 | family=service | expense=613500 | income=707000 | cost=standard | valuation=manual_periodic | fixed asset flag=False
+M2 | WOULD create product category All / Services Purchased / Telecom & Internet id=137
+M2 | WOULD make All / Services Purchased / Telecom & Internet available for product requests (superuser, traced: OdooBot, 2026-10-11 12:53:23)
+CATEG | All / Services Purchased / Telecom & Internet | id=137 | family=service | expense=626000 | income=707000 | cost=standard | valuation=manual_periodic | fixed asset flag=False
+M2 | WOULD create product category All / Services Purchased / Bank Services id=138
+M2 | WOULD make All / Services Purchased / Bank Services available for product requests (superuser, traced: OdooBot, 2026-10-11 12:53:23)
+CATEG | All / Services Purchased / Bank Services | id=138 | family=service | expense=627800 | income=707000 | cost=standard | valuation=manual_periodic | fixed asset flag=False
+M2 | WOULD create product category All / Services Purchased / Administrative Supplies & Fees id=139
+M2 | WOULD make All / Services Purchased / Administrative Supplies & Fees available for product requests (superuser, traced: OdooBot, 2026-10-11 12:53:23)
+CATEG | All / Services Purchased / Administrative Supplies & Fees | id=139 | family=service | expense=606400 | income=707000 | cost=standard | valuation=manual_periodic | fixed asset flag=False
+M2 | WOULD create product category All / Sales / Consulting id=140
+M2 | WOULD make All / Sales / Consulting available for product requests (superuser, traced: OdooBot, 2026-10-11 12:53:23)
+CATEG | All / Sales / Consulting | id=140 | family=service | expense=607000 | income=706000 | cost=standard | valuation=manual_periodic | fixed asset flag=False
+M2 | WOULD create product category All / Sales / Works id=141
+M2 | WOULD make All / Sales / Works available for product requests (superuser, traced: OdooBot, 2026-10-11 12:53:23)
+CATEG | All / Sales / Works | id=141 | family=service | expense=607000 | income=704000 | cost=standard | valuation=manual_periodic | fixed asset flag=False
+M2 | WOULD create product category All / Sales / Equipment Rentals id=142
+M2 | WOULD make All / Sales / Equipment Rentals available for product requests (superuser, traced: OdooBot, 2026-10-11 12:53:23)
+CATEG | All / Sales / Equipment Rentals | id=142 | family=service | expense=607000 | income=708300 | cost=standard | valuation=manual_periodic | fixed asset flag=False
+M3 | WOULD product Conseil / Prestation intellectuelle id=3: category All -> All / Sales / Consulting
+M3 | WOULD product Main d'œuvre - Finition / Façade (horaire) id=1: category All -> All / Sales / Works
+M3 | WOULD product Location de matériel (facturée) id=8: category All -> All / Sales / Equipment Rentals
+M3 | WOULD product Location de matériel (payée) id=9: category All -> All / Services Purchased / Equipment Rentals & Loans
+M3 | WOULD product Prêt de matériel id=11: category All -> All / Services Purchased / Equipment Rentals & Loans
+M3 | WOULD product Abonnement téléphonique id=15: category All / Expenses / Frais généraux -> All / Services Purchased / Telecom & Internet
+M3 | WOULD product Frais administratifs id=16: category All / Expenses / Frais généraux -> All / Services Purchased / Administrative Supplies & Fees
+M3 | WOULD product Frais bancaires id=17: category All / Expenses / Frais généraux -> All / Services Purchased / Bank Services
+M3 | WOULD product [MM1220] Mac Mini id=10: category All -> All / Fixed Assets (catalogue) / IT Equipment, default equipment category - -> IT & Communications / Computers & Servers (stock 1.0: emptied and replenished by Odoo at the cost of 0.0, manual valuation: no journal entry)
+LANGS | en_US, fr_FR, fa_IR
+M4 | WOULD equipment id=1 1800W corded table saw – 1234 [All]: category -> Workshop Machinery / Wood; name (en_US) -> Scie sur table – 1234
+M4 | WOULD equipment id=3 360° green laser [Fixed Assets]: category -> Measuring, Inspection & Setting-out
+M4 | WOULD equipment id=4 Laser rangefinder [Fixed Assets]: category -> Measuring, Inspection & Setting-out
+M4 | WOULD equipment id=2 Device 1 [All]: category -> IT & Communications / Computers & Servers; name (en_US) -> Mac Mini – 877790
+FOUND | contract TEST Scaffold rental | contract.contract id=4 | TEST Scaffold rental
+CONTRACT | TEST Scaffold rental id=4 active=True lines=1 checked=OK
+M5 | WOULD archive product Laser rangefinder id=7 (duplicate of Laser rangefinder 828, no equipment)
+M5 | WOULD archive product Computer id=5 (unused (D5))
+M5 | WOULD archive product TEST Bought compressor id=12 (TEST product)
+M5 | WOULD archive contract TEST Scaffold rental id=4
+M5 | WOULD archive product TEST Scaffold rent id=14 (TEST product, with its contract TEST Scaffold rental)
+M6 | WOULD delete equipment category Assets & Equipment / Power & Workshop Tools / 01 Cordless Tools id=11 (__import__.cat_01; code 01 -> Tools / Cordless Power Tools)
+M6 | WOULD delete equipment category Assets & Equipment / Power & Workshop Tools / 02 Corded Power Tools id=12 (__import__.cat_02; code 02 -> Tools / Corded Power Tools)
+M6 | WOULD delete equipment category Assets & Equipment / Power & Workshop Tools / 03 Hand Tools id=13 (__import__.cat_03; code 03 -> Tools / Hand Tools Tracked Individually)
+M6 | WOULD delete equipment category Assets & Equipment / Trade & Site Equipment / 04 Electrical Equipment id=22 (__import__.cat_04; code 04 -> trade, by physical nature)
+M6 | WOULD delete equipment category Assets & Equipment / Trade & Site Equipment / 05 Plumbing and MEP Equipment id=23 (__import__.cat_05; code 05 -> trade, by physical nature)
+M6 | WOULD delete equipment category Assets & Equipment / Power & Workshop Tools / 06 Woodworking Equipment id=14 (__import__.cat_06; code 06 -> Workshop Machinery / Wood)
+M6 | WOULD delete equipment category Assets & Equipment / Power & Workshop Tools / 07 Metalworking Equipment id=15 (__import__.cat_07; code 07 -> Workshop Machinery / Metal)
+M6 | WOULD delete equipment category Assets & Equipment / Trade & Site Equipment / 08 Painting and Coating Equipment id=24 (__import__.cat_08; code 08 -> trade, by physical nature)
+M6 | WOULD delete equipment category Assets & Equipment / Trade & Site Equipment / 09 Masonry and Tiling Equipment id=25 (__import__.cat_09; code 09 -> trade, by physical nature)
+M6 | WOULD delete equipment category Assets & Equipment / Trade & Site Equipment / 10 Plastering and Drywall Equipment id=26 (__import__.cat_10; code 10 -> trade, by physical nature)
+M6 | WOULD delete equipment category Assets & Equipment / Inspection & Measurement / 11 Measuring Equipment id=3 (__import__.cat_11; code 11 -> Measuring, Inspection & Setting-out)
+M6 | WOULD delete equipment category Assets & Equipment / Trade & Site Equipment / 12 Demolition Equipment id=27 (__import__.cat_12; code 12 -> Site Machinery & Equipment)
+M6 | WOULD delete equipment category Assets & Equipment / Trade & Site Equipment / 13 Workshop Cleaning Equipment id=28 (__import__.cat_13; code 13 -> Cleaning & Extraction)
+M6 | WOULD delete equipment category Assets & Equipment / Logistics Safety & Access / 14 Safety and Personal Protective Equipment id=7 (__import__.cat_14; code 14 -> Durable, Inspected Safety Equipment)
+M6 | WOULD delete equipment category Assets & Equipment / Logistics Safety & Access / 15 Material Handling Equipment id=8 (__import__.cat_15; code 15 -> Handling & Lifting)
+M6 | WOULD delete equipment category Assets & Equipment / Logistics Safety & Access / 16 Ladders Scaffolding and Work at Height id=9 (__import__.cat_16; code 16 -> Access & Work at Height)
+M6 | WOULD delete equipment category Assets & Equipment / Power & Workshop Tools / 17 Small Workshop Machinery id=16 (__import__.cat_17; code 17 -> Workshop Machinery / Other)
+M6 | WOULD delete equipment category Assets & Equipment / IT & Office Equipment / 18 Electronic and IT Equipment id=5 (__import__.cat_18; code 18 -> IT & Communications)
+M6 | WOULD delete equipment category Assets & Equipment / Power & Workshop Tools / 19 Batteries and Chargers id=17 (__import__.cat_19; code 19 -> Tools / Batteries & Chargers Tracked Individually)
+M6 | WOULD delete equipment category Assets & Equipment / Site Machinery & Vehicles / 26 Site Machinery id=19 (__import__.cat_26; code 26 -> Site Machinery & Equipment)
+M6 | WOULD delete equipment category Assets & Equipment / Site Machinery & Vehicles / 27 Vehicles id=20 (__import__.cat_27; code 27 -> Vehicles)
+M6 | WOULD delete equipment category Assets & Equipment / Trade & Site Equipment / 28 Formwork and Shoring Equipment id=29 (__import__.cat_28; code 28 -> Formwork & Shoring)
+M6 | WOULD delete equipment category Assets & Equipment / IT & Office Equipment id=4 (__import__.cat_it_office; no code)
+M6 | WOULD delete equipment category Assets & Equipment / Logistics Safety & Access id=6 (__import__.cat_logistics; no code)
+M6 | WOULD delete equipment category Assets & Equipment / Site Machinery & Vehicles id=18 (__import__.cat_machinery; no code)
+M6 | WOULD delete equipment category Assets & Equipment / Inspection & Measurement id=2 (__import__.cat_measure; no code)
+M6 | WOULD delete equipment category Assets & Equipment / Power & Workshop Tools id=10 (__import__.cat_power_tools; no code)
+M6 | WOULD delete equipment category Assets & Equipment / Trade & Site Equipment id=21 (__import__.cat_site_equip; no code)
+M6 | WOULD delete equipment category Assets & Equipment id=1 (__import__.cat_actif; no code)
+M6 | WOULD archive equipment category All id=30 (no external ID; referenced by account.move.line.equipment_category_id: 1; no code)
+M6 | WOULD delete equipment category Fixed Assets id=31 (no external ID; no code)
+M7 | WOULD create contract tag Insurance id=1
+M7 | WOULD create contract tag Maintenance id=2
+M7 | WOULD create contract tag Rental id=3
+M7 | WOULD create contract tag Leasing id=4
+M7 | WOULD create contract tag Telecom & Internet id=5
+M7 | WOULD create contract tag Software & SaaS id=6
+M7 | WOULD create contract tag Energy & Charges id=7
+M7 | WOULD create contract tag Other Subscription id=8
+WAITING | 1800W corded table saw, 254mm blade, with wheeled stand | id=4 | category=All | default equipment category=- | small durable equipment, C24
+WAITING | Green cross laser | id=6 | category=All | default equipment category=- | D5: serial equipment after C24 / C25, or deleted
+WAITING | [00000002] 360° green laser | id=18 | category=All / Fixed Assets | default equipment category=- | D3: rented laser, controlled operation after C24 / C25
+WAITING | [00000001] Laser rangefinder | id=19 | category=All / Fixed Assets | default equipment category=- | D3: borrowed laser, controlled operation after C24 / C25
+WAITING | TEST Cement bag | id=13 | category=All | default equipment category=- | kept until the consignment plan (§5)
+WAITING | Matériaux de construction (finition/façade) | id=2 | category=All | default equipment category=- | generic goods sold, goods family after C25
+H3 | table saw standard price 329.0, cost method standard
+H3 | valuation layer 2026-10-11 12:21 Product Quantity Updated - 1800W corded table saw, 254mm blade, with wheeled stand qty=1.0 unit=329.0 value=329.0 by OdooBot
+H3 | bill line FACTU/2026/10/0001 posted qty=1.0 price=15.0 account=607000 equipment category=All
+READY | All / Fixed Assets (catalogue) / IT Equipment | id=134 | family=durable_equipment | by OdooBot on 2026-10-11 12:53:23
+READY | All / Fixed Assets (catalogue) / Plant & Tools | id=135 | family=durable_equipment | by OdooBot on 2026-10-11 12:53:23
+READY | All / Sales / Consulting | id=140 | family=service | by OdooBot on 2026-10-11 12:53:23
+READY | All / Sales / Equipment Rentals | id=142 | family=service | by OdooBot on 2026-10-11 12:53:23
+READY | All / Sales / Works | id=141 | family=service | by OdooBot on 2026-10-11 12:53:23
+READY | All / Services Purchased / Administrative Supplies & Fees | id=139 | family=service | by OdooBot on 2026-10-11 12:53:23
+READY | All / Services Purchased / Bank Services | id=138 | family=service | by OdooBot on 2026-10-11 12:53:23
+READY | All / Services Purchased / Equipment Rentals & Loans | id=136 | family=service | by OdooBot on 2026-10-11 12:53:23
+READY | All / Services Purchased / Telecom & Internet | id=137 | family=service | by OdooBot on 2026-10-11 12:53:23
+COUNTS | M1=2 M2=18 M3=9 M4=4 M5=5 M6=31 M7=8 | expected 77
+END | dry run, 77 change(s) rolled back
