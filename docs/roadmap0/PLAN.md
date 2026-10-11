@@ -1,10 +1,15 @@
-# ROADMAP section 0 – plan (revision 3, 11/10/2026, no code yet)
+# ROADMAP section 0 – plan (revision 4, 11/10/2026, no code yet)
 
 Basis: NOMENCLATURE.md (retained), REPORT.md (facts, anomalies), EXTRACT.md and data/.
 Nothing runs on artdubati_test before the audit and the owner's go. Standard Odoo and
 OCA first; changes by inheritance; no raw SQL writes.
 
-Revision 3 answers the audit of a811786: no direct creation for anyone (§2.4),
+Revision 4 answers the audit of ed0b50e: quick creation refused to everyone (§2.4,
+tests), variants (H5 resolved, §2.7), locking, idempotence and concurrent duplicates
+(§2.8), families executable only when their final configuration exists (§2.9), the
+precise data rules (§2.10); D7 to D9 decided.
+
+Revision 3 answered the audit of a811786: no direct creation for anyone (§2.4),
 stored equipment wait for C24 / C25 (§3.2, §3.3), archiving instead of deleting
 referenced equipment categories (§3.4), comparative characterisation of
 `base_tier_validation` for D7 (§2.6), checks only on structural changes (§2.2).
@@ -39,9 +44,11 @@ an accounting user only (§4), decisions D1 to D6 applied.
 - H3: origin of the table saw's 329 € (standard price) against its 15 € bill.
 - H4: an existing untracked stock unit (Green cross laser 824) can become a serial item
   integrated as equipment by a controlled operation.
-- H5: no standard flow of the installed modules needs to create products as a normal
-  user (variants from attribute lines, other modules' shortcuts); to list by the tests
-  and a search of `create` calls on product models before coding the guard (§2.4).
+- H5 (resolved by reading Odoo 18, audit of ed0b50e): variants are created by
+  `product.template._create_variant_ids()` in the current environment (template
+  creation and changes of attribute lines) and by `_create_product_variant()` through
+  `sudo()` (dynamic attributes, from a sale or purchase line). Handled in §2.7. Still to
+  list in the dry run: products of artdubati_test with attribute lines (expected none).
 
 ---
 
@@ -66,10 +73,11 @@ PCR/YYYY/NNNN:
   posts a bill, an order or a stock move;
 - refusal and cancellation keep the reason; the chatter is the decision log.
 
-Approval mechanism (decision D7): A) the phase 2 pattern of `equipment.operation`
-(already audited, no new module, same users and screens) — proposed; B) OCA
-`base_tier_validation` (configurable tiers, but a new module on the platform: platform
-fingerprint, parity, route inventory, its own audit).
+Approval mechanism (D7, decided): the phase 2 pattern of `equipment.operation`, one level
+(D8), with its own approver group; the approver is never the requester (D9, server
+check); an approver who is also catalogue manager may then execute. A request may only
+select categories and accounting treatments already configured (D8): creating a
+category or changing its accounts is a separate operation, outside the request.
 
 ### 2.2 No family column on the product
 Demonstration: from the standard fields, a product's family can be deduced except
@@ -153,10 +161,81 @@ the two context keys from client calls. Those are significant workarounds of its
 Proposal: the phase 2 pattern, with its own new approver group and one level; several
 levels can be added later if the catalogue needs them (D8).
 
-Tests: each family requested, approved, executed; re-approval after a change;
-duplicates; refusals by family; quick create refused to a purchase user, allowed to a
-catalogue manager; bill line and receipt without equipment category refused, no category
-created; fr / fa translations; HTTP routes inventory (new module data only, no route).
+### 2.7 Variants (H5)
+- Governed products are created **without configurable variants** (no attribute line):
+  one template, one variant, created in the execution's superuser environment.
+- Any write of `attribute_line_ids` on a product template is refused outside the
+  migration until the future modification request exists.
+- `product.product.create` is refused unless in superuser mode **and** for a template
+  without attribute lines: the `sudo()` of `_create_product_variant()` (dynamic
+  attributes) cannot add a variant to a governed product, and no governed product has
+  dynamic attributes.
+- Tests: initial creation (one variant); adding an attribute line refused (manager
+  included); duplication (`copy`) refused; dynamic variant from a purchase / sale line
+  refused; the migration in superuser mode unaffected.
+
+### 2.8 Locking, idempotence, concurrency (phase 2 protections)
+- `_lock()` (`SELECT … FOR UPDATE NOWAIT`) on the request before approval and before
+  execution, then the state is read again: a second execution, or an execution racing
+  another, raises « already executed or being executed » and changes nothing.
+- Final duplicate check inside the execution's transaction (archived products
+  included), after the lock.
+- Odoo runs transactions in REPEATABLE READ: a search after the lock may not see a
+  product committed meanwhile by another transaction. The guarantee is therefore a
+  database one: unique indexes on the executed requests, per company, on the normalised
+  internal reference, the barcode and (supplier, supplier reference), partial on the
+  state `done` (created by `init()`, the standard way for partial indexes). Of two
+  concurrent requests with the same key, the second fails at its insert and is rolled
+  back whole (no product created).
+- A request `done`, `refused` or `cancelled` is closed: any write other than the
+  chatter and activities is refused; it never goes back into the circuit through an
+  edit. A refused or cancelled request can be duplicated into a new draft.
+- Tests: double execution; two concurrent executions with the same barcode, internal
+  reference or supplier reference (two cursors); write on a closed request refused.
+
+### 2.9 Families executable in the first deployment
+A family is executable only when its final configuration exists. First deployment:
+- executable: services (purchased and sold, their categories created by §3.1);
+  durable equipment **capitalised** in a fixed-asset category whose expense account has
+  an asset profile (IT, test profile 3 years; plant & tools, profile 5 years);
+- refused with a message « waits for the accountant (C24 / C25) »: small durable
+  equipment, materials, consumables, goods for resale; intangible assets (profile and
+  duration not decided);
+- never: `All`, « To classify », an archived or automatic equipment category.
+The check is made on the server at approval and at execution (not only by the form's
+domain).
+
+### 2.10 Data rules
+- Supplier price: in the supplier line's currency (field on the request, default the
+  supplier's purchase currency, else the company's); labels « Price (excl. tax) » with
+  the currency shown; sale price and initial cost in the company currency, « (excl.
+  tax) ».
+- Taxes: purchase taxes of type « purchase », sale taxes of type « sale », active, of the
+  request's company (and its parents); checked on the server, not only by the domain.
+- Duplicates: supplier reference compared per **supplier + reference**; internal
+  reference and barcode per company; normalised name as a warning.
+- Approval signature, exact fields: company; family; name; internal reference;
+  barcode; product category; equipment category; deduced type, storable and tracking;
+  unit and purchase unit; purchase / sale; supplier; supplier reference; currency;
+  supplier price; minimum quantity; lead time; purchase taxes; sale taxes; sale price;
+  initial cost; effective income, expense and stock accounts; asset profile; cost
+  method and valuation; warranty and insurance defaults. Notes, photo and documents are
+  not in the signature.
+- Photo and documents: at execution the photo becomes the product's image and the
+  documents are copied as attachments of the product (the request keeps its own).
+- Equipment category: refused on the server if archived, automatic or « To classify »,
+  whatever the client sends.
+- Multi-company: the request has a company; categories, taxes, supplier, accounts and
+  the created product are checked against it; record rules on the company; a requester
+  reads his own requests, catalogue managers and approvers the requests of their
+  companies.
+
+Tests: each **executable** family requested, approved, executed; the waiting families
+refused with their message; re-approval after a change of a signature field; approver
+= requester refused; duplicates; quick create and direct `create` refused to everyone,
+catalogue manager included; §2.7 and §2.8 tests; bill line and receipt without equipment
+category refused, no category created; fr / fa translations; HTTP routes inventory (new
+module data only, no route).
 
 ## 3. Migration (setup script: dry run, audit, apply, control dry run)
 
@@ -249,8 +328,7 @@ Insurance and financing registers: standard / OCA search reported separately fir
   (equipment category corrected now); referenced old categories archived; checks on
   structural changes only.
 
-## Decisions asked
-- D7: approval mechanism: phase 2 pattern with a new approver group (proposed, §2.6) or
-  OCA `base_tier_validation` with the workarounds listed.
-- D8: one approval level enough for now?
-- D9: the approver of a request may not be its requester (proposed)?
+- Audit of ed0b50e: D7 phase 2 mechanism; D8 one level, the request selects only
+  configured categories and treatments; D9 approver different from the requester (who
+  may then execute if catalogue manager). Archiving strategy, no change to posted
+  entries and the stock moves deferred to C24 / C25 validated.
