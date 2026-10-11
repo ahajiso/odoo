@@ -51,7 +51,13 @@ database).
   **2 equipment**.
 - `Fixed Assets` (id 481): created **10/10 14:54** by f.i.1@febitmail.com, linked to
   product category `All / Fixed Assets`, **2 equipment**.
-- `All` and `Fixed Assets` match exactly what `maintenance_account` creates when a
+- Correction (11/10, reading our code): **two** sources create such categories silently:
+  `maintenance_account` (`_set_equipment_category`, bill lines) and our own module
+  (`equipment.operation.line._equipment_category`, phase 2 receipts). `All` (04/10)
+  predates phase 2, hence `maintenance_account`; `Fixed Assets` (10/10 14:54) appeared
+  with the receipts EQOP/2026/0738-0739 of the two lasers, hence very probably our own
+  code.
+- `All` and `Fixed Assets` match exactly what both create when a
   product category has no equipment category (`_prepare_equipment_category_vals`: the
   product category's name and link, created in sudo). So every real equipment sits in an
   automatic category named after the accounting category, and the business tree is
@@ -85,6 +91,27 @@ translation). Wanted: « Can be maintained », « Peut être maintenu », Persia
 - « Owner on stock » enabled (group: 5 users).
 - One real quant: 15 TEST Cement bags in TBER/Stock owned by « TEST Supplier (owner) »
   (P4-1, quant 10); the −15 in Inventory adjustment is its counterpart.
+
+## Anomalies (complement and audit, 11/10/2026)
+1. The two lasers (869 rented, 870 borrowed) have **no quant and no serial number**: they
+   are non-stock equipment with a monitor location, which DEFINITIONS.md reserves for
+   vehicles, buildings and fixed installations (« Item families »); a borrowed or rented
+   tool is in stock with the third party as quant owner (« Legal owner and quant owner
+   must match »). Their migration creates an internal serial number and a physical
+   presence in stock with `owner_id` = Manager. Their products (836, 828) are
+   non-storable and sit in a fixed-asset category although nothing is owned.
+2. Table saw 484: equipment cost **15 €** (from its bill BILL/2026/10/0006) against a
+   stock value of **329 €** (standard price of the product, standard cost). Two values
+   for the same item; to explain (hypothesis: standard price typed by hand on the
+   product; the bill of 15 € was a test).
+3. `TEST Cement rental` (2 € a month for TEST Cement bag) is not a rental: entrusted
+   consumables are a future consignment case.
+4. Owned consumables and materials: test choice average cost and **automatic** valuation
+   (DEFINITIONS.md), subject to the accountant's stock accounts; the database is in
+   manual valuation everywhere, and no category switches before those accounts exist.
+5. Mac Mini: cost frozen at 1 850 € at receipt, price corrected to 1 100 € eight minutes
+   later; no bill, category without asset profile (section 5).
+6. Silent creation of equipment categories by two code paths (section 3).
 
 ## Owner's decisions (11/10/2026)
 - The company name « Docteur Bain » is right.

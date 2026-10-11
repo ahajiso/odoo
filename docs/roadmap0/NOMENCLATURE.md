@@ -1,90 +1,111 @@
-# ROADMAP section 0 – classifications (working document, NOT validated)
+# ROADMAP section 0 – functional nomenclature (retained by the audit, 11/10/2026)
 
-Status (11/10/2026): working material for the audit, which prepares the final matrix
-(per family: stored or not, serial or quantity, maintainable, capitalised or expensed,
-bought / rented / borrowed / consigned, recurring contract, Odoo object, accounting
-treatment) and the mapping of the existing records. **Nothing is changed in the
-database before that matrix and mapping are validated.** Facts come from
-`REPORT.md` and `EXTRACT.md` (inventory and read-only complement).
+Retained by the audit after the complement (b77b2ad). Accounts and durations are test
+choices for the accountant (QUESTIONS_COMPTABLE.md C24, C25). **The database is not
+changed before the plan (PLAN.md) is audited and authorised.** Facts: REPORT.md,
+EXTRACT.md, data/.
 
-## Principles retained by the audit (11/10/2026)
-- Separate classifications: equipment categories (physical goods that are maintained),
-  product categories (booking and valuation of purchases and sales, services included),
-  contract natures, business registers. None copies another.
-- Equipment categories: **the physical nature is the only axis**. Trades (plumbing,
-  electricity, tiling, painting) never make a second, competing branch; if needed later,
-  they are carried by tags or another usage field. The codes 01 to 28 leave the labels;
-  their historical correspondence stays in the migration document.
-- No equipment category « Finance », « Insurance » or « Services ».
-- Supplier-owned stock is an **ownership mode** (third-party owner on the quants), never
-  a category.
-- Bank fees: a service only. Loans, interest, guarantees and partners' current accounts
-  are never products.
-- A « new register » is not a new custom model: standard Odoo and OCA modules are
-  searched first (financing, insurance).
-- Migration: `All` may stay the technical root of product categories, with no active
-  product directly in it in the end; the automatic equipment categories `All` and
-  `Fixed Assets` disappear after reclassification; a transitional category « To
-  classify » rather than a silent automatic creation for historical products; the final
-  creation assistant refuses « To classify ».
+## 1. Equipment tree (physical nature only)
 
-## 1. Equipment categories (physical nature)
+- IT & communications (Informatique et communications)
+  - Computers & servers
+  - Phones & tablets
+  - Network & telephony
+  - Printers & peripherals
+- Tools (Outillage)
+  - Cordless power tools
+  - Corded power tools
+  - Hand tools tracked individually
+  - Batteries & chargers tracked individually
+- Measuring, inspection & setting-out (Mesure, contrôle et implantation)
+- Workshop machinery (Machines d'atelier)
+  - Wood
+  - Metal
+  - Other
+- Site machinery & equipment (Machines et équipements de chantier)
+- Access & work at height (Accès et travail en hauteur)
+- Formwork & shoring (Coffrage et étaiement)
+- Handling & lifting (Manutention et levage)
+- Cleaning & extraction (Nettoyage et extraction)
+- Durable, inspected safety equipment (Sécurité durable et contrôlée)
+- Vehicles (Véhicules)
+- Trailers (Remorques)
+- Temporary site installations (Installations temporaires de chantier)
+- Premises & warehouse installations (Installations des locaux et entrepôts)
+- Furniture tracked individually (Mobilier suivi individuellement)
+- To classify (À classifier): migration only, refused by the final creation assistant
 
-| Category | Sub-categories |
+Trades (plumbing, electricity, tiling, painting) are not branches: they overlap the
+physical nature; usage tags later if the need is confirmed. Codes 01 to 28 leave the
+labels; their correspondence stays in the migration document (PLAN.md, item 3).
+
+## 2. Functional matrix
+
+| Family | Stock | Tracking | Maintainable | Test treatment | Contract / register |
+|---|---|---|---|---|---|
+| Physical fixed asset | yes | serial mandatory | yes | average cost, manual valuation, class 21 | equipment + fixed asset |
+| Small durable equipment expensed | yes | serial if tracked individually | yes | expense 606300, book value to confirm (C24) | equipment |
+| Construction materials owned by the company | yes | quantity, lot if needed | no | average cost, automatic valuation | worksite consumption |
+| Consumables & accessories | yes | quantity / lot | no | average cost, automatic valuation | stock |
+| Goods entrusted by a supplier | yes | serial or quantity per product | per nature | no asset and no company value before consumption | consignment |
+| Rented or borrowed equipment | yes | serial mandatory | yes | no company fixed asset | contract + equipment |
+| Services purchased | no | none | no | expense account of the category | contract if any |
+| Services sold | no | none | no | income account | sale / contract |
+| Software acquired and capitalised | no | licence | no | 205000, profile to define | intangible asset |
+| SaaS and subscriptions | no | none | no | periodic expense | recurring contract |
+| Registered vehicles / trailers | yes | VIN / registration | yes | 218200 if capitalised | Fleet + equipment + asset |
+| Insurance | no | policy | no | 616xxx | insurance register |
+
+Automatic valuation needs the stock accounts of the accountant: **no category switches
+to automatic before they are configured.** Owned, rented, borrowed or entrusted is never
+a product category: it is carried by the operation, the quant owner and the contract.
+
+## 3. The four equipment
+
+| Equipment | Equipment category | Target product category | Action |
+|---|---|---|---|
+| Table saw 484 | Workshop machinery / Wood | Small durable equipment expensed | rename « Scie sur table – 1234 »; explain 15 € (bill) vs 329 € (stock) |
+| Mac Mini 871 | IT & communications / Computers & servers | Fixed assets / IT | rename « Mac Mini – 877790 »; test account 218300, test profile 3 years |
+| 360° green laser 869, rented | Measuring, inspection & setting-out | Small equipment / Measuring & inspection | out of `Fixed Assets`; storable, serial, quant owner Manager |
+| Laser rangefinder 870, borrowed | Measuring, inspection & setting-out | Small equipment / Measuring & inspection | same; no company asset |
+
+## 4. The 19 products
+
+| Product | Destination |
 |---|---|
-| IT & communications | computers & servers; phones & tablets; network & telephony; printers & peripherals |
-| Tools | cordless power tools; corded power tools; hand tools tracked individually; batteries & chargers tracked individually |
-| Measuring, inspection & setting-out | |
-| Workshop machinery | wood; metal; other |
-| Site machinery & equipment | |
-| Access & work at height | |
-| Formwork & shoring | |
-| Handling & lifting | |
-| Cleaning & extraction | |
-| Durable, inspected safety equipment | |
-| Vehicles | |
-| Trailers | |
-| Temporary site installations | |
-| Premises & warehouse installations | |
-| Furniture tracked individually | |
+| Table saw | Small durable equipment / Workshop machinery |
+| Mac Mini | Fixed assets / IT |
+| Computer (837) | merge into the IT family or archive if unused |
+| Green cross laser (824) | Measuring & inspection; serial equipment or archived (decision) |
+| Laser rangefinder (823) | duplicate without equipment: archive after checking |
+| 360° green laser (836) | Small equipment / Measuring & inspection |
+| Laser rangefinder (828) | Small equipment / Measuring & inspection |
+| Conseil / prestation intellectuelle | Sales / Consulting |
+| Main-d'œuvre finition / façade | Sales / Works |
+| Location de matériel (facturée) | Sales / Rentals |
+| Location de matériel (payée) | Services purchased / Rentals |
+| Prêt de matériel | free operational service, never invoiced |
+| Matériaux de construction | Sales / Materials (generic commercial product, not a stock product) |
+| Abonnement téléphonique | Services purchased / Telecom & Internet |
+| Frais administratifs | Overheads / Administrative supplies |
+| Frais bancaires | Services purchased / Bank services |
+| TEST Bought compressor | archive after checking dependencies |
+| TEST Scaffold rent | archive with its TEST contract |
+| TEST Cement bag | kept until the consignment phase, then replaced by a real material family |
 
-Correspondence with the imported draft (25/09), for the migration document: 01 → Tools /
-cordless; 02 → Tools / corded; 03 → Tools / hand tools; 19 → Tools / batteries & chargers;
-11 → Measuring; 06 → Workshop / wood; 07 → Workshop / metal; 17 → Workshop / other;
-18 → IT & communications (split); 26 → Site machinery; 16 → Access & work at height;
-28 → Formwork & shoring; 15 → Handling & lifting; 13 → Cleaning & extraction; 14 →
-Safety (durable, inspected only; disposable PPE is a consumable); 27 → Vehicles;
-04, 05, 08, 09, 10, 12 (trade branches: electrical, plumbing, painting, tiling,
-plastering, demolition) → no category of their own: their equipment goes to its
-physical nature (tools, site machinery…).
+`TEST Cement rental` is functionally wrong: entrusted consumables are not a rental; it
+is replaced by the future consignment flow.
 
-## 2. Product categories (booking and valuation)
+## 5. Contracts and registers
+OCA contract tags to prepare: Insurance, Maintenance, Rental, Leasing, Telecom &
+Internet, Software & SaaS, Energy & charges, Other subscription.
+Registers to plan: insurance, financing, fleet, worksites, workwear & PPE. Standard and
+OCA modules are searched before any specific development (insurance, financing).
 
-Test values before the accountant (C24, C25): accounts are hypotheses only.
-
-| Family | Cost | Valuation |
-|---|---|---|
-| Fixed assets kept in stock | average | manual |
-| Consumables owned by the company | average | automatic (DEFINITIONS.md) |
-| Construction materials owned by the company | average | automatic |
-| Goods for resale | average | automatic |
-| Supplier-owned stock | not valued for the company | third-party owner on the quants |
-| Services | – | no stock |
-| Small durable equipment expensed | open question C24 | open question C24 |
-
-Branches to cover (accounts: hypotheses, C25): fixed assets by nature (plant & tools,
-IT, vehicles & trailers, furniture, installations, software acquired); small equipment;
-consumables; construction materials; goods for resale; services purchased (maintenance
-& repair, insurance, telecom & Internet, software & SaaS, rentals, leasing, fees,
-subcontracting, transport & logistics, energy & premises charges, cleaning & waste, bank
-fees); overheads; sales (works, services, rentals).
-
-## 3. Contract natures
-OCA `contract.tag` (installed with `contract`) for the nature of the whole contract;
-`equipment_nature` stays for a line linked to an equipment (rental, free loan,
-insurance, maintenance).
-
-## 4. Registers
-Equipment (done), recurring contracts (OCA contract), insurance policies, financing,
-fleet (Odoo Fleet), worksites, workwear / PPE. Insurance and financing: standard / OCA
-modules to search before any proposal.
+## 6. Product creation assistant (rules)
+First question: the family (durable equipment, material or consumable, service,
+intangible asset). Deduced and checked: storable / service, serial or quantity,
+maintainable, equipment category (mandatory for equipment), product category, cost
+method and valuation, purchase / sale, contractual treatment. No equipment validated
+with `All`, `Fixed Assets` or `To classify`; no equipment category ever created
+silently.
