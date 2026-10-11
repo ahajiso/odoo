@@ -306,7 +306,7 @@ tests on artdubati_test (47 passing, 08/10/2026).
    update OK, 235 tests 0 failed, PLATFORM OK after, post-check clean; probe complete
    (Stock Monitor menu only, 6 rows), no refused route in the log, browser checks
    validated (export XLSX and CSV). Phase 4 done. Next: docs/ROADMAP.md section 0 (product and category creation, « Can be
-   Maintained », equipment categories, the Mac Mini without fixed asset, supplier
+   maintained », equipment categories, the Mac Mini without fixed asset, supplier
    consignment), then A-K, the manual last.
 5. Translations, deployment checklist (docs/deployment/investor_home.md).
 6. Functional phases proposed by the audit of 6063db1, order to set by the owner

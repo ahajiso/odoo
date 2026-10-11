@@ -22,8 +22,8 @@ Rules carried by each phase:
 
 Not mixed with the phase 4 security deployment; each with its own plan and audit.
 
-1. Label « Can be Maintenance » → « Can be Maintained » (FR « Peut être maintenu »,
-   FA with the same verbal meaning): find which OCA module defines it, override the
+1. Label « Can be Maintenance » → exactly « Can be maintained » (lower-case m; FR
+   « Peut être maintenu », FA with the same verbal meaning; audit of d76e4cc): find which OCA module defines it, override the
    label with a minimal local inheritance (never edit the OCA repository), test
    `fields_get` in the three languages.
 2. Product creation procedure, reworked.
