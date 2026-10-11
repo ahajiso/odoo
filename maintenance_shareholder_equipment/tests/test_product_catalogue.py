@@ -4,6 +4,8 @@ silent equipment category."""
 import base64
 from unittest.mock import patch
 
+from psycopg2.errors import ForeignKeyViolation
+
 from odoo import Command
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
@@ -663,9 +665,11 @@ class TestSupplierLinesAndProof(CatalogueCommon):
     def test_created_product_kept(self):
         request = self._executed()
         tmpl = request.product_tmpl_id
-        with self.assertRaises(Exception), self.env.cr.savepoint():
+        # product_tmpl_id is ondelete="restrict": PostgreSQL refuses the deletion
+        # (turned into a ValidationError only at the RPC layer, not inside a test)
+        with self.assertRaises(ForeignKeyViolation), self.env.cr.savepoint():
             tmpl.with_user(self.manager).unlink()
-        with self.assertRaises(Exception), self.env.cr.savepoint():
+        with self.assertRaises(ForeignKeyViolation), self.env.cr.savepoint():
             tmpl.sudo().unlink()
         tmpl.with_user(self.manager).write({"active": False})
         request.invalidate_recordset()

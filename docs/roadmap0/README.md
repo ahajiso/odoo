@@ -48,10 +48,10 @@ may be run, for information.
 ```bash
 # read-only: open operations and draft bills of maintainable products that the update
 # would block until the migration; no row = nothing in progress is affected
-# (the file is on the development branch: read from it, the working tree untouched)
+# (read from the audited commit bb2c857, immutable; the working tree is untouched)
 cd /opt/odoo/addons/custom
 git fetch origin claude/clever-rubin-z76iba
-git show FETCH_HEAD:docs/roadmap0/precheck_catalogue.sql \
+git show bb2c857:docs/roadmap0/precheck_catalogue.sql \
   | docker exec -i odoo_db psql -U odoo -d artdubati_test -At -F ' | '
 ```
 
