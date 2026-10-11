@@ -43,8 +43,10 @@ database).
   626000, 606400, 627800): coherent with their nature.
 
 ## 3. Equipment categories (31)
-- **28 imported business categories** (`Assets & Equipment / …`, codes 01 to 28,
-  25/09, by f.t.1): no product category, **0 equipment**.
+- **29 imported business categories** (`Assets & Equipment / …`, 25/09, by f.t.1: 1
+  root, 6 groups, 22 leaves coded 01 to 19 and 26 to 28; codes 20 to 25 are the
+  consumable product categories): no product category, **0 equipment**. Corrected on
+  11/10 (first written « 28 »).
 - `All` (id 89): created 04/10 by test@test.com, linked to product category `All`,
   **2 equipment**.
 - `Fixed Assets` (id 481): created **10/10 14:54** by f.i.1@febitmail.com, linked to
