@@ -3,8 +3,8 @@
 **Not deployed alone (audit of dad9933, point 7).** After items 1 and 2 alone no family
 is usable, direct creation is already refused and some receipts and bills of
 maintainable products would be blocked until the migration. The code of items 1 and 2
-is deployed **in the same window as the migration of item 3** (its plan and script to
-come and to audit); the procedure below is completed then. If the label « Can be
+is deployed **in the same window as the migration of item 3** (MIGRATION.md,
+`migrate_catalogue.py`, rehearsed locally; joint audit pending): procedure below. If the label « Can be
 maintained » is wanted earlier, it can be a separate micro-fix (owner's decision).
 
 Label « Can be maintained », product creation requests, catalogue guards
@@ -13,9 +13,9 @@ Module `maintenance_shareholder_equipment` 18.0.4.0.1 → **18.0.5.0.0** (new de
 `maintenance_equipment_category_hierarchy`, already installed on artdubati_test);
 `lartdubati_investor_home` unchanged (18.0.3.0.1, its tests run again).
 
-Expected tests on the server: to be stated with the deployment of item 3 (local count
-on a clean checkout, log in `docs/roadmap0/test_logs/`; the real websocket test class is skipped on the server as
-before, hence one less).
+Expected tests on the server: **270** (271 locally on the server's exact code with the
+seeded data, before and after the migration, MIGRATION.md §7; the real websocket test
+class is skipped on the server and not counted, hence one less).
 
 What changes for the users, from the update:
 - nobody creates a product directly any more (form, quick creation in a purchase line,
@@ -72,7 +72,7 @@ bash /tmp/roadmap0/docs/backup_db.sh roadmap0
 # 4. stop, code, update, tests; odoo_web LEFT STOPPED (must end with
 #    « odoo_web left STOPPED on request »)
 BACKUP=$(sed -n 's/^DUMP=//p' /opt/odoo/logs/roadmap0_backup)
-KEEP_STOPPED=1 bash /tmp/roadmap0/docs/deploy_modules.sh "$BACKUP" TESTCOUNT roadmap0 "$COMMIT"
+KEEP_STOPPED=1 bash /tmp/roadmap0/docs/deploy_modules.sh "$BACKUP" 270 roadmap0 "$COMMIT"
 
 # 5. migration dry run (one-shot container, odoo_web stopped): must print
 #    MIGRATION OK (dryrun) and « END | dry run, 77 change(s) rolled back »

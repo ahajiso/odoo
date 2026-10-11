@@ -107,11 +107,52 @@ Product category names are not translatable in Odoo 18 (`product.category.name` 
 ## 6. Local rehearsal
 
 Platform: a database built on the server's exact code (main ae31573,
-`maintenance_shareholder_equipment` 18.0.4.0.1, the pinned OCA versions, the same 122
-modules, French chart, fr_FR and fa_IR), then `rehearsal/seed_server_state.py`
-recreating the records of the inventory (ids differ), then the update to 18.0.5.0.0 and
-the migration: dry run, `--apply`, control dry run, module tests. Results: §7.
+`maintenance_shareholder_equipment` 18.0.4.0.1, the pinned OCA versions of
+platform_expected.txt, the same 122 modules as `srv2`), in three steps (`base`; French
+chart loaded on the company; the other modules: a single `-i` of the 122 fails because
+`lartdubati_facturation` creates its taxes before a chart exists), fr_FR and fa_IR
+loaded, default language en_US as in `srv2`. Then `rehearsal/seed_server_state.py`
+(old code) recreates the records of the inventory (ids differ; the three products of
+`lartdubati_facturation`'s install hook already exist and are completed, as on the
+server). Then `rehearsal/rehearse.sh`, in the order of the window (README.md):
+precheck, update to 18.0.5.0.0, tests, dry run, `--apply`, control dry run,
+post-check, tests again on the migrated data.
 
-## 7. Rehearsal results
+## 7. Rehearsal results (11/10/2026, commit 0f8650d, logs in test_logs/rehearsal_0f8650d/)
 
-(filled after the rehearsal)
+- Precheck: no row. Update: no error.
+- Tests before the migration: **0 failed, 0 error(s) of 271 tests** (on the server 270:
+  the real websocket class is skipped there and not counted, as in phase 4).
+- Dry run: **77 changes** (M1 2, M2 18, M3 9, M4 4, M5 5, M6 31, M7 8), no `ERROR`,
+  `KEPT` or `BLOCKED`; `All` archived (its posted bill line), `Fixed Assets` and the
+  29 imported deleted; Mac Mini: two valuation layers −1 / +1 at 0, no journal entry.
+- `--apply`: the same 77, committed. Control dry run: **0 change(s)**.
+- Post-check: no row.
+- Tests after the migration: **0 failed, 0 error(s) of 271 tests**.
+
+Found and corrected during the rehearsal (before this commit):
+1. The equipment name is translatable (jsonb): renaming in en_US only would have left
+   the old name to French users (the seeded names had an fr_FR value). M4 now writes
+   the new name in every active language and compares each one.
+2. The control dry run looked for `Fixed Assets` (481) after its deletion: that lookup
+   is now required only before the migration (`STATE` line).
+3. Account 218300 gets the IT profile from `account_asset_management` itself when the
+   profile is created (the account had none): reported as such (M1, 2 lines).
+4. The post-check read company-dependent fields (jsonb) and `request_ready` (NULL on
+   the existing categories) correctly only after correction; it lists every missing
+   item on a non-migrated database and nothing after the migration.
+
+Rehearsal environment findings (not migration defects, for the audit):
+- With fr_FR as default language (first rebuild), 21 to 44 tests fail: their messages
+  are compared with English expressions. The server passed its 235 tests in phase 4,
+  so its test users get en_US; the rehearsal uses en_US like `srv2`. The test suite
+  depends on that default (to know, not changed here).
+- A PostgreSQL crash of the local container (session restart) left one seeded copy
+  with sequences behind their tables; detected by the update (duplicate key),
+  rebuilt from the clean base and checked (no sequence behind any table) before the
+  final run.
+
+Not verified locally: the server's real records beyond the inventory (the script
+stops on any id or count difference), the one-shot container of `run_migration.sh`
+(no Docker here; the same `docker run` as `deploy_modules.sh`), `KEEP_STOPPED=1`
+(two lines, read by the audit).
