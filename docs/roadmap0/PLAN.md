@@ -1,10 +1,17 @@
-# ROADMAP section 0 – plan (revision 4, 11/10/2026, no code yet)
+# ROADMAP section 0 – plan (revision 5, 11/10/2026, no code yet)
 
 Basis: NOMENCLATURE.md (retained), REPORT.md (facts, anomalies), EXTRACT.md and data/.
 Nothing runs on artdubati_test before the audit and the owner's go. Standard Odoo and
 OCA first; changes by inheritance; no raw SQL writes.
 
-Revision 4 answers the audit of ed0b50e: quick creation refused to everyone (§2.4,
+Revision 5 answers the audit of eb4b37e: variant guard narrowed to direct creation in
+superuser mode and an explicit override of `_create_product_variant()` (§2.7);
+accounting treatment recomputed and compared at execution (§2.8); structural fields
+locked for everyone until the modification request, with a controlled and traced
+correction (§2.4); canonical keys, non-empty partial indexes and a business message
+for concurrent duplicates (§2.8); approved supporting documents frozen (§2.10).
+
+Revision 4 answered the audit of ed0b50e: quick creation refused to everyone (§2.4,
 tests), variants (H5 resolved, §2.7), locking, idempotence and concurrent duplicates
 (§2.8), families executable only when their final configuration exists (§2.9), the
 precise data rules (§2.10); D7 to D9 decided.
@@ -133,9 +140,17 @@ the approval; a similar name or supplier reference must be confirmed by the appr
   obtain superuser mode, whatever context it sends. Quick creation in purchase and
   operation lines and imports are refused with a message pointing to the request;
   `no_create` on those product fields for a clean interface.
-- Structural changes of existing products (category, type, tracking, accounts, units)
-  will follow the same controlled mechanism later (modification request, its own plan);
-  until then they are reserved to catalogue managers.
+- **Structural fields locked for everyone** (catalogue manager included) until the
+  future modification request exists: product category, type, storable, tracking,
+  `maintenance_ok`, units of measure, own income and expense accounts, default equipment
+  category, attribute lines. A write of one of them outside superuser mode is refused.
+  Not locked: the operational evolution of the cost (average cost computed by Odoo,
+  revaluations of the standard tools), name, descriptions, prices, pictures, supplier
+  lines.
+- Exceptional corrections go through a small controlled assistant « Structural
+  correction » (catalogue manager, mandatory reason, before / after values posted in the
+  product's chatter and kept on a correction record, executed in `sudo()` after the same
+  checks as a request) or through an audited script.
 
 ### 2.5 Silent creation of equipment categories removed
 `maintenance_account` and our receipt take the product's default equipment category
@@ -161,37 +176,57 @@ the two context keys from client calls. Those are significant workarounds of its
 Proposal: the phase 2 pattern, with its own new approver group and one level; several
 levels can be added later if the catalogue needs them (D8).
 
-### 2.7 Variants (H5)
-- Governed products are created **without configurable variants** (no attribute line):
-  one template, one variant, created in the execution's superuser environment.
-- Any write of `attribute_line_ids` on a product template is refused outside the
-  migration until the future modification request exists.
-- `product.product.create` is refused unless in superuser mode **and** for a template
-  without attribute lines: the `sudo()` of `_create_product_variant()` (dynamic
-  attributes) cannot add a variant to a governed product, and no governed product has
-  dynamic attributes.
+### 2.7 Variants (H5, audit of eb4b37e)
+- Direct `product.template.create` and `product.product.create`: superuser mode only
+  (the request's execution, the migration, module installations). No condition on
+  attributes there: a module installed later that creates variants legitimately, or the
+  migration taking over an old product with variants, keeps working.
+- Creation requests never carry attribute lines.
+- Any write of `attribute_line_ids` outside superuser mode is refused (§2.4).
+- Explicit override of `product.template._create_product_variant()`: when the call
+  would **create** a variant (dynamic attributes, no existing variant for the
+  combination) and the calling environment is not superuser, it is refused **before**
+  the core's own `Product.sudo().create()`. Returning an existing variant is unchanged.
 - Tests: initial creation (one variant); adding an attribute line refused (manager
   included); duplication (`copy`) refused; dynamic variant from a purchase / sale line
-  refused; the migration in superuser mode unaffected.
+  refused (a template with a dynamic attribute set up by the test in superuser mode);
+  the same call in superuser mode allowed; migration in superuser mode unaffected.
 
 ### 2.8 Locking, idempotence, concurrency (phase 2 protections)
 - `_lock()` (`SELECT … FOR UPDATE NOWAIT`) on the request before approval and before
   execution, then the state is read again: a second execution, or an execution racing
   another, raises « already executed or being executed » and changes nothing.
-- Final duplicate check inside the execution's transaction (archived products
-  included), after the lock.
+- **Accounting treatment recomputed at execution**: effective income, expense and stock
+  accounts, asset profile, cost method, valuation, taxes and defaults (warranty,
+  insurance) are computed again from the current configuration and compared with the
+  approved signature; any difference (for example a category's account changed after
+  the approval) sends the request back to « to approve » with the differences listed,
+  and no product is created (same principle as the frozen treatment of phase 2f).
+- Final duplicate check inside the execution's transaction, after the lock, against
+  every existing product, active or archived, and every executed request.
 - Odoo runs transactions in REPEATABLE READ: a search after the lock may not see a
   product committed meanwhile by another transaction. The guarantee is therefore a
-  database one: unique indexes on the executed requests, per company, on the normalised
-  internal reference, the barcode and (supplier, supplier reference), partial on the
-  state `done` (created by `init()`, the standard way for partial indexes). Of two
-  concurrent requests with the same key, the second fails at its insert and is rolled
-  back whole (no product created).
+  database one:
+  - canonical keys **stored** on the request (internal reference, barcode, supplier +
+    supplier reference: trimmed, inner spaces collapsed, upper case), used both by the
+    duplicate search and by the indexes;
+  - partial unique indexes per company on each key, only for executed requests and
+    non-empty keys (`state = 'done' AND key IS NOT NULL AND key <> ''`), created by
+    `init()`;
+  - at execution the request's keys and state are flushed inside a savepoint before the
+    product is created: of two concurrent executions with the same key, the second waits
+    for the first and gets the unique violation, caught in the savepoint and turned into
+    a business message naming the other request; nothing is created.
+- Operational rule: the migration script and any other superuser creation run with
+  `odoo_web` stopped (deployment procedure), never while requests are being executed.
 - A request `done`, `refused` or `cancelled` is closed: any write other than the
   chatter and activities is refused; it never goes back into the circuit through an
   edit. A refused or cancelled request can be duplicated into a new draft.
 - Tests: double execution; two concurrent executions with the same barcode, internal
-  reference or supplier reference (two cursors); write on a closed request refused.
+  reference or supplier reference (two cursors: business message, one product); a
+  duplicate of an archived product refused; a category account changed after approval
+  sends the request back to approval at execution, no product; write on a closed request
+  refused.
 
 ### 2.9 Families executable in the first deployment
 A family is executable only when its final configuration exists. First deployment:
@@ -221,8 +256,12 @@ domain).
   initial cost; effective income, expense and stock accounts; asset profile; cost
   method and valuation; warranty and insurance defaults. Notes, photo and documents are
   not in the signature.
-- Photo and documents: at execution the photo becomes the product's image and the
-  documents are copied as attachments of the product (the request keeps its own).
+- Supporting documents (quotes, data sheets): their list and checksums are frozen at
+  approval; deleting or replacing an approved document is refused, and execution checks
+  the frozen list (a missing or changed document sends the request back to approval).
+  Further documents may be added after approval. The photo stays outside the signature.
+- At execution the photo becomes the product's image and the documents are copied as
+  attachments of the product (the request keeps its own).
 - Equipment category: refused on the server if archived, automatic or « To classify »,
   whatever the client sends.
 - Multi-company: the request has a company; categories, taxes, supplier, accounts and
@@ -328,6 +367,10 @@ Insurance and financing registers: standard / OCA search reported separately fir
   (equipment category corrected now); referenced old categories archived; checks on
   structural changes only.
 
+- Audit of eb4b37e: mechanism, one level, requester / approver separation, waiting
+  families, migration and archiving validated; development authorised once the four
+  corrections of revision 5 are integrated (variants, recomputation at execution,
+  structural lock, concurrent duplicates) and the approved documents frozen.
 - Audit of ed0b50e: D7 phase 2 mechanism; D8 one level, the request selects only
   configured categories and treatments; D9 approver different from the requester (who
   may then execute if catalogue manager). Archiving strategy, no change to posted
