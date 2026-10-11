@@ -11,8 +11,12 @@
 - Equipment categories are never created silently: the product carries its default
   equipment category.
 """
+import logging
+
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+
+_logger = logging.getLogger(__name__)
 
 MODULE = "maintenance_shareholder_equipment"
 
@@ -39,7 +43,14 @@ STRUCTURAL_FIELDS = (
     "categ_id", "type", "is_storable", "tracking", "maintenance_ok", "uom_id", "uom_po_id",
     "property_account_income_id", "property_account_expense_id", "equipment_category_id",
     "attribute_line_ids", "company_id",
+    # the keys reserved by the executed requests (audit of dad9933): they stay the
+    # product's until the modification request exists
+    "default_code", "barcode",
 )
+# supplier lines: the supplier reference is a reserved key too; prices, minimum
+# quantity, lead time and dates stay free
+SUPPLIERINFO_LOCKED = ("partner_id", "company_id", "product_tmpl_id", "product_id",
+                       "product_code")
 
 
 def normalise_reference(value):
@@ -57,9 +68,42 @@ class ProductCategory(models.Model):
 
     request_ready = fields.Boolean(
         string="Available for Product Requests",
-        help="Product creation requests may use this category. Set it only once the "
-        "category's accounts, cost method and valuation are final (accountant).",
+        help="Product creation requests may use this category. Set only by an accounting "
+        "administrator (or the audited script), once the category's accounts, cost method "
+        "and valuation are final.",
     )
+    request_ready_user_id = fields.Many2one("res.users", string="Made Available by",
+                                            readonly=True, copy=False)
+    request_ready_date = fields.Datetime(string="Made Available on", readonly=True, copy=False)
+
+    def _check_request_ready_right(self, vals):
+        """Audit of dad9933: a catalogue manager must not open a family waiting for the
+        accountant (C24 / C25). Only accounting administrators (or superuser mode)."""
+        if "request_ready" in vals and not self.env.su and \
+                not self.env.user.has_group("account.group_account_manager"):
+            raise AccessError(_("Only an accounting administrator makes a product category "
+                                "available for product requests."))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            self._check_request_ready_right(vals)
+            if vals.get("request_ready"):
+                vals.update(request_ready_user_id=self.env.user.id,
+                            request_ready_date=fields.Datetime.now())
+        return super().create(vals_list)
+
+    def write(self, vals):
+        self._check_request_ready_right(vals)
+        if "request_ready" in vals:
+            vals = dict(vals, request_ready_user_id=self.env.user.id,
+                        request_ready_date=fields.Datetime.now())
+            _logger.info("Product categories %s: request_ready=%s by user %s",
+                         self.ids, vals["request_ready"], self.env.uid)
+        if not self.env.su and {"request_ready_user_id", "request_ready_date"} & set(vals) \
+                and "request_ready" not in vals:
+            raise AccessError(_("This field is set by the category itself."))
+        return super().write(vals)
 
     def _catalogue_family(self):
         """Family of the category, from the root of its branch (none outside them)."""
@@ -199,9 +243,10 @@ class ProductTemplate(models.Model):
             labels = sorted(self._fields[name].get_description(self.env)["string"]
                             for name in changed)
             raise UserError(_(
-                "Structural fields of a product cannot be changed directly (%s): use a "
-                "Structural Correction (with its reason) until the modification request "
-                "exists.", ", ".join(labels)))
+                "Structural fields of a product cannot be changed directly (%s). The default "
+                "equipment category is corrected through a Structural Correction (with its "
+                "reason); the other fields wait for the migration or the modification "
+                "request.", ", ".join(labels)))
 
     @api.constrains("categ_id", "type", "is_storable", "tracking", "maintenance_ok",
                     "equipment_category_id")
@@ -274,3 +319,28 @@ class ProductProduct(models.Model):
             if template_vals:
                 self.product_tmpl_id._check_structural_write(template_vals)
         return super().write(vals)
+
+
+class ProductSupplierinfo(models.Model):
+    _inherit = "product.supplierinfo"
+
+    def write(self, vals):
+        if not self.env.su:
+            for info in self:
+                for name in SUPPLIERINFO_LOCKED:
+                    if name not in vals:
+                        continue
+                    old = info[name]
+                    old = old.id if isinstance(old, models.BaseModel) else old
+                    if (old or False) != (vals[name] or False):
+                        raise UserError(_(
+                            "The supplier, company, product and supplier reference of a "
+                            "supplier line cannot be changed directly; prices, quantities "
+                            "and lead times can."))
+        return super().write(vals)
+
+    def unlink(self):
+        if not self.env.su and any(info.product_code for info in self):
+            raise UserError(_("A supplier line with a supplier reference cannot be deleted "
+                              "directly (the reference is reserved by the product request)."))
+        return super().unlink()

@@ -114,7 +114,8 @@ class TestCatalogueGuards(CatalogueCommon):
         for vals in ({"categ_id": self.categ_tools.id}, {"tracking": "lot"},
                      {"maintenance_ok": False}, {"uom_po_id": self.env.ref("uom.product_uom_dozen").id},
                      {"equipment_category_id": self.ecat_computers.id},
-                     {"property_account_expense_id": self.acc_expense.id}):
+                     {"property_account_expense_id": self.acc_expense.id},
+                     {"default_code": "OTHER"}, {"barcode": "123"}):
             with self.subTest(vals=vals), self.assertRaises(UserError):
                 tmpl.with_user(self.manager).write(vals)
         with self.assertRaises(UserError):
@@ -178,7 +179,7 @@ class TestCatalogueGuards(CatalogueCommon):
 class TestCreationRequest(CatalogueCommon):
 
     def test_full_flow_creates_the_product(self):
-        document = self.env["ir.attachment"].create({
+        document = self.env["ir.attachment"].with_user(self.user_operator).create({
             "name": "quote.pdf", "datas": base64.b64encode(b"quote")})
         request = self._request(image_1920=PNG, attachment_ids=[Command.set(document.ids)])
         self.assertEqual(request.treatment_text, "Posting the bill creates a fixed asset "
@@ -271,7 +272,7 @@ class TestCreationRequest(CatalogueCommon):
         request.with_user(self.manager).action_refuse()
         with self.assertRaisesRegex(UserError, "closed"):
             request.with_user(self.manager).write({"product_name": "Other"})
-        with self.assertRaisesRegex(UserError, "closed"):
+        with self.assertRaises(AccessError):
             request.with_user(self.manager).with_context(product_request_internal=True).write(
                 {"state": "draft"})
         request.message_post(body="still commented")
@@ -383,12 +384,12 @@ class TestCreationRequest(CatalogueCommon):
         self.assertFalse(request.product_tmpl_id)
 
     def test_approved_documents_frozen(self):
-        approved_doc = self.env["ir.attachment"].create({
+        approved_doc = self.env["ir.attachment"].with_user(self.user_operator).create({
             "name": "quote.pdf", "datas": base64.b64encode(b"quote")})
         request = self._approved(default_code="DOC-1", barcode=False, supplier_code="D-1",
                                  attachment_ids=[Command.set(approved_doc.ids)])
         frozen = request.sudo().approved_documents
-        extra = self.env["ir.attachment"].create({
+        extra = self.env["ir.attachment"].with_user(self.user_operator).create({
             "name": "datasheet.pdf", "datas": base64.b64encode(b"sheet")})
         request.with_user(self.user_operator).write({"attachment_ids": [Command.link(extra.id)]})
         self.assertEqual(request.state, "approved")
@@ -415,28 +416,22 @@ class TestCreationRequest(CatalogueCommon):
 
 @tagged("post_install", "-at_install")
 class TestStructuralCorrection(CatalogueCommon):
+    """Audit of dad9933: the correction only changes the default equipment category."""
 
     def _product_it(self):
         request = self._approved(default_code="SC-1", barcode=False, supplier_code="SC-1")
         request.with_user(self.manager).action_execute()
         return request.product_tmpl_id
 
-    def test_correction_checked_before_write(self):
-        tmpl = self._product_it()
-        correction = self.env["product.structural.correction"].with_user(self.manager).create({
-            "product_tmpl_id": tmpl.id, "reason": "test", "maintenance_ok": "no"})
-        with self.assertRaises(ValidationError):
-            correction.with_user(self.manager).action_apply()
-        tmpl.invalidate_recordset()
-        self.assertTrue(tmpl.maintenance_ok)
-        self.assertEqual(correction.state, "draft")
+    def _correction(self, tmpl, category, user=None):
+        return self.env["product.structural.correction"].with_user(user or self.manager).create({
+            "product_tmpl_id": tmpl.id, "reason": "Wrong category at creation",
+            "equipment_category_id": category.id})
 
     def test_correction_applied_and_traced(self):
         tmpl = self._product_it()
         target = self.env.ref("%s.ecat_it_phones" % MODULE)
-        correction = self.env["product.structural.correction"].with_user(self.manager).create({
-            "product_tmpl_id": tmpl.id, "reason": "Wrong category at creation",
-            "equipment_category_id": target.id})
+        correction = self._correction(tmpl, target)
         correction.with_user(self.manager).action_apply()
         self.assertEqual(tmpl.equipment_category_id, target)
         self.assertEqual(correction.state, "done")
@@ -444,14 +439,183 @@ class TestStructuralCorrection(CatalogueCommon):
         self.assertIn("Wrong category at creation", tmpl.message_ids[:1].body)
         with self.assertRaises(UserError):
             correction.with_user(self.manager).write({"reason": "changed"})
+        with self.assertRaises(UserError):
+            correction.with_user(self.manager).unlink()
+        with self.assertRaises(UserError):
+            correction.with_user(self.manager).action_apply()
 
-    def test_correction_refuses_unusable_category_and_non_manager(self):
+    def test_correction_protected_fields(self):
+        tmpl = self._product_it()
+        target = self.env.ref("%s.ecat_it_phones" % MODULE)
+        with self.assertRaises(AccessError):
+            self.env["product.structural.correction"].with_user(self.manager).create({
+                "product_tmpl_id": tmpl.id, "reason": "x", "equipment_category_id": target.id,
+                "state": "done", "before_values": "fake"})
+        correction = self._correction(tmpl, target)
+        for vals in ({"state": "done"}, {"before_values": "fake"}, {"after_values": "fake"},
+                     {"user_id": self.buyer.id}, {"date": "2026-01-01 00:00:00"},
+                     {"name": "PSC/FAKE"}):
+            with self.subTest(vals=vals), self.assertRaises(AccessError):
+                correction.with_user(self.manager).write(vals)
+        with self.assertRaises(UserError):
+            correction.with_user(self.manager).write({"product_tmpl_id": self.drill.product_tmpl_id.id})
+        # the product of a correction cannot be deleted (trace kept)
+        correction.with_user(self.manager).action_apply()
+        with self.assertRaises(Exception):
+            with self.env.cr.savepoint():
+                tmpl.sudo().unlink()
+
+    def test_correction_refuses_unusable_category_non_maintainable_non_manager(self):
         tmpl = self._product_it()
         with self.assertRaises(AccessError):
-            self.env["product.structural.correction"].with_user(self.buyer).create({
-                "product_tmpl_id": tmpl.id, "reason": "x"})
-        correction = self.env["product.structural.correction"].with_user(self.manager).create({
-            "product_tmpl_id": tmpl.id, "reason": "x",
-            "equipment_category_id": self.ecat_to_classify.id})
+            self._correction(tmpl, self.env.ref("%s.ecat_it_phones" % MODULE), user=self.buyer)
+        correction = self._correction(tmpl, self.ecat_to_classify)
         with self.assertRaises(ValidationError):
             correction.with_user(self.manager).action_apply()
+        tmpl.invalidate_recordset()
+        self.assertEqual(tmpl.equipment_category_id, self.ecat_computers)
+        service = self.env["product.template"].create({"name": "Service (test)", "type": "service"})
+        correction = self._correction(service, self.ecat_computers)
+        with self.assertRaises(ValidationError):
+            correction.with_user(self.manager).action_apply()
+
+    def test_correction_of_a_product_in_stock(self):
+        """Only the equipment category changes: no stock or valuation effect."""
+        self._receive(self._order(self.drill, 1), ["SC-STOCK-1"])
+        Layer = self.env["stock.valuation.layer"]
+        layers = Layer.search_count([("product_id", "=", self.drill.id)])
+        target = self.env.ref("%s.ecat_tools_cordless" % MODULE)
+        self._correction(self.drill.product_tmpl_id, target).with_user(self.manager).action_apply()
+        self.assertEqual(self.drill.equipment_category_id, target)
+        self.assertEqual(Layer.search_count([("product_id", "=", self.drill.id)]), layers)
+        self.assertNotIn("categ_id", self.env["product.structural.correction"]._fields)
+        self.assertNotIn("tracking", self.env["product.structural.correction"]._fields)
+
+
+@tagged("post_install", "-at_install")
+class TestRequestBypasses(CatalogueCommon):
+    """Audit of dad9933: direct API calls (as a client would send them)."""
+
+    PROTECTED = {
+        "state": "approved", "approval_date": "2026-01-01 00:00:00",
+        "approval_snapshot": "{}", "approved_documents": "{}",
+        "execution_date": "2026-01-01 00:00:00", "key_default_code": "X",
+        "key_barcode": "X", "key_supplier": "X", "name": "PCR/FAKE",
+    }
+
+    def test_requester_cannot_be_usurped(self):
+        with self.assertRaises(AccessError):
+            self._request(user=self.manager, requester_id=self.buyer.id)
+        request = self._request(user=self.manager)
+        self.assertEqual(request.requester_id, self.manager)
+        with self.assertRaises(AccessError):
+            request.with_user(self.manager).write({"requester_id": self.buyer.id})
+        request.with_user(self.manager).action_submit()
+        with self.assertRaisesRegex(UserError, "requester"):
+            request.with_user(self.manager).action_approve()
+
+    def test_protected_fields_refused_to_clients(self):
+        request = self._request()
+        record_fields = {
+            "approver_id": self.manager.id, "requester_id": self.manager.id,
+            "executor_id": self.manager.id,
+            "product_tmpl_id": self.drill.product_tmpl_id.id,
+            "approved_attachment_ids": [Command.set([])],
+        }
+        for user in (self.user_operator, self.manager):
+            for name, value in list(self.PROTECTED.items()) + list(record_fields.items()):
+                with self.subTest(user=user.login, field=name):
+                    with self.assertRaises(AccessError):
+                        request.with_user(user).write({name: value})
+                    with self.assertRaises(AccessError):
+                        self._request(user=user, **{name: value})
+        # nothing changed, the workflow still has to be followed
+        self.assertEqual(request.state, "draft")
+        self.assertFalse(request.approver_id)
+
+    def test_similar_confirmed_only_by_manager_while_to_approve(self):
+        request = self._request()
+        with self.assertRaises(AccessError):
+            request.with_user(self.user_operator).write({"similar_confirmed": True})
+        with self.assertRaises(AccessError):
+            request.with_user(self.manager).write({"similar_confirmed": True})  # draft
+        request.action_submit()
+        with self.assertRaises(AccessError):
+            request.with_user(self.user_operator).write({"similar_confirmed": True})
+        request.with_user(self.manager).write({"similar_confirmed": True})
+
+    def test_keys_locked_after_creation(self):
+        request = self._approved(default_code="KEY-1", barcode="KEY-BC-1", supplier_code="KS-1")
+        request.with_user(self.manager).action_execute()
+        tmpl = request.product_tmpl_id
+        for vals in ({"default_code": "KEY-2"}, {"barcode": "KEY-BC-2"}):
+            with self.subTest(vals=vals):
+                with self.assertRaises(UserError):
+                    tmpl.with_user(self.manager).write(vals)
+                with self.assertRaises(UserError):
+                    tmpl.product_variant_id.with_user(self.manager).write(vals)
+        info = tmpl.seller_ids
+        for vals in ({"product_code": "KS-2"}, {"partner_id": self.lender.id},
+                     {"product_tmpl_id": self.drill.product_tmpl_id.id},
+                     {"company_id": False}):
+            with self.subTest(vals=vals), self.assertRaises(UserError):
+                info.with_user(self.manager).write(vals)
+        info.with_user(self.manager).write({"price": 1050.0, "min_qty": 2, "delay": 7})
+        self.assertEqual(info.price, 1050.0)
+        with self.assertRaises(UserError):
+            info.with_user(self.manager).unlink()
+
+    def test_foreign_attachment_refused(self):
+        foreign = self.env["ir.attachment"].create({
+            "name": "secret.pdf", "datas": base64.b64encode(b"secret"),
+            "res_model": "res.partner", "res_id": self.vendor.id})
+        with self.assertRaises(AccessError):
+            self._request(attachment_ids=[Command.set(foreign.ids)])
+        other_upload = self.env["ir.attachment"].with_user(self.buyer).create({
+            "name": "other.pdf", "datas": base64.b64encode(b"other")})
+        request = self._request()
+        with self.assertRaises(AccessError):
+            request.with_user(self.user_operator).write(
+                {"attachment_ids": [Command.link(other_upload.id)]})
+        own = self.env["ir.attachment"].with_user(self.user_operator).create({
+            "name": "own.pdf", "datas": base64.b64encode(b"own")})
+        request.with_user(self.user_operator).write({"attachment_ids": [Command.link(own.id)]})
+        self.assertEqual((own.res_model, own.res_id), (request._name, request.id))
+        self.assertEqual(foreign.res_model, "res.partner")
+
+    def test_duplicates_per_company(self):
+        other_company = self.env["res.company"].create({"name": "Other company (test)"})
+        other = self.env["product.template"].create({
+            "name": "Other company product", "company_id": other_company.id,
+            "default_code": "MC-1", "barcode": "MC-BC-1"})
+        self.env["product.supplierinfo"].create({
+            "partner_id": self.vendor.id, "product_tmpl_id": other.id, "product_code": "MC-S1",
+            "company_id": other_company.id})
+        request = self._request(default_code="MC-1", barcode="MC-BC-1", supplier_code="MC-S1")
+        request.action_submit()
+        blocking, _similar = request._find_duplicates()
+        self.assertFalse(blocking)
+        # a shared product (no company) is a duplicate for every company
+        other.company_id = False
+        other.seller_ids.company_id = False
+        blocking, _similar = request._find_duplicates()
+        self.assertEqual(len(blocking), 3)
+
+    def test_request_ready_reserved_to_accounting_administrators(self):
+        categ = self.env["product.category"].create({
+            "name": "Tiles (test)", "parent_id": self.root_materials.id})
+        with self.assertRaises(AccessError):
+            categ.with_user(self.manager).write({"request_ready": True})
+        with self.assertRaises(AccessError):
+            self.env["product.category"].with_user(self.manager).create({
+                "name": "Open (test)", "request_ready": True})
+        accountant = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "acc_admin", "login": "acc_admin", "company_id": self.company.id,
+            "company_ids": [Command.set(self.company.ids)],
+            "groups_id": [Command.set([self.env.ref("account.group_account_manager").id,
+                                       self.env.ref("product.group_product_manager").id])]})
+        categ.with_user(accountant).write({"request_ready": True})
+        self.assertEqual(categ.request_ready_user_id, accountant)
+        self.assertTrue(categ.request_ready_date)
+        with self.assertRaises(AccessError):
+            categ.with_user(accountant).write({"request_ready_user_id": self.manager.id})

@@ -171,16 +171,8 @@
                         <field name="product_tmpl_id" readonly="state != 'draft'"/>
                         <field name="reason" readonly="state != 'draft'"/>
                     </group>
-                    <group string="New Values (empty: unchanged)" invisible="state != 'draft'">
-                        <field name="categ_id" options="{'no_create': True}"/>
+                    <group string="New Value" invisible="state != 'draft'">
                         <field name="equipment_category_id" options="{'no_create': True}"/>
-                        <field name="uom_id" options="{'no_create': True}"/>
-                        <field name="uom_po_id" options="{'no_create': True}"/>
-                        <field name="tracking"/>
-                        <field name="is_storable"/>
-                        <field name="maintenance_ok"/>
-                        <field name="property_account_income_id" options="{'no_create': True}"/>
-                        <field name="property_account_expense_id" options="{'no_create': True}"/>
                     </group>
                     <group string="Applied" invisible="state != 'done'">
                         <field name="before_values"/>
@@ -235,7 +227,9 @@
         <field name="arch" type="xml">
             <xpath expr="//sheet" position="inside">
                 <group string="Product Requests" name="catalogue">
-                    <field name="request_ready"/>
+                    <field name="request_ready" groups="account.group_account_manager"/>
+                    <field name="request_ready_user_id"/>
+                    <field name="request_ready_date"/>
                 </group>
             </xpath>
         </field>

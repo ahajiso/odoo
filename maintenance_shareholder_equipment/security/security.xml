@@ -236,6 +236,11 @@
         <field name="implied_ids" eval="[(4, ref('product.group_product_manager'))]"/>
         <field name="comment">Approves and executes product creation requests (never his own request) and corrects the structural fields of a product with a reason.</field>
     </record>
+    <record id="rule_product_structural_correction_company" model="ir.rule">
+        <field name="name">Structural corrections: multi-company</field>
+        <field name="model_id" ref="model_product_structural_correction"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+    </record>
     <record id="rule_product_creation_request_company" model="ir.rule">
         <field name="name">Product requests: multi-company</field>
         <field name="model_id" ref="model_product_creation_request"/>

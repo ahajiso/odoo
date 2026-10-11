@@ -34,6 +34,13 @@ STATES = [
 CLOSED_STATES = ("done", "refused", "cancel")
 # canonical keys reserved by the executed requests (partial unique indexes, init())
 KEY_FIELDS = ("key_default_code", "key_barcode", "key_supplier")
+# set only by the request itself (superuser mode): refused to any client in create() and
+# write(), whatever context it sends (audit of dad9933, as equipment.operation)
+PROTECTED_FIELDS = {
+    "name", "state", "requester_id", "approver_id", "approval_date", "approval_snapshot",
+    "approved_documents", "approved_attachment_ids", "executor_id", "execution_date",
+    "product_tmpl_id", "key_default_code", "key_barcode", "key_supplier",
+}
 # writes allowed on a closed request: chatter, activities, followers
 CHATTER_PREFIXES = ("message_", "activity_", "website_message")
 
@@ -122,7 +129,7 @@ class ProductCreationRequest(models.Model):
                                      currency_field="company_currency_id")
     attachment_ids = fields.Many2many(
         "ir.attachment", "product_creation_request_attachment_rel", "request_id",
-        "attachment_id", string="Supporting Documents",
+        "attachment_id", string="Supporting Documents", copy=False,
         help="Quotes, data sheets. Frozen at approval: an approved document cannot be "
         "removed or replaced; further documents may be added.")
 
@@ -273,12 +280,13 @@ class ProductCreationRequest(models.Model):
                 if normalise_reference(product.default_code) == self.key_default_code:
                     blocking.append(_("internal reference of %s", product.display_name))
         if self.key_barcode:
-            for product in Product.search([("barcode", "=", self.key_barcode)]):
+            for product in Product.search(company_domain + [("barcode", "=", self.key_barcode)]):
                 blocking.append(_("barcode of %s", product.display_name))
         if self.key_supplier:
             infos = self.env["product.supplierinfo"].sudo().with_context(active_test=False).search([
                 ("partner_id.commercial_partner_id", "=", self.supplier_id.commercial_partner_id.id),
-                ("product_code", "!=", False)])
+                ("product_code", "!=", False),
+                "|", ("company_id", "=", False), ("company_id", "=", self.company_id.id)])
             for info in infos:
                 if normalise_reference(info.product_code) == normalise_reference(self.supplier_code):
                     blocking.append(_("supplier reference of %s", info.product_tmpl_id.display_name))
@@ -423,15 +431,28 @@ class ProductCreationRequest(models.Model):
             raise AccessError(_("Only equipment operators, buyers, inventory users and "
                                 "catalogue managers can request a product."))
         for vals in vals_list:
+            if not self.env.su:
+                if PROTECTED_FIELDS.intersection(vals) or "similar_confirmed" in vals:
+                    raise AccessError(_("This field is set by the request itself."))
+                # the requester is always the user who creates the request (D9)
+                vals["requester_id"] = self.env.user.id
             if vals.get("name", "/") == "/":
                 vals["name"] = self.env["ir.sequence"].next_by_code(
                     "product.creation.request") or "/"
-        return super().create(vals_list)
+        requests = super().create(vals_list)
+        requests._attach_documents()
+        return requests
 
     def write(self, vals):
         # the request's own transitions write in superuser mode; a client cannot obtain
         # it, whatever context it sends (no context key opens these checks)
         if not self.env.su:
+            if PROTECTED_FIELDS.intersection(vals):
+                raise AccessError(_("This field is set by the request itself."))
+            if "similar_confirmed" in vals and not (
+                    self._is_manager() and all(r.state == "to_approve" for r in self)):
+                raise AccessError(_("Only a catalogue manager confirms the similar products, "
+                                    "while the request waits for approval."))
             business = [key for key in vals if not key.startswith(CHATTER_PREFIXES)]
             for request in self:
                 if request.state in CLOSED_STATES and business:
@@ -444,9 +465,34 @@ class ProductCreationRequest(models.Model):
                         raise UserError(_("%s: an approved document cannot be removed.",
                                           request.name))
         result = super().write(vals)
+        if "attachment_ids" in vals:
+            self._attach_documents()
         if not self.env.su:
             self._invalidate_changed_approvals()
         return result
+
+    def _attach_documents(self):
+        """Uploaded files belong to the request, so that its access rules protect them.
+        A client may only bring files it uploaded itself for this request (or not yet
+        attached to anything) and can read: any other attachment id sent through the API
+        is refused (same rule as equipment.operation)."""
+        for request in self:
+            files = request.sudo().attachment_ids
+            new = files.filtered(lambda a: a.res_model != request._name or a.res_id != request.id)
+            if not new:
+                continue
+            if not self.env.su:
+                for attachment in new:
+                    if attachment.res_id:
+                        allowed = False
+                    else:  # fresh upload: only by the current user, for this model or none
+                        allowed = attachment.create_uid == self.env.user and (
+                            attachment.res_model in (False, request._name))
+                    if not allowed:
+                        raise AccessError(_("Attachment %s cannot be added to this request.",
+                                            attachment.name))
+                    attachment.with_env(self.env).check_access("read")
+            new.sudo().write({"res_model": request._name, "res_id": request.id})
 
     @api.model
     def _new_attachments(self, request, commands):
@@ -652,7 +698,6 @@ class ProductCreationRequest(models.Model):
 
     def copy(self, default=None):
         """A refused or cancelled request is duplicated into a new draft (§2.8)."""
-        default = dict(default or {}, state="draft", requester_id=self.env.user.id)
         return super().copy(default)
 
 

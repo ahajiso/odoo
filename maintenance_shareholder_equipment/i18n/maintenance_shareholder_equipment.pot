@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-11 10:00+0000\n"
-"PO-Revision-Date: 2026-10-11 10:00+0000\n"
+"POT-Creation-Date: 2026-10-11 10:30+0000\n"
+"PO-Revision-Date: 2026-10-11 10:30+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -431,6 +431,12 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
+msgid "%s is not maintainable: it has no equipment category."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
 msgid "%s is not waiting for approval."
 msgstr ""
@@ -526,20 +532,8 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
-#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
-msgid "%s: no new value."
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
-#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s: only storable consumables."
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
-#. odoo-python
-#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
-msgid "%s: only structural fields are corrected here."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -664,6 +658,14 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"A supplier line with a supplier reference cannot be deleted directly (the "
+"reference is reserved by the product request)."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
 msgid ""
 "A supplier refund cannot carry equipment (%s): returns of equipment go "
@@ -769,6 +771,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
 msgid "An applied correction can no longer be changed."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
+msgid "An applied correction is kept as a trace."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -918,6 +926,12 @@ msgid "Attachment %s cannot be added to this operation."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "Attachment %s cannot be added to this request."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__message_attachment_count
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__message_attachment_count
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__message_attachment_count
@@ -1029,19 +1043,16 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__tracking__lot
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__tracking__lot
 msgid "By Lots"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__tracking__none
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__tracking__none
 msgid "By Quantity"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__tracking__serial
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__tracking__serial
 msgid "By Unique Serial Number"
 msgstr ""
 
@@ -2226,8 +2237,13 @@ msgid "Lot/Serial"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__maintenance_ok__yes
-msgid "Maintainable"
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_category__request_ready_user_id
+msgid "Made Available by"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_category__request_ready_date
+msgid "Made Available on"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2348,53 +2364,13 @@ msgid "New Equipment Category"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__property_account_expense_id
-msgid "New Expense Account"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__property_account_income_id
-msgid "New Income Account"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__maintenance_ok
-msgid "New Maintenance"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__new_location_name
 msgid "New Off-Site Stock"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__categ_id
-msgid "New Product Category"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__uom_po_id
-msgid "New Purchase Unit"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__is_storable
-msgid "New Storage"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__tracking
-msgid "New Tracking"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__uom_id
-msgid "New Unit"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_structural_correction_form
-msgid "New Values (empty: unchanged)"
+msgid "New Value"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2512,16 +2488,6 @@ msgid ""
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__maintenance_ok__no
-msgid "Not maintainable"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__is_storable__no
-msgid "Not stored"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__note
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Note"
@@ -2596,8 +2562,24 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid ""
+"Only a catalogue manager confirms the similar products, while the request "
+"waits for approval."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid "Only accounting administrators can correct an equipment cost."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"Only an accounting administrator makes a product category available for "
+"product requests."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2985,8 +2967,9 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_category__request_ready
 msgid ""
-"Product creation requests may use this category. Set it only once the "
-"category's accounts, cost method and valuation are final (accountant)."
+"Product creation requests may use this category. Set only by an accounting "
+"administrator (or the audited script), once the category's accounts, cost "
+"method and valuation are final."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -3497,11 +3480,6 @@ msgid "Stop"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__is_storable__yes
-msgid "Stored"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_structural_correction_form
 msgid "Structural Correction"
 msgstr ""
@@ -3517,16 +3495,18 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
 msgid ""
-"Structural correction %(name)s by %(user)s. Reason: %(reason)s. %(changes)s"
+"Structural correction %(name)s by %(user)s. Reason: %(reason)s. Default "
+"equipment category: %(before)s → %(after)s"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
 msgid ""
-"Structural fields of a product cannot be changed directly (%s): use a "
-"Structural Correction (with its reason) until the modification request "
-"exists."
+"Structural fields of a product cannot be changed directly (%s). The default "
+"equipment category is corrected through a Structural Correction (with its "
+"reason); the other fields wait for the migration or the modification "
+"request."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -3558,6 +3538,11 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__supplier_price
 msgid "Supplier Price (excl. tax)"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_product_supplierinfo
+msgid "Supplier Pricelist"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -3598,12 +3583,6 @@ msgstr ""
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__similar_confirmed
 msgid ""
 "The approver checked the products with a similar name or supplier reference."
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
-#. odoo-python
-#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
-msgid "The category %s is not available yet."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -3732,6 +3711,12 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
+msgid "The product of a correction cannot be changed."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "The purchase order %s could not be confirmed."
 msgstr ""
@@ -3777,6 +3762,14 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"The supplier, company, product and supplier reference of a supplier line "
+"cannot be changed directly; prices, quantities and lead times can."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "The transfer %s could not be validated."
 msgstr ""
@@ -3788,8 +3781,32 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
+msgid "This correction is being applied by someone else."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid "This field is set by the category itself."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
+msgid "This field is set by the correction itself."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "This field is set by the operation itself."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "This field is set by the request itself."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
