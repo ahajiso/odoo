@@ -290,10 +290,24 @@ tests on artdubati_test (47 passing, 08/10/2026).
    sale scope and of Calendar in /mail/data, maintenance_shareholder_equipment
    18.0.4.0.1); audit of d8d5b22..c3670fe corrected (backup with odoo_web stopped,
    restore checks, platform fingerprint: image, Odoo version and code of every module
-   compared, local tests rebuilt on the server's exact code); 232 tests locally (on the server's exact code),
-   231 expected on the server
-   passing locally; rehearsals on the phase 3 code clean. Before deployment: Q7
-   (Purchase rights off `test_investor`), one atomic update.
+   compared, local tests rebuilt on the server's exact code); 232 tests locally (on the server's exact code).
+   Audited, merged into main (9973c29) and deployed on artdubati_test on 10/10/2026
+   (docs/phase4/README.md): PLATFORM OK before and after, PRECHECK OK, BACKUP OK (9
+   stale asset attachments removed first, 0 missing file), 231 tests 0 failed, post-check
+   clean. Interface checks by the audit found the export unusable for investors (Q6
+   group never given, export dialog reading ir.exports, CSV refused on the action-grouped
+   analysis) and the probe calling load_menus through call_kw: correction 18.0.3.0.1
+   (export group implied by the investor group, ir.exports readable with an empty rule,
+   removable grouping facets Currency 1 > Stock 2, probe through the web route; messaging
+   badge « 2 » of the local browser characterised: install and notification prompts of
+   the browser, no user data, negative tests), 236 tests on a clean checkout (log in
+   docs/phase4/test_logs/), audited, merged (ae31573) and deployed by the owner (README
+   §10, 235 tests expected): probe complete (Stock Monitor menu only, 6 rows), no refused
+   route in the log, browser checks validated (export XLSX and CSV). Outputs of steps 1
+   to 8 of §10 (backup, 235 tests, PLATFORM OK after, post-check) not yet read by
+   Claude: phase 4 is called done once they are recorded here. Next: docs/ROADMAP.md section 0 (product and category creation, « Can be
+   Maintained », equipment categories, the Mac Mini without fixed asset, supplier
+   consignment), then A-K, the manual last.
 5. Translations, deployment checklist (docs/deployment/investor_home.md).
 6. Functional phases proposed by the audit of 6063db1, order to set by the owner
    (docs/ROADMAP.md): recurring expenses and contracts, bill payment and bank
