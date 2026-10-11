@@ -1,5 +1,9 @@
 # ROADMAP section 0, item 3 – migration plan (revision 2, 11/10/2026)
 
+Revision 3 answers the audit of 7ff7b57: the TEST contract is checked against every
+value of the inventory (server id 1, one line « TEST Scaffold rental », every 1 month
+from 01/09/2026, no end, 250 EUR = company currency), proven by a mutation (§7.0).
+
 Revision 2 answers the audit of 9c407ae: stop rules enforced by the script before
 any commit (§1), exact check of the TEST contract before archiving it (§2, M5), end of
 the window with `odoo_web` stopped until every check passed (`finish_window.sh`,
@@ -53,7 +57,7 @@ migration and of its deployment procedure (README.md).**
 | M2 | Product categories under the roots of item 2, made « Available for Product Requests » (superuser, traced: who, when): Fixed Assets (catalogue) / **IT Equipment** (218300) and **Plant & Tools** (215400, profile 4, 5 years): fixed-asset flag, average cost, manual valuation; Services Purchased / **Equipment Rentals & Loans** (613500), **Telecom & Internet** (626000), **Bank Services** (627800), **Administrative Supplies & Fees** (606400); Sales / **Consulting** (706000), **Works** (704000), **Equipment Rentals** (708300) | C25 |
 | M3 | Products moved now (no stock account involved): the 8 services to their category; Mac Mini to Fixed Assets / IT Equipment with default equipment category IT & Communications / Computers & Servers. The Mac Mini's stock (1 unit, standard price 0) is emptied and replenished by Odoo at the same cost: value 0 before and after, manual valuation, **no journal entry** | – |
 | M4 | Equipment: 484 → Workshop Machinery / Wood, renamed « Scie sur table – 1234 »; 871 → IT & Communications / Computers & Servers, renamed « Mac Mini – 877790 »; 869, 870 → Measuring, Inspection & Setting-out | – |
-| M5 | Archived **only if nothing depends on them** (stock, open moves, open purchase or sale lines, active contracts, active equipment, draft entries, open equipment operations; otherwise `KEPT`, which refuses the run): Laser rangefinder 823 (duplicate), Computer 837 (D5), TEST Bought compressor 13, TEST Scaffold rent 11 **with** its contract « TEST Scaffold rental » (no draft bill of the contract). The contract is first checked against the inventory: company, partner « TEST Supplier (owner) », supplier type, exactly one line (cancelled ones included), product TEST Scaffold rent, no equipment nor relation, quantity 1, price 250, start 01/09/2026, monthly, not cancelled; any difference is an `ERROR` (`CONTRACT … checked=OK` otherwise) | – |
+| M5 | Archived **only if nothing depends on them** (stock, open moves, open purchase or sale lines, active contracts, active equipment, draft entries, open equipment operations; otherwise `KEPT`, which refuses the run): Laser rangefinder 823 (duplicate), Computer 837 (D5), TEST Bought compressor 13, TEST Scaffold rent 11 **with** its contract « TEST Scaffold rental » (no draft bill of the contract). The contract is first checked against the inventory (complement: `CONTRACT | TEST Scaffold rental | id=1 | active=True | type=purchase | partner=TEST Supplier (owner) | line=TEST Scaffold rental | product=TEST Scaffold rent | equipment=- | relation=- | every=1 monthly | from=2026-09-01 | to=- | price=250.0 EUR`): server id 1 (artdubati_test), company, partner, supplier type, currency EUR = company currency, exactly one line (cancelled ones included), label « TEST Scaffold rental », product TEST Scaffold rent, no equipment nor relation, quantity 1, price 250, every 1 month, from 01/09/2026, no end, not cancelled; any difference is an `ERROR` (`CONTRACT … checked=OK` otherwise) | – |
 | M6 | Old equipment categories (29 imported `__import__.cat_*`, `All` 89, `Fixed Assets` 481): leaves first; **archived** while anything references them (every stored many2one / many2many to `maintenance.equipment.category` found through `ir.model.fields`, archived records included, or a remaining child: `parent_id` is `ondelete="cascade"`, so a parent with children is never deleted), **deleted** otherwise (their `__import__` external ID goes with them). A posted accounting line is never modified. Defaults (`ir.default`) and saved filters on these fields are listed | – |
 | M7 | OCA contract tags: Insurance, Maintenance, Rental, Leasing, Telecom & Internet, Software & SaaS, Energy & Charges, Other Subscription (company Docteur Bain) | – |
 
@@ -143,6 +147,25 @@ precheck, update to 18.0.5.0.0, tests, dry run, `--apply`, control dry run,
 post-check, tests again on the migrated data.
 
 ## 7. Rehearsal results
+
+### 7.0 Revision 3 (commit de5bd82, logs in test_logs/rehearsal_de5bd82/)
+
+Only the script, its mutation, the seed and the documentation changed (no module code):
+as agreed by the audit, the 271 tests were not run again (§7.1 on 7ff7b57, same module
+code). Seed rebuilt (line label as in the complement), then the update to 18.0.5.0.0:
+- normal migration on a copy of the updated database: dry run 77
+  (`COUNTS | M1=2 M2=18 M3=9 M4=4 M5=5 M6=31 M7=8`, `CONTRACT … checked=OK`), `--apply`
+  77, control dry run 0, post-check no row;
+- mutations: the five of §7.1 plus « TEST Scaffold rental » every 2 months, refused by
+  `ERROR | contract TEST Scaffold rental … line …: every 2 monthly`, nothing committed,
+  the contract still active and every 2 months (`MUTATIONS OK`).
+
+Found by the currency check: the local rebuild had USD as company currency (the
+company's country was the United States when `account` was installed); artdubati_test
+is in EUR (the complement: « 250.0 EUR »). The rehearsal base was switched to EUR
+before any entry, then reseeded. The earlier rehearsals (§7.1, §7.2) ran in USD: no
+amount the migration writes depends on it (the Mac Mini's revaluation is at 0), and
+the tests create their own data.
 
 ### 7.1 Revision 2 (commit 7ff7b57, logs in test_logs/rehearsal_7ff7b57/)
 

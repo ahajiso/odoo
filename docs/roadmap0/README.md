@@ -99,8 +99,9 @@ M1=2 M2=18 M3=9 M4=4 M5=5 M6=31 M7=8 | expected 77`; `FOUND` with the inventory'
 **Stop rules, automated (audit of 9c407ae).** `migrate_catalogue.py` turns into `ERROR`,
 and rolls back before any commit: a `KEPT` product, a `BLOCKED` document, a section
 count other than the one above (first run) or any change at all (migrated database), a
-TEST Scaffold rental contract differing from the inventory (company, partner, type,
-one line, product, no equipment, quantity, price, start, recurrence). `run_migration.sh`
+TEST Scaffold rental contract differing from the inventory (server id 1, company,
+partner, type, EUR, one line « TEST Scaffold rental », product, no equipment, quantity,
+price 250, every 1 month from 01/09/2026, no end). `run_migration.sh`
 refuses the same lines and any total other than 77 / 0 as a second protection.
 `deploy_modules.sh` and `finish_window.sh` stop at the first failure. After any
 FAILED: nothing more is run, `odoo_web` stays (or is put back) stopped, the outputs
