@@ -1,0 +1,174 @@
+EQUIP | id=484 | 1800W corded table saw, 254mm blade, with wheeled stand – 1234 | active=True | company=Docteur Bain | category=All | product=1800W corded table saw, 254mm blade, with wheeled stand | product_categ=All | serial=1234 | stock_location=['Bg/Stock'] | monitor_location=- | ownership=owned | owner=Docteur Bain | integration=done | cost=15.0 provisional=False source=bill ref=BILL/2026/10/0006 | asset=- | bill=BILL/2026/10/0006
+EQUIP | id=869 | 360° green laser | active=True | company=Docteur Bain | category=Fixed Assets | product=[00000002] 360° green laser | product_categ=All / Fixed Assets | serial=- | stock_location=- | monitor_location=Bg/Stock | ownership=rented | owner=Manager | integration=done | cost=0.0 provisional=False source=False ref=- | asset=- | bill=-
+EQUIP | id=870 | Laser rangefinder | active=True | company=Docteur Bain | category=Fixed Assets | product=[00000001] Laser rangefinder | product_categ=All / Fixed Assets | serial=- | stock_location=- | monitor_location=Bg/Stock | ownership=borrowed | owner=Manager | integration=done | cost=0.0 provisional=False source=False ref=- | asset=- | bill=-
+EQUIP | id=871 | Device 1 | active=True | company=Docteur Bain | category=All | product=[MM1220] Mac Mini | product_categ=All | serial=877790 | stock_location=['Bg/Stock'] | monitor_location=- | ownership=owned | owner=Docteur Bain | integration=done | cost=1850.0 provisional=True source=order ref=P00381 – [MM1220] Mac Mini | asset=- | bill=-
+STOCK | company=Docteur Bain | [MM1220] Mac Mini | categ=All | cost_method=standard | location=Bg/Stock | qty=1.0 | value=0.0 EUR | unit_cost=0.0 | owner=- | lot=877790
+STOCK | company=Docteur Bain | 1800W corded table saw, 254mm blade, with wheeled stand | categ=All | cost_method=standard | location=Bg/Stock | qty=1.0 | value=329.0 EUR | unit_cost=329.0 | owner=- | lot=1234
+STOCK | company=Docteur Bain | Green cross laser | categ=All | cost_method=standard | location=Bg/Stock | qty=1.0 | value=79.99 EUR | unit_cost=79.99 | owner=- | lot=-
+STOCK | company=Docteur Bain | TEST Cement bag | categ=All | cost_method=standard | location=Bg/Stock | qty=46.0 | value=368.0 EUR | unit_cost=8.0 | owner=- | lot=-
+STOCK | company=Docteur Bain | TEST Cement bag | categ=All | cost_method=standard | location=TBER/Stock | qty=15.0 | value=0.0 EUR | unit_cost=8.0 | owner=TEST Supplier (owner) | lot=-
+STOCK | company=Docteur Bain | TEST Cement bag | categ=All | cost_method=standard | location=TIST/Stock | qty=10.0 | value=80.0 EUR | unit_cost=8.0 | owner=- | lot=-
+PRICE | purchase.order | P00381 | 2026-10-10 15:18 Ali Sotoudeh: amount_untaxed 1850.0 -> 1100.0
+PRICE | message | 2026-10-10 15:10 | Ali Sotoudeh | notification | <p>Purchase Order created</p>
+PRICE | message | 2026-10-10 15:10 | Ali Sotoudeh | notification |              <strong>The received quantity has been updated.</strong>             <ul>                 <li>[MM1220] Mac Mini:</li>                 Received Quan
+PRICE | message | 2026-10-10 15:18 | Ali Sotoudeh | notification | -
+PRICE | line now | [MM1220] Mac Mini | price_unit=1100.0 | write_date=2026-10-10 15:18 | write_uid=f.t.1@lartdubati.com
+PRICE | receipt | Bg/IN/00006 | state=done | done=2026-10-10 15:10:14
+PRICE | equipment cost date | Device 1 | cost_date=2026-10-10
+SERVICE | company=Docteur Bain | id=7 | Conseil / Prestation intellectuelle | active=True | categ=All | purchase_ok=False | sale_ok=True | own_income=706000 Services supplied | own_expense=- | income=706000 Services supplied | expense=607000 Purchase of goods | contract_lines=-
+SERVICE | company=Docteur Bain | id=127 | Location de matériel (facturée) | active=True | categ=All | purchase_ok=False | sale_ok=True | own_income=708300 Sundry rentals | own_expense=- | income=708300 Sundry rentals | expense=607000 Purchase of goods | contract_lines=-
+SERVICE | company=Docteur Bain | id=126 | Location de matériel (payée) | active=True | categ=All | purchase_ok=True | sale_ok=False | own_income=- | own_expense=613500 Movable property rental | income=707000 Sales of goods | expense=613500 Movable property rental | contract_lines={'purchase/rental': 1}
+SERVICE | company=Docteur Bain | id=5 | Main d'œuvre - Finition / Façade (horaire) | active=True | categ=All | purchase_ok=False | sale_ok=True | own_income=704000 Works | own_expense=- | income=704000 Works | expense=607000 Purchase of goods | contract_lines=-
+SERVICE | company=Docteur Bain | id=125 | Prêt de matériel | active=True | categ=All | purchase_ok=True | sale_ok=False | own_income=- | own_expense=- | income=707000 Sales of goods | expense=607000 Purchase of goods | contract_lines={'purchase/loan': 1}
+SERVICE | company=Docteur Bain | id=11 | TEST Scaffold rent | active=True | categ=All | purchase_ok=True | sale_ok=True | own_income=- | own_expense=- | income=707000 Sales of goods | expense=607000 Purchase of goods | contract_lines={'purchase/-': 1}
+SERVICE | company=Docteur Bain | id=3 | Abonnement téléphonique | active=True | categ=All / Expenses / Frais généraux | purchase_ok=True | sale_ok=False | own_income=- | own_expense=626000 Postal and telecommunication costs | income=707000 Sales of goods | expense=626000 Postal and telecommunication costs | contract_lines=-
+SERVICE | company=Docteur Bain | id=4 | Frais administratifs | active=True | categ=All / Expenses / Frais généraux | purchase_ok=True | sale_ok=False | own_income=- | own_expense=606400 Administrative supplies | income=707000 Sales of goods | expense=606400 Administrative supplies | contract_lines=-
+SERVICE | company=Docteur Bain | id=1 | Frais bancaires | active=True | categ=All / Expenses / Frais généraux | purchase_ok=True | sale_ok=False | own_income=- | own_expense=627800 Other expenses and commissions on services supplied | income=707000 Sales of goods | expense=627800 Other expenses and commissions on services supplied | contract_lines=-
+CONTRACT | EQOP/2026/0738 – Manager | id=311 | active=True | type=purchase | partner=Manager | line=Prêt de matériel – Laser rangefinder | product=Prêt de matériel | equipment=Laser rangefinder | relation=loan | every=1 monthly | from=2026-10-10 | to=- | price=0.0 EUR
+CONTRACT | EQOP/2026/0739 – Manager | id=310 | active=True | type=purchase | partner=Manager | line=Location de matériel (payée) – 360° green laser | product=Location de matériel (payée) | equipment=360° green laser | relation=rental | every=1 monthly | from=2026-10-10 | to=- | price=10.0 EUR
+CONTRACT | TEST Cement rental | id=2 | active=True | type=purchase | partner=TEST Supplier (owner) | line=TEST Cement rental | product=TEST Cement bag | equipment=- | relation=- | every=1 monthly | from=2026-09-01 | to=- | price=2.0 EUR
+CONTRACT | TEST Scaffold rental | id=1 | active=True | type=purchase | partner=TEST Supplier (owner) | line=TEST Scaffold rental | product=TEST Scaffold rent | equipment=- | relation=- | every=1 monthly | from=2026-09-01 | to=- | price=250.0 EUR
+NATURE | contract.contract.contract_type | [('sale', 'Customer'), ('purchase', 'Supplier')]
+NATURE | contract.line.equipment_nature | [('rental', 'Rental'), ('loan', 'Loan (free)'), ('insurance', 'Insurance'), ('maintenance', 'Maintenance')]
+PROFILE | id=4 | Matériel et outillage (test) | company=Docteur Bain | asset_account=215400 Plant and machinery [asset profile: Matériel et outillage (test)] | depreciation_account=281500 Installations matériel et outillage industriels (même ventilation que celle du compte 215) | expense_account=681120 Appropriations to depreciation on Tangible fixed assets | method=linear | number=5 | period=year | time=year
+ACCOUNT | company=Docteur Bain | 201100 | Incorporation costs | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 201200 | Start-up costs | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 201210 | Commercial assessment costs | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 201220 | Marketing costs | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 201300 | Capital increase and sundry transaction costs (mergers, demergers, restructurations) | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 203000 | Research and development costs | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 205000 | Concessions and similar rights, patents, licences, trade marks, processes, software, rights and similar assets | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 206000 | Lease premium | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 207000 | Goodwill | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 208000 | Other intangible fixed assets | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 211100 | Undeveloped land | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 211200 | Serviced land | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 211300 | Basements and sub-basements | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 211400 | Mining sites | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 211500 | Developed land | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 212000 | Site development (same allocation as for Account 211) | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 213100 | Buildings | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 213500 | Building fixtures and fittings (same allocation as for Account 2131) | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 213800 | Infrastructure works | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 214000 | Constructions on third-party sites (same allocation as for Account 213) | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 215110 | Specialised complex installations on own site | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 215140 | Specialised complex installations on third-party site | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 215310 | Installations of specific nature on own site | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 215340 | Installations of specific nature on third-party site | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 215400 | Plant and machinery | type=asset_fixed | asset_profile=Matériel et outillage (test) | items=0
+ACCOUNT | company=Docteur Bain | 215500 | Equipment and fixtures | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 215700 | Fixtures and fittings for plant and machinery, equipment and fixtures | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 218100 | Sundry general fixtures and fittings | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 218200 | Transport equipment | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 218300 | Office and computing equipment | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 218400 | Furnishings | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 218500 | Livestock | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 218600 | Recoverable packaging | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 218700 | Merger malpractice on tangible assets | type=asset_fixed | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 601000 | Inventory item purchases - Raw materials and supplies | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 602100 | Inventory item purchases - Consumable Materials | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 602210 | Inventory item purchases - Fuels | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 602220 | Inventory item purchases - Maintenance products | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 602230 | Inventory item purchases - Workshop and factory supplies | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 602240 | Inventory item purchases - Store supplies | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 602250 | Inventory item purchases - Office supplies | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 602610 | Inventory item purchases - Non-returnable packaging | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 602620 | Inventory item purchases - Packaging waste | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 602650 | Inventory item purchases - Unidentifiable recoverable packaging | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 602670 | Inventory item purchases - Mixed usage packaging | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 603100 | Change in stocks of raw materials (and supplies) | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 603200 | Change in stocks of other supplies | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 603700 | Change in inventories of goods | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 604000 | Purchases of project studies and services | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 605000 | Purchases of equipment, facilities and works | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 606100 | Non-inventoriable supplies (eg. water, energy) | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 606300 | Maintenance and minor equipment supplies | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 606400 | Administrative supplies | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 606800 | Other materials and supplies | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 607000 | Purchase of goods | type=expense | asset_profile=- | items=8
+ACCOUNT | company=Docteur Bain | 608000 | Incidental costs included in purchases | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 609100 | Discounts, rebates and discounts - Inventory item purchases - Raw materials (and supplies) | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 609200 | Discounts, rebates and discounts - Inventory item purchases - Other inventory item consumables | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 609400 | Discounts, rebates and discounts - Inventory item purchases - Project studies and services supplied | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 609500 | Discounts, rebates and discounts - Inventory item purchases - Equipment, facilities and works | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 609600 | Discounts, rebates and discounts - Inventory item purchases - Non-inventory consumables | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 609700 | Discounts, rebates and discounts - Inventory item purchases - Goods for resale | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 609800 | Unallocated rebates, discounts, allowances | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 611000 | General subcontracting | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 612200 | Movable property leases | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 612500 | Real property leases | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 613200 | Real property rental | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 613500 | Movable property rental | type=expense | asset_profile=- | items=1
+ACCOUNT | company=Docteur Bain | 614000 | Rental and joint ownership property costs | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 615200 | Maintenance and repairs on real property items | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 615500 | Maintenance and repairs on movable property items | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 615600 | Maintenance | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 616100 | Comprehensive risk | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 616200 | Compulsory construction loss insurance | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 616360 | Transport insurance on purchases | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 616370 | Transport insurance on sales | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 616380 | Transport insurance on other items | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 616400 | Operating risks | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 616500 | Customer insolvency | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 617000 | Project studies, surveys, assessments | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 618100 | General documentation | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 618300 | Technical documentation | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 618500 | Colloquium, seminar, conference costs | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 619000 | Purchase rebates, discounts, allowances on external services | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 621100 | Temporary personnel | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 621400 | Personnel on secondment or loan to the entity | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 622100 | Purchase commission and brokerage | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 622200 | Sales commission and brokerage | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 622400 | Payments to forwarding agents | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 622500 | Payments for factoring | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 622600 | Fees | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 622700 | Legal and litigation fees | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 622800 | Remuneration of intermediaries and fees - Sundry | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 623100 | Announcements and advertisements | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 623200 | Samples | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 623300 | Fairs and exhibitions | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 623400 | Gifts to customers | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 623500 | Premiums | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 623600 | Catalogues and printed material | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 623700 | Publications | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 623800 | Miscellaneous (tips, regular donations) | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 624100 | Transport on purchases | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 624200 | Transport on sales | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 624300 | Transport between establishments or work sites | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 624400 | Administrative transport | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 624700 | Collective staff transport | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 624800 | Various transport | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 625100 | Travels and journeys | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 625500 | Relocation costs | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 625600 | Missions | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 625700 | Receptions | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 626000 | Postal and telecommunication costs | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 627100 | Securities costs (purchase, sale, safe custody) | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 627200 | Commissions and loan issue costs | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 627500 | Charges on bills | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 627600 | Rental of safes | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 627800 | Other expenses and commissions on services supplied | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 628100 | Sundry assistance (eg. contributions) | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 628400 | Personnel recruitment costs | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 629000 | Purchase rebates, discounts, allowances on other external services | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 661160 | Loans and similar debts payable | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 661170 | Debts payable related to participating interests | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 661200 | Trust expenses, result for the period | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 661500 | Current account and credit deposit interest | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 661600 | Bank and financing transaction interest (eg. discounting) | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 661700 | Interest on guaranteed bonds | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 661810 | Commercial debts payable | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 661880 | Sundry debts payable | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 664000 | Losses on debts receivable related to participating interests | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 665000 | Discounts allowed | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 666000 | Exchange losses | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 667100 | Book value of financial assets sold | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 667200 | Net expenses on disposals of portfolio securities | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 667300 | Net expenses on disposals of marketable securities | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 667400 | Net expenses on disposal of tokens | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 668000 | Other financial charges | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 668300 | Losses arising from the repurchase by the entity of shares and bonds issued by itself | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 669000 | Transfers of financial expenses | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 672000 | Extraordinary expenses on previous years (during the year only) | type=expense | asset_profile=- | items=0
+ACCOUNT | company=Docteur Bain | 678000 | Other exceptional expenses | type=expense | asset_profile=- | items=0
+END | read-only inventory complete
