@@ -177,7 +177,7 @@ responsible = env["res.users"].search([("share", "=", False), ("id", ">", 2)], l
 Equipment = env["maintenance.equipment"]
 common = {"warranty_status": "no_warranty", "insurance_status": "not_insured",
           "owner_user_id": responsible.id, "company_id": company.id}
-eq_saw = Equipment.create(dict(common, name="1800W corded table saw – 1234",
+eq_saw = Equipment.create(dict(common, name="1800W corded table saw, 254mm blade, with wheeled stand – 1234",
                                category_id=ecat_all.id, product_id=saw.product_variant_id.id,
                                stock_lot_id=saw_lot.id))
 eq_mac = Equipment.create(dict(common, name="Device 1", category_id=ecat_all.id,

@@ -182,7 +182,8 @@ for key, name, categ, server_id in [
 
 E = {}
 for key, names, server_id in [
-    ("saw", ("1800W corded table saw – 1234", "Scie sur table – 1234"), 484),
+    ("saw", ("1800W corded table saw, 254mm blade, with wheeled stand – 1234",
+             "Scie sur table – 1234"), 484),
     ("green360", ("360° green laser",), 869),
     ("ranger", ("Laser rangefinder",), 870),
     ("mac", ("Device 1", "Mac Mini – 877790"), 871),
