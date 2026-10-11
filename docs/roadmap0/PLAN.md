@@ -1,147 +1,200 @@
-# ROADMAP section 0 – plan (revision 1, 11/10/2026, no code yet)
+# ROADMAP section 0 – plan (revision 2, 11/10/2026, no code yet)
 
-Basis: NOMENCLATURE.md (retained by the audit), REPORT.md (facts and anomalies),
-EXTRACT.md and data/ (read-only inventory and complement). Five items, each audited
-before any code; nothing runs on artdubati_test before the audit and the owner's go.
-Standard Odoo and OCA first; changes by inheritance; no raw SQL writes.
+Basis: NOMENCLATURE.md (retained), REPORT.md (facts, anomalies), EXTRACT.md and data/.
+Nothing runs on artdubati_test before the audit and the owner's go. Standard Odoo and
+OCA first; changes by inheritance; no raw SQL writes.
+
+Revision 2 answers the audit of c8d2d66: a persistent creation request instead of a
+transient assistant (§2), no `product_family` and no `classification_pending` on the
+product (§2.2), the complete data of the request (§2.3), no provisional mass move of
+stored products (§3.2), guarded deletion of categories (§3.4), Mac Mini bill posted by
+an accounting user only (§4), decisions D1 to D6 applied.
 
 ## Verified (code and database, read-only)
-- `maintenance_ok` is defined by `maintenance_product` (« Can be Maintenance »); our
-  module depends on it, so it can override the label.
-- Equipment categories are created silently by **two** paths: `maintenance_account`
-  (`account.move.line._set_equipment_category`, from a bill line) and our own
-  `equipment.operation.line._equipment_category` (phase 2 receipts). Both copy the
-  product category's name.
-- `maintenance.equipment.category.name` is translatable; the model has no `active`
-  field (a category is deleted, never archived).
-- Changing the category of a stored product with another cost method or valuation
-  empties and replenishes its stock at the current cost (`stock_account`
-  `product.template.write`); journal entries only in automatic valuation (none today).
-- OCA `contract.tag` exists in the server's `contract` 18.0.2.5.3.
-- The accounts the matrix needs exist in the company's chart (218300, 205000, 606300,
-  612200, 616xxx…); one asset profile only (215400, 5 years); no fixed asset.
+- `maintenance_ok` comes from `maintenance_product` (« Can be Maintenance »); our module
+  depends on it.
+- Two paths create equipment categories silently: `maintenance_account`
+  (`account.move.line._set_equipment_category`) and our
+  `equipment.operation.line._equipment_category`.
+- `maintenance.equipment.category`: name translatable, no `active` field (deleted, never
+  archived).
+- Changing a stored product's category to another cost method or valuation empties and
+  replenishes its stock at the current cost (`stock_account`); journal entries only in
+  automatic valuation.
+- OCA `contract.tag` in the server's `contract` 18.0.2.5.3. OCA `base_tier_validation`
+  18.0.3.5.2 (server-ux, « Mature ») exists but is **not installed**.
+- Our `product.category` already carries `is_fixed_asset_stock`,
+  `default_warranty_status`, `default_insurance_status`.
 
-## Not verified / hypotheses
-- H1: posting the bill of P00381 links the bill line to the existing equipment 871 by
-  its serial number and fills `asset_id` (phase 1 behaviour, to rehearse with this
-  exact history: receipt done before any bill, price changed after the receipt).
-- H2: an existing non-stock equipment can be brought into stock with a third-party
-  quant owner without creating a second equipment (path to characterise, item 3).
-- H3: the 15 € / 329 € difference of the table saw comes from a standard price typed
-  by hand (product history to read in item 3's dry run).
+## Hypotheses to check (local rehearsal or dry run)
+- H1: the bill of P00381 links to the existing equipment 871 by its serial and fills
+  `asset_id` (phase 1 behaviour, with this exact history).
+- H2: an existing non-stock equipment (the lasers) can be brought into stock with a
+  third-party owner by an operation that reuses the equipment and its contract.
+- H3: origin of the table saw's 329 € (standard price) against its 15 € bill.
+- H4: an existing untracked stock unit (Green cross laser 824) can become a serial item
+  integrated as equipment by a controlled operation.
 
 ---
 
 ## 1. Label « Can be maintained »
-- Override in `maintenance_shareholder_equipment` (product.template):
-  `maintenance_ok` string « Can be maintained ». Translations from `--i18n-export`
-  only: fr « Peut être maintenu », fa « قابل تعمیر و نگهداری است » (audit's wording,
-  owner may change it).
-- Tests: `fields_get` in en_US, fr_FR, fa_IR returns the three labels.
-- Smallest change of the section; shipped with item 2 (same module, one update), unless
-  the owner wants it alone first.
+Override of `maintenance_ok` in `maintenance_shareholder_equipment`: « Can be
+maintained »; translations from `--i18n-export`: fr « Peut être maintenu », fa
+« قابل تعمیر و نگهداری است ». Test: `fields_get` in en_US, fr_FR, fa_IR. Shipped with
+item 2.
 
-## 2. Product creation assistant and default equipment category
-Standard first: the product form stays; the assistant is the guided path, **model
-constraints are the guarantee** (they apply to every path: form, import, quick create in
-a purchase line, API).
+## 2. Product creation request (persistent document)
 
-Data model (maintenance_shareholder_equipment):
-- `product.template.product_family` (selection): durable equipment, material or
-  consumable, service, intangible asset (decision D1 on goods for resale and the generic
-  sales products).
-- `product.template.equipment_category_id`: default equipment category of the product,
-  mandatory for durable equipment; refused if it is « To classify » or one of the
-  automatic categories, except on products flagged as migrated (`classification_pending`,
-  set only by the migration script).
-- `product.category`: the family it accepts (a fixed-asset category only for durable
-  equipment and intangible assets, a service category only for services…), checked
-  against the product's family.
-- Consistency checks per family: durable equipment = storable, serial tracking,
-  maintainable, category with the fixed-asset flag or the small-equipment flag;
-  material / consumable = storable, quantity (lot optional), not maintainable;
-  service = service type; intangible = no stock.
+### 2.1 Document and workflow
+Model `product.creation.request` (mail.thread, activities, attachments), sequence
+PCR/YYYY/NNNN:
+- states: draft → to approve → approved → done, plus refused and cancelled;
+- requester (creator), responsible (who completes it), approver (who decided), dates;
+- the approval freezes a signature of the request's decisive data; any change after
+  approval sends it back to « to approve » with the list of changed values (same pattern
+  as `equipment.operation`, phase 2f);
+- execution (catalogue manager): creates the `product.template` (and its supplier
+  line) through the ORM with every check, links it to the request, never creates or
+  posts a bill, an order or a stock move;
+- refusal and cancellation keep the reason; the chatter is the decision log.
 
-Silent creation removed:
-- `maintenance_account`: the line's equipment category comes from the product's
-  `equipment_category_id`; `_set_equipment_category` refuses (clear message naming the
-  product) instead of creating a category.
-- Our `_equipment_category`: same rule.
+Approval mechanism (decision D7): A) the phase 2 pattern of `equipment.operation`
+(already audited, no new module, same users and screens) — proposed; B) OCA
+`base_tier_validation` (configurable tiers, but a new module on the platform: platform
+fingerprint, parity, route inventory, its own audit).
 
-Assistant (TransientModel, menu Inventory → Products → « New product (guided) »): step
-1 the family; step 2 only the fields the family needs (name, equipment category for
-equipment, product category filtered by family, purchase / sale, internal reference,
-supplier); the deduced values are shown read-only (type, tracking, cost method,
-valuation, accounts of the category, « posting the bill will create a fixed asset » or
-« expensed on 606300 »); creates the product through the ORM (same constraints).
-Rights: product creation stays with the existing Inventory / Purchase managers
-(decision D6).
+### 2.2 No family column on the product
+Demonstration: from the standard fields, a product's family can be deduced except
+between materials, consumables and goods for resale, which share type (storable),
+tracking and `maintenance_ok`; only their **category** tells them apart:
+- service: `type = service`;
+- durable equipment: storable, serial tracking, `maintenance_ok`;
+- intangible asset: not storable, category of the intangible branch;
+- material / consumable / goods for resale: storable, not maintainable: by category.
+So the family is **not** stored on the product: it is a choice of the request (which
+filters the categories and the fields asked) and, afterwards, deduced from the
+product's category **branch**. The branches are the product categories created by the
+migration with an external ID per root (fixed assets, small durable equipment,
+materials, consumables, goods for resale, intangible assets, services purchased,
+sales); the checks read the root's external ID, not a new column. No
+`classification_pending`: every product is classified at the end of the migration.
 
-Tests: each family created by the assistant; each forbidden combination refused by the
-constraints (form and quick-create paths); a bill line and a receipt of a product
-without equipment category refused, no category created; translations fr / fa.
+Checks on `product.template` (every path: form, import, quick create, API), per branch:
+equipment = storable, serial, maintainable, equipment category mandatory and valid;
+materials, consumables, goods = storable, not maintainable; services = service type;
+intangible = not storable. `All`, the automatic equipment categories and « To classify »
+are refused for any product created or edited after the migration.
 
-## 3. Migration of products and equipment
-A setup script (`docs/roadmap0/setup_roadmap0.py`, Odoo shell), dry run by default,
-`--apply` after the audit of the dry run, then a control dry run (phase 0 and 2
-pattern). Backup first.
+### 2.3 Data of the request
+Company; family; name, internal reference, barcode; unit and purchase unit; purchase /
+sale; product category (filtered by the family); tracking (deduced, shown); equipment
+category (equipment, mandatory, never « To classify »); supplier, supplier reference,
+price (excl. tax), minimum quantity, lead time; purchase and sale taxes; sale price
+(excl. tax) and initial cost (excl. tax); warranty and insurance defaults (from the
+category, shown); photo and documents (attachments).
+Shown read-only for the chosen company and category: effective income and expense
+accounts, asset profile and « posting the bill will create a fixed asset » or the
+expense account, cost method, valuation, stock accounts.
+Duplicate detection (archived products included) on name (normalised), internal
+reference, barcode and supplier reference: exact barcode or internal reference blocks
+the approval; a similar name or supplier reference must be confirmed by the approver.
 
-- Equipment tree: created as module data of item 2 (external IDs, `noupdate`,
-  translations through the .po files), « To classify » included; then the script moves
-  the equipment and deletes the 29 imported categories (no equipment) and the automatic
-  `All` (89) and `Fixed Assets` (481) once empty. The correspondence of the old codes
-  01 to 28 is written in the migration report.
-- Product categories: created by the script (accounts are company properties, looked up
-  by code and shown in the dry run, never guessed): fixed assets / IT (218300, new test
-  profile « Matériel informatique (test) », 3 years, one asset per item), small durable
-  equipment (606300; book value C24), measuring & inspection under it, services
-  purchased by nature, sales by nature, overheads. **Cost average, valuation manual**
-  everywhere for now: no switch to automatic before the accountant's stock accounts
-  (C25).
-- Products: moved per NOMENCLATURE.md §4 (the dry run lists each move, its cost-method
-  change and the stock revaluation Odoo will do); duplicates and TEST products archived
-  only after listing their dependencies (moves, bills, contracts, equipment); Computer
-  837 and Green cross laser 824 per decision D5.
-- Equipment: categories and names per §3.
-- The two lasers (anomaly 1): products 836 / 828 made storable with serial tracking; an
-  internal serial number per item; physical presence in stock with the third party
-  Manager as quant owner; monitor location emptied; contracts EQOP/2026/0738-0739 kept.
-  Path decided after characterisation on a local copy (decision D3): a borrowed /
-  rented receipt operation reusing the existing equipment, or a standard inventory
-  adjustment with owner.
-- Table saw (anomaly 2): its product history read in the dry run; alignment decided
-  (D4).
-- Report: every record moved, created, deleted or archived, with before / after.
+### 2.4 Rights and quick creation (D6)
+- New group « Product Catalogue Manager » (own category): approves and executes requests,
+  edits products.
+- Requesters: Equipment Operator, Purchase User, Inventory User: create and follow
+  their requests.
+- Product creation outside a request is refused to everyone but catalogue managers
+  (guard on `product.template` / `product.product` `create`, so quick create in purchase
+  lines and imports are covered, with a message pointing to the request); `no_create`
+  on the product fields of the purchase and operation lines for the others. The
+  migration script runs as superuser.
 
-## 4. Mac Mini regularisation (after item 3)
-1. Product in fixed assets / IT (storable, serial, average cost, manual valuation).
-2. Equipment renamed « Mac Mini – 877790 », category IT / Computers & servers.
-3. Bill created from P00381 (1 100 € excl. tax) and posted by the accountant or the
-   owner: fixed asset created (draft, C4) on 218300 with the test profile, linked to the
-   equipment (`asset_id`), equipment cost final 1 100 € from the bill.
-Rehearsed first on a local copy with the same history (H1); checks: asset value 1 100,
-`asset_id` filled, cost final, monitor rows (inventory value from the asset, stock
-value 0 for a fixed-asset category).
+### 2.5 Silent creation of equipment categories removed
+`maintenance_account` and our receipt take the product's default equipment category
+(`product.template.equipment_category_id`, a link, not a classification flag);
+without one they refuse with a message naming the product, never create a category.
 
-## 5. Supplier consignment (separate plan)
-Not mixed with items 1 to 4. First the characterisation of a change of owner in Odoo 18
-(P4-1 step 2, C23), then its own plan (receipt with the supplier as owner, no value,
-controlled consumption, bill at once or periodic, return, losses, exits refused).
-`TEST Cement rental` closed there (anomaly 3).
+Tests: each family requested, approved, executed; re-approval after a change;
+duplicates; refusals by family; quick create refused to a purchase user, allowed to a
+catalogue manager; bill line and receipt without equipment category refused, no category
+created; fr / fa translations; HTTP routes inventory (new module data only, no route).
+
+## 3. Migration (setup script: dry run, audit, apply, control dry run)
+
+### 3.1 Created
+- Equipment tree (NOMENCLATURE.md §1) as module data of item 2 (external IDs,
+  `noupdate`, translations in the .po files), « To classify » included (transitional).
+- Product category branches with their accounts looked up by code and shown in the dry
+  run, never guessed: only those whose treatment is decided now (fixed assets / IT with
+  the test profile « Matériel informatique (test) », 3 years, one asset per item;
+  services purchased and sales by nature; intangible assets). The material, consumable,
+  goods and small-equipment branches wait for §3.2.
+- Contract tags (NOMENCLATURE.md §5).
+
+### 3.2 Stored products: no provisional move (audit point 4)
+Only what does not depend on the stock accounts moves now: services (no stock), the Mac
+Mini (fixed asset, manual valuation is its final treatment), the two lasers (third-party
+owned: no company value whatever the category). The table saw, Green cross laser 824 and
+TEST Cement bag stay in their category until the accountant's stock accounts (C25) and
+the small-equipment answer (C24); they then move once, directly to the final
+configuration. One revaluation, never two.
+
+### 3.3 Products and equipment
+- Equipment: moved to the tree and renamed (NOMENCLATURE.md §3).
+- Lasers (D3): a controlled equipment operation reusing the equipment and their contracts
+  EQOP/2026/0738-0739: internal serial, receipt into stock with Manager as quant owner,
+  monitor location emptied; products 836 / 828 storable with serial (H2; if the existing
+  receipt branches cannot reuse an equipment, a « regularisation into stock » operation
+  type, planned and audited first).
+- Green cross laser 824 (D5): integrated as a serial equipment by a controlled
+  operation (H4), unless its explicit deletion as test data is decided.
+- Computer 837 (D5): archived if it has no stock, document or use (checked in the dry
+  run); duplicates and TEST products archived after the same check.
+- Table saw (D4): nothing aligned automatically; the dry run reads its bill
+  BILL/2026/10/0006 and the origin of the 329 € (valuation layers, product history); if
+  15 € is the real total price, a controlled and traced revaluation afterwards.
+- At the end no product is in `All` or « To classify » except those §3.2 keeps waiting,
+  listed in the report.
+
+### 3.4 Deleting equipment categories
+Refused while a category is referenced by: an equipment (active or archived), a product
+(default equipment category), a product category, a bill line
+(`account.move.line.equipment_category_id`), or any other field pointing to
+`maintenance.equipment.category` (found dynamically through `ir.model.fields`); defaults
+and saved filters mentioning their ids are listed. Their `__import__.cat_*` external IDs
+are deleted with them and listed in the report, with the old code → new category
+correspondence.
+
+## 4. Mac Mini (after §3, rehearsed locally first: H1)
+1. Product into fixed assets / IT; equipment renamed « Mac Mini – 877790 », category
+   IT & communications / Computers & servers.
+2. Bill created **in draft** from P00381 (1 100 € excl. tax) by the flow.
+3. Posted only by a user with accounting rights (Billing or Accountant group) named by
+   the owner; the flow never posts it. Expected: draft fixed asset on 218300 with the
+   test profile, `asset_id` on the equipment, cost final 1 100 € from the bill.
+
+## 5. Supplier consignment
+Separate plan, after characterising a change of owner in Odoo 18 (P4-1 step 2, C23).
+`TEST Cement rental` closed there.
 
 ## Order and deployments
-1+2 one module update (code, tests, translations, equipment tree as data) → 3 setup
-script (dry run, audit, apply, control) → 4 Mac Mini (rehearsal, then operations) → 5
-own plan. Insurance and financing registers: a search of standard and OCA modules,
-reported separately, before any proposal.
+§1 + §2 one module update → §3 setup script (dry run, audit, apply, control) → §4 Mac
+Mini → §5 own plan → the products waiting in §3.2 once C24 / C25 are answered.
+Insurance and financing registers: standard / OCA search reported separately first.
 
-## Decisions asked
-- D1: families: are goods for resale and the generic sales products (« Matériaux de
-  construction », sales services) families of their own, or « material » / « service »?
-- D2: constraints on existing products: only `classification_pending` products (set by
-  the migration) may keep « To classify »; every new or edited product must be valid?
-- D3: lasers: receipt operation reusing the equipment, or inventory adjustment with
-  owner (DEFINITIONS.md: quant owners come from receipt move lines)?
-- D4: table saw: align the product's standard price on the bill (15 €) or keep 329 €?
-- D5: Computer 837 and Green cross laser 824: equipment or archived?
-- D6: who may create products (assistant): the current Inventory / Purchase managers?
+## Decisions taken (audit of c8d2d66)
+- D1: goods for resale apart from materials used on worksites; generic sales products
+  are goods or services by nature.
+- D2: « To classify » transitional only; no permanent flag.
+- D3: lasers through a controlled equipment operation reusing equipment and contracts.
+- D4: no automatic alignment of the table saw.
+- D5: Computer 837 archived if without dependency; Green cross laser 824 integrated as
+  serial equipment unless explicitly deleted.
+- D6: group « Product Catalogue Manager »; requests by operators and buyers; quick
+  creation refused to them.
+- Mac Mini bill posted by an authorised accounting user only.
+
+## Decision asked
+- D7: approval mechanism of the request: phase 2 pattern (proposed) or OCA
+  `base_tier_validation`.
