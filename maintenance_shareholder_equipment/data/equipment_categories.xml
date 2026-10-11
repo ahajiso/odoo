@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ROADMAP section 0 (docs/roadmap0/NOMENCLATURE.md §1): equipment tree, physical
+     nature only. « To Classify » is transitional (migration only): not usable for
+     products. Parents group their children: only the leaves and the categories
+     without children are usable. -->
+<odoo noupdate="1">
+    <record id="ecat_it" model="maintenance.equipment.category">
+        <field name="name">IT &amp; Communications</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="False"/>
+    </record>
+    <record id="ecat_it_computers" model="maintenance.equipment.category">
+        <field name="name">Computers &amp; Servers</field>
+        <field name="parent_id" ref="ecat_it"/>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_it_phones" model="maintenance.equipment.category">
+        <field name="name">Phones &amp; Tablets</field>
+        <field name="parent_id" ref="ecat_it"/>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_it_network" model="maintenance.equipment.category">
+        <field name="name">Network &amp; Telephony</field>
+        <field name="parent_id" ref="ecat_it"/>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_it_printers" model="maintenance.equipment.category">
+        <field name="name">Printers &amp; Peripherals</field>
+        <field name="parent_id" ref="ecat_it"/>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_tools" model="maintenance.equipment.category">
+        <field name="name">Tools</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="False"/>
+    </record>
+    <record id="ecat_tools_cordless" model="maintenance.equipment.category">
+        <field name="name">Cordless Power Tools</field>
+        <field name="parent_id" ref="ecat_tools"/>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_tools_corded" model="maintenance.equipment.category">
+        <field name="name">Corded Power Tools</field>
+        <field name="parent_id" ref="ecat_tools"/>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_tools_hand" model="maintenance.equipment.category">
+        <field name="name">Hand Tools Tracked Individually</field>
+        <field name="parent_id" ref="ecat_tools"/>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_tools_batteries" model="maintenance.equipment.category">
+        <field name="name">Batteries &amp; Chargers Tracked Individually</field>
+        <field name="parent_id" ref="ecat_tools"/>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_measuring" model="maintenance.equipment.category">
+        <field name="name">Measuring, Inspection &amp; Setting-out</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_workshop" model="maintenance.equipment.category">
+        <field name="name">Workshop Machinery</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="False"/>
+    </record>
+    <record id="ecat_workshop_wood" model="maintenance.equipment.category">
+        <field name="name">Wood</field>
+        <field name="parent_id" ref="ecat_workshop"/>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_workshop_metal" model="maintenance.equipment.category">
+        <field name="name">Metal</field>
+        <field name="parent_id" ref="ecat_workshop"/>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_workshop_other" model="maintenance.equipment.category">
+        <field name="name">Other</field>
+        <field name="parent_id" ref="ecat_workshop"/>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_site_machinery" model="maintenance.equipment.category">
+        <field name="name">Site Machinery &amp; Equipment</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_height" model="maintenance.equipment.category">
+        <field name="name">Access &amp; Work at Height</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_formwork" model="maintenance.equipment.category">
+        <field name="name">Formwork &amp; Shoring</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_handling" model="maintenance.equipment.category">
+        <field name="name">Handling &amp; Lifting</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_cleaning" model="maintenance.equipment.category">
+        <field name="name">Cleaning &amp; Extraction</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_safety" model="maintenance.equipment.category">
+        <field name="name">Durable, Inspected Safety Equipment</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_vehicles" model="maintenance.equipment.category">
+        <field name="name">Vehicles</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_trailers" model="maintenance.equipment.category">
+        <field name="name">Trailers</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_site_installations" model="maintenance.equipment.category">
+        <field name="name">Temporary Site Installations</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_premises" model="maintenance.equipment.category">
+        <field name="name">Premises &amp; Warehouse Installations</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_furniture" model="maintenance.equipment.category">
+        <field name="name">Furniture Tracked Individually</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="True"/>
+    </record>
+    <record id="ecat_to_classify" model="maintenance.equipment.category">
+        <field name="name">To Classify</field>
+        <field name="company_id" eval="False"/>
+        <field name="assignable" eval="False"/>
+    </record>
+</odoo>

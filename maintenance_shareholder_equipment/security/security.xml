@@ -218,4 +218,39 @@
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
+
+    <!-- ROADMAP section 0 (docs/roadmap0/PLAN.md §2.4): product catalogue. Own category,
+         not the phase 2 groups. Requesters are the equipment operators, buyers and
+         inventory users; the catalogue manager approves (never his own request) and
+         executes. Nobody creates a product directly. -->
+    <record id="module_category_product_catalogue" model="ir.module.category">
+        <field name="name">Product Catalogue</field>
+        <field name="parent_id" ref="base.module_category_inventory"/>
+        <field name="sequence">62</field>
+    </record>
+    <record id="group_product_catalogue_manager" model="res.groups">
+        <field name="name">Product Catalogue Manager</field>
+        <field name="category_id" ref="module_category_product_catalogue"/>
+        <!-- administers the existing products (standard rights); creation stays refused
+             outside the request's execution (product.template.create) -->
+        <field name="implied_ids" eval="[(4, ref('product.group_product_manager'))]"/>
+        <field name="comment">Approves and executes product creation requests (never his own request) and corrects the structural fields of a product with a reason.</field>
+    </record>
+    <record id="rule_product_creation_request_company" model="ir.rule">
+        <field name="name">Product requests: multi-company</field>
+        <field name="model_id" ref="model_product_creation_request"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_product_creation_request_own" model="ir.rule">
+        <field name="name">Product requests: own requests</field>
+        <field name="model_id" ref="model_product_creation_request"/>
+        <field name="domain_force">['|', ('requester_id', '=', user.id), ('responsible_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_equipment_operator')), (4, ref('purchase.group_purchase_user')), (4, ref('stock.group_stock_user'))]"/>
+    </record>
+    <record id="rule_product_creation_request_manager" model="ir.rule">
+        <field name="name">Product requests: catalogue managers</field>
+        <field name="model_id" ref="model_product_creation_request"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_product_catalogue_manager'))]"/>
+    </record>
 </odoo>

@@ -1624,12 +1624,14 @@ class EquipmentOperationLine(models.Model):
         ], order="id", limit=1)
 
     def _equipment_category(self):
-        categ = self.product_id.product_tmpl_id.categ_id
-        category = fields.first(categ.equipment_category_ids)
+        """The product's default equipment category; never created silently
+        (ROADMAP section 0, docs/roadmap0/PLAN.md §2.5)."""
+        category = self.product_id.product_tmpl_id.equipment_category_id
         if not category:
-            category = self.env["maintenance.equipment.category"].create(
-                {"name": categ.name, "product_category_id": categ.id}
-            )
+            raise UserError(_(
+                "%(line)s: the product %(product)s has no default equipment category. "
+                "The catalogue manager sets it (structural correction) before the receipt.",
+                line=self._label(), product=self.product_id.display_name))
         return category
 
     def _prepare_equipment(self):

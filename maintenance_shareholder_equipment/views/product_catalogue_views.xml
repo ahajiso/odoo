@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ROADMAP section 0 (docs/roadmap0/PLAN.md §2): product creation requests, structural
+     corrections, catalogue fields on products and categories. -->
+<odoo>
+    <!-- ======================================================= creation request -->
+    <record id="product_creation_request_form" model="ir.ui.view">
+        <field name="name">product.creation.request.form</field>
+        <field name="model">product.creation.request</field>
+        <field name="arch" type="xml">
+            <form string="Product Request">
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object" string="Approve" class="btn-primary"
+                            invisible="state != 'to_approve'"
+                            groups="maintenance_shareholder_equipment.group_product_catalogue_manager"/>
+                    <button name="action_execute" type="object" string="Create the Product"
+                            class="btn-primary" invisible="state != 'approved'"
+                            groups="maintenance_shareholder_equipment.group_product_catalogue_manager"/>
+                    <button name="action_refuse" type="object" string="Refuse"
+                            invisible="state not in ('to_approve', 'approved')"
+                            groups="maintenance_shareholder_equipment.group_product_catalogue_manager"/>
+                    <button name="action_reset_draft" type="object" string="Back to Draft"
+                            invisible="state not in ('to_approve', 'approved')"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state not in ('draft', 'to_approve', 'approved')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,to_approve,approved,done"/>
+                </header>
+                <sheet>
+                    <field name="image_1920" widget="image" class="oe_avatar"
+                           options="{'preview_image': 'image_1920'}"/>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                        <h2><field name="product_name" placeholder="Product name"/></h2>
+                    </div>
+                    <group>
+                        <group string="Product">
+                            <field name="family"/>
+                            <field name="categ_id" options="{'no_create': True}"/>
+                            <field name="equipment_category_id" options="{'no_create': True}"
+                                   invisible="family != 'durable_equipment'"
+                                   required="family == 'durable_equipment'"/>
+                            <field name="tracking" invisible="family not in ('material', 'consumable', 'goods')"/>
+                            <field name="product_type"/>
+                            <field name="default_code"/>
+                            <field name="barcode"/>
+                            <field name="uom_id" options="{'no_create': True}"/>
+                            <field name="uom_po_id" options="{'no_create': True}"/>
+                            <field name="purchase_ok"/>
+                            <field name="sale_ok"/>
+                        </group>
+                        <group string="Request">
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="requester_id"/>
+                            <field name="responsible_id"/>
+                            <field name="approver_id" invisible="not approver_id"/>
+                            <field name="approval_date" invisible="not approval_date"/>
+                            <field name="executor_id" invisible="not executor_id"/>
+                            <field name="product_tmpl_id" invisible="not product_tmpl_id"/>
+                            <field name="decision_note" invisible="state == 'draft'"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Supplier" invisible="not purchase_ok">
+                            <field name="supplier_id" options="{'no_create': True}"/>
+                            <field name="supplier_code"/>
+                            <field name="currency_id" options="{'no_create': True}"/>
+                            <field name="supplier_price"/>
+                            <field name="min_qty"/>
+                            <field name="delay"/>
+                            <field name="supplier_taxes_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Prices and Taxes">
+                            <field name="company_currency_id" invisible="1"/>
+                            <field name="standard_price"/>
+                            <field name="list_price" invisible="not sale_ok"/>
+                            <field name="taxes_ids" widget="many2many_tags" options="{'no_create': True}"
+                                   invisible="not sale_ok"/>
+                        </group>
+                    </group>
+                    <group string="Accounting Treatment (current configuration)">
+                        <group>
+                            <field name="treatment_text"/>
+                            <field name="expense_account_id"/>
+                            <field name="income_account_id"/>
+                            <field name="stock_valuation_account_id"/>
+                            <field name="asset_profile_id"/>
+                        </group>
+                        <group>
+                            <field name="cost_method"/>
+                            <field name="valuation"/>
+                            <field name="warranty_status"/>
+                            <field name="insurance_status"/>
+                        </group>
+                    </group>
+                    <group string="Duplicates" invisible="not duplicate_text">
+                        <field name="duplicate_text" nolabel="1" colspan="2"/>
+                        <field name="similar_confirmed"
+                               groups="maintenance_shareholder_equipment.group_product_catalogue_manager"/>
+                    </group>
+                    <notebook>
+                        <page string="Documents" name="documents">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                        <page string="Description" name="description">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="product_creation_request_list" model="ir.ui.view">
+        <field name="name">product.creation.request.list</field>
+        <field name="model">product.creation.request</field>
+        <field name="arch" type="xml">
+            <list string="Product Requests">
+                <field name="name"/>
+                <field name="product_name"/>
+                <field name="family"/>
+                <field name="categ_id"/>
+                <field name="requester_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="product_creation_request_search" model="ir.ui.view">
+        <field name="name">product.creation.request.search</field>
+        <field name="model">product.creation.request</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="product_name"/>
+                <field name="default_code"/>
+                <field name="supplier_code"/>
+                <filter name="to_approve" string="To Approve" domain="[('state', '=', 'to_approve')]"/>
+                <filter name="approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <filter name="mine" string="My Requests" domain="[('requester_id', '=', uid)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_product_creation_request" model="ir.actions.act_window">
+        <field name="name">Product Requests</field>
+        <field name="res_model">product.creation.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Request a new product</p>
+            <p>Products are created through an approved request, never directly.</p>
+        </field>
+    </record>
+
+    <!-- ===================================================== structural correction -->
+    <record id="product_structural_correction_form" model="ir.ui.view">
+        <field name="name">product.structural.correction.form</field>
+        <field name="model">product.structural.correction</field>
+        <field name="arch" type="xml">
+            <form string="Structural Correction">
+                <header>
+                    <button name="action_apply" type="object" string="Apply" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <field name="product_tmpl_id" readonly="state != 'draft'"/>
+                        <field name="reason" readonly="state != 'draft'"/>
+                    </group>
+                    <group string="New Values (empty: unchanged)" invisible="state != 'draft'">
+                        <field name="categ_id" options="{'no_create': True}"/>
+                        <field name="equipment_category_id" options="{'no_create': True}"/>
+                        <field name="uom_id" options="{'no_create': True}"/>
+                        <field name="uom_po_id" options="{'no_create': True}"/>
+                        <field name="tracking"/>
+                        <field name="is_storable"/>
+                        <field name="maintenance_ok"/>
+                        <field name="property_account_income_id" options="{'no_create': True}"/>
+                        <field name="property_account_expense_id" options="{'no_create': True}"/>
+                    </group>
+                    <group string="Applied" invisible="state != 'done'">
+                        <field name="before_values"/>
+                        <field name="after_values"/>
+                        <field name="user_id"/>
+                        <field name="date"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="product_structural_correction_list" model="ir.ui.view">
+        <field name="name">product.structural.correction.list</field>
+        <field name="model">product.structural.correction</field>
+        <field name="arch" type="xml">
+            <list string="Structural Corrections">
+                <field name="name"/>
+                <field name="product_tmpl_id"/>
+                <field name="reason"/>
+                <field name="user_id"/>
+                <field name="date"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_product_structural_correction" model="ir.actions.act_window">
+        <field name="name">Structural Corrections</field>
+        <field name="res_model">product.structural.correction</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ======================================================= catalogue fields -->
+    <record id="product_template_form_catalogue" model="ir.ui.view">
+        <field name="name">product.template.form.catalogue</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='categ_id']" position="after">
+                <field name="equipment_category_id" invisible="not maintenance_ok"
+                       options="{'no_create': True}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_category_form_catalogue" model="ir.ui.view">
+        <field name="name">product.category.form.catalogue</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="product.product_category_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Product Requests" name="catalogue">
+                    <field name="request_ready"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="equipment_category_form_catalogue" model="ir.ui.view">
+        <field name="name">maintenance.equipment.category.form.catalogue</field>
+        <field name="model">maintenance.equipment.category</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_category_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="assignable"/>
+                <field name="active" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inventory → Products -->
+    <menuitem id="menu_product_creation_request" action="action_product_creation_request"
+              parent="stock.menu_stock_inventory_control" sequence="90"
+              groups="group_equipment_operator,purchase.group_purchase_user,stock.group_stock_user,group_product_catalogue_manager"/>
+    <menuitem id="menu_product_structural_correction" action="action_product_structural_correction"
+              parent="stock.menu_stock_inventory_control" sequence="91"
+              groups="group_product_catalogue_manager"/>
+</odoo>

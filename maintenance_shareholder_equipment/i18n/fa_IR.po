@@ -50,6 +50,26 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid ""
+"%(line)s: the product %(product)s has no default equipment category. The "
+"catalogue manager sets it (structural correction) before the receipt."
+msgstr ""
+"%(line)s: محصول %(product)s دستهٔ تجهیزات پیش‌فرض ندارد. مدیر کاتالوگ پیش از"
+" دریافت آن را تعیین می‌کند (اصلاح ساختاری)."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid ""
+"%(move)s: the product %(product)s has no default equipment category. The "
+"catalogue manager sets it (structural correction) before the bill is posted."
+msgstr ""
+"%(move)s: محصول %(product)s دستهٔ تجهیزات پیش‌فرض ندارد. مدیر کاتالوگ پیش از"
+" ثبت صورتحساب آن را تعیین می‌کند (اصلاح ساختاری)."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid "%(name)s cannot be integrated, missing: %(missing)s"
 msgstr "%(name)s را نمی‌توان یکپارچه کرد، موارد ناقص: %(missing)s"
@@ -245,6 +265,12 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid "%(product)s: %(problems)s"
+msgstr "%(product)s: %(problems)s"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%(product)s: more than the %(left)s left to receive."
 msgstr "%(product)s: بیش از %(left)s باقی‌مانده برای دریافت."
@@ -260,6 +286,28 @@ msgstr "%(product)s: مالیات %(tax)s مالیات خرید این شرکت 
 #: code:addons/maintenance_shareholder_equipment/models/res_company.py:0
 msgid "%(record)s belongs to another company than %(company)s."
 msgstr "%(record)s متعلق به شرکتی غیر از %(company)s است."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "%(request)s: %(problems)s"
+msgstr "%(request)s: %(problems)s"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "%(request)s: duplicate: %(items)s."
+msgstr "%(request)s: تکراری: %(items)s."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid ""
+"%(request)s: similar products exist (%(items)s). Check them, then tick « "
+"Similar Products Checked »."
+msgstr ""
+"%(request)s: محصولات مشابه وجود دارد (%(items)s). آن‌ها را بررسی کنید، سپس "
+"«محصولات مشابه بررسی شد» را علامت بزنید."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -294,6 +342,7 @@ msgstr "%s در وضعیت فعلی قابل تأیید نیست."
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
 msgid "%s cannot be cancelled."
 msgstr "%s قابل لغو نیست."
 
@@ -311,9 +360,40 @@ msgstr "%s قابل خرید نیست."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "%s cannot be refused in its current state."
+msgstr "%s در وضعیت فعلی قابل رد نیست."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
 msgid "%s cannot go back to draft."
 msgstr "%s نمی‌تواند به پیش‌نویس بازگردد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid "%s has no account with an asset profile."
+msgstr "%s حسابی با نمایهٔ دارایی ثابت ندارد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid "%s has no automatic valuation with its stock accounts (accountant)."
+msgstr "%s ارزش‌گذاری خودکار با حساب‌های موجودی ندارد (حسابدار)."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
+msgid "%s is already applied."
+msgstr "%s قبلاً اعمال شده است."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "%s is already executed or being executed, or not approved."
+msgstr "%s قبلاً اجرا شده، در حال اجراست یا تأیید نشده است."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -323,15 +403,50 @@ msgstr "%s قبلاً اجرا شده یا در حال اجراست."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "%s is closed: it can no longer be changed."
+msgstr "%s بسته شده است: دیگر قابل تغییر نیست."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"%s is not a complete fixed-asset category (fixed-asset flag, manual "
+"valuation, expense account with an asset profile)."
+msgstr ""
+"%s دستهٔ دارایی ثابت کاملی نیست (نشانگر دارایی ثابت، ارزش‌گذاری دستی، حساب "
+"هزینه با نمایهٔ دارایی)."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
 msgid "%s is not a draft."
 msgstr "%s پیش‌نویس نیست."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "%s is not a draft: cancel it instead."
+msgstr "%s پیش‌نویس نیست: به‌جای آن لغوش کنید."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s is not a loan contract."
 msgstr "%s قرارداد قرض نیست."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "%s is not an active purchase tax of the company."
+msgstr "%s مالیات خرید فعال شرکت نیست."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "%s is not an active sale tax of the company."
+msgstr "%s مالیات فروش فعال شرکت نیست."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -344,6 +459,12 @@ msgstr "%s از این مالک امانی یا اجاره‌ای نیست."
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s is not lent out."
 msgstr "%s امانت داده نشده است."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "%s is not waiting for approval."
+msgstr "%s در انتظار تأیید نیست."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -381,6 +502,23 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "%s: an approved document cannot be removed."
+msgstr "%s: سند تأییدشده قابل حذف نیست."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid ""
+"%s: another request with the same internal reference, barcode or supplier "
+"reference was executed at the same time. Refresh the page: the other request"
+" is then listed as a duplicate."
+msgstr ""
+"%s: درخواست دیگری با همان کد داخلی، بارکد یا کد تأمین‌کننده هم‌زمان اجرا شد."
+" صفحه را تازه کنید: آن درخواست سپس به‌عنوان تکراری نمایش داده می‌شود."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s: choose a line of the purchase order."
 msgstr "%s: یک سطر از سفارش خرید انتخاب کنید."
@@ -399,6 +537,18 @@ msgstr "%s: اقلام مصرفی همیشه ملکی هستند (نسخهٔ ۱)
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
+msgid "%s: give the reason of the correction."
+msgstr "%s: دلیل اصلاح را وارد کنید."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "%s: give the reason of the refusal."
+msgstr "%s: دلیل رد را وارد کنید."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s: insurance status"
 msgstr "%s: وضعیت بیمه"
@@ -411,9 +561,21 @@ msgstr "%s: مکان و وضعیت مالکیت با هم سازگار نیست�
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
+msgid "%s: no new value."
+msgstr "%s: مقدار جدیدی وجود ندارد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s: only storable consumables."
 msgstr "%s: فقط اقلام مصرفی انبارشدنی."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
+msgid "%s: only structural fields are corrected here."
+msgstr "%s: در اینجا فقط فیلدهای ساختاری اصلاح می‌شوند."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -450,6 +612,12 @@ msgstr "%s: مقصد بازگشت"
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "%s: serial number"
 msgstr "%s: شماره سریال"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "%s: the requester cannot approve his own request."
+msgstr "%s: درخواست‌کننده نمی‌تواند درخواست خود را تأیید کند."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -548,15 +716,26 @@ msgstr ""
 "برگشت انبار انجام می‌شود."
 
 #. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_height
+msgid "Access & Work at Height"
+msgstr "دسترسی و کار در ارتفاع"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_account_account
 msgid "Account"
 msgstr "حساب"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__accounting_treatment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__treatment_text
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Accounting Treatment"
 msgstr "رفتار حسابداری"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
+msgid "Accounting Treatment (current configuration)"
+msgstr "رویهٔ حسابداری (پیکربندی فعلی)"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__acquisition_nature
@@ -581,26 +760,37 @@ msgstr "تحصیل بدون خرید"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__message_needaction
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__message_needaction
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__message_needaction
 msgid "Action Needed"
 msgstr "اقدام لازم است"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment_category__active
+msgid "Active"
+msgstr "فعال"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__activity_ids
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__activity_ids
 msgid "Activities"
 msgstr "فعالیت‌ها"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__activity_exception_decoration
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__activity_exception_decoration
 msgid "Activity Exception Decoration"
 msgstr "نشانهٔ استثنای فعالیت"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__activity_state
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__activity_state
 msgid "Activity State"
 msgstr "وضعیت فعالیت"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__activity_type_icon
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__activity_type_icon
 msgid "Activity Type Icon"
 msgstr "نماد نوع فعالیت"
 
@@ -610,10 +800,21 @@ msgid "Address of the third party where the equipment is held."
 msgstr "نشانی شخص ثالث که تجهیز در آن نگهداری می‌شود."
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__after_values
+msgid "After Values"
+msgstr "مقادیر پس از اصلاح"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_res_company__allow_asset_supplier_refund
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_res_config_settings__allow_asset_supplier_refund
 msgid "Allow Supplier Refunds on Fixed-Asset Accounts"
 msgstr "اجازهٔ برگشت از خرید روی حساب‌های دارایی ثابت"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
+msgid "An applied correction can no longer be changed."
+msgstr "اصلاحِ اعمال‌شده دیگر قابل تغییر نیست."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -636,12 +837,35 @@ msgid "An insurance line belongs to a supplier contract."
 msgstr "سطر بیمه متعلق به قرارداد تأمین‌کننده است."
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__state__done
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_structural_correction_form
+msgid "Applied"
+msgstr "اعمال‌شده"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__user_id
+msgid "Applied by"
+msgstr "اعمال‌شده توسط"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__date
+msgid "Applied on"
+msgstr "تاریخ اعمال"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_structural_correction_form
+msgid "Apply"
+msgstr "اعمال"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__approval_date
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__approval_date
 msgid "Approval Date"
 msgstr "تاریخ تأیید"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__approval_snapshot
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__approval_snapshot
 msgid "Approval Snapshot"
 msgstr "تصویر لحظه‌ای تأیید"
 
@@ -652,14 +876,33 @@ msgid "Approval cancelled: the commitments changed."
 msgstr "تأیید لغو شد: تعهدات تغییر کرده‌اند."
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "Approval cancelled: the request changed."
+msgstr "تأیید لغو شد: درخواست تغییر کرد."
+
+#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
 msgid "Approve"
 msgstr "تأیید"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__state__approved
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__state__approved
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_search
 msgid "Approved"
 msgstr "تأییدشده"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__approved_documents
+msgid "Approved Document Checksums"
+msgstr "اثر انگشت اسناد تأییدشده"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__approved_attachment_ids
+msgid "Approved Documents"
+msgstr "اسناد تأییدشده"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__quantity
@@ -669,13 +912,30 @@ msgstr "مقدار تأییدشده"
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
 msgid "Approved by %s."
 msgstr "تأییدشده توسط %s."
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "Approved documents of %s cannot be removed or replaced."
+msgstr "اسناد تأییدشدهٔ %s قابل حذف یا جایگزینی نیستند."
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__approver_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__approver_id
 msgid "Approver"
 msgstr "تأییدکننده"
+
+#. module: maintenance_shareholder_equipment
+#: model:res.groups,comment:maintenance_shareholder_equipment.group_product_catalogue_manager
+msgid ""
+"Approves and executes product creation requests (never his own request) and "
+"corrects the structural fields of a product with a reason."
+msgstr ""
+"درخواست‌های ایجاد محصول را تأیید و اجرا می‌کند (هرگز درخواست خودش را) و "
+"فیلدهای ساختاری محصول را با ذکر دلیل اصلاح می‌کند."
 
 #. module: maintenance_shareholder_equipment
 #: model:res.groups,comment:maintenance_shareholder_equipment.group_equipment_approver
@@ -687,9 +947,19 @@ msgstr ""
 "جابه‌جایی انبار تأیید می‌کند."
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__asset_profile_id
+msgid "Asset Profile"
+msgstr "نمایهٔ دارایی ثابت"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_account_asset_profile
 msgid "Asset profile"
 msgstr "دسته‌بندی دارایی"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_ir_attachment
+msgid "Attachment"
+msgstr "پیوست"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -699,13 +969,36 @@ msgstr "پیوست %s را نمی‌توان به این عملیات افزود
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__message_attachment_count
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__message_attachment_count
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__message_attachment_count
 msgid "Attachment Count"
 msgstr "تعداد پیوست‌ها"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_category__request_ready
+msgid "Available for Product Requests"
+msgstr "قابل استفاده در درخواست‌های محصول"
+
+#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
 msgid "Back to Draft"
 msgstr "بازگشت به پیش‌نویس"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__barcode
+msgid "Barcode"
+msgstr "بارکد"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_tools_batteries
+msgid "Batteries & Chargers Tracked Individually"
+msgstr "باتری‌ها و شارژرهای با ردیابی تکی"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__before_values
+msgid "Before Values"
+msgstr "مقادیر پیش از اصلاح"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__bill_attachment_ids
@@ -778,11 +1071,51 @@ msgid "Bills"
 msgstr "صورتحساب‌ها"
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "Blocking: %s"
+msgstr "مسدودکننده: %s"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__receipt_branch__borrowed
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_ownership_correction__ownership_status__borrowed
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__ownership_status__borrowed
 msgid "Borrowed"
 msgstr "امانی"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__tracking__lot
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__tracking__lot
+msgid "By Lots"
+msgstr "بر اساس بهر"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__tracking__none
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__tracking__none
+msgid "By Quantity"
+msgstr "بر اساس مقدار"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__tracking__serial
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__tracking__serial
+msgid "By Unique Serial Number"
+msgstr "بر اساس شمارهٔ سریال یکتا"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__purchase_ok
+msgid "Can be Purchased"
+msgstr "قابل خرید"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__sale_ok
+msgid "Can be Sold"
+msgstr "قابل فروش"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_product__maintenance_ok
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_template__maintenance_ok
+msgid "Can be maintained"
+msgstr "قابل تعمیر و نگهداری است"
 
 #. module: maintenance_shareholder_equipment
 #: model:res.groups,comment:maintenance_shareholder_equipment.group_equipment_ownership_manager
@@ -795,6 +1128,7 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_cost_correction_form
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_ownership_correction_form
 msgid "Cancel"
@@ -802,6 +1136,7 @@ msgstr "لغو"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__state__cancel
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__state__cancel
 msgid "Cancelled"
 msgstr "لغوشده"
 
@@ -829,6 +1164,11 @@ msgid "Choose an active lent-out stock."
 msgstr "یک انبار فعال نزد شخص ثالث انتخاب کنید."
 
 #. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_cleaning
+msgid "Cleaning & Extraction"
+msgstr "نظافت و مکش"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_res_company
 msgid "Companies"
 msgstr "شرکت‌ها"
@@ -837,6 +1177,8 @@ msgstr "شرکت‌ها"
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__company_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__company_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__company_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__company_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__company_id
 msgid "Company"
 msgstr "شرکت"
 
@@ -859,6 +1201,11 @@ msgid ""
 msgstr ""
 "دارایی شرکت که رفتار پیش‌بینی‌شده آن دارایی ثابت ایجاد نمی‌کند: اپراتور آن "
 "را تأیید می‌کند. بخشی از تأیید است."
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_it_computers
+msgid "Computers & Servers"
+msgstr "رایانه‌ها و سرورها"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__condition
@@ -891,9 +1238,19 @@ msgid "Confirmed: no fixed asset"
 msgstr "تأیید شد: بدون دارایی ثابت"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__family__material
+msgid "Construction material"
+msgstr "مصالح ساختمانی"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation_line__family__consumable
 msgid "Consumable"
 msgstr "مصرفی"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__family__consumable
+msgid "Consumable or accessory"
+msgstr "مصرفی یا لوازم جانبی"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_contract_contract
@@ -978,6 +1335,16 @@ msgid "Contribution to a Shareholder Current Account"
 msgstr "آورده به حساب جاری سهامدار"
 
 #. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_tools_corded
+msgid "Corded Power Tools"
+msgstr "ابزار برقی سیم‌دار"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_tools_cordless
+msgid "Cordless Power Tools"
+msgstr "ابزار برقی شارژی"
+
+#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_cost_correction_form
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_ownership_correction_form
 msgid "Correct"
@@ -1037,6 +1404,11 @@ msgid "Cost Known"
 msgstr "هزینه معلوم"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__cost_method
+msgid "Cost Method"
+msgstr "روش بهای تمام‌شده"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__cost_provisional
 msgid "Cost Provisional"
 msgstr "هزینه موقت"
@@ -1062,6 +1434,11 @@ msgid "Create the Order"
 msgstr "ایجاد سفارش"
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
+msgid "Create the Product"
+msgstr "ایجاد محصول"
+
+#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Created Records"
 msgstr "اسناد ایجادشده"
@@ -1072,6 +1449,8 @@ msgstr "اسناد ایجادشده"
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__create_uid
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__create_uid
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__create_uid
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__create_uid
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__create_uid
 msgid "Created by"
 msgstr "ایجاد شده توسط"
 
@@ -1081,12 +1460,15 @@ msgstr "ایجاد شده توسط"
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__create_date
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__create_date
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__create_date
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__create_date
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__create_date
 msgid "Created on"
 msgstr "ایجاد شده در"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__currency_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__currency_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__company_currency_id
 msgid "Currency"
 msgstr "ارز"
 
@@ -1109,14 +1491,36 @@ msgid ""
 msgstr "تاریخ رویداد فیزیکی. موجودی در زمان اجرا و با تاریخ اجرا ثبت می‌شود."
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_product__equipment_category_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_template__equipment_category_id
+msgid "Default Equipment Category"
+msgstr "دستهٔ تجهیزات پیش‌فرض"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__insurance_status
+msgid "Default Insurance"
+msgstr "بیمهٔ پیش‌فرض"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_category__default_insurance_status
 msgid "Default Insurance Status"
 msgstr "وضعیت بیمهٔ پیش‌فرض"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__warranty_status
+msgid "Default Warranty"
+msgstr "ضمانت پیش‌فرض"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_category__default_warranty_status
 msgid "Default Warranty Status"
 msgstr "وضعیت گارانتی پیش‌فرض"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__description
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
+msgid "Description"
+msgstr "شرح"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__location_dest_id
@@ -1140,6 +1544,8 @@ msgstr ""
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__display_name
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__display_name
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__display_name
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__display_name
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__display_name
 msgid "Display Name"
 msgstr "نام نمایشی"
 
@@ -1151,11 +1557,13 @@ msgstr "سندی که هزینه از آن آمده است."
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__attachment_ids
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
 msgid "Documents"
 msgstr "مدارک"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__state__done
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__state__done
 msgid "Done"
 msgstr "اجراشده"
 
@@ -1166,6 +1574,8 @@ msgstr "اهداکننده"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__state__draft
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__state__draft
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__state__draft
 msgid "Draft"
 msgstr "پیش‌نویس"
 
@@ -1186,6 +1596,30 @@ msgstr ""
 "برای سطرهای دریافت‌شده."
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
+msgid "Duplicates"
+msgstr "موارد تکراری"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__family__durable_equipment
+msgid "Durable equipment"
+msgstr "تجهیزات بادوام"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__tracking
+msgid ""
+"Durable equipment: always by serial number. Materials, consumables and "
+"goods: by quantity or by lots."
+msgstr ""
+"تجهیزات بادوام: همیشه با شمارهٔ سریال. مصالح، اقلام مصرفی و کالاها: بر اساس "
+"مقدار یا بهر."
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_safety
+msgid "Durable, Inspected Safety Equipment"
+msgstr "تجهیزات ایمنی بادوام و بازرسی‌شده"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__equipment_id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__equipment_id
@@ -1202,6 +1636,11 @@ msgstr "تجهیز"
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.res_config_settings_view_form_equipment
 msgid "Equipment (test choices, see the accountant)"
 msgstr "تجهیزات (انتخاب‌های آزمایشی، با حسابدار بررسی شود)"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__equipment_category_id
+msgid "Equipment Category"
+msgstr "دستهٔ تجهیزات"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__equipment_name
@@ -1282,6 +1721,17 @@ msgid "Equipment Rental Expense Account"
 msgstr "حساب هزینهٔ اجارهٔ تجهیزات"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_product__equipment_category_id
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_template__equipment_category_id
+msgid ""
+"Equipment category of the items of this product, used at their receipt and "
+"by their bill lines. Mandatory for durable equipment; no category is ever "
+"created automatically."
+msgstr ""
+"دستهٔ تجهیزات اقلام این محصول که در دریافت و سطرهای صورتحساب آن‌ها به کار "
+"می‌رود. برای تجهیزات بادوام الزامی است؛ هیچ دسته‌ای خودکار ایجاد نمی‌شود."
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation_line__family__equipment
 msgid "Equipment in Stock"
 msgstr "تجهیز در انبار"
@@ -1356,6 +1806,7 @@ msgstr "مقدار اجراشده"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__executor_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__executor_id
 msgid "Executed by"
 msgstr "اجراشده توسط"
 
@@ -1367,6 +1818,7 @@ msgstr "اجراشده توسط %s."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__execution_date
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__execution_date
 msgid "Execution Date"
 msgstr "تاریخ اجرا"
 
@@ -1396,12 +1848,18 @@ msgid "Exits and Returns"
 msgstr "خروج‌ها و بازگشت‌ها"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__expense_account_id
+msgid "Expense Account"
+msgstr "حساب هزینه"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation_stop__confirmed
 msgid "Explicit confirmation of the choice to stop or keep this line."
 msgstr "تأیید صریح انتخاب توقف یا نگه‌داشتن این سطر."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__family
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__family
 msgid "Family"
 msgstr "خانواده"
 
@@ -1434,18 +1892,28 @@ msgstr "دارایی‌های ثابت پیگیری‌شده در انبار"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__message_follower_ids
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__message_follower_ids
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__message_follower_ids
 msgid "Followers"
 msgstr "دنبال‌کنندگان"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__message_partner_ids
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__message_partner_ids
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__message_partner_ids
 msgid "Followers (Partners)"
 msgstr "دنبال‌کنندگان (همکاران)"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__activity_type_icon
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
 msgstr "نماد Font Awesome، مثلاً fa-tasks"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_formwork
+msgid "Formwork & Shoring"
+msgstr "قالب‌بندی و شمع‌بندی"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__exit_nature__loan
@@ -1453,9 +1921,29 @@ msgid "Free Loan"
 msgstr "قرض رایگان"
 
 #. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_furniture
+msgid "Furniture Tracked Individually"
+msgstr "مبلمان با ردیابی تکی"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__acquisition_nature__gift
 msgid "Gift"
 msgstr "هدیه"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__family__goods
+msgid "Goods for resale"
+msgstr "کالای خرید برای فروش"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_tools_hand
+msgid "Hand Tools Tracked Individually"
+msgstr "ابزار دستی با ردیابی تکی"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_handling
+msgid "Handling & Lifting"
+msgstr "جابه‌جایی و بالابری"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment__handover_value
@@ -1469,6 +1957,8 @@ msgstr "تاریخ ارزش تحویل"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__has_message
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__has_message
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__has_message
 msgid "Has Message"
 msgstr "دارای پیام"
 
@@ -1478,29 +1968,54 @@ msgstr "دارای پیام"
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__id
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__id
 msgid "ID"
 msgstr "شناسه"
 
 #. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_it
+msgid "IT & Communications"
+msgstr "فناوری اطلاعات و ارتباطات"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__activity_exception_icon
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__activity_exception_icon
 msgid "Icon"
 msgstr "نماد"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__activity_exception_icon
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__activity_exception_icon
 msgid "Icon to indicate an exception activity."
 msgstr "نماد نشان‌دهندهٔ فعالیت استثنا."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__message_needaction
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__message_needaction
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_structural_correction__message_needaction
 msgid "If checked, new messages require your attention."
 msgstr "اگر علامت خورده باشد، پیام‌های جدید نیاز به توجه شما دارند."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__message_has_error
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__message_has_sms_error
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__message_has_error
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__message_has_sms_error
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_structural_correction__message_has_error
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_structural_correction__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
 msgstr "اگر علامت خورده باشد، برخی پیام‌ها خطای ارسال دارند."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__income_account_id
+msgid "Income Account"
+msgstr "حساب درآمد"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__standard_price
+msgid "Initial Cost (excl. tax)"
+msgstr "بهای اولیه (بدون مالیات)"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_nature__insurance
@@ -1517,8 +2032,14 @@ msgstr "وضعیت بیمه"
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation_line__insurance_status__insured
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__insurance_status__insured
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_category__default_insurance_status__insured
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__insurance_status__insured
 msgid "Insured"
 msgstr "بیمه‌شده"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__family__intangible
+msgid "Intangible asset"
+msgstr "دارایی نامشهود"
 
 #. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
@@ -1542,9 +2063,19 @@ msgid "Integration"
 msgstr "یکپارچه‌سازی"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__default_code
+msgid "Internal Reference"
+msgstr "کد داخلی"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_stock_location
 msgid "Inventory Locations"
 msgstr "مکان های انبارداری"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__valuation
+msgid "Inventory Valuation"
+msgstr "ارزش‌گذاری موجودی"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_res_company__equipment_current_account_location_id
@@ -1570,6 +2101,8 @@ msgstr "مکان موجودی که حساب آن با اصلاحیه بستان�
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__message_is_follower
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__message_is_follower
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__message_is_follower
 msgid "Is Follower"
 msgstr "دنبال‌کننده است"
 
@@ -1620,11 +2153,28 @@ msgstr ""
 "حسابداری استفاده نمی‌شود."
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__key_barcode
+msgid "Key Barcode"
+msgstr "کلید بارکد"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__key_default_code
+msgid "Key Default Code"
+msgstr "کلید کد داخلی"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__key_supplier
+msgid "Key Supplier"
+msgstr "کلید کد تأمین‌کننده"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__write_uid
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__write_uid
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__write_uid
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__write_uid
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__write_uid
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__write_uid
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__write_uid
 msgid "Last Updated by"
 msgstr "آخرین به‌روزرسانی توسط"
 
@@ -1634,8 +2184,15 @@ msgstr "آخرین به‌روزرسانی توسط"
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__write_date
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__write_date
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__write_date
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__write_date
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__write_date
 msgid "Last Updated on"
 msgstr "آخرین به‌روزرسانی در"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__delay
+msgid "Lead Time (days)"
+msgstr "زمان تحویل (روز)"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__owner_partner_id
@@ -1768,6 +2325,11 @@ msgid "Lot/Serial"
 msgstr "سری/سریال"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__maintenance_ok__yes
+msgid "Maintainable"
+msgstr "قابل نگهداری"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_nature__maintenance
 msgid "Maintenance"
 msgstr "نگهداری و تعمیرات"
@@ -1776,6 +2338,11 @@ msgstr "نگهداری و تعمیرات"
 #: model:ir.model,name:maintenance_shareholder_equipment.model_maintenance_equipment
 msgid "Maintenance Equipment"
 msgstr "تجهیزات نگهداری و تعمیرات"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_maintenance_equipment_category
+msgid "Maintenance Equipment Category"
+msgstr "دسته تجهیزات تعمیر و نگهداری"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_stop__mandatory
@@ -1793,19 +2360,38 @@ msgid "Maximum quantity, part of the approval."
 msgstr "حداکثر مقدار، بخشی از تأیید."
 
 #. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_measuring
+msgid "Measuring, Inspection & Setting-out"
+msgstr "اندازه‌گیری، بازرسی و پیاده‌سازی"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__message_has_error
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__message_has_error
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__message_has_error
 msgid "Message Delivery error"
 msgstr "خطای ارسال پیام"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__message_ids
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__message_ids
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__message_ids
 msgid "Messages"
 msgstr "پیام‌ها"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_workshop_metal
+msgid "Metal"
+msgstr "فلز"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__cost_source__migration
 msgid "Migration (receipt value)"
 msgstr "مهاجرت (ارزش دریافت)"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__min_qty
+msgid "Minimum Quantity"
+msgstr "حداقل مقدار"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_stock_location__is_monitor_stock
@@ -1819,11 +2405,19 @@ msgstr "ماه"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__my_activity_date_deadline
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__my_activity_date_deadline
 msgid "My Activity Deadline"
 msgstr "مهلت فعالیت من"
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_search
+msgid "My Requests"
+msgstr "درخواست‌های من"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__name
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__name
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__name
 msgid "Name"
 msgstr "نام"
 
@@ -1838,9 +2432,34 @@ msgid "Needs No Asset Confirmation"
 msgstr "نیاز به تأیید «بدون دارایی ثابت»"
 
 #. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_it_network
+msgid "Network & Telephony"
+msgstr "شبکه و تلفن"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__contract_mode__new
 msgid "New Contract"
 msgstr "قرارداد جدید"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__equipment_category_id
+msgid "New Equipment Category"
+msgstr "دستهٔ تجهیزات جدید"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__property_account_expense_id
+msgid "New Expense Account"
+msgstr "حساب هزینهٔ جدید"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__property_account_income_id
+msgid "New Income Account"
+msgstr "حساب درآمد جدید"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__maintenance_ok
+msgid "New Maintenance"
+msgstr "قابلیت نگهداری جدید"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__new_location_name
@@ -1848,17 +2467,66 @@ msgid "New Off-Site Stock"
 msgstr "انبار جدید نزد شخص ثالث"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__categ_id
+msgid "New Product Category"
+msgstr "دستهٔ محصول جدید"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__uom_po_id
+msgid "New Purchase Unit"
+msgstr "واحد خرید جدید"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__is_storable
+msgid "New Storage"
+msgstr "انبارش جدید"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__tracking
+msgid "New Tracking"
+msgstr "ردیابی جدید"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__uom_id
+msgid "New Unit"
+msgstr "واحد جدید"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_structural_correction_form
+msgid "New Values (empty: unchanged)"
+msgstr "مقادیر جدید (خالی: بدون تغییر)"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"New variants of %s are created through a product request, never from a sale "
+"or purchase line."
+msgstr ""
+"گونه‌های جدید %s از طریق درخواست محصول ایجاد می‌شوند، هرگز از سطر فروش یا "
+"خرید."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__activity_calendar_event_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__activity_calendar_event_id
+msgid "Next Activity Calendar Event"
+msgstr "رویداد تقویم فعالیت بعدی"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__activity_date_deadline
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__activity_date_deadline
 msgid "Next Activity Deadline"
 msgstr "مهلت فعالیت بعدی"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__activity_summary
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__activity_summary
 msgid "Next Activity Summary"
 msgstr "خلاصهٔ فعالیت بعدی"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__activity_type_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__activity_type_id
 msgid "Next Activity Type"
 msgstr "نوع فعالیت بعدی"
 
@@ -1876,6 +2544,7 @@ msgstr "بدون شماره سریال سازنده"
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation_line__warranty_status__no_warranty
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__warranty_status__no_warranty
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_category__default_warranty_status__no_warranty
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__warranty_status__no_warranty
 msgid "No Warranty"
 msgstr "بدون گارانتی"
 
@@ -1916,6 +2585,8 @@ msgstr "تجهیز خارج از انبار"
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__warranty_status__not_applicable
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_category__default_insurance_status__not_applicable
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_category__default_warranty_status__not_applicable
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__insurance_status__not_applicable
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__warranty_status__not_applicable
 msgid "Not Applicable"
 msgstr "موضوعیت ندارد"
 
@@ -1923,14 +2594,34 @@ msgstr "موضوعیت ندارد"
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation_line__insurance_status__not_insured
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__insurance_status__not_insured
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_category__default_insurance_status__not_insured
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__insurance_status__not_insured
 msgid "Not Insured"
 msgstr "بیمه‌نشده"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
 msgid "Not allowed."
 msgstr "مجاز نیست."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid ""
+"Not executed: the request or its accounting treatment changed since the "
+"approval."
+msgstr "اجرا نشد: درخواست یا رویهٔ حسابداری آن از زمان تأیید تغییر کرده است."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__maintenance_ok__no
+msgid "Not maintainable"
+msgstr "غیرقابل نگهداری"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__is_storable__no
+msgid "Not stored"
+msgstr "غیرانباری"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__note
@@ -1946,21 +2637,29 @@ msgstr "چیزی برای اجرا نیست: همهٔ مقادیر اجراشد�
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__message_needaction_counter
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__message_needaction_counter
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__message_needaction_counter
 msgid "Number of Actions"
 msgstr "تعداد اقدامات"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__message_has_error_counter
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__message_has_error_counter
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__message_has_error_counter
 msgid "Number of errors"
 msgstr "تعداد خطاها"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__message_needaction_counter
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__message_needaction_counter
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_structural_correction__message_needaction_counter
 msgid "Number of messages requiring action"
 msgstr "تعداد پیام‌های نیازمند اقدام"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__message_has_error_counter
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__message_has_error_counter
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_structural_correction__message_has_error_counter
 msgid "Number of messages with delivery error"
 msgstr "تعداد پیام‌های دارای خطای ارسال"
 
@@ -2040,6 +2739,16 @@ msgstr "فقط اپراتورهای تجهیزات می‌توانند عملی�
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid ""
+"Only equipment operators, buyers, inventory users and catalogue managers can"
+" request a product."
+msgstr ""
+"فقط اپراتورهای تجهیزات، خریداران، کاربران انبار و مدیران کاتالوگ می‌توانند "
+"محصول درخواست کنند."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid "Only equipment ownership managers can change the ownership."
 msgstr "فقط مدیران مالکیت تجهیزات می‌توانند مالکیت را تغییر دهند."
@@ -2052,6 +2761,36 @@ msgid ""
 msgstr ""
 "فقط برای تجهیزی که در انبار مدیریت نمی‌شود (خودرو، تأسیسات ثابت). اگر تجهیز "
 "شماره سریال در انبار داشته باشد باید خالی بماند."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "Only product catalogue managers can approve a request."
+msgstr "فقط مدیران کاتالوگ محصولات می‌توانند درخواست را تأیید کنند."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "Only product catalogue managers can execute a request."
+msgstr "فقط مدیران کاتالوگ محصولات می‌توانند درخواست را اجرا کنند."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "Only product catalogue managers can refuse a request."
+msgstr "فقط مدیران کاتالوگ محصولات می‌توانند درخواست را رد کنند."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
+msgid "Only product catalogue managers correct a product."
+msgstr "فقط مدیران کاتالوگ محصولات محصول را اصلاح می‌کنند."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "Only the requester or a catalogue manager can cancel."
+msgstr "فقط درخواست‌کننده یا مدیر کاتالوگ می‌تواند لغو کند."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__open_ended
@@ -2090,6 +2829,11 @@ msgstr "مبدأ"
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__origin_location_id
 msgid "Origin Stock"
 msgstr "انبار مبدأ"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_workshop_other
+msgid "Other"
+msgstr "سایر"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_ownership_correction__ownership_status__owned
@@ -2177,6 +2921,16 @@ msgid "Periodicity"
 msgstr "دوره‌بندی"
 
 #. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_it_phones
+msgid "Phones & Tablets"
+msgstr "تلفن‌ها و تبلت‌ها"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__image_1920
+msgid "Photo"
+msgstr "عکس"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__attachment_ids
 msgid "Photos and Documents"
 msgstr "عکس‌ها و مدارک"
@@ -2222,6 +2976,22 @@ msgstr ""
 " خواهد برد، محاسبه‌شده توسط Odoo روی صورتحسابی که ذخیره نمی‌شود."
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__duplicate_text
+msgid "Possible Duplicates"
+msgstr "موارد تکراری احتمالی"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "Posting the bill creates a fixed asset (account %s)."
+msgstr "ثبت صورتحساب یک دارایی ثابت ایجاد می‌کند (حساب %s)."
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_premises
+msgid "Premises & Warehouse Installations"
+msgstr "تأسیسات محل کار و انبارها"
+
+#. module: maintenance_shareholder_equipment
 #: model:res.groups,comment:maintenance_shareholder_equipment.group_equipment_operator
 msgid ""
 "Prepares and executes equipment operations (receipt, exit, return, "
@@ -2229,6 +2999,16 @@ msgid ""
 msgstr ""
 "عملیات تجهیزات (دریافت، خروج، بازگشت، استرداد) را آماده و اجرا می‌کند. "
 "تعهدات به تأییدکننده نیاز دارند."
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
+msgid "Prices and Taxes"
+msgstr "قیمت‌ها و مالیات‌ها"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_it_printers
+msgid "Printers & Peripherals"
+msgstr "چاپگرها و تجهیزات جانبی"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__state__processing
@@ -2240,6 +3020,8 @@ msgstr "در حال اجرا"
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 #: model:ir.model,name:maintenance_shareholder_equipment.model_product_template
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__product_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__product_tmpl_id
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
 msgid "Product"
 msgstr "محصول"
 
@@ -2250,14 +3032,121 @@ msgid "Product %s is archived."
 msgstr "محصول %s بایگانی شده است."
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.module.category,name:maintenance_shareholder_equipment.module_category_product_catalogue
+msgid "Product Catalogue"
+msgstr "کاتالوگ محصولات"
+
+#. module: maintenance_shareholder_equipment
+#: model:res.groups,name:maintenance_shareholder_equipment.group_product_catalogue_manager
+msgid "Product Catalogue Manager"
+msgstr "مدیر کاتالوگ محصولات"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_product_category
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__categ_id
 msgid "Product Category"
 msgstr "دسته بندی محصول"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__product_tmpl_id
+msgid "Product Created"
+msgstr "محصول ایجادشده"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_product_creation_request
+msgid "Product Creation Request"
+msgstr "درخواست ایجاد محصول"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_stock_move_line
 msgid "Product Moves (Stock Move Line)"
 msgstr "انتقال محصول (مسیر انتقال موجودی)"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__product_name
+msgid "Product Name"
+msgstr "نام محصول"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
+msgid "Product Request"
+msgstr "درخواست محصول"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.actions.act_window,name:maintenance_shareholder_equipment.action_product_creation_request
+#: model:ir.ui.menu,name:maintenance_shareholder_equipment.menu_product_creation_request
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_category_form_catalogue
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_list
+msgid "Product Requests"
+msgstr "درخواست‌های محصول"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_product_structural_correction
+msgid "Product Structural Correction"
+msgstr "اصلاح ساختاری محصول"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__product_type
+msgid "Product Type"
+msgstr "نوع محصول"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model,name:maintenance_shareholder_equipment.model_product_product
+msgid "Product Variant"
+msgstr "گونه محصول"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "Product created: %s."
+msgstr "محصول ایجاد شد: %s."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_category__request_ready
+msgid ""
+"Product creation requests may use this category. Set it only once the "
+"category's accounts, cost method and valuation are final (accountant)."
+msgstr ""
+"درخواست‌های ایجاد محصول می‌توانند از این دسته استفاده کنند. فقط وقتی "
+"حساب‌ها، روش بهای تمام‌شده و ارزش‌گذاری دسته نهایی شد آن را فعال کنید "
+"(حسابدار)."
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
+msgid "Product name"
+msgstr "نام محصول"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "Product request to approve"
+msgstr "درخواست محصول برای تأیید"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_maintenance_equipment_category__assignable
+msgid ""
+"Products and requests may take this category as their default equipment "
+"category. Off for « To classify » and for the categories created "
+"automatically before the catalogue (ROADMAP section 0)."
+msgstr ""
+"محصولات و درخواست‌ها می‌توانند این دسته را به‌عنوان دستهٔ تجهیزات پیش‌فرض "
+"بگیرند. برای «برای طبقه‌بندی» و دسته‌هایی که پیش از کاتالوگ خودکار ایجاد "
+"شده‌اند غیرفعال است (بخش ۰ نقشهٔ راه)."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"Products are created through a product creation request (Inventory → "
+"Products → Product Requests), never directly."
+msgstr ""
+"محصولات از طریق درخواست ایجاد محصول ساخته می‌شوند (انبار ← محصولات ← "
+"درخواست‌های محصول)، هرگز مستقیم."
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.actions.act_window,help:maintenance_shareholder_equipment.action_product_creation_request
+msgid "Products are created through an approved request, never directly."
+msgstr "محصولات از طریق درخواست تأییدشده ساخته می‌شوند، هرگز مستقیم."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__cost_provisional
@@ -2297,10 +3186,26 @@ msgid "Purchase Order Line"
 msgstr "سطر سفارش خرید"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__supplier_taxes_ids
+msgid "Purchase Taxes"
+msgstr "مالیات‌های خرید"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__uom_po_id
+msgid "Purchase Unit"
+msgstr "واحد خرید"
+
+#. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "Purchase order %s created and confirmed."
 msgstr "سفارش خرید %s ایجاد و تأیید شد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "Purchases on account %s; no fixed asset."
+msgstr "خرید روی حساب %s؛ بدون دارایی ثابت."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation_line__quantity_done
@@ -2317,10 +3222,26 @@ msgid "Quarter(s)"
 msgstr "فصل"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__attachment_ids
+msgid ""
+"Quotes, data sheets. Frozen at approval: an approved document cannot be "
+"removed or replaced; further documents may be added."
+msgstr ""
+"پیش‌فاکتورها، برگه‌های فنی. در زمان تأیید ثابت می‌شوند: سند تأییدشده قابل "
+"حذف یا جایگزینی نیست؛ افزودن اسناد دیگر مجاز است."
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__reason
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_ownership_correction__reason
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__decision_note
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__reason
 msgid "Reason"
 msgstr "دلیل"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__decision_note
+msgid "Reason of a refusal or a cancellation."
+msgstr "دلیل رد یا لغو."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -2362,6 +3283,16 @@ msgstr "دریافت، امانت دادن، بازپس‌گیری یا استر
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "Received by %s."
 msgstr "دریافت‌شده توسط %s."
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
+msgid "Refuse"
+msgstr "رد کردن"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__state__refused
+msgid "Refused"
+msgstr "ردشده"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__acquisition_nature__regularisation
@@ -2431,7 +3362,18 @@ msgid "Replacement Value Date"
 msgstr "تاریخ ارزش جایگزینی"
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
+msgid "Request"
+msgstr "درخواست"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.actions.act_window,help:maintenance_shareholder_equipment.action_product_creation_request
+msgid "Request a new product"
+msgstr "درخواست محصول جدید"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__requester_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__requester_id
 msgid "Requester"
 msgstr "درخواست‌کننده"
 
@@ -2441,6 +3383,11 @@ msgid "Required for equipment: an active internal user of the company."
 msgstr "برای تجهیز الزامی است: یک کاربر داخلی فعال شرکت."
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__responsible_id
+msgid "Responsible"
+msgstr "مسئول"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__responsible_user_id
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
 msgid "Responsible / Holder"
@@ -2448,6 +3395,7 @@ msgstr "مسئول / نگهدارنده"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__activity_user_id
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__activity_user_id
 msgid "Responsible User"
 msgstr "کاربر مسئول"
 
@@ -2489,8 +3437,20 @@ msgstr "توسط %s به مالک مسترد شد."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__message_has_sms_error
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__message_has_sms_error
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__message_has_sms_error
 msgid "SMS Delivery error"
 msgstr "خطای ارسال پیامک"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__list_price
+msgid "Sale Price (excl. tax)"
+msgstr "قیمت فروش (بدون مالیات)"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__taxes_ids
+msgid "Sale Taxes"
+msgstr "مالیات‌های فروش"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__lot_name
@@ -2519,6 +3479,11 @@ msgid ""
 "Serial number of the item in stock. Location and owner on stock come from "
 "it."
 msgstr "شماره سریال کالا در انبار. مکان و مالک در انبار از آن گرفته می‌شود."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__family__service
+msgid "Service"
+msgstr "خدمت"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_res_company__equipment_loan_product_id
@@ -2558,9 +3523,25 @@ msgstr ""
 "ارسال برای استرداد."
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__similar_confirmed
+msgid "Similar Products Checked"
+msgstr "محصولات مشابه بررسی شد"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "Similar: %s"
+msgstr "مشابه: %s"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__site_partner_id
 msgid "Site Address"
 msgstr "نشانی محل"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_site_machinery
+msgid "Site Machinery & Equipment"
+msgstr "ماشین‌آلات و تجهیزات کارگاهی"
 
 #. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.res_config_settings_view_form_equipment
@@ -2591,6 +3572,8 @@ msgstr "مبدأ اصلاحیه‌ها"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__state
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__state
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__state
 msgid "State"
 msgstr "وضعیت"
 
@@ -2601,6 +3584,7 @@ msgstr "وضعیت"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__activity_state
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__activity_state
 msgid ""
 "Status based on activities\n"
 "Overdue: Due date is already passed\n"
@@ -2634,6 +3618,11 @@ msgid "Stock Move"
 msgstr "انتقال موجودی"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__stock_valuation_account_id
+msgid "Stock Valuation Account"
+msgstr "حساب ارزش‌گذاری موجودی"
+
+#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_maintenance_equipment_form_shareholder
 msgid "Stock and Asset"
 msgstr "انبار و دارایی"
@@ -2650,14 +3639,75 @@ msgid "Stop"
 msgstr "توقف"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_structural_correction__is_storable__yes
+msgid "Stored"
+msgstr "انباری"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_structural_correction_form
+msgid "Structural Correction"
+msgstr "اصلاح ساختاری"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.actions.act_window,name:maintenance_shareholder_equipment.action_product_structural_correction
+#: model:ir.ui.menu,name:maintenance_shareholder_equipment.menu_product_structural_correction
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_structural_correction_list
+msgid "Structural Corrections"
+msgstr "اصلاحات ساختاری"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
+msgid ""
+"Structural correction %(name)s by %(user)s. Reason: %(reason)s. %(changes)s"
+msgstr "اصلاح ساختاری %(name)s توسط %(user)s. دلیل: %(reason)s. %(changes)s"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"Structural fields of a product cannot be changed directly (%s): use a "
+"Structural Correction (with its reason) until the modification request "
+"exists."
+msgstr ""
+"فیلدهای ساختاری محصول را نمی‌توان مستقیم تغییر داد (%s): تا زمان وجود "
+"درخواست تغییر، از اصلاح ساختاری (با ذکر دلیل) استفاده کنید."
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
+msgid "Submit"
+msgstr "ارسال"
+
+#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Submit for Approval"
 msgstr "ارسال برای تأیید"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__supplier_id
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
+msgid "Supplier"
+msgstr "تأمین‌کننده"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__cost_source__bill
 msgid "Supplier Bill"
 msgstr "صورتحساب تأمین‌کننده"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__currency_id
+msgid "Supplier Currency"
+msgstr "ارز تأمین‌کننده"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__supplier_price
+msgid "Supplier Price (excl. tax)"
+msgstr "قیمت تأمین‌کننده (بدون مالیات)"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__supplier_code
+msgid "Supplier Reference"
+msgstr "کد تأمین‌کننده"
 
 #. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.res_config_settings_view_form_equipment
@@ -2678,9 +3728,31 @@ msgstr ""
 "از خرید روی این حساب‌ها را مجاز نمی‌داند."
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__attachment_ids
+msgid "Supporting Documents"
+msgstr "اسناد پشتیبان"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__tax_ids
 msgid "Taxes"
 msgstr "مالیات‌ها"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_site_installations
+msgid "Temporary Site Installations"
+msgstr "تأسیسات موقت کارگاه"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__similar_confirmed
+msgid ""
+"The approver checked the products with a similar name or supplier reference."
+msgstr "تأییدکننده محصولات با نام یا کد تأمین‌کنندهٔ مشابه را بررسی کرد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
+msgid "The category %s is not available yet."
+msgstr "دستهٔ %s هنوز در دسترس نیست."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_maintenance_equipment__owner_partner_id
@@ -2736,6 +3808,16 @@ msgstr "ارز فعال نیست."
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "The destination must be an active internal physical stock."
 msgstr "مقصد باید انبار داخلی فیزیکی فعال باشد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"The equipment category « %s » cannot be used for a product: archived, "
+"transitional or created automatically."
+msgstr ""
+"دستهٔ تجهیزات «%s» برای محصول قابل استفاده نیست: بایگانی‌شده، موقت یا خودکار"
+" ایجادشده."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -2877,10 +3959,23 @@ msgid "This operation is being processed by someone else."
 msgstr "این عملیات در حال پردازش توسط شخص دیگری است."
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "This request is being processed by someone else."
+msgstr "این درخواست در حال پردازش توسط شخص دیگری است."
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__state__to_approve
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__state__to_approve
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_search
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_search
 msgid "To Approve"
 msgstr "در انتظار تأیید"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_to_classify
+msgid "To Classify"
+msgstr "برای طبقه‌بندی"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__integration_state__draft
@@ -2901,6 +3996,21 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_search
 msgid "To Execute"
 msgstr "در انتظار اجرا"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_tools
+msgid "Tools"
+msgstr "ابزار"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__tracking
+msgid "Tracking"
+msgstr "ردیابی"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_trailers
+msgid "Trailers"
+msgstr "یدک‌کش‌ها"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_stock_picking
@@ -2925,6 +4035,7 @@ msgstr "نوع"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__activity_exception_decoration
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__activity_exception_decoration
 msgid "Type of the exception activity on record."
 msgstr "نوع فعالیت استثنا روی رکورد."
 
@@ -2932,8 +4043,14 @@ msgstr "نوع فعالیت استثنا روی رکورد."
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation_line__warranty_status__under_warranty
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__maintenance_equipment__warranty_status__under_warranty
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_category__default_warranty_status__under_warranty
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__warranty_status__under_warranty
 msgid "Under Warranty"
 msgstr "دارای گارانتی"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__uom_id
+msgid "Unit"
+msgstr "واحد"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation_line__price_unit
@@ -2956,6 +4073,11 @@ msgid "Unit cost in company currency; see « Cost Known »."
 msgstr "هزینه واحد به ارز شرکت؛ «هزینه معلوم» را ببینید."
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_maintenance_equipment_category__assignable
+msgid "Usable for Products"
+msgstr "قابل استفاده برای محصولات"
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_res_users
 msgid "User"
 msgstr "کاربر"
@@ -2964,6 +4086,11 @@ msgstr "کاربر"
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Values"
 msgstr "ارزش‌ها"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_vehicles
+msgid "Vehicles"
+msgstr "وسایل نقلیه"
 
 #. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
@@ -3013,11 +4140,15 @@ msgstr "گارانتی و بیمه"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__website_message_ids
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__website_message_ids
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_structural_correction__website_message_ids
 msgid "Website Messages"
 msgstr "پیام‌های وب‌سایت"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__website_message_ids
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__website_message_ids
+#: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_structural_correction__website_message_ids
 msgid "Website communication history"
 msgstr "تاریخچهٔ ارتباطات وب‌سایت"
 
@@ -3030,6 +4161,16 @@ msgstr "چرا هزینه اصلاح می‌شود"
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.view_equipment_ownership_correction_form
 msgid "Why the ownership is corrected"
 msgstr "چرا مالکیت اصلاح می‌شود"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_workshop_wood
+msgid "Wood"
+msgstr "چوب"
+
+#. module: maintenance_shareholder_equipment
+#: model:maintenance.equipment.category,name:maintenance_shareholder_equipment.ecat_workshop
+msgid "Workshop Machinery"
+msgstr "ماشین‌آلات کارگاه"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__periodicity__yearly
@@ -3050,6 +4191,12 @@ msgid ""
 "of them)"
 msgstr ""
 "شماره سریال در انبار یا مکان برای تجهیز خارج از انبار (دقیقاً یکی از این دو)"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid "a service is of type service and not maintainable."
+msgstr "خدمت از نوع خدمت است و قابل نگهداری نیست."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -3091,9 +4238,27 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid "an intangible asset is neither stored nor maintainable."
+msgstr "دارایی نامشهود نه انباری است و نه قابل نگهداری."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "approved documents changed"
+msgstr "اسناد تأییدشده تغییر کرده‌اند"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "at least one line"
 msgstr "دست‌کم یک سطر"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "barcode of %s"
+msgstr "بارکد %s"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -3163,6 +4328,25 @@ msgstr "اهداکننده یا آورنده"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"durable equipment is storable, tracked by serial number and maintainable."
+msgstr "تجهیزات بادوام انباری، با شمارهٔ سریال و قابل نگهداری است."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid "durable equipment needs its default equipment category."
+msgstr "تجهیزات بادوام به دستهٔ تجهیزات پیش‌فرض نیاز دارد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "durable equipment needs its equipment category."
+msgstr "تجهیزات بادوام به دستهٔ تجهیزات نیاز دارد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "equipment"
 msgstr "تجهیز"
@@ -3187,15 +4371,61 @@ msgstr "قرض رایگان یا اجاره"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "goods"
+msgstr "کالا"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid "insurance status"
 msgstr "وضعیت بیمه"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "internal reference of %s"
+msgstr "کد داخلی %s"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid "its equipment category is archived, transitional or automatic."
+msgstr "دستهٔ تجهیزات آن بایگانی‌شده، موقت یا خودکار است."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "line %(n)s (%(product)s)"
 msgstr "سطر %(n)s (%(product)s)"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "lots"
+msgstr "بهرها"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "maintainable"
+msgstr "قابل نگهداری"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"materials, consumables and goods are storable, tracked by quantity (lot "
+"optional) and not maintainable."
+msgstr ""
+"مصالح، اقلام مصرفی و کالاها انباری‌اند، بر اساس مقدار ردیابی می‌شوند (بهر "
+"اختیاری) و قابل نگهداری نیستند."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "name of %s"
+msgstr "نام %s"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -3219,6 +4449,18 @@ msgstr ""
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "no end"
 msgstr "بدون پایان"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid "no expense account on %s."
+msgstr "حساب هزینه روی %s وجود ندارد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid "no income account on %s."
+msgstr "حساب درآمد روی %s وجود ندارد."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -3334,6 +4576,24 @@ msgstr "ارزش جایگزینی، ارز و تاریخ"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "same %(key)s as request %(other)s"
+msgstr "همان %(key)s درخواست %(other)s"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "serial number"
+msgstr "شمارهٔ سریال"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "service"
+msgstr "خدمت"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "site address"
 msgstr "نشانی محل"
@@ -3343,6 +4603,18 @@ msgstr "نشانی محل"
 #: code:addons/maintenance_shareholder_equipment/models/product.py:0
 msgid "storable products must be tracked by serial number: %s"
 msgstr "محصولات انبارشدنی باید با شماره سریال ردیابی شوند: %s"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "stored"
+msgstr "انباری"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "supplier reference of %s"
+msgstr "کد تأمین‌کنندهٔ %s"
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
@@ -3374,6 +4646,18 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid "the category %s is not available for product requests yet."
+msgstr "دستهٔ %s هنوز برای درخواست‌های محصول در دسترس نیست."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid "the category %s is not in the branch of this family."
+msgstr "دستهٔ %s در شاخهٔ این خانواده نیست."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product.py:0
 msgid "the expense account must be a class 21 fixed-asset account"
 msgstr "حساب هزینه باید حساب دارایی ثابت گروه ۲۱ باشد"
@@ -3383,6 +4667,28 @@ msgstr "حساب هزینه باید حساب دارایی ثابت گروه ۲�
 #: code:addons/maintenance_shareholder_equipment/models/product.py:0
 msgid "the expense account must carry an asset profile"
 msgstr "حساب هزینه باید دسته‌بندی دارایی داشته باشد"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid ""
+"the family « %s » waits for the accountant (C24 / C25): no product category "
+"is ready for it yet."
+msgstr ""
+"خانوادهٔ «%s» در انتظار حسابدار است (C24 / C25): هنوز هیچ دستهٔ محصولی برای "
+"آن آماده نیست."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "the supplier belongs to another company."
+msgstr "تأمین‌کننده متعلق به شرکت دیگری است."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
+msgid "the unit and the purchase unit are not of the same kind."
+msgstr "واحد و واحد خرید از یک نوع نیستند."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python

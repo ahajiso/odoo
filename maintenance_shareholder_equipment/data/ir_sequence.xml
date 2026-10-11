@@ -7,4 +7,18 @@
         <field name="padding">4</field>
         <field name="company_id" eval="False"/>
     </record>
+    <record id="seq_product_creation_request" model="ir.sequence">
+        <field name="name">Product Creation Request</field>
+        <field name="code">product.creation.request</field>
+        <field name="prefix">PCR/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_product_structural_correction" model="ir.sequence">
+        <field name="name">Product Structural Correction</field>
+        <field name="code">product.structural.correction</field>
+        <field name="prefix">PSC/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
 </odoo>

@@ -1,6 +1,6 @@
 {
     "name": "Maintenance - Equipment Ownership, Stock and Assets",
-    "version": "18.0.4.0.1",
+    "version": "18.0.5.0.0",
     "summary": "Equipment ownership status, serial number, fixed asset, contracts "
     "and supplier bill integration (L'Art du Bâti).",
     "author": "UBI Solutions",
@@ -11,6 +11,8 @@
         "stock_account",
         "purchase_stock",
         "maintenance_product",
+        # ROADMAP section 0: the equipment tree (parent_id), installed on artdubati_test
+        "maintenance_equipment_category_hierarchy",
         "maintenance_account",
         "account_asset_management",
         "contract",
@@ -29,6 +31,8 @@
         "data/mail_activity_type.xml",
         "data/ir_cron.xml",
         "data/ir_sequence.xml",
+        "data/product_category_roots.xml",
+        "data/equipment_categories.xml",
         "wizards/ownership_correction_views.xml",
         "wizards/cost_correction_views.xml",
         "views/maintenance_equipment_views.xml",
@@ -38,6 +42,7 @@
         "views/account_move_views.xml",
         "views/res_config_settings_views.xml",
         "views/equipment_operation_views.xml",
+        "views/product_catalogue_views.xml",
     ],
     "assets": {
         "web.assets_tests": [

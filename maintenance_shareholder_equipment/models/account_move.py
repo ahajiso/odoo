@@ -6,6 +6,30 @@ from odoo.tools import float_compare, float_round
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
+    @api.depends("product_id")
+    def _compute_equipment_category_id(self):
+        """maintenance_account takes the first equipment category of the product
+        category; the catalogue takes the product's own default (ROADMAP section 0)."""
+        for line in self:
+            tmpl = line.product_id.product_tmpl_id
+            if tmpl.maintenance_ok and tmpl.equipment_category_id:
+                line.equipment_category_id = tmpl.equipment_category_id
+            else:
+                line.equipment_category_id = line.equipment_category_id
+
+    def _set_equipment_category(self):
+        """maintenance_account creates a category named after the product category
+        when none exists: refused, the product must carry its default (PLAN.md §2.5)."""
+        if self.equipment_category_id:
+            return
+        category = self.product_id.product_tmpl_id.equipment_category_id
+        if not category:
+            raise UserError(_(
+                "%(move)s: the product %(product)s has no default equipment category. The "
+                "catalogue manager sets it (structural correction) before the bill is "
+                "posted.", move=self.move_id.display_name, product=self.product_id.display_name))
+        self.equipment_category_id = category
+
     # OCA maintenance_account field, redeclared: a reversal is built with copy() and
     # must not start with the equipment of the original bill.
     equipment_ids = fields.Many2many(copy=False)

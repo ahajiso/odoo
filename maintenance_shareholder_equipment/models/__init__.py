@@ -6,3 +6,6 @@ from . import contract
 from . import account_move
 from . import equipment_operation
 from . import approver_scope
+from . import product_catalogue
+from . import product_creation_request
+from . import product_structural_correction

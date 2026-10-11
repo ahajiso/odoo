@@ -72,6 +72,8 @@ class EquipmentCommon(TransactionCase):
         cls.stock = cls.warehouse.lot_stock_id
         cls.vendor = env["res.partner"].create({"name": "Vendor"})
         cls.lender = env["res.partner"].create({"name": "Lender"})
+        # ROADMAP section 0: a maintainable product carries its default equipment category
+        cls.equipment_category = env.ref("maintenance_shareholder_equipment.ecat_tools_corded")
         cls.drill = cls._product("Drill", cls.categ_fixed, storable=True)
         cls.small_tool = cls._product("Small tool", cls.categ_tools, storable=False)
         cls.rent_service = env["product.product"].create({
@@ -147,6 +149,8 @@ class EquipmentCommon(TransactionCase):
             "name": name,
             "type": "consu",
             "maintenance_ok": True,
+            "equipment_category_id": cls.env.ref(
+                "maintenance_shareholder_equipment.ecat_tools_corded").id,
             "categ_id": categ.id,
             "standard_price": 100.0,
             "purchase_method": "purchase",

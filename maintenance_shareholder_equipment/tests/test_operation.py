@@ -746,6 +746,7 @@ class TestAuditCorrections(TestOperationCommon):
         lease = self.env["product.product"].create({
             "name": "Vehicle lease", "type": "service", "maintenance_ok": True,
             "purchase_ok": True, "supplier_taxes_id": [Command.clear()],
+            "equipment_category_id": self.equipment_category.id,
         })
         po = self._po((lease, 1))
         self.assertFalse(po.picking_ids, "a service creates no receipt")

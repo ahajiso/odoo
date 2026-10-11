@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ROADMAP section 0 (docs/roadmap0/PLAN.md §2.2): roots of the product category
+     branches. The family of a product is the branch of its category; the roots carry
+     no account: their categories are configured (accounts, cost method, valuation) and
+     made available for requests separately (D8). -->
+<odoo noupdate="1">
+    <record id="categ_root_fixed_assets" model="product.category">
+        <field name="name">Fixed Assets (catalogue)</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+    <record id="categ_root_small_equipment" model="product.category">
+        <field name="name">Small Durable Equipment</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+    <record id="categ_root_materials" model="product.category">
+        <field name="name">Construction Materials</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+    <record id="categ_root_consumables" model="product.category">
+        <field name="name">Consumables &amp; Accessories (catalogue)</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+    <record id="categ_root_goods" model="product.category">
+        <field name="name">Goods for Resale</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+    <record id="categ_root_services_purchased" model="product.category">
+        <field name="name">Services Purchased</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+    <record id="categ_root_sales" model="product.category">
+        <field name="name">Sales</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+    <record id="categ_root_intangible" model="product.category">
+        <field name="name">Intangible Assets</field>
+        <field name="parent_id" ref="product.product_category_all"/>
+    </record>
+</odoo>
