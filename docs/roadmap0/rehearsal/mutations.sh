@@ -76,6 +76,13 @@ c.write({'contract_line_ids': [(0, 0, {'product_id': p.product_variant_id.id, 'n
   'price_unit': 10, 'recurring_rule_type': 'monthly', 'recurring_interval': 1, 'date_start': '2026-10-01'})]})"
 expect_refused "contract TEST Scaffold rental .* differs from the inventory: 2 lines" "$NOT_MIGRATED"
 
+NAME=interval; echo "== $NAME: « TEST Scaffold rental » every 2 months -> contract differs"
+fresh
+mutate "env['contract.contract'].search([('name', '=', 'TEST Scaffold rental')]).contract_line_ids.recurring_interval = 2"
+expect_refused "contract TEST Scaffold rental .* differs from the inventory: line .*: every 2 monthly" \
+  "select count(*) from contract_line l join contract_contract c on c.id = l.contract_id
+    where c.name = 'TEST Scaffold rental' and (not c.active or l.recurring_interval <> 2)"
+
 NAME=migrated; echo "== $NAME: migrated, then « Computer » unarchived -> 1 change on a migrated database"
 fresh
 env ROADMAP0_REHEARSAL=1 LOGDIR="$OUT/$NAME" ODOO_SHELL="$SHELL_CMD" bash "$HERE/run_migration.sh" --apply \

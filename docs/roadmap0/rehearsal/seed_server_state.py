@@ -213,12 +213,12 @@ line.equipment_ids = eq_saw
 Contract = env["contract.contract"]
 
 
-def contract(name, partner, product, price, start, equipment=None, nature=None):
+def contract(name, partner, product, price, start, equipment=None, nature=None, label=None):
     return Contract.create({
         "name": name, "partner_id": partner.id, "contract_type": "purchase",
         "line_recurrence": True, "company_id": company.id,
         "contract_line_ids": [(0, 0, {
-            "product_id": product.product_variant_id.id, "name": product.name,
+            "product_id": product.product_variant_id.id, "name": label or product.name,
             "quantity": 1, "price_unit": price, "recurring_rule_type": "monthly",
             "recurring_interval": 1, "date_start": start,
             "equipment_id": equipment and equipment.id, "equipment_nature": nature})],
@@ -228,6 +228,8 @@ def contract(name, partner, product, price, start, equipment=None, nature=None):
 contract("EQOP/2026/0738 – Manager", manager, loan, 0, "2026-10-10", eq_ranger, "loan")
 contract("EQOP/2026/0739 – Manager", manager, rent_paid, 10, "2026-10-10", eq_green, "rental")
 contract("TEST Cement rental", supplier, cement, 2, "2026-09-01")
-contract("TEST Scaffold rental", supplier, scaffold, 250, "2026-09-01")
+# line label as in the complement (« line=TEST Scaffold rental »)
+contract("TEST Scaffold rental", supplier, scaffold, 250, "2026-09-01",
+         label="TEST Scaffold rental")
 env.cr.commit()
 print("SEED | done | equipment", (eq_saw | eq_mac | eq_green | eq_ranger).ids, "bill", bill.name)

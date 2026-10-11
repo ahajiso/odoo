@@ -370,13 +370,18 @@ for key, ecat_xmlid, new_name in EQUIPMENT:
 # M5 archiving after dependency checks -----------------------------------------------
 Contract = env["contract.contract"]
 scaffold_contract = find("contract TEST Scaffold rental", "contract.contract",
-                         [("name", "=", "TEST Scaffold rental")], None)
+                         [("name", "=", "TEST Scaffold rental")], 1)
 
 
 def check_scaffold_contract(contract):
-    """Audit of 9c407ae: the contract is archived with its product only if it is still
-    exactly the one of the inventory; any other line or object is an ERROR."""
+    """Audits of 9c407ae and 7ff7b57: the contract is archived with its product only if
+    it is still exactly the one of the inventory (complement of 11/10/2026: id 1,
+    supplier, one line « TEST Scaffold rental », every 1 month from 01/09/2026, no end,
+    250 EUR); any other line, value or object is an ERROR."""
     problems = []
+    if contract.currency_id != company.currency_id or contract.currency_id.name != "EUR":
+        problems.append(f"currency {contract.currency_id.name} (company "
+                        f"{company.currency_id.name}, inventory EUR)")
     if contract.company_id != company:
         problems.append(f"company {contract.company_id.name}")
     if contract.partner_id.name != "TEST Supplier (owner)":
@@ -394,8 +399,14 @@ def check_scaffold_contract(contract):
                             f"relation {line.equipment_nature or '-'}")
         if (line.quantity, line.price_unit) != (1, 250):
             problems.append(f"line {line.id}: quantity {line.quantity} price {line.price_unit}")
-        if str(line.date_start) != "2026-09-01" or line.recurring_rule_type != "monthly":
-            problems.append(f"line {line.id}: start {line.date_start} {line.recurring_rule_type}")
+        if (str(line.date_start), line.date_end) != ("2026-09-01", False):
+            problems.append(f"line {line.id}: from {line.date_start} to {line.date_end or '-'}")
+        if (line.recurring_interval, line.recurring_rule_type) != (1, "monthly"):
+            problems.append(f"line {line.id}: every {line.recurring_interval} "
+                            f"{line.recurring_rule_type}")
+        label = line.name.splitlines()[0] if line.name else ""
+        if label != "TEST Scaffold rental":
+            problems.append(f"line {line.id}: label « {label} »")
         if line.is_canceled:
             problems.append(f"line {line.id}: cancelled")
     for problem in problems:
