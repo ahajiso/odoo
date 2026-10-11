@@ -301,11 +301,11 @@ tests on artdubati_test (47 passing, 08/10/2026).
    removable grouping facets Currency 1 > Stock 2, probe through the web route; messaging
    badge « 2 » of the local browser characterised: install and notification prompts of
    the browser, no user data, negative tests), 236 tests on a clean checkout (log in
-   docs/phase4/test_logs/), audited, merged (ae31573) and deployed by the owner (README
-   §10, 235 tests expected): probe complete (Stock Monitor menu only, 6 rows), no refused
-   route in the log, browser checks validated (export XLSX and CSV). Outputs of steps 1
-   to 8 of §10 (backup, 235 tests, PLATFORM OK after, post-check) not yet read by
-   Claude: phase 4 is called done once they are recorded here. Next: docs/ROADMAP.md section 0 (product and category creation, « Can be
+   docs/phase4/test_logs/), audited, merged (ae31573) and deployed on 10/10/2026 (README
+   §10): PLATFORM OK before, PRECHECK OK, BACKUP OK (phase4fix, 562 files, 0 missing),
+   update OK, 235 tests 0 failed, PLATFORM OK after, post-check clean; probe complete
+   (Stock Monitor menu only, 6 rows), no refused route in the log, browser checks
+   validated (export XLSX and CSV). Phase 4 done. Next: docs/ROADMAP.md section 0 (product and category creation, « Can be
    Maintained », equipment categories, the Mac Mini without fixed asset, supplier
    consignment), then A-K, the manual last.
 5. Translations, deployment checklist (docs/deployment/investor_home.md).
