@@ -1,8 +1,10 @@
-# AI assistant – architecture (IA-0, revision 3, 12/10/2026)
+# AI assistant – architecture (IA-0, revision 4, 12/10/2026)
 
 Design only; names are proposals for the audit. Revision 2: separate server, three
 processes, asynchronous jobs, three AI functions. Revision 3: `jobs.db` / `ledger.db`,
-explicit concurrency, `ack` after Odoo's commit, Docker-aware egress filtering.
+explicit concurrency, `ack` after Odoo's commit, Docker-aware egress filtering. Revision 4:
+SQLite settings fixed (§5.1), stack started only after the firewall is verified
+(DEPLOYMENT.md §3.1).
 
 ## 1. Components
 
@@ -153,15 +155,32 @@ for 13 months.
 |---|---|---|
 | Content | job inputs (text, base64 files only while the job runs), validated results, errors | job id, request ref, opaque user ref, function, profile, route, provider, model, tokens, amounts in billing currency, rate, date and source, EUR equivalent, kind (reservation / settlement / reconciliation / manual correction), idempotency key and body SHA-256 with the final state (tombstone) |
 | Never contains | – | document text, prompts, model output, extracted values, user text, file names |
-| Lifetime | inputs deleted when the job ends; results deleted at `ack` or after 7 days; `secure_delete` on, weekly `VACUUM` | 13 months |
+| Lifetime | inputs deleted when the job ends; results deleted at `ack` or after 7 days; `secure_delete` on; `VACUUM` only in the maintenance window (below) | 13 months |
 | Backup | **none** | daily online backup, encrypted, kept 13 months |
 | Disk | encrypted volume of the AI server (DEPLOYMENT.md §2) | same, and encrypted backup target |
 
-Atomicity across both files: the gateway opens `ledger.db` and `ATTACH`es `jobs.db`, both
-in **rollback-journal mode (not WAL)**: SQLite commits a transaction touching several
-attached databases atomically (super-journal) only when the main database is a file and
-the journal mode is not WAL; in WAL mode each file would be atomic on its own only. Throughput (a few jobs a minute) makes WAL unnecessary. A test kills the
-process during commit and checks that neither file holds half of the transaction.
+Atomicity across both files (revision 4, settings fixed):
+- `ledger.db` is the **main** database; `jobs.db` is **attached** (`ATTACH`) on every
+  connection;
+- both files in the **same directory of the same encrypted filesystem** (`/opt/ai/data`),
+  so the super-journal and both journals live on one filesystem;
+- `PRAGMA journal_mode=DELETE` on both (never WAL: SQLite commits a transaction touching
+  several attached databases atomically through its super-journal only when the main
+  database is a file and the journal mode is not WAL);
+- `PRAGMA synchronous=FULL` on both;
+- one writer connection in the gateway (API and worker serialise their writes through it,
+  `BEGIN IMMEDIATE`); throughput (a few jobs a minute) makes this sufficient;
+- the gateway refuses to start if a pragma read back differs, or if the two files are not
+  on the same filesystem (`st_dev` compared).
+
+**Maintenance window for `VACUUM`** (weekly): the gateway answers new jobs with `503
+maintenance`, waits until no job is `running`, runs `VACUUM` on `jobs.db` only, then
+resumes; never during job execution. `ledger.db` is not vacuumed (append-mostly).
+
+Tests: an application exception and a `SIGKILL` of the gateway during the commit, and a
+**hard stop of the test machine** (reset of the virtual machine) during a loop of commits;
+after restart, each transaction is either fully present in both files or absent from both
+(T-S32).
 
 `POST /v1/jobs` in one `BEGIN IMMEDIATE` transaction over both files:
 1. lookup of the key in `ledger.db` (tombstone) and `jobs.db`: same digest → the job, or

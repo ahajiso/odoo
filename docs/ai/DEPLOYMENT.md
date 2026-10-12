@@ -1,11 +1,12 @@
-# AI assistant – deployment and operations (IA-0, revision 3, 12/10/2026)
+# AI assistant – deployment and operations (IA-0, revision 4, 12/10/2026)
 
 Revision 2: the AI runs on a **separate server**; the Odoo VPS gets **no new service and
 no new network**, and its scripts are unchanged. Its only infrastructure change is the
 delivery of the module's secrets (D16), which with option (b) recreates `odoo_web` with one
 more read-only mount (§4.1, with its rollback). Revision 3: 4 vCPU / 8 GB with explicit
 concurrency, encrypted disk, `jobs.db` not backed up and `ledger.db` backed up, Docker-aware
-firewall. Nothing is to run before the audit and the owner's go, except the read-only
+firewall. Revision 4: fail-closed start through systemd (§3.1), local health checks (§3.2).
+Nothing is to run before the audit and the owner's go, except the read-only
 characterisation of §1.
 
 ## 1. Characterisation (read-only, run by the owner)
@@ -76,13 +77,69 @@ leaving about 3 GB of margin. On 4 GB with 1 extraction and 1 OCR: about 3.2 GB,
 subnet and `ai_egress` a fixed address. Filtering is done in Docker's `DOCKER-USER` chain
 (default deny for the AI subnets, outbound only for `ai_egress` on 443 and DNS to the
 configured resolvers, inbound to the gateway's port only from the Odoo VPS), installed by a
-systemd unit after Docker and checked daily; `userland-proxy: false`. Full rules and tests:
+`ai-firewall.service` before any AI container starts (§3.1) and checked every 5 minutes; `userland-proxy: false`. Full rules and tests:
 SECURITY.md §7 (T-S20 … T-S23d).
 
 Hardening for all: non-root user, read-only root fs, size-limited `tmpfs`,
 `no-new-privileges`, `cap_drop: ALL`, seccomp (default or tighter), AppArmor profile,
-logging driver with rotation, `restart: unless-stopped`, health checks
-(`/v1/health` for the gateway; LiteLLM's liveness endpoint on `net_llm`; extractor's own).
+logging driver with rotation, **no restart policy** (`restart: "no"`, §3.1), local health
+checks (§3.2).
+
+### 3.1 Fail-closed start (revision 4)
+
+Docker daemon: `live-restore: false`, `userland-proxy: false`, `iptables: true`. Units
+(illustrative):
+
+```ini
+# /etc/systemd/system/ai-firewall.service
+[Unit]
+Description=AI server DOCKER-USER rules
+Requires=docker.service
+After=docker.service
+PartOf=docker.service
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/ai/bin/firewall-apply      # installs the rules from /opt/ai/firewall/expected.rules
+ExecStart=/opt/ai/bin/firewall-verify     # exits non-zero on any difference
+[Install]
+WantedBy=multi-user.target
+
+# /etc/systemd/system/ai-stack.service
+[Unit]
+Description=AI server containers
+Requires=docker.service ai-firewall.service
+After=docker.service ai-firewall.service
+PartOf=docker.service
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/opt/ai/bin/firewall-verify
+ExecStart=/usr/bin/docker compose -p ai -f /opt/ai/compose.yaml up -d --no-build
+ExecStop=/usr/bin/docker compose -p ai -f /opt/ai/compose.yaml stop
+[Install]
+WantedBy=multi-user.target
+
+# /etc/systemd/system/ai-firewall-check.timer → ai-firewall-check.service
+#   every 5 min: firewall-verify || (systemctl stop ai-stack; alert)
+```
+
+Sequence after a boot or a Docker restart: Docker starts with no AI container running
+(no restart policy, no live restore) → `ai-firewall` installs and verifies → `ai-stack`
+verifies again and starts the containers. Rules missing or invalid → `ai-stack` fails,
+containers stay stopped, alert. Tests T-S23d, T-S23e, T-S23f (SECURITY.md §7). A
+container that crashes stays stopped (no restart policy): the health alert and the
+timer report it; it is restarted by `systemctl restart ai-stack`, which re-verifies the
+rules first.
+
+### 3.2 Health checks
+
+| Check | Used by | How | Network / secret |
+|---|---|---|---|
+| Docker `HEALTHCHECK` of the gateway | Docker, alerts | command inside the container: worker heartbeat file updated less than 60 s ago, `ledger.db` opens read-only, pragmas as expected | none / none |
+| Docker `HEALTHCHECK` of the extractor | Docker | command inside the container: service process alive, job directory writable | none / none |
+| Docker `HEALTHCHECK` of LiteLLM and of the proxy | Docker | command inside the container against its own loopback (`127.0.0.1`), unauthenticated liveness only, never reachable from another container or the host | loopback of its own namespace / none |
+| `GET /v1/health` | Odoo's cron | external route, mTLS + HMAC like all routes (SCHEMAS.md §1) | protected / Odoo's client cert and HMAC key |
 
 Egress proxy allow-list (illustrative; final names from D3 / D6):
 
@@ -149,7 +206,8 @@ in environment variables, in `odoo.conf`, or in backups of this repository.
 
 - **Kill switch**: Odoo setting (default off) and gateway `ENABLED=false`; either keeps
   Odoo fully functional.
-- **Restart**: `docker restart ai_gateway`; jobs `received` resume; `running` jobs whose
+- **Restart**: `systemctl restart ai-stack` (never `docker restart` alone: it bypasses the
+  firewall verification); jobs `received` resume; `running` jobs whose
   worker died after `attempt_started` become `outcome_unknown` (not retried).
 - **Rotation**: SECURITY.md §3; rehearsed in IA-1.
 - **Model change**: configuration change with a short plan and a capped comparison run.
@@ -167,10 +225,11 @@ in environment variables, in `odoo.conf`, or in backups of this repository.
   exactly only when the provider's usage identifies the request; otherwise the
   reservation stays and only a traced `manual_correction` by an « AI Budget Manager » can
   change it (COSTS.md §4).
-- **Firewall check**: daily comparison of the `DOCKER-USER` rules with the expected list;
-  alert on difference (SECURITY.md §7).
+- **Firewall check**: every 5 minutes (`ai-firewall-check.timer`); on difference the stack
+  is stopped and an alert sent (SECURITY.md §7, layer 2b).
 - **Purge**: hourly job deleting acknowledged results and results older than 7 days from
-  `jobs.db`; weekly `VACUUM`; the purge count is a metric.
+  `jobs.db`; weekly `VACUUM` of `jobs.db` only in the maintenance window (new jobs answered
+  `503 maintenance`, no job `running`; ARCHITECTURE.md §5.1); the purge count is a metric.
 
 ## 6. Load and memory test (IA-1, before any deployment)
 
@@ -207,7 +266,7 @@ service to undo on the Odoo VPS.
 - [ ] §1.1 characterisation done (including what creates `odoo_web`); D16 chosen; mount procedure and its rollback rehearsed on a copy
 - [ ] PLAN.md §1.3 facts verified on official pages and accounts; placeholders filled
 - [ ] provider accounts: DPA, retention / ZDR / region settings, spend limits, scoped keys
-- [ ] AI server built and hardened (§2–§4), data disk encrypted; `DOCKER-USER` rules installed; egress tests T-S20–T-S23d passed; `REAL_DATA_ALLOWED=false` until D6
+- [ ] AI server built and hardened (§2–§4), data disk encrypted; `ai-firewall` / `ai-stack` units installed, no Docker restart policy, `live-restore: false`; egress and start tests T-S20–T-S23f passed; `REAL_DATA_ALLOWED=false` until D6
 - [ ] images by digest, hashes and LiteLLM signature checked
 - [ ] load test (§6) passed
 - [ ] Odoo backup with manifest; rollback rehearsed

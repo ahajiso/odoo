@@ -1,10 +1,11 @@
-# AI assistant – security (IA-0, revision 3, 12/10/2026)
+# AI assistant – security (IA-0, revision 4, 12/10/2026)
 
 Threat model and controls for PLAN.md and ARCHITECTURE.md. Nothing implemented.
 Revision 2: local pre-check, mTLS + HMAC, three isolated processes, egress proxy,
 hardened extractor, data-policy rule for fallbacks, job atomicity. Revision 3: egress
 filtering designed for Docker's own chains (§7), retention split between `jobs.db` and
-`ledger.db` (§11), encrypted disk, fixed secrets path on the Odoo side (§3).
+`ledger.db` (§11), encrypted disk, fixed secrets path on the Odoo side (§3). Revision 4:
+fail-closed start (§7, layer 2b), local health checks separated from the protected route.
 
 ## 1. Assets
 
@@ -143,12 +144,30 @@ chain Docker evaluates before its own forwarding rules and never overwrites):
 -A DOCKER-USER -s <ai_subnets> -j DROP          # default deny for every AI container
 ```
 
-The rules are installed by a systemd unit ordered after Docker, re-applied after every
-Docker restart and checked by a daily script that compares them with the expected list
-(alert on difference). The Docker daemon keeps `iptables: true` (its own NAT is needed for
+The rules are installed by `ai-firewall.service` and the containers are started only by
+`ai-stack.service` after the rules are verified (layer 2b); a timer re-checks them every
+5 minutes and stops the stack on any difference. The Docker daemon keeps `iptables: true` (its own NAT is needed for
 the proxy) and `userland-proxy: false` so published ports go through the kernel rules
 above. The host's own outbound (OS updates) is filtered in the host's `OUTPUT` chain,
 separately.
+
+**Layer 2b – fail-closed start (revision 4).** No AI container may run before the rules
+exist and are verified, after a boot or a Docker restart:
+- containers have **no Docker restart policy** (`restart: "no"`) and the daemon runs with
+  `live-restore: false`: Docker never starts or keeps them on its own;
+- `ai-firewall.service` (oneshot, `After=docker.service`, `Requires=docker.service`,
+  `PartOf=docker.service`): installs the `DOCKER-USER` rules, then verifies them against
+  the expected file; fails if they differ;
+- `ai-stack.service` (`Requires=docker.service ai-firewall.service`,
+  `After=docker.service ai-firewall.service`, `PartOf=docker.service`): `ExecStartPre` runs
+  the same verification again, `ExecStart` starts the compose project, `ExecStop` stops it;
+  if the verification fails, nothing is started;
+- a Docker restart stops `ai-stack` (`PartOf`), re-runs `ai-firewall`, then `ai-stack`;
+- `ai-firewall-check.timer` (every 5 minutes): verification; on difference, `systemctl stop
+  ai-stack` and an alert (fail closed);
+- operational rule: the AI containers are never started by hand with `docker start` /
+  `docker compose up`; the 5-minute check also lists running AI containers whose start time
+  precedes `ai-stack`'s last start (alert).
 
 **Layer 3 – the egress proxy** (Squid or equivalent, pinned digest):
 - accepts clients only from `ai_litellm`'s fixed address (source ACL); the gateway and the
@@ -182,7 +201,9 @@ traffic (already covered by the default deny). Tested either way.
 | T-S23 | LiteLLM through the proxy | approved host with the right CA / with a test CA presenting a wrong certificate | works / refused by LiteLLM |
 | T-S23b | gateway, extractor | reach the proxy (`CONNECT` to an approved host) | impossible: not on `net_egress`; and the proxy's source ACL refuses any address but `ai_litellm`'s (tested from a test container on `net_egress`) |
 | T-S23c | outside | connect to the gateway port from an address other than the Odoo VPS | dropped |
-| T-S23d | host | restart Docker | rules present again; daily check passes |
+| T-S23d | host | restart Docker; reboot the host | rules present again; check passes |
+| T-S23e | host | reboot and `systemctl restart docker`, with a capture started before Docker on every AI bridge interface and on the external interface | no AI container running before `ai-firewall` succeeded (journal and `docker events` timestamps); no packet from the AI subnets to a non-allowed destination in the capture |
+| T-S23f | host | remove one `DOCKER-USER` rule, then reboot with a corrupted expected-rules file | the timer stops `ai-stack` within 5 minutes; after reboot `ai-stack` does not start and no AI container runs |
 
 ## 8. Extractor hardening (D14)
 
@@ -266,9 +287,9 @@ job contents never reach an unencrypted swap. Docker logs of the gateway hold no
 | T-S27 | real (non-synthetic) data before D6 | refused |
 | T-S28 | user without create right on `product.creation.request` / `equipment.operation` | « Prepare draft » hidden; forced call refused by the ORM; proposal kept |
 | T-S29 | intent with no allowed category | `missing_configuration`; no draft; extraction still runs if a document was given (proposal for an authorised person) |
-| T-S30 | after `ack` and after 7 days | result absent from `jobs.db` (including free pages after `VACUUM`); same key → `410 result_purged`, no new call |
+| T-S30 | after `ack` and after 7 days | result absent from `jobs.db` (including free pages after the maintenance `VACUUM`); same key → `410 result_purged`, no new call; no `VACUUM` while a job is `running` |
 | T-S31 | scan of `ledger.db` and its backup for the canary string and extracted values of the test documents | absent |
-| T-S32 | kill the gateway during the commit of a job creation | both files consistent: job + reservation + tombstone, or none |
+| T-S32 | application exception, `SIGKILL` of the gateway, and hard reset of the test machine during commits | after restart, each transaction fully present in both files or absent from both; pragmas and same-filesystem check enforced at start |
 | T-S33 | Odoo crashes after `GET` before its commit; then after its commit before `ack` | first case: result fetched again; second: `ack` sent by the next run; `ack` twice → 204 |
 | T-S34 | 10 jobs submitted at once | at most the configured number running, extractions and OCR within their semaphores |
 

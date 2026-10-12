@@ -1,4 +1,4 @@
-# AI assistant – Odoo ↔ gateway contract (IA-0, revision 3, 12/10/2026)
+# AI assistant – Odoo ↔ gateway contract (IA-0, revision 4, 12/10/2026)
 
 The contract belongs to the project. Revision 2: asynchronous jobs, three AI functions.
 Sketches for the audit; IA-1 writes them as JSON Schema draft 2020-12 files, versioned in
@@ -7,14 +7,15 @@ the gateway repository and copied with the same hash into the Odoo module's test
 
 ## 1. Endpoints
 
-All over HTTPS with mTLS and HMAC (SECURITY.md §3).
+**All**, `/v1/health` included, over HTTPS with mTLS and HMAC (SECURITY.md §3). Docker's own
+health checks do not use these routes (DEPLOYMENT.md §3.2).
 
 | Method and path | Purpose | Answer |
 |---|---|---|
 | `POST /v1/jobs` | create a job (or return the existing one for the same key and body) | `202` job; `402` budget; `403` confidentiality / real data before D6; `409` key conflict; `410` result purged (same key, job already acknowledged or expired: never a new call); `400` invalid; `503` disabled |
 | `GET /v1/jobs/{job_id}` | state, and result when final | `200` |
 | `POST /v1/jobs/{job_id}/ack` | sent by Odoo **only after its own commit** of the result; gateway purges the result from `jobs.db` | `204`, also when already acknowledged or purged (idempotent) |
-| `GET /v1/health` | `{"status": "ok" \| "disabled"}`, no detail | `200` |
+| `GET /v1/health` | for Odoo's cron before submitting; mTLS + HMAC like every route; `{"status": "ok" \| "disabled" \| "maintenance"}`, no detail | `200` |
 
 ## 2. Jobs
 

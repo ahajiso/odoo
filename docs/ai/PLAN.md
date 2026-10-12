@@ -1,4 +1,4 @@
-# AI assistant – plan IA-0 (revision 3, 12/10/2026, no code, nothing installed)
+# AI assistant – plan IA-0 (revision 4, 12/10/2026, no code, nothing installed)
 
 Owner's mission of 12/10/2026: an assistant that understands a business need written in
 natural language and **prepares** what Odoo needs (supplier, item or service, contract,
@@ -17,6 +17,10 @@ complements (§10): `jobs.db` (temporary, never backed up) separated from `ledge
 (financial metadata, backed up) on an encrypted disk; 4 vCPU / 8 GB with explicit worker
 concurrency; egress filtering in Docker's `DOCKER-USER` chain with a proxy that resolves
 names and refuses private and metadata addresses; `ack` only after Odoo's commit.
+
+Revision 4 answers the audit of c325634 (§11): fail-closed start (the AI containers run
+only after the firewall rules are installed and verified, through systemd), SQLite
+settings fixed, Docker's local health checks separated from the protected route.
 
 This is still a plan for audit. No module, container, key or API call is created by it.
 Development starts only after the owner's answers to §6 and the auditor's green light.
@@ -274,6 +278,22 @@ it shows the treatment Odoo's configuration gives (categories, profiles, C1–C2
 | c4 | Calls with `missing_configuration` inconsistent | **Fixed**: 1 call without document, 2 with (extraction kept for the structured proposal, S1) | COSTS.md §1; T-S29 |
 | c5 | Exact reconciliation of `outcome_unknown` | **Fixed**: exact only if the provider's usage identifies the request (H-AI-7); otherwise reservation kept and traced manual correction | COSTS.md §4 |
 | c6 | No real data before D6 | **Confirmed**: `REAL_DATA_ALLOWED=false` on the AI server until D6, checked at job creation (T-S27); IA-1 with fake provider and synthetic data only; real calls (IA-1b) after D3, D4, D6 | §4; ARCHITECTURE.md §5.1 |
+
+
+## 11. Answers to the audit of c325634
+
+| # | Point | Answer | Where |
+|---|---|---|---|
+| 1 | Start-up race between Docker, the AI containers and the `DOCKER-USER` rules | **Fixed**: no Docker restart policy and `live-restore: false`; `ai-firewall.service` installs and verifies the rules; `ai-stack.service` (`Requires=` / `After=` docker and ai-firewall, `PartOf=docker.service`) verifies again in `ExecStartPre` and only then starts the containers; on failure they stay stopped; 5-minute timer stops the stack on any difference; restarts only through `systemctl restart ai-stack` | SECURITY.md §7 layer 2b; DEPLOYMENT.md §3.1; T-S23d–T-S23f |
+| 2 | SQLite atomicity details | **Fixed**: `ledger.db` main, `jobs.db` attached, same directory on the same encrypted filesystem (checked at start), `journal_mode=DELETE`, `synchronous=FULL`, single writer, `VACUUM` only in a maintenance window with no job running; test with exception, `SIGKILL` and hard reset of the test machine | ARCHITECTURE.md §5.1; T-S30, T-S32 |
+| 3 | Health check vs protected routes | **Fixed**: Docker health checks are commands inside each container (no network beyond its own loopback, no secret); `/v1/health` is an external route protected by mTLS + HMAC, used by Odoo's cron | DEPLOYMENT.md §3.2; SCHEMAS.md §1 |
+
+Scope announced by the auditor once this revision is accepted: **IA-1 only**, fake
+provider, synthetic data only, no real API call, no module installed in Odoo, no change on
+the Odoo VPS. IA-1b and IA-2 stay conditioned by D3, D4 and D6, the official verification
+of providers (§1.3), the characterisation of the Odoo VPS, the AI server in place, and the
+load and isolation test results. IA-1 itself starts with its own development plan
+(`docs/ai/IA1_PLAN.md`), as every phase.
 
 ## Sources
 
