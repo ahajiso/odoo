@@ -31,6 +31,7 @@ Development starts only after the owner's answers to §6 and the auditor's green
 | [SECURITY.md](SECURITY.md) | trust boundaries, confidentiality pre-check, mTLS + HMAC, egress proxy, isolation, logging, tests |
 | [SCHEMAS.md](SCHEMAS.md) | the stable contract: jobs, three AI functions, limits, uncertainty, idempotency |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | characterisation (read-only), separate server, containers, secrets, operations, rollback |
+| [IA1_PLAN.md](IA1_PLAN.md) | development plan of IA-1 (fake provider, synthetic data), to audit before any code |
 | [COSTS.md](COSTS.md) | token estimates, cost formula, illustrative ranges (not a budget basis), caps and ledger |
 
 ## 0. Rules carried by every AI phase
@@ -294,6 +295,11 @@ the Odoo VPS. IA-1b and IA-2 stay conditioned by D3, D4 and D6, the official ver
 of providers (§1.3), the characterisation of the Odoo VPS, the AI server in place, and the
 load and isolation test results. IA-1 itself starts with its own development plan
 (`docs/ai/IA1_PLAN.md`), as every phase.
+
+Audit of `400a3c0..95fdf3c`: revision 4 validated; green light to write `IA1_PLAN.md`
+only. Its four precisions (atomic firewall reload or stack stopped first, capture with
+`tcpdump -i any` started before Docker, health probes without HTTP exposure, brutal crash
+of `dockerd` with `BindsTo=`) are in `IA1_PLAN.md` §3.
 
 ## Sources
 

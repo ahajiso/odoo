@@ -344,8 +344,10 @@ AI. Independent AI assistant (owner's mission of 12/10/2026): docs/ai/ (PLAN, AR
    c9e5427 (jobs.db / ledger.db, 4 vCPU / 8 GB with explicit concurrency, DOCKER-USER egress
    filtering, ack after Odoo's commit); revision 4 answers the audit of c325634 (fail-closed
    start: ai-firewall then ai-stack systemd units, no Docker restart policy; SQLite settings;
-   local health checks); after its audit: IA-1 only (fake provider, synthetic data, no real
-   call, nothing on Odoo or the Odoo VPS); IA-1b and IA-2 wait for D3, D4, D6. Separate module `lartdubati_ai_assistant` and gateway
+   local health checks), validated by the audit of 400a3c0..95fdf3c. docs/ai/IA1_PLAN.md
+   (IA-1 development plan: separate gateway repository, fake providers, synthetic data, test
+   VM, atomic firewall reload, capture before Docker, health probes, dockerd crash) to audit
+   before any code; IA-1b and IA-2 wait for D3, D4, D6. Separate module `lartdubati_ai_assistant` and gateway
    `lartdubati-ai-gateway`; never mixed into the catalogue module; every existing circuit
    works with the AI disabled or down.
 Last. Manual rewrite for all phases (cards citing removed or changed fields, new
