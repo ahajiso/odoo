@@ -46,8 +46,16 @@ awk -v mode="$MODE" '
   $1 == "AFTER" { after[$2] = $2 " " $3 " " $4 }
   END { for (m in line) print (mode == "after" && (m in after)) ? after[m] : line[m] }
 ' "$EXPECTED_FILE" | LC_ALL=C sort > "$EXPECTED"
-docker exec -i odoo_web odoo shell -d "$DB" --no-http < "$HERE/platform.py" 2>/dev/null \
-  | awk '$1 == "MODULE" { print $2, $3, $4 }' | LC_ALL=C sort > "$ACTUAL"
+# the fingerprint needs the database's registry: a failure is printed, never silent
+# (first ROADMAP 0 rollback, 11/10/2026: unreadable code, the script ended without a word)
+RAWP=$(mktemp); ERRP=$(mktemp)
+if ! docker exec -i odoo_web odoo shell -d "$DB" --no-http < "$HERE/platform.py" > "$RAWP" 2> "$ERRP"; then
+  tail -5 "$ERRP"; rm -f "$RAWP" "$ERRP"
+  echo "PLATFORM DIFFERS ($MODE): platform.py failed on $DB (above); send this to Claude; do not deploy."
+  exit 1
+fi
+awk '$1 == "MODULE" { print $2, $3, $4 }' "$RAWP" | LC_ALL=C sort > "$ACTUAL"
+rm -f "$RAWP" "$ERRP"
 echo "modules installed on $DB: $(wc -l < "$ACTUAL"), expected: $(wc -l < "$EXPECTED")"
 if diff -u --label expected --label "$DB" "$EXPECTED" "$ACTUAL"; then
   echo "modules OK: same names, versions and code"

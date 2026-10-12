@@ -189,6 +189,12 @@ done < <(git -C "$ADDONS" ls-files --stage -z)
 step "starting odoo_web"
 docker start odoo_web > /dev/null || true
 odoo_ready || stop "odoo_web not running or not answering after the restore (database, filestore and code restored). Check « docker logs --tail 50 odoo_web »; send this to Claude."
+# /web/health answers without loading any database (first ROADMAP 0 rollback, 11/10/2026:
+# RESTORE OK printed while artdubati_test could not load its modules): load it for real
+REG=$(echo "print('REGISTRY OK', env['ir.module.module'].search_count([('state', '=', 'installed')]))" \
+      | docker exec -i odoo_web odoo shell -d "$DB" --no-http 2>&1 | grep '^REGISTRY OK' || true)
+[ -n "$REG" ] || stop "$DB does not load its modules after the restore (odoo_web running). Send « docker logs --tail 50 odoo_web » to Claude."
+echo "$REG"
 echo "RESTORE OK: $DB, filestore and code back to the backup of $(value STAMP); odoo_web answering."
 echo "Kept until checked: database $OLD_DB, filestore $FS/$FS_OLD."
 sql "$DB" "select name || ' ' || latest_version from ir_module_module
