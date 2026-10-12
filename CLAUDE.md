@@ -305,9 +305,22 @@ tests on artdubati_test (47 passing, 08/10/2026).
    §10): PLATFORM OK before, PRECHECK OK, BACKUP OK (phase4fix, 562 files, 0 missing),
    update OK, 235 tests 0 failed, PLATFORM OK after, post-check clean; probe complete
    (Stock Monitor menu only, 6 rows), no refused route in the log, browser checks
-   validated (export XLSX and CSV). Phase 4 done. Next: docs/ROADMAP.md section 0 (product and category creation, « Can be
-   maintained », equipment categories, the Mac Mini without fixed asset, supplier
-   consignment), then A-K, the manual last.
+   validated (export XLSX and CSV). Phase 4 done.
+   ROADMAP section 0 items 1 to 3 (docs/roadmap0/: label « Can be maintained », product
+   creation requests and catalogue guards, maintenance_shareholder_equipment 18.0.5.0.0,
+   migration of the catalogue): deployed on artdubati_test, code 5823e71 (record in
+   docs/roadmap0/README.md). First window stopped by the migration's own guard
+   (abridged name of the table saw, nothing written) and rolled back; the rollback's
+   umask 077 made the restored code unreadable (fixed in 5823e71). Second window:
+   PLATFORM OK before / after (122 modules), BACKUP OK (552 files, 0 missing), 270 tests
+   before and after the migration, migration 77 changes then 0 (an accidental second
+   --apply and the control run), post-check empty, WINDOW OK. Still open: no user in
+   « Product Catalogue Manager » (to name; two accounts for the acceptance, the
+   requester never approves), functional acceptance of the requests (0 request so far),
+   Mac Mini bill and fixed asset (item 4), consignment (item 5), C24 / C25, the rest of
+   the nomenclature (insurance, maintenance, software / SaaS, energy, leasing,
+   subcontracting, transport, materials and consumables, workwear, consignment).
+   Proposal 061aaa1 (tooling, to audit). Then A-K, the manual last.
 5. Translations, deployment checklist (docs/deployment/investor_home.md).
 6. Functional phases proposed by the audit of 6063db1, order to set by the owner
    (docs/ROADMAP.md): recurring expenses and contracts, bill payment and bank

@@ -22,6 +22,15 @@ Rules carried by each phase:
 
 Not mixed with the phase 4 security deployment; each with its own plan and audit.
 
+**Status (12/10/2026).** Items 1 to 4 of this list are deployed on artdubati_test as far
+as the catalogue goes (docs/roadmap0/, code 5823e71: label, product creation requests,
+the two classifications, old categories archived or deleted, products and equipment
+moved). Not done yet: the Mac Mini's bill and fixed asset (item 5), the accountant's
+review (item 6, C24 / C25), consignment (item 7); the catalogue manager to name and the
+functional acceptance of the requests; the rest of the nomenclature (insurance,
+maintenance, software and SaaS, energy, leasing, subcontracting, transport, materials
+and consumables, workwear) opens category by category after C24 / C25.
+
 1. Label « Can be Maintenance » → exactly « Can be maintained » (lower-case m; FR
    « Peut être maintenu », FA with the same verbal meaning; audit of d76e4cc): find which OCA module defines it, override the
    label with a minimal local inheritance (never edit the OCA repository), test

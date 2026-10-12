@@ -1,4 +1,4 @@
-# ROADMAP section 0 – plan (revision 5, 11/10/2026, no code yet)
+# ROADMAP section 0 – plan (revision 5, 11/10/2026; items 1 to 3 implemented and deployed on artdubati_test, code 5823e71, README.md)
 
 Basis: NOMENCLATURE.md (retained), REPORT.md (facts, anomalies), EXTRACT.md and data/.
 Nothing runs on artdubati_test before the audit and the owner's go. Standard Odoo and

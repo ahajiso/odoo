@@ -1,11 +1,57 @@
-# ROADMAP section 0, items 1 and 2 – deployment on artdubati_test
+# ROADMAP section 0, items 1 to 3 – deployment on artdubati_test
 
-**Not deployed alone (audit of dad9933, point 7).** After items 1 and 2 alone no family
-is usable, direct creation is already refused and some receipts and bills of
-maintainable products would be blocked until the migration. The code of items 1 and 2
-is deployed **in the same window as the migration of item 3** (MIGRATION.md,
-`migrate_catalogue.py`, rehearsed locally; joint audit pending): procedure below. If the label « Can be
-maintained » is wanted earlier, it can be a separate micro-fix (owner's decision).
+## Deployment record (recorded 12/10/2026)
+
+**Deployed: code 5823e71** (maintenance_shareholder_equipment 18.0.5.0.0,
+lartdubati_investor_home 18.0.3.0.1), items 1 and 2 and the migration of item 3 in one
+window.
+
+- First window (7a5ea9b, 11/10/2026): steps 0 to 4 conform, then the migration's dry
+  run refused before any change (`ERROR | equipment saw: 0 record(s)`: name abridged in
+  the script, MIGRATION.md §7.00); rolled back with `restore_db.sh roadmap0`. The
+  rollback's `umask 077` left the restored code unreadable by odoo_web (the platform
+  check failed, safely, before the next backup); permissions normalised on the server
+  and fixed in `restore_db.sh` (5823e71).
+- Second window: precheck no row; PLATFORM OK before (122 modules); BACKUP OK
+  (`roadmap0b`, 552 files, 0 attachment file missing); update OK; **270 tests, 0 failed**;
+  migration dry run 77, `--apply` **77 committed**; an accidental second `--apply` gave
+  **0 change** (idempotence, the script's own count check); `finish_window.sh`: control
+  dry run 0, post-check no row, **270 tests, 0 failed on the migrated data**, start,
+  /web/health, PLATFORM OK after, post-check no row: **WINDOW OK**.
+- Read-only check of the database afterwards (owner, Odoo API): labels « Can be
+  maintained » / « Peut être maintenu » / « قابل تعمیر و نگهداری است »; 9 categories
+  available for requests; profile « Matériel informatique (test) » 218300 / 281800 /
+  681120, linear 3 years, one asset per item; 8 contract tags; equipment category
+  `All` archived, `Fixed Assets` deleted; Computer, TEST Bought compressor, TEST
+  Scaffold rent and the contract TEST Scaffold rental archived; table saw in Workshop
+  Machinery / Wood (cost 15 € excl. tax, final, from its bill); Mac Mini in IT &
+  Communications / Computers & Servers, product in Fixed Assets / IT Equipment; lasers
+  in Measuring, Inspection & Setting-out.
+- Kept until the acceptance below is done: the backups `roadmap0` and `roadmap0b` and
+  the copies kept by the first rollback (`artdubati_test_before_restore_*`).
+
+**Open after the deployment (blocking the use, not the code):**
+- the group « Product Catalogue Manager » has **no member**: nobody can approve and
+  execute a request. Name at least one manager; the acceptance needs two accounts (the
+  requester never approves his own request);
+- functional acceptance: **0 request so far**. Scenarios: a service in Telecom &
+  Internet (requested, approved by another user, executed, product checked); an IT
+  equipment request; a family waiting for C24 / C25 refused; the investor's monitor
+  unchanged. « Abonnement téléphonique » already exists in Services Purchased /
+  Telecom & Internet: not to be requested again;
+- Mac Mini (item 4): P00381 1 100 € excl. tax, received, to invoice, no bill, no fixed
+  asset; equipment cost still provisional 1 850 € excl. tax (source: order); stock 1 in
+  Bg/Stock valued 0 €; the IT profile is ready on 218300. Next: draft bill from P00381,
+  posted by an authorised accounting user; expected: fixed asset on 218300 with the IT
+  profile, `asset_id` on the equipment, final cost 1 100 € excl. tax;
+- ergonomics (owner's proposal, to plan): the requests are under Inventory → Products →
+  Product Requests, not intuitive for services and subscriptions; rename the menu
+  « Item and Service Requests » and expose the same action under Purchase (and possibly
+  Invoicing → Vendors), no new model nor rule. A real subscription (supplier, amount,
+  period, renewal, documents, bills) belongs to phase A, not to the request;
+- the rest of the nomenclature (insurance, maintenance, software and SaaS including
+  ChatGPT, energy and charges, leasing, subcontracting, transport, materials and
+  consumables, workwear, supplier consignment): not opened by this deployment.
 
 Label « Can be maintained », product creation requests, catalogue guards
 (docs/roadmap0/PLAN.md revision 5; audit of 7f352aa: green light for items 1 and 2).
@@ -40,8 +86,7 @@ No new HTTP route (no controller added): the investor route lists are unchanged.
 
 ## Procedure (one window: code of items 1 and 2, then the migration of item 3)
 
-**Not authorised yet**: written for the joint audit of the migration and of this
-procedure (MIGRATION.md). Rehearsed locally in the same order (MIGRATION.md §7,
+**Executed** (second window, record above); kept as the reference procedure. Rehearsed locally in the same order (MIGRATION.md §7,
 `rehearsal/rehearse.sh`). `odoo_web` stays **stopped** from the update to the end of
 the migration: nobody works between the update and the migration (a receipt or a bill
 of a maintainable product would be refused in that interval).
