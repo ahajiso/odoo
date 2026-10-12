@@ -1,229 +1,164 @@
-# AI assistant – Odoo ↔ gateway contract (IA-0, revision 1, 12/10/2026)
+# AI assistant – Odoo ↔ gateway contract (IA-0, revision 2, 12/10/2026)
 
-The contract belongs to the project, not to a provider or to LiteLLM. Schemas below are
-sketches for the audit; IA-1 writes them as JSON Schema draft 2020-12 files, versioned in
-the gateway repository and copied (same hash) into the Odoo module's tests.
+The contract belongs to the project. Revision 2: asynchronous jobs, three AI functions.
+Sketches for the audit; IA-1 writes them as JSON Schema draft 2020-12 files, versioned in
+the gateway repository and copied with the same hash into the Odoo module's tests.
+`//` comments are for reading only.
 
-## 1. Transport and envelope
+## 1. Endpoints
 
-`POST /v1/<function>` on the private network, JSON, HMAC headers (SECURITY.md §3).
-`GET /v1/health` (no auth, returns only `{"status": "ok" | "disabled"}`).
+All over HTTPS with mTLS and HMAC (SECURITY.md §3).
 
-Request envelope (every function; `//` comments are for reading only, JSON has none):
+| Method and path | Purpose | Answer |
+|---|---|---|
+| `POST /v1/jobs` | create a job (or return the existing one for the same key and body) | `202` job; `402` budget; `403` confidentiality / data not allowed; `409` key conflict; `400` invalid; `503` disabled |
+| `GET /v1/jobs/{job_id}` | state, and result when final | `200` |
+| `POST /v1/jobs/{job_id}/ack` | Odoo has stored the result; gateway purges it | `204` |
+| `GET /v1/health` | `{"status": "ok" \| "disabled"}`, no detail | `200` |
+
+## 2. Jobs
+
+### 2.1 Create
 
 ```json
 {
-  "contract_version": "1.0",
-  "function": "extract_document",
+  "contract_version": "2.0",
+  "function": "extract_document",          // interpret_request | extract_document | resolve_ambiguity
   "function_version": "1.0",
-  "idempotency_key": "6f1c…-uuid",
+  "idempotency_key": "uuid",               // unique per (request, step, user-initiated attempt)
   "request_ref": "AIR/2026/0001",
-  "user_ref": "u-9f2a",                 // opaque, stable per Odoo user, no login
+  "user_ref": "u-9f2a",                    // opaque
   "company_ref": "c-1",
-  "profile": "document",                // fast | document | reasoning | local | fallback
-  "confidentiality": "internal",        // public | internal | confidential | restricted
-  "language": "fr_FR",                  // answer language for questions and explanations
-  "limits": {"max_cost_eur": 0.30, "timeout_s": 60, "budget_override": null},
+  "profile": "document",
+  "confidentiality": "internal",           // declared by Odoo, ≥ Odoo's detected level
+  "precheck": {"detected": "internal", "categories": [], "synthetic": true},
+  "language": "fr_FR",
+  "limits": {"max_cost_eur": 0.30, "budget_override": null},
   "input": { … function-specific … }
 }
 ```
 
-Response envelope:
+The gateway recomputes the pre-check on every input; a result above the declared level, a
+`restricted` / `confidential` level for an external profile, or real data before D6 →
+`403 confidentiality_refused` and no job.
+
+### 2.2 Job object
 
 ```json
 {
-  "contract_version": "1.0",
-  "function": "extract_document",
-  "function_version": "1.0",
-  "idempotency_key": "…",
-  "status": "ok",                        // ok | error
-  "result": { … function-specific, validated … },
-  "error": null,                         // {"code": "...", "message": "...", "retryable": bool}
+  "job_id": "j-…", "idempotency_key": "…", "body_sha256": "…",
+  "state": "received",                     // received | running | succeeded | failed
+  "created_at": "…", "updated_at": "…",
+  "reservation": {"amount": "0.21", "currency": "<provider billing currency>", "rate_to_eur": "…", "rate_date": "…"},
+  "result": null,                          // when succeeded (validated) — §3
+  "error": null,                           // when failed: {"code", "message", "retryable"}
   "meta": {
-    "profile": "document", "provider": "anthropic", "model": "<exact id>",
-    "fallback_used": false, "inference_region": "<as configured>",
-    "prompt_version": "extract_document/3", "schema_version": "1.0",
-    "config_version": "sha256:…",
-    "usage": {"input_tokens": 0, "output_tokens": 0, "cost_eur": 0.0, "cost_usd": 0.0},
-    "duration_ms": 0, "document_sha256": ["…"], "cached": false
+    "profile": "document", "route": "r_doc", "provider": "<as configured>", "model": "<exact id as returned>",
+    "fallback_used": false, "policy_ref": "…",
+    "prompt_version": "extract_document/1", "schema_version": "1.0", "config_version": "sha256:…",
+    "usage": {"input_tokens": 0, "output_tokens": 0,
+              "cost": {"amount": "0.00", "currency": "<billing>", "rate_to_eur": "…", "rate_date": "…", "eur": "0.00"}},
+    "duration_ms": 0, "document_sha256": ["…"], "precheck": {"detected": "internal", "categories": []}
   }
 }
 ```
 
-`budget_override`: `null`, or `{"approved_by": "u-…", "max_cost_eur": 1.20}` set by Odoo
-only for a member of « AI Budget Manager ».
+State rules: `received → running → succeeded | failed`; `running → received` only if the
+worker died before `attempt_started`. Creation, reservation and idempotency record are
+one transaction; the final state and the cost settlement are another.
 
-### 1.1 Error codes
+### 2.3 Error codes
 
-| Code | HTTP | Retryable | Meaning |
-|---|---|---|---|
-| `unauthenticated` | 401 | no | bad signature, timestamp or nonce |
-| `invalid_input` | 400 | no | envelope or input schema failure, unknown field |
-| `too_large` | 413 | no | size limit of §3 exceeded |
-| `idempotency_conflict` | 409 | no | same key, different body |
-| `budget_request_exceeded` | 402 | no (override) | estimate above the request cap |
-| `budget_exhausted` | 402 | no | month cap reached |
-| `confidentiality_refused` | 403 | no | level not allowed for any enabled profile |
-| `disabled` | 503 | later | kill switch |
-| `provider_unavailable` | 503 | yes | primary and allowed fallbacks unavailable |
-| `timeout` | 504 | yes | time limit reached |
-| `invalid_output` | 502 | no (same input) | model answer failed validation; never repaired |
-| `refused` | 502 | no | provider refusal |
-| `extraction_failed` | 422 | no | file unreadable, OCR failed |
+| Code | When | Retry by Odoo |
+|---|---|---|
+| `invalid_input` | schema, size, unknown field, unsupported function version | no |
+| `idempotency_conflict` | same key, other body | no |
+| `confidentiality_refused` | pre-check (§2.1) | no |
+| `budget_request_exceeded` / `budget_exhausted` | worst-case estimate above cap | no (override for the first) |
+| `disabled` | kill switch | later, same key |
+| `provider_unavailable` | primary and allowed fallbacks unavailable, nothing billed | user may resubmit, new key |
+| `timeout` | worker's call timeout | user may resubmit, new key |
+| `outcome_unknown` | worker lost after `attempt_started` | **never automatic**; user decides, new key |
+| `invalid_output` / `refused` | validation failure / provider refusal | no (same input gives the same failure) |
+| `extraction_failed` | unreadable file, OCR failure | no |
 
-## 2. Common result conventions
+## 3. Result conventions
 
-### 2.1 Extracted value
-
+Extracted value:
 ```json
-{
-  "value": "1650.00",                 // string, normalised (ISO dates, dot decimals) or null
-  "status": "found",                  // found | absent | ambiguous | contradictory | unsupported
-  "confidence": 0.86,                 // 0..1, informative only; never used alone to accept
-  "evidence": [{"chunk_id": "d1-p3-c2", "page": 3, "excerpt": "Prime annuelle HT : 1 650,00 €"}],
-  "note": "string ≤ 300 chars or null"
-}
+{"value": "1650.00" , "status": "found",   // found | absent | ambiguous | contradictory | unsupported
+ "confidence": 0.86,                        // informative, never used alone
+ "evidence": [{"chunk_id": "d1-p3-c2", "page": 3, "excerpt": "≤ 300 chars"}],
+ "alternatives": [], "note": null}
 ```
+`absent` ⇒ `value: null`; `found` without evidence ⇒ `invalid_output`. Amounts add
+`currency` (from Odoo's list or `unknown`) and `tax_basis` (`excl_tax` / `incl_tax` /
+`unknown`). Choices: `{"choice": "<ref from Odoo's list>" | null, "status": "chosen" |
+"none_fits" | "ambiguous", "alternatives": [...], "justification": "≤ 300 chars"}`; the
+`choice` enum is generated per job from Odoo's references. No schema contains an account,
+a tax, a capitalisation decision or a free identifier.
 
-- `absent`: nothing in the inputs; `value` must be `null`. The model is instructed that
-  inventing is an error; the gateway refuses a `found` value without evidence.
-- `ambiguous`: several readings; `alternatives` (≤ 5) each with evidence.
-- `contradictory`: the document and the user's text (or two pages) disagree; both sides
-  given with evidence.
-- Excerpts ≤ 300 characters; `chunk_id` must be one sent in the call.
+## 4. Functions
 
-### 2.2 Choice among Odoo's list
-
-```json
-{"choice": "cat3" , "status": "chosen", "confidence": 0.7, "justification": "≤ 300 chars"}
-{"choice": null, "status": "none_fits", "justification": "…"}
-{"choice": null, "status": "ambiguous", "alternatives": ["cat3", "cat5"], "justification": "…"}
-```
-
-`choice` is an enum generated per call from the references Odoo sent. There is **no**
-field for an account, a tax, a capitalisation decision or a new identifier anywhere in
-the output schemas.
-
-### 2.3 Amounts
-
-`{"amount": "1650.00", "currency": "EUR", "tax_basis": "excl_tax" | "incl_tax" | "unknown", …extracted value fields}`.
-`currency` must be one of the currencies Odoo lists as active; otherwise `unknown`.
-
-### 2.4 Questions
-
-`{"code": "missing_start_date", "field": "start_date", "question": "…", "blocking": true, "options": ["…"] | null}`
-Only blocking questions by default; at most 5 per call.
-
-## 3. Functions
-
-Common limits: `contract_version` 1.0; JSON body ≤ 15 MB (documents base64 included);
-text inputs ≤ 8 000 characters; one call ≤ its `timeout_s`; the cost cap is the smaller
-of the request's `max_cost_eur` and the profile's.
-
-| Function | Default profile | Input limit | Timeout | Cost cap (default) | Confidentiality max | On uncertainty |
+| Function | Profile | Input limits | Worker timeout | Cost cap (default, placeholder until COSTS.md is verified) | Max confidentiality | On uncertainty |
 |---|---|---|---|---|---|---|
-| `classify_request` | fast | text ≤ 8 000 chars | 20 s | 0.02 € | internal | `intent: unknown` + question |
-| `extract_document` | document | ≤ 3 files, ≤ 10 MB each, ≤ 50 pages each; ≤ 40 chunks sent | 90 s | 0.30 € | internal | values `absent` / `ambiguous` / `contradictory` |
-| `find_existing_records` | fast | ≤ 20 candidates per kind, ≤ 6 kinds | 20 s | 0.02 € | internal | `none_fits` / `ambiguous` |
-| `identify_missing_information` | fast | the current structured state ≤ 20 KB | 20 s | 0.02 € | internal | lists the questions, never guesses |
-| `propose_catalogue_objects` | fast (reasoning if ambiguous) | state ≤ 30 KB, allowed categories ≤ 50 | 30 s | 0.10 € | internal | `none_fits` + question |
-| `analyse_contract` | document / reasoning | chunks ≤ 40 | 120 s | 0.50 € | internal | clause `absent`; contradictions listed |
-| `prepare_operation` | reasoning | state ≤ 40 KB | 120 s | 0.50 € | internal | `needs_information` instead of a proposal |
+| `interpret_request` | fast | text ≤ 8 000 chars; intents ≤ 30; natures ≤ 50 | 30 s | `<CAP_FAST>` | internal | `intent: none_fits` / `ambiguous`; terms `absent` |
+| `extract_document` | document | ≤ 3 files, ≤ 10 MB, ≤ 50 pages each; ≤ 40 chunks sent; ≤ 25 fields | 120 s | `<CAP_DOC>` | internal | `absent` / `ambiguous` / `contradictory` |
+| `resolve_ambiguity` | fast (reasoning on user request) | ≤ 20 candidates; context ≤ 10 KB | 30 s (180 s) | `<CAP_FAST>` (`<CAP_REAS>`) | internal | `none_fits` / `ambiguous` |
 
-### 3.1 `classify_request`
+The request total is capped at 0.50 € (D11) across its jobs.
 
-Input:
-```json
-{"text": "…", "allowed_intents": [
-   {"ref": "i1", "code": "recurring_service", "label": "Recurring service (subscription, insurance, telecom…)"},
-   {"ref": "i2", "code": "equipment_purchase", "label": "…"}, …],
- "allowed_natures": [{"ref": "n1", "code": "insurance"}, …]}
-```
+### 4.1 `interpret_request`
+
+Input: `{"text": "…", "allowed_intents": [{"ref": "i1", "code": "recurring_service", "label": "…"}], "allowed_natures": [{"ref": "n1", "code": "insurance", "label": "…"}]}`
+
 Output:
 ```json
-{"intent": {"choice": "i1", "status": "chosen", "confidence": 0.9, "justification": "…"},
- "nature": {"choice": "n1", …},
- "mentions": {"partner_names": ["AXA"], "product_terms": ["RC professionnelle"],
-              "amounts": [{"amount": "1800.00", "currency": "EUR", "tax_basis": "unknown", "status": "found", "evidence": [{"chunk_id": "text", "excerpt": "1 800 € par an"}]}],
-              "periodicity_terms": ["par an"], "date_terms": ["1er janvier"]},
- "documents_expected": ["insurance_policy"],
- "questions": []}
+{"intent": {choice}, "nature": {choice},
+ "search_terms": {"partner": ["AXA"], "product": ["RC professionnelle"], "reference": []},
+ "amounts": [{amount with evidence: chunk_id "text", excerpt "1 800 € par an"}],
+ "periodicity_term": {extracted value},      // the user's words, not a periodicity code
+ "date_terms": [{extracted value}],
+ "documents_announced": true}
 ```
-`mentions` are search keys for Odoo, not decisions.
+Odoo turns terms into searches and into codes through its own tables.
 
-### 3.2 `extract_document`
+### 4.2 `extract_document`
 
-Input: `{"document_kind_hint": "insurance_policy" | "bill" | "quote" | "contract" | "unknown", "files": [{"name": "…", "mimetype": "application/pdf", "sha256": "…", "content_b64": "…"}], "fields": ["partner_name", "policy_number", "insured_party", "cover", "premium", "periodicity", "start_date", "end_date", "notice_period", "renewal", "deductible", "limits", "bill_number", "bill_date", "lines"], "allowed_currencies": ["EUR", "TRY"]}`
+Input: `{"document_kind_hint": "insurance_policy" | "bill" | "quote" | "contract" | "unknown", "files": [{"name", "mimetype", "sha256", "content_b64"}], "fields": ["partner_name", "policy_number", "cover", "premium", "periodicity", "start_date", "end_date", "notice_period", "renewal", "…"], "allowed_currencies": ["EUR", "TRY"], "allowed_periodicities": [{"ref": "pm", "code": "monthly"}, {"ref": "py", "code": "yearly"}]}`
 
-`fields` is chosen by Odoo per intent; the model answers only those.
+`fields` and their order come from Odoo's table per intent and document kind (contract
+clauses included: this replaces revision 1's `analyse_contract`).
 
-Output: `{"document_kind": {extracted value}, "fields": {"premium": {amount}, "start_date": {extracted value}, …}, "lines": [{"description": {…}, "quantity": {…}, "unit_price": {amount}}], "warnings": [{"code": "instruction_like_text", "page": 2}]}`
+Output: `{"document_kind": {choice among the hint list}, "fields": {name → extracted value | amount | choice}, "lines": [{"description", "quantity", "unit_price"}], "warnings": [{"code": "instruction_like_text" | "low_ocr_quality" | "pages_skipped", "page": 2}]}`
 
-### 3.3 `find_existing_records`
+### 4.3 `resolve_ambiguity`
 
-Input: `{"query": {mentions and extracted values}, "candidates": {"partner": [{"ref": "p1", "name": "AXA France IARD", "vat": "FR…", "city": "Paris"}], "product": [{"ref": "pr4", "name": "Assurance RC Pro", "category": "Services / Insurance"}], "contract": [{"ref": "k2", "partner_ref": "p1", "name": "…", "date_start": "2025-01-01", "date_end": null}]}}`
+Called only when Odoo's deterministic matching leaves ≥ 2 plausible candidates (or ≥ 2
+allowed categories).
 
-Output: `{"partner": {choice}, "product": {choice}, "contract": {choice}, "duplicates": [{"kind": "contract", "ref": "k2", "reason": "same partner and cover, running", "confidence": 0.8}]}`
+Input: `{"kind": "partner" | "product" | "category" | "contract", "subject": {terms and extracted values}, "candidates": [{"ref": "p1", "label": "AXA France IARD", "attributes": {"city": "Paris", "vat": "FR…"}}]}`
 
-Odoo shows duplicates as warnings and runs its own canonical-key checks anyway.
+Output: `{"selection": {choice}}`
 
-### 3.4 `identify_missing_information`
+## 5. Idempotency
 
-Input: `{"intent": "recurring_service", "required_fields": ["partner", "product", "amount", "periodicity", "start_date"], "state": {field → extracted value or chosen ref}}`
-Output: `{"missing": ["start_date"], "contradictions": [{"field": "premium", "sides": [{…evidence…}, {…}]}], "questions": [question…]}`
+- Key generated by Odoo per (request, step, user-initiated attempt); Odoo's automatic
+  retries of a transport error reuse it (same job, no second call).
+- Unique index on the key in the job store; body SHA-256 compared.
+- A new attempt after `timeout`, `provider_unavailable` or `outcome_unknown` is a user
+  action with a new key, after the estimate is shown again.
 
-`required_fields` come from Odoo (the target circuit's mandatory fields), not from the
-model.
+## 6. Versioning
 
-### 3.5 `propose_catalogue_objects`
+`contract_version` major → new path prefix (`/v2`), previous one served for one Odoo
+release. `function_version`: Odoo validates outputs strictly, so any output change is a
+new function version, requested explicitly by Odoo. `prompt_version` changes freely and is
+recorded per job. Schema files carry their SHA-256, checked by Odoo's tests.
 
-Input: `{"intent": …, "state": …, "allowed_categories": [{"ref": "cat3", "path": "Services / Insurance", "kind": "service"}], "allowed_uom": [{"ref": "u1", "name": "Units"}], "existing_choice": {"product": "pr4" | null}}`
-Output: `{"objects": [{"action": "reuse", "kind": "product", "ref": "pr4"} | {"action": "request_creation", "kind": "product", "name": {extracted value}, "category": {choice}, "uom": {choice}, "product_type": {"choice": "service", …}, "justification": "…"}], "questions": […]}`
+## 7. Fake provider
 
-`action: request_creation` becomes a **draft `product.creation.request`** in IA-3, filled
-only with values the user accepted; the catalogue manager's circuit applies unchanged.
-
-### 3.6 `analyse_contract`
-
-Input: chunks + `fields` (`parties`, `object`, `cover`, `start_date`, `end_date`,
-`duration`, `renewal`, `notice_period`, `price`, `indexation`, `periodicity`,
-`termination`, `special_conditions`).
-Output: each field as an extracted value; `periodicity` as a choice among Odoo's list
-(`monthly`, `quarterly`, `yearly`, …) or `absent`; `risks` (≤ 10 notes with evidence,
-informative).
-
-### 3.7 `prepare_operation`
-
-Input: the accepted state + `target_circuit` (choice Odoo made: `product_creation_request`,
-`equipment_operation_receipt`, `recurring_contract` when ROADMAP A exists) + that
-circuit's field list and allowed values.
-Output: `{"status": "ready" | "needs_information", "fields": {field → value or choice}, "questions": […], "summary": "≤ 1 000 chars, user language"}`
-
-Odoo maps `fields` onto the circuit's draft **only** for fields of its whitelist; every
-other key is an `invalid_output`.
-
-## 4. Idempotency
-
-- Key: UUID generated by Odoo per (request, step, attempt group); a retry of the same
-  step reuses it.
-- Gateway: result cached 24 h with the body digest; same key + same digest → cached
-  answer, `meta.cached: true`, cost 0; same key + other digest → 409.
-- Odoo: one `call.log` per key; a duplicate answer does not add cost twice.
-
-## 5. Versioning
-
-- `contract_version` (envelope): major change = new path `/v2`; the gateway serves the
-  previous major for one Odoo release.
-- `function_version`: Odoo validates outputs strictly (unknown fields refused), so any
-  output change, even a new optional field, is a new function version; Odoo names the
-  version it accepts in each request and the gateway answers in that version or refuses
-  with `invalid_input`.
-- `prompt_version` changes freely (no contract change) but is recorded per call.
-- Schema files carry their SHA-256; Odoo tests check the copy matches.
-
-## 6. Fake provider
-
-The gateway's test mode replaces LiteLLM by a fake provider that returns recorded JSON per
-(function, fixture id), can delay, fail with 5xx / 429 / timeout, truncate, refuse, or
-return invalid JSON. All tests of IA-1 to IA-4 use it; an environment variable with a real
-key makes the test suite **fail** (guard against paid calls).
+In test mode the gateway points to a fake LiteLLM that returns recorded answers per
+(function, fixture), and can delay, fail (5xx / 429), time out, truncate, refuse, return
+invalid JSON, or die after `attempt_started`. A real provider key in the test environment
+makes the test suite fail.

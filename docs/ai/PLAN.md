@@ -1,248 +1,253 @@
-# AI assistant – plan IA-0 (revision 1, 12/10/2026, no code, nothing installed)
+# AI assistant – plan IA-0 (revision 2, 12/10/2026, no code, nothing installed)
 
 Owner's mission of 12/10/2026: an assistant that understands a business need written in
-natural language and **prepares** the Odoo objects it needs (supplier, item or service,
-contract, receipt, bill, supporting documents), hiding the Odoo model, **without** letting
-the AI take accounting decisions or write freely to the database.
+natural language and **prepares** what Odoo needs (supplier, item or service, contract,
+receipt, bill, supporting documents), hiding the Odoo model, **without** letting the AI
+take accounting decisions or write freely to the database.
 
-This revision is the IA-0 deliverable: plan, architecture, threat model, schemas,
-deployment and costs. It is to be audited (GPT) and the decisions of §6 answered by the
-owner before any development. No module, container, key or API call is created by it.
+Revision 2 answers the audit of ebe35ac (§9): asynchronous jobs instead of a cron waiting
+on the AI; two calls per normal request instead of six or seven; a separate server;
+a designed egress proxy; a local confidentiality pre-check before any call; IA-3 limited
+to the circuits that exist; models, prices and provider policies kept as placeholders
+until verified on the official pages and accounts; LiteLLM in its own process, apart from
+the gateway's secrets; a hardened extractor.
 
-Companion documents:
+This is still a plan for audit. No module, container, key or API call is created by it.
+Development starts only after the owner's answers to §6 and the auditor's green light.
 
 | Document | Content |
 |---|---|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | components, flows, Odoo module, gateway pipeline, routing, document chain, AI / Odoo split |
-| [SECURITY.md](SECURITY.md) | assets, trust boundaries, threat model, controls, logging, retention, security tests |
-| [SCHEMAS.md](SCHEMAS.md) | the stable Odoo ↔ gateway contract: envelope, seven functions, limits, uncertainty |
-| [DEPLOYMENT.md](DEPLOYMENT.md) | server characterisation (commands), hosting options, containers, secrets, rollback, kill switch |
-| [COSTS.md](COSTS.md) | prices, estimates per function, monthly scenarios, caps and measurement |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | components, job API, Odoo module, deterministic steps vs AI calls, document chain, routing |
+| [SECURITY.md](SECURITY.md) | trust boundaries, confidentiality pre-check, mTLS + HMAC, egress proxy, isolation, logging, tests |
+| [SCHEMAS.md](SCHEMAS.md) | the stable contract: jobs, three AI functions, limits, uncertainty, idempotency |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | characterisation (read-only), separate server, containers, secrets, operations, rollback |
+| [COSTS.md](COSTS.md) | token estimates, cost formula, illustrative ranges (not a budget basis), caps and ledger |
 
 ## 0. Rules carried by every AI phase
 
-1. **Independence.** New module `lartdubati_ai_assistant`, not mixed into
-   `maintenance_shareholder_equipment` (catalogue, operations) nor into
-   `lartdubati_investor_home`. Every existing circuit works unchanged when the AI is
-   disabled, unreachable, out of budget or uninstalled; no existing module depends on it
-   (ARCHITECTURE.md §2).
-2. **The AI proposes, Odoo decides.** The model never chooses an account, a tax, a
-   partner, a product, a category, a periodicity or date absent from the document, nor a
-   capitalisation decision. It may only pick from a list Odoo sends, with a justification
-   and a confidence, or answer « unknown » (ARCHITECTURE.md §7, SCHEMAS.md §3).
-3. **No final write by the AI.** Only Odoo creates records, through the existing business
-   methods and approval circuits (`product.creation.request`, `equipment.operation`, the
-   recurring-contract document of ROADMAP A when it exists), as the user, never with
-   `sudo()` to bypass rights. Nothing is posted, paid, approved or executed automatically.
-4. **Odoo only knows functional profiles** (`fast`, `document`, `reasoning`, `local`,
+1. **Independence.** Module `lartdubati_ai_assistant`, not mixed into
+   `maintenance_shareholder_equipment` nor `lartdubati_investor_home`; no existing module
+   depends on it. Every existing circuit works unchanged when the AI is disabled,
+   unreachable, out of budget or uninstalled.
+2. **No change to the Odoo server's infrastructure** for the AI: no new Docker network,
+   no change to `docs/deploy_modules.sh` or the other window scripts, no new service on
+   the Odoo VPS (D1). Only a module and, for its secrets, files read by `odoo_web` (D16).
+3. **The AI proposes, Odoo decides.** The model never chooses an account, a tax, a partner,
+   a product, a category, a periodicity or a date absent from the inputs, nor a
+   capitalisation decision. It answers « unknown » or picks among a list Odoo sent.
+4. **AI only where determinism cannot do the job**: understanding the free text,
+   extracting a document, settling a real ambiguity among Odoo's candidates. Searches,
+   duplicate checks, missing-information questions and the mapping to drafts are Odoo code
+   (ARCHITECTURE.md §3).
+5. **No final write by the AI.** Odoo creates drafts only in circuits that exist and only
+   as a user who has the right to create them; never `sudo()` to bypass rights; nothing
+   submitted, approved, executed, posted or paid by the assistant.
+6. **Confidentiality decided locally before any external call** (SECURITY.md §4); until D6
+   is answered, external profiles receive **synthetic data only**.
+7. Odoo knows only functional profiles (`fast`, `document`, `reasoning`, `local`,
    `fallback`), never a provider or model name.
-5. **Strict contract.** Every gateway answer is validated against a versioned JSON schema;
-   a non-conforming answer is refused, never repaired or interpreted.
-6. **Documents are untrusted data.** No text from a document can change instructions,
-   call a tool or bypass a rule (SECURITY.md §4).
-7. **No paid API in automated tests.** Fake provider and recorded answers only; real calls
-   only in an explicit, capped acceptance run (SECURITY.md §9, COSTS.md §6).
-8. Project rules unchanged: standard Odoo / OCA first, inheritance, no raw SQL writes,
-   `artdubati_test` only, `« (excl. tax) »` on every cost label, translations from
-   `--i18n-export`, inventory of HTTP routes for each module installed
-   (`docs/phase4/routes.py`); the new module adds **no** HTTP route (SECURITY.md §6).
-   Investor accounts never see the assistant (default deny of phase 4, tested).
-9. Each phase IA-1 … IA-5 has its own plan, audit and deployment.
-10. The test / production separation of `docs/deployment/investor_home.md` §0 applies to
-    the gateway too: separate instances, keys and budgets for test and production.
+8. Strict contract: a gateway answer that fails its JSON schema is refused, never repaired.
+9. Documents are untrusted data; nothing in them can change instructions or rules.
+10. No paid API in automated tests; real calls only in capped acceptance runs.
+11. Project rules unchanged: standard first, inheritance, no raw SQL writes,
+    `artdubati_test` only, « (excl. tax) » on cost labels, `.po` from `--i18n-export`,
+    routes inventory (`docs/phase4/routes.py`): the module adds **no** HTTP route;
+    investors refused by the phase 4 default deny (tested).
+12. Each phase IA-1 … IA-5 has its own plan, audit and deployment; test and production
+    use separate gateways, keys and budgets (`docs/deployment/investor_home.md` §0).
 
 ## 1. Characterisation (state on 12/10/2026)
 
-What follows distinguishes **verified** (read in the repository or in an official source),
-**secondary** (third-party sources, to confirm on the official page before a decision) and
-**to run on the server** (read-only commands of DEPLOYMENT.md §1, run by the owner; no
-access to the VPS from this session).
+**Verified** = read in this repository or in an official page actually opened;
+**secondary** = search results, to confirm; **to verify** = on the owner's accounts or
+the official pages (refused by this session's network: `platform.openai.com`,
+`docs.litellm.ai`, `privacy.claude.com`, `docs.ollama.com`); **to run** = read-only
+commands of DEPLOYMENT.md §1, by the owner.
 
-### 1.1 Server (to run on the server)
+### 1.1 Odoo server (what matters now that the AI runs elsewhere)
 
-| Item | Known | To measure (DEPLOYMENT.md §1) |
+| Item | Known | To run |
 |---|---|---|
-| Odoo image | `sha256:706e891a…` (Odoo Server 18.0-20260908), 122 modules (docs/phase4/platform_expected.txt) | – |
-| Containers | `odoo_web`, `odoo_db` (CLAUDE.md, deployment scripts) | full list, restart policies, compose project if any |
-| RAM, CPU, disk, load | **unknown** | `free -m`, `nproc`, `lscpu`, `df -h`, `uptime`, `vmstat 5 12`, `docker stats --no-stream`, peak over a working day |
-| Odoo workers | **unknown** | `workers`, `limit_memory_*`, `limit_time_real_cron`, `max_cron_threads` in the configuration |
-| Docker network | `odoo_web` is on **exactly one** network: `docs/deploy_modules.sh` refuses to run otherwise and uses that network to reach `odoo_db` | network name, driver, `internal` flag, other members, published ports |
-| Secrets | the database credentials of `odoo_web` are **environment variables of the container** (`deploy_modules.sh` copies `docker inspect … .Config.Env` into a temporary env-file) | how they are set (compose `.env`, `docker run -e`), who can read them, presence of an `odoo.conf` with `admin_passwd` |
-| Outbound network | unknown | firewall egress rules, DNS |
-| Reverse proxy / TLS | `https://erp.lartdubati.com` | proxy software, whether it could expose a new service by mistake |
+| Image, modules | `sha256:706e891a…` (18.0-20260908), 122 modules (verified, `docs/phase4/platform_expected.txt`) | – |
+| Resources | 4 GB according to the audit; not measured | `free -m`, `nproc`, `df -h`, load over a working day |
+| Docker network | `odoo_web` on **exactly one** network, required by `docs/deploy_modules.sh` (verified); **unchanged by this plan** | – |
+| Secrets today | database credentials are container environment variables (verified: `deploy_modules.sh` copies `docker inspect … .Config.Env`) | how they are set; whether `/etc/odoo` is a host bind mount (D16) |
+| Outbound from `odoo_web` | likely (mail through `google_gmail`), not measured | reachability of the AI server's address and port |
 
-Consequence already established: **joining `odoo_web` to a second Docker network breaks
-`docs/deploy_modules.sh`** (and the one-shot `docs/roadmap0/finish_window.sh`,
-`run_migration.sh`), which require exactly one network to reach `odoo_db`;
-`backup_db.sh` and `restore_db.sh` do not read the networks.
-Every hosting option of DEPLOYMENT.md §2 states how it handles this (script change in
-the IA-2 deployment, or no second network).
+The memory figures of revision 1 no longer apply to the Odoo VPS. They size the AI
+server (DEPLOYMENT.md §2).
 
-### 1.2 Memory impact (estimates, to measure in IA-1)
+### 1.2 Software
 
-| Component | Estimate at rest | Peak | Basis |
-|---|---|---|---|
-| Gateway (FastAPI, uvicorn, 1 worker, LiteLLM as a library) | 150–400 MB | +100 MB per concurrent call | LiteLLM imports many SDKs; to measure |
-| LiteLLM proxy as its own container (option) | 0.5–1 GB | secondary guides recommend 4 GB per worker / 8 GB node for production volumes | secondary, conflicting |
-| Document extractor (pypdf / pdfminer) | 50–150 MB | 300 MB on large PDFs | to measure |
-| OCR (Tesseract / OCRmyPDF) | 0 at rest (one-shot) | 300–800 MB per page batch | to measure |
-| Antivirus (ClamAV, optional) | 1–1.5 GB (signatures in memory) | +200 MB | known order of magnitude, to measure |
-| Ollama with a 7–8 B quantised model (IA-5) | 5–8 GB | CPU-only inference: tens of seconds per answer | out of scope until IA-5 |
+| Item | State |
+|---|---|
+| LiteLLM licence | **verified**: MIT except `enterprise/` (not used) |
+| LiteLLM versions | secondary: releases about twice a week (v1.104–1.105 in October 2026). Version, image digest and signature **to verify** in IA-1 |
+| LiteLLM supply chain | secondary, concordant: malicious 1.82.7 and 1.82.8 on PyPI (24/03/2026); images cosign-signed since about v1.83.14 |
+| LiteLLM proxy admin UI and database | to verify: the proxy can run from a config file without database; how to disable its UI / admin routes in the pinned version |
+| FastAPI | secondary: 0.136.x, MIT, pre-1.0 (exact pin) |
+| Provider structured outputs | OpenAI: `json_schema` with `strict`, refusals and truncations not schema-valid (OpenAI guide). Anthropic: `output_config.format`, `stop_reason: "refusal"` (Anthropic API reference). Through LiteLLM: **to verify** (H-AI-1) |
+| Ollama | secondary: OpenAI-compatible `/v1`, JSON-schema outputs since 0.5; licence to verify |
 
-IA-1 includes a memory load test (DEPLOYMENT.md §6); no deployment without it.
+### 1.3 Providers: models, prices, data policies — **placeholders**
 
-### 1.3 Software (verified / secondary)
+Revision 1 quoted Anthropic model identifiers and prices from a price table bundled with
+the development tooling (dated 06/10/2026), not from a page opened in the session, and
+OpenAI figures from third-party lists. The audit is right: none of it may support a
+decision. They become placeholders `<MODEL_FAST>`, `<PRICE_IN_FAST>`… filled only from:
 
-| Item | State | Source |
+| Fact | Source required | Who |
 |---|---|---|
-| LiteLLM licence | **verified**: MIT, except the `enterprise/` directory (own licence; not used) | repository LICENSE |
-| LiteLLM version | secondary: stable releases about twice a week, around v1.104–1.105 in October 2026; exact version and image digest pinned in IA-1 from PyPI / GHCR | release notes, GHCR listing |
-| LiteLLM supply chain | secondary, concordant: **versions 1.82.7 and 1.82.8 published on PyPI on 24/03/2026 were malicious** (credential theft, `.pth` file run at every Python start); removed since. Docker images are cosign-signed since about v1.83.14. Consequence: pinned digest, hash-locked dependencies, signature checked, never an automatic upgrade (SECURITY.md §7) | LiteLLM security blog, Bitsight, NetSPI |
-| FastAPI | secondary: 0.136.x (May 2026), MIT; still pre-1.0, so minor versions may break: exact pin | PyPI mirrors |
-| OpenAI API | structured outputs with `json_schema` and `strict: true`; a refusal or a truncated answer is **not** schema-valid even in strict mode, so the gateway validates anyway | OpenAI structured outputs guide |
-| Anthropic API | structured outputs through `output_config.format`; `stop_reason: "refusal"` to handle; `inference_geo` (`"us"` or `"global"`) on first-party API, US-only at ×1.1 | Anthropic platform docs (data residency), Claude API reference |
-| Ollama | secondary: OpenAI-compatible `/v1` endpoint, JSON-schema structured outputs since 0.5; licence MIT to confirm | Ollama blog |
-| LiteLLM ↔ providers | LiteLLM speaks the native OpenAI, Anthropic and Ollama APIs. **Hypothesis H-AI-1** (IA-1, fake provider then one capped real call): LiteLLM passes the JSON schema to each provider in its native form and passes `inference_geo` through; otherwise the gateway calls with provider-specific parameters | to verify |
+| model identifiers, availability, deprecation dates | provider's official models page **and** the models list of the owner's own account | owner, before IA-1 acceptance |
+| prices per token, region uplifts | official pricing pages, captured with date | owner / Claude from the captured pages |
+| retention, ZDR, training, sub-processors | DPA and data-usage pages; the organisation's settings in each console | owner (legal) |
+| processing regions | official data-residency pages; account settings | owner (legal) |
 
-### 1.4 Provider data policies (secondary unless stated, to confirm on the DPA / data pages before D3 and D6)
+Secondary indications kept only to frame D6 (to confirm): Anthropic's first-party API
+offers `inference_geo` = `us` or `global`, no EU-only option; OpenAI offers EU residency
+for new projects after approval, with a price uplift; both state that API data is not used
+for training by default and offer zero retention on approval.
 
-| | OpenAI API | Anthropic API (first party) | Ollama (local) |
-|---|---|---|---|
-| Training on API data | not by default | not by default (commercial terms) | none (local) |
-| Default retention | abuse-monitoring logs up to 30 days; `store` must be `false` on Responses / Chat Completions | 7 days since 14/09/2025 per several secondary sources; older pages say 30 days; some models (e.g. Claude Fable 5.1) **require** 30-day retention | none |
-| Zero data retention | on approval (sales); some endpoints not eligible (files, batches, vector stores, assistants…) | on approval (sales); safety classifier results still kept | n/a |
-| Location | EU data residency (`eu.api.openai.com`) only for **new** projects, after approval of modified abuse monitoring, with a price uplift (~10 % on recent models) | **no EU-only processing on the first-party API**: `inference_geo` = `us` or `global`; EU processing only through cloud resellers (Bedrock, Vertex), excluded by the mission (« called directly ») | the server's |
-| DPA | yes (with SCCs) | yes, in the commercial terms (with SCCs) | n/a |
+### 1.4 What could not be verified
 
-Consequence for D6: with direct calls, **no provider gives EU-only processing without an
-approval process** (OpenAI) or at all (Anthropic). This is an owner decision, not a
-technical detail.
+The server rows above, the official provider pages, the owner's accounts, and LiteLLM's
+behaviour with each provider (H-AI-1). Nothing is assumed from them.
 
-### 1.5 What could not be verified from this session
-
-- the whole server column of §1.1 (no VPS access; commands in DEPLOYMENT.md §1);
-- official provider pages (the session's network refused `platform.openai.com`,
-  `docs.litellm.ai`, `privacy.claude.com`, `docs.ollama.com`); figures above come from
-  search results, the official Anthropic data-residency page and the LiteLLM repository;
-- current OpenAI model identifiers and prices (secondary sources disagree; COSTS.md §1);
-- whether the owner already holds API accounts, their organisation settings (ZDR,
-  residency, retention) and billing currency.
-
-## 2. Target user experience (reference: RC Pro at AXA)
+## 2. Target experience (RC Pro at AXA) with the calls actually made
 
 « Je veux enregistrer une assurance RC professionnelle chez AXA, 1 800 € par an, à partir
 du 1er janvier. Voici le contrat. »
 
-| Step | Who | What |
+| Step | Who | What | AI call |
+|---|---|---|---|
+| 1 | Odoo, locally | confidentiality pre-check of the text and of the file's type; refused or local-only if sensitive data is detected | – |
+| 2 | gateway | `interpret_request`: intent among Odoo's list (recurring service), nature (insurance), search keys (« AXA », « RC professionnelle »), amount and date terms with their position in the text | **1** |
+| 3 | Odoo | searches partners, products, categories and running contracts with the user's rights; duplicate checks with the existing canonical keys | – |
+| 4 | Odoo | configuration check: is there an allowed product category for insurance services? Today: **no** (nomenclature waits for C25) → status `missing_configuration`, reason shown; the flow stops there for the creation part, extraction still possible for information | – |
+| 5 | AI server | extractor (own server, no external call) + second pre-check on the extracted text | – |
+| 6 | gateway | `extract_document` with the fields Odoo asks for this intent and document kind (insurer, policy, cover, premium, tax basis, periodicity, dates, notice) with page and excerpt | **2** |
+| 7 | Odoo | missing fields and contradictions computed from the circuit's required fields (e.g. « 1 650 € excl. tax in the document, 1 800 € in your message ») → questions from translated templates | – |
+| 8 | gateway, only if needed | `resolve_ambiguity` when Odoo's matching leaves two or more plausible candidates (e.g. « AXA France IARD » and « AXA Assistance ») | (3) |
+| 9 | Odoo | summary with evidence; proposal stored on the request | – |
+| 10 | user | accepts, corrects or refuses; for an existing circuit and with the right to create in it, Odoo creates the **draft**; otherwise the structured proposal stays on the request (§3) | – |
+
+Normal request: **2 calls** (1 without a document), 3 with a real ambiguity.
+
+## 3. Circuits that exist and those that do not
+
+| Need | Circuit in Odoo today | What the assistant does (IA-3) |
 |---|---|---|
-| 1 | gateway `classify_request` (`fast`) | recurring service, nature « insurance », candidate circuits among those Odoo sent |
-| 2 | **Odoo** (ORM, user's rights) | searches partners « AXA », service products of insurance categories, running contracts with that partner |
-| 3 | gateway `find_existing_records` (`fast`) | ranks **only** the candidates Odoo sent; flags likely duplicates |
-| 4 | gateway `extract_document` (`document`) | policy number, insured party, cover, premium, periodicity, dates, notice, each with page and excerpt; « absent » when absent |
-| 5 | gateway `identify_missing_information` (`fast`) | only the blocking questions (e.g. « the document says 1 650 € excl. tax, the message says 1 800 €: which one? ») |
-| 6 | user | answers in the request's thread |
-| 7 | gateway `propose_catalogue_objects` / `prepare_operation` (`reasoning` if ambiguous) | a structured proposal: objects to reuse, objects to request, values with evidence |
-| 8 | **Odoo** | re-checks everything (rights, allowed lists, duplicates, taxes and accounts from configuration) and shows the summary |
-| 9 | user with the right group | accepts, corrects or refuses; on accept, Odoo creates **drafts** in the existing circuits (IA-3): a product creation request, a contract proposal when ROADMAP A exists |
-| 10 | existing approvers | approve and execute as today; nothing is posted or paid by the assistant |
+| new item or service | `product.creation.request` (draft creatable by Equipment Operator, Purchase / User, Inventory / User, Product Catalogue Manager: `security/ir.model.access.csv`) | draft request, if the user is in one of these groups **and** an allowed category exists; else structured proposal, reason shown |
+| receipt of equipment or consumables | `equipment.operation` (Equipment Operator) | draft operation for an existing product and partner, if the user is an Equipment Operator; else structured proposal |
+| new supplier | **none** (no controlled partner creation circuit) | structured proposal only (« supplier to create by an authorised person »); no `res.partner` created |
+| recurring contract (insurance, subscriptions) | **none** (ROADMAP A not developed) | structured proposal only; no OCA `contract` created |
+| bill | standard supplier bill, outside the assistant's scope | none: the assistant never creates a bill |
+| no valid category for the need | – | `missing_configuration` with what is missing (e.g. insurance categories, C25) |
 
-Until ROADMAP A (recurring contracts) exists, step 9 stops at the product creation request
-and a structured note: the assistant never creates an OCA `contract` itself.
+A structured proposal is a record of the AI request (lines with values, evidence and
+status), readable and exportable; it becomes a draft only when its circuit exists, after
+that circuit's own audited development. Rights are checked with the target model's
+`check_access('create')` as the user before showing « Prepare draft »; never `sudo()`.
 
-## 3. Phases
-
-Each phase: plan → audit → owner's go → development → audit → deployment on
-`artdubati_test` with backup and rehearsed rollback.
+## 4. Phases
 
 | Phase | Content | Writes in Odoo | Real API | Exit criteria |
 |---|---|---|---|---|
-| **IA-0** | this plan, decisions of §6 | none | none | audit passed, decisions answered |
-| **IA-1** | gateway alone (FastAPI + LiteLLM library), synthetic data, fake provider, the seven functions, schema validation, budget ledger, HMAC, document extractor, security tests of SECURITY.md §9 at gateway level; memory load test; one capped acceptance run of real calls | none (no Odoo access at all) | acceptance only, capped (COSTS.md §6) | all tests green with fake provider; memory measured; acceptance report; image digests recorded |
-| **IA-2** | module `lartdubati_ai_assistant`, read-only assistant: free text + documents, classification, list of existing records found **by Odoo**, questions, proposal shown; kill switch; cost ledger; logs | only its own models (requests, messages, logs) | through the gateway, test keys | no record of other models created or changed (test); investor refused; disabled mode tested |
-| **IA-3** | preparation mode: on acceptance, drafts in existing circuits (product creation request, supplier proposal as a request, contract proposal once ROADMAP A exists); no approval, no execution | drafts only, through business methods, as the user | yes | each draft passes the same checks as a manual one; config-change-between-proposal-and-execution refused |
-| **IA-4** | controlled orchestration: after the human approvals of the existing circuits, Odoo runs the existing execution methods in sequence; the assistant only tracks and links | through existing execute methods, after approval | yes | no execution without the circuit's approval; idempotent replay |
-| **IA-5** | Ollama `local` profile, after measuring volumes, costs and confidentiality needs; probably a separate machine | unchanged | local | no Odoo module change needed (proved by test) |
+| **IA-0** | this plan, decisions §6 | none | none | audit passed, decisions answered |
+| **IA-1** | AI server alone: gateway (API + worker, job store), LiteLLM proxy, extractor, egress proxy, fake provider; synthetic data only; memory and egress tests; one capped acceptance run with synthetic adversarial documents | none (no Odoo) | acceptance only, capped, synthetic | SECURITY.md §12 tests green; egress proof; memory measured; acceptance report; digests recorded; providers' facts of §1.3 verified |
+| **IA-2** | module, read-only assistant: pre-check, interpretation, Odoo searches, extraction, questions, proposal; kill switch; cost display | only its own models | yes, **only after D6**; before D6 the module is tested with the fake gateway only | no other model written (test); investor refused; disabled / down modes tested |
+| **IA-3** | drafts in `product.creation.request` and `equipment.operation` only, as the user, with their checks; structured proposals for the rest | drafts only | yes | each draft passes the same checks as a manual one; user without rights gets the proposal, not a draft; config change between proposal and draft refused |
+| **IA-4** | after the circuits' own approvals, Odoo tracks and links the executions; new circuits (supplier, ROADMAP A) are plugged in only after their own development | through existing methods | yes | no execution without the circuit's approval |
+| **IA-5** | `local` profile (Ollama) on a separate, larger machine | unchanged | local | no Odoo module change needed |
 
-## 4. Reference scenarios (functional tests, IA-2 onwards)
+## 5. Reference scenarios and tests
 
-Each scenario has a synthetic input (text + fabricated document, never a real one in
-tests), a recorded fake-provider answer, and an expected **Odoo** outcome. « Circuit » =
-what the assistant prepares in IA-3.
+Reference scenarios S1–S17 of the mission, each with a synthetic input, a recorded fake
+answer and the expected Odoo outcome; expected calls in brackets.
 
-| # | Scenario | Expected classification | Expected behaviour |
-|---|---|---|---|
-| S1 | RC professionnelle | recurring service / insurance | partner search, duplicate contract check, extraction with evidence, product request if no insurance service product; no contract until ROADMAP A |
-| S2 | Décennale tied to an installation | insurance / company cover (ROADMAP D) | question « which worksite or installation? »; never linked to an equipment; certificate as document |
-| S3 | Internet and phone subscription | recurring service / telecom | reuses « Abonnement téléphonique » (626000) if found; internet product to request |
-| S4 | ChatGPT subscription | recurring service / software-SaaS | product and account « to confirm with the accountant » (ROADMAP A, C25): category proposed only among allowed ones, flagged pending |
-| S5 | Warehouse insurance | insurance / site | insured object = stock location chosen from Odoo's list |
-| S6 | Van acquisition | equipment purchase, vehicle | capitalisation **not decided**: shows the category's configured treatment; Fleet out of scope until ROADMAP F |
-| S7 | Trailer acquisition | same as S6 | same |
-| S8 | Tiles and site consumables | consumables purchase | product creation request(s) in consumable categories; receipt through an equipment operation (consumables branch) |
-| S9 | Workwear | consumables / workwear (« VT ») | category from the allowed list or « none fits » |
-| S10 | Equipment to capitalise | equipment purchase | category's configured treatment shown; no capitalisation decision |
-| S11 | Equipment expensed | equipment purchase | same, other category |
-| S12 | Rented or borrowed item | equipment receipt, rented / borrowed branch | ownership status and owner asked if absent; rent from the contract line (DEFINITIONS.md) |
-| S13 | Supplier consignment | consignment (ROADMAP 0 item 7) | **refused as « not supported yet »** with an explanation, until that phase exists |
-| S14 | Product already exists | any | existing product proposed first; no creation request |
-| S15 | Supplier absent | any | supplier proposal as a request; no `res.partner` created by the assistant |
-| S16 | Bill received before the contract | bill / recurring | bill not created by the assistant; flags the missing contract |
-| S17 | Contradictory or incomplete document | any | each contradiction listed with both excerpts; status `needs_information`; no proposal value chosen |
+| # | Scenario | Expected outcome |
+|---|---|---|
+| S1 | RC professionnelle [2] | partner and contract search; `missing_configuration` (no insurance category yet); proposal with extracted values |
+| S2 | Décennale tied to an installation [2] | question « which worksite / installation? » (template); company cover, never linked to an equipment; proposal only |
+| S3 | Internet + phone [1–2] | « Abonnement téléphonique » found by search; internet product: draft creation request if a category is allowed |
+| S4 | ChatGPT subscription [1] | category « to confirm with the accountant » (C25): `missing_configuration` or proposal; no contract (ROADMAP A) |
+| S5 | Warehouse insurance [2] | stock location chosen by the user from Odoo's list; proposal only |
+| S6, S7 | Van, trailer [2] | category's configured treatment shown, no capitalisation decision; Fleet out of scope |
+| S8 | Tiles and consumables [1–2] | creation requests or receipt draft (consumables branch) |
+| S9 | Workwear [1] | allowed category or `missing_configuration` |
+| S10, S11 | Equipment capitalised / expensed [2] | treatment from the category; draft receipt for an existing product |
+| S12 | Rented or borrowed [2] | ownership status and owner asked if absent; receipt draft in the matching branch |
+| S13 | Supplier consignment [1] | « not supported yet » (ROADMAP 0 item 7) |
+| S14 | Product exists [1] | existing product first; no creation request (duplicate guard) |
+| S15 | Supplier absent [1–2] | structured proposal « supplier to create »; nothing created |
+| S16 | Bill before contract [2] | no bill created; missing contract flagged (proposal) |
+| S17 | Contradictory / incomplete document [2–3] | contradictions with both excerpts; `needs_information`; no value chosen |
 
-## 5. Security tests (summary; detail in SECURITY.md §9)
+Security tests: SECURITY.md §12 (pre-check, jobs, egress, injection, schema, budget,
+rights, company, logs, fallback, config change). Automated ones never call a paid API;
+the adversarial acceptance run is capped and uses synthetic documents only.
 
-Prompt injection in a PDF, invalid JSON, invented account, forbidden category, provider
-down, timeout, partial answer, concurrent double call, idempotent replay, budget exceeded,
-user without rights, other company, document leaking into logs, fallback to an unallowed
-provider, all APIs down, configuration changed between proposal and execution. All run
-with the fake provider; none consumes a paid API.
+## 6. Decisions (audit recommendation → owner to confirm)
 
-## 6. Decisions expected from the owner
-
-Each with options and a recommendation. Numbering kept for the audit.
-
-| # | Decision | Options | Recommendation |
-|---|---|---|---|
-| D1 | Hosting | (a) gateway on the Odoo VPS; (b) separate small VPS; (c) on the VPS now, separate later | **(a) for IA-1 / IA-2 if §1.1 shows ≥ 2 GB free at peak**, else (b). Gateway stays small with LiteLLM as a library and no ClamAV. (b) becomes mandatory with Ollama (IA-5) and with the test / production separation. DEPLOYMENT.md §2 |
-| D2 | Odoo ↔ gateway authentication | bearer token; HMAC-signed requests; mTLS | **private network + HMAC-SHA256** (key id, timestamp, nonce, body digest), two active keys for rotation; mTLS if the gateway moves to another machine (with WireGuard). SECURITY.md §3 |
-| D3 | Initial providers | Anthropic only; OpenAI only; both | **Anthropic primary, OpenAI fallback**, both direct, each with its DPA accepted, after confirming retention settings; no OpenRouter |
-| D4 | Initial models per profile | COSTS.md §2 | `fast` = Claude Haiku 5.5; `document` = Claude Sonnet 5.5; `reasoning` = Claude Opus 5.5; `fallback` = an OpenAI model of comparable tier, **identifier pinned in IA-1** from OpenAI's official list (not verifiable from this session). Pinned identifiers only, never an alias to « latest » |
-| D5 | Retention | (a) metadata only; (b) + validated proposals; (c) + full prompts | **(b)**: in Odoo, metadata and validated proposals with short excerpts (≤ 300 characters each); gateway keeps nothing beyond the idempotency cache (24 h, proposals only) and cost ledger; logs 90 days; request records follow Odoo's document retention. Full prompts never by default; a time-limited debug switch (≤ 24 h, synthetic data only) |
-| D6 | Processing region | accept US / global processing under DPA + SCC; EU-only through OpenAI EU project (approval, +~10 %); EU through a cloud reseller (contradicts « direct ») | **Owner / legal decision.** Technical recommendation: v1 limited to documents of confidentiality ≤ `internal` (SECURITY.md §5) until D6 is answered; `inference_geo` pinned per profile, never changed by a fallback |
-| D7 | Local OCR | none (text PDFs only); Tesseract / OCRmyPDF in the extractor; provider vision | **Tesseract (fra, eng, fas) in the extractor container from IA-1**, provider vision refused by default (it sends the whole page image) |
-| D8 | Odoo request model | one model with JSON fields; request + child models | **request + children** (messages, documents, proposal lines, call log). ARCHITECTURE.md §4 |
-| D9 | Who may accept a proposal | requester; separate group; approver of the target circuit | **group « AI Assistant User »** submits and accepts its own proposals **into drafts only**; the existing approvers of each circuit stay the only ones to approve; the requester never approves the created request (same rule as ROADMAP 0) |
-| D10 | Fallback rules | none; same provider other model; other provider | **explicit list per profile**, same jurisdiction / `inference_geo` only, on availability errors only (timeout, 5xx, 429 after retries), never on a schema failure or refusal; the fallback used is shown and logged |
-| D11 | Cost limits | as given: 50 € / month, 0.50 € / request, override after confirmation | **as given**, configurable in the gateway; Odoo shows the estimate; override only by a « AI Budget Manager » group, per request, logged; hard stop at the monthly cap. COSTS.md §5 |
-| D12 | Data to anonymise or remove | SECURITY.md §5 | **removed before any call**: IBAN / BIC / card numbers, social-security numbers, personal phone and e-mail of natural persons, signatures and handwritten areas, Odoo internal ids; **pseudonymised**: names of natural persons (employees, individual customers). Company names, amounts, dates and policy numbers are kept (needed) |
-| D13 | LiteLLM placement (raised by this plan) | library inside the gateway; separate LiteLLM proxy container | **library**: one container less, no admin UI, no master key, no LiteLLM database, smaller memory; the logical layer of the mission's diagram is kept. Proxy only if several applications share it later |
-| D14 | Antivirus (raised by this plan) | none; ClamAV container; host scanner | **none in IA-1/IA-2** (only PDF / PNG / JPEG accepted, parsed in a container without network and without secrets); ClamAV considered with D1 (b) |
-| D15 | Synchronous call or job polling (raised by this plan) | Odoo cron calls and waits (bounded); submit then poll | **cron calls and waits**, timeout below `limit_time_real_cron`, idempotent so a retry is free; polling if measured latency of `reasoning` exceeds it |
+| # | Decision | Proposal of revision 2 |
+|---|---|---|
+| D1 | Hosting | **separate small server** (2 vCPU / 4 GB) for gateway, LiteLLM, extractor and egress proxy; nothing installed on the Odoo VPS; a distinct, larger machine if Ollama comes (IA-5) |
+| D2 | Odoo ↔ gateway | **mTLS** (client certificate for Odoo, server certificate of a private CA, firewall allowing only the Odoo VPS address) **+ HMAC + idempotency**. Preferred to WireGuard because it needs no interface or firewall change on the Odoo host; WireGuard remains the alternative if the owner prefers a tunnel |
+| D3 | Providers | direct contracts (Anthropic, OpenAI), no OpenRouter |
+| D4 | Models per profile | **none chosen** before official verification (§1.3); then one pinned identifier per profile |
+| D5 | Retention | metadata and validated proposals (short excerpts); never full prompts |
+| D6 | Region / legal basis | **owner / legal decision before any real data leaves the company**; until then synthetic data only |
+| D7 | OCR | local (Tesseract fra, eng, fas) in the extractor; provider vision refused |
+| D8 | Odoo model | request + child models |
+| D9 | Acceptance | the user prepares; the existing circuits' approvers approve; draft only if the user may create in that circuit |
+| D10 | Fallbacks | only routes whose **data policy** is equal or stricter on each attribute (SECURITY.md §6), listed explicitly by the owner; none across providers until both routes' policies are approved |
+| D11 | Cost limits | 50 € / month, 0.50 € / request, override after confirmation (AI Budget Manager), hard stop |
+| D12 | Local pre-check | mandatory, deterministic, before any external call (SECURITY.md §4) |
+| D13 | LiteLLM | **separate process and container**, holding provider keys only, reachable only by the gateway, no UI, no database |
+| D14 | Antivirus | ClamAV postponed **only** with the hardened extractor (SECURITY.md §8) and synthetic data in IA-1 |
+| D15 | Call mode | **asynchronous jobs**: `POST /v1/jobs` → 202, gateway worker, `GET /v1/jobs/{id}` |
+| D16 (new) | Delivery of Odoo's client certificate and HMAC key to `odoo_web` | (a) files in an existing host-mounted configuration directory, if `/etc/odoo` is one (no container change); (b) a new read-only bind mount (container recreated in a planned window). Never in the database, Git, or environment variables. Choice after DEPLOYMENT.md §1 |
 
 ## 7. Open hypotheses
 
-- H-AI-1: LiteLLM's mapping of structured outputs and `inference_geo` (§1.3).
-- H-AI-2: the Odoo cron can commit before the HTTP call and hold no transaction during it
-  (ARCHITECTURE.md §4.3); to prove by a test that locks the request row from another
-  cursor during a slow fake call.
-- H-AI-3: the VPS has room for the gateway (§1.1, §1.2).
-- H-AI-4: provider retention settings available to the owner's accounts (§1.4).
-- H-AI-5: the cost estimates of COSTS.md §3 hold (measured in the acceptance run).
+- H-AI-1: LiteLLM proxy passes each provider's structured-output and region parameters
+  unchanged, and can run without UI, database, retries or fallbacks (IA-1).
+- H-AI-2: `odoo_web` can reach the AI server's port without a change on the Odoo host
+  (characterisation).
+- H-AI-3: a 2 vCPU / 4 GB server holds the four containers under the load test.
+- H-AI-4: provider settings (retention, ZDR, region) available on the owner's accounts.
+- H-AI-5: token estimates of COSTS.md §2, measured in the acceptance run.
 
 ## 8. Accounting
 
-The assistant takes no accounting decision and adds no accounting question by itself: it
-shows the treatment that Odoo's configuration (categories, profiles, C1–C25) gives. The
-providers' own bills (API usage, prepaid credits) follow the existing supplier bill circuit
-under the software / SaaS category of C25.
+The assistant takes no accounting decision and creates no accounting question by itself:
+it shows the treatment Odoo's configuration gives (categories, profiles, C1–C25) or
+`missing_configuration`. Provider bills go through the existing supplier bill circuit
+(software / SaaS, C25).
+
+## 9. Answers to the audit of ebe35ac
+
+| # | Point | Answer | Where |
+|---|---|---|---|
+| 1 | Cron waiting on the AI; timeout may cause a second paid call | **Fixed**: job API (202, worker, polling), atomic job + reservation + idempotency in one transaction; a timeout no longer exists on the Odoo side; a lost or interrupted provider call is `outcome_unknown`, never retried automatically | ARCHITECTURE.md §2, §5; SCHEMAS.md §2 |
+| 2 | Too many AI calls | **Fixed**: three functions left (`interpret_request`, `extract_document`, `resolve_ambiguity`); searches, duplicates, missing information and draft mapping are Odoo code; 2 calls per normal request | ARCHITECTURE.md §3; SCHEMAS.md §3 |
+| 3 | Do not use the Odoo VPS | **Fixed**: separate server, no network or script change on the Odoo VPS; the revision 1 network finding stays as a fact, no longer as a plan | §0.2, D1; DEPLOYMENT.md §2 |
+| 4 | Egress not designed | **Fixed**: egress proxy (CONNECT allow-list, no TLS interception), containers without a route to the Internet, tests that any other host or IP fails | SECURITY.md §7; DEPLOYMENT.md §3 |
+| 5 | Confidentiality decided too late | **Fixed**: deterministic pre-check in Odoo before submission and again in the gateway on extracted text; level can be raised, never lowered; unclassifiable → blocked; D6 before real data | SECURITY.md §4 |
+| 6 | Circuits that do not exist | **Fixed**: drafts only in `product.creation.request` and `equipment.operation`; structured proposals for supplier and contract; `missing_configuration` | §3 |
+| 7 | Models, prices, policies not verified | **Agreed**: identifiers and prices are placeholders; COSTS.md gives token estimates and a formula, not a budget | §1.3; COSTS.md |
+| 8 | LiteLLM inside the gateway widens a compromise | **Agreed**: three processes (gateway with the HMAC key, LiteLLM with provider keys only, extractor without secret nor egress) | ARCHITECTURE.md §1; SECURITY.md §3 |
+| s1 | ClamAV vs isolation | **Fixed**: per-document disposable child process, seccomp + AppArmor, rlimits, decompression-bomb limits, no shared volume | SECURITY.md §8 |
+| s2 | Injection test with a fake provider proves only validation | **Agreed**: capped acceptance run with synthetic adversarial documents on the real models; both results reported | SECURITY.md §12, T-S01b |
+| s3 | Jurisdiction compatibility of fallbacks | **Fixed**: data-policy attributes per route, « equal or stricter » rule, owner's explicit list | SECURITY.md §6 |
+| s4 | Rights to create each draft | **Fixed**: `check_access('create')` as the user; no rights → proposal only | §3; ARCHITECTURE.md §4 |
+| s5 | Reservation, idempotency, job state atomic | **Fixed**: one SQLite transaction (`BEGIN IMMEDIATE`) | ARCHITECTURE.md §5 |
+| s6 | Budget in the billing currency | **Fixed**: ledger keeps provider currency amount, rate and its date, EUR equivalent | COSTS.md §4 |
 
 ## Sources
 
-- LiteLLM licence: [github.com/BerriAI/litellm/LICENSE](https://github.com/BerriAI/litellm/blob/main/LICENSE)
-- LiteLLM releases: [docs.litellm.ai/release_notes](https://docs.litellm.ai/release_notes/), [GHCR versions](https://github.com/orgs/berriai/packages/container/litellm/versions)
-- LiteLLM incident: [LiteLLM security update](https://docs.litellm.ai/blog/security-update-march-2026), [Bitsight](https://www.bitsight.com/blog/litellm-versions-1-82-7-1-82-8-supply-chain-compromise), [NetSPI](https://www.netspi.com/blog/executive-blog/ai-ml-pentesting/litellm-supply-chain-compromise/)
-- LiteLLM signed images: [v1.83.14-stable notes](https://newreleases.io/project/github/BerriAI/litellm/release/v1.83.14-stable)
-- FastAPI: [pepy.tech](https://pepy.tech/projects/fastapi), [CERN mirror](https://simple-repository.app.cern.ch/project/fastapi)
-- OpenAI data: [EU data residency announcement](https://openai.com/index/introducing-data-residency-in-europe/), [structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs.md), secondary: [wavect.io](https://wavect.io/blog/eu-data-residency-ai-apps-2026/), [compound.law](https://compound.law/en-DE/tools/openai-api/)
-- Anthropic data: [data residency](https://platform.claude.com/docs/en/manage-claude/data-residency), [ZDR scope](https://privacy.claude.com/en/articles/8956058-i-have-a-zero-data-retention-agreement-with-anthropic-what-products-does-it-apply-to), secondary: [compound.law](https://compound.law/en-DE/tools/anthropic-api/), [char.com](https://char.com/blog/anthropic-data-retention-policy)
+- LiteLLM licence: [LICENSE](https://github.com/BerriAI/litellm/blob/main/LICENSE); releases: [release notes](https://docs.litellm.ai/release_notes/); incident: [LiteLLM](https://docs.litellm.ai/blog/security-update-march-2026), [Bitsight](https://www.bitsight.com/blog/litellm-versions-1-82-7-1-82-8-supply-chain-compromise), [NetSPI](https://www.netspi.com/blog/executive-blog/ai-ml-pentesting/litellm-supply-chain-compromise/); signed images: [v1.83.14-stable](https://newreleases.io/project/github/BerriAI/litellm/release/v1.83.14-stable)
+- FastAPI: [pepy.tech](https://pepy.tech/projects/fastapi)
+- OpenAI: [EU data residency](https://openai.com/index/introducing-data-residency-in-europe/), [structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs.md)
+- Anthropic: [data residency](https://platform.claude.com/docs/en/manage-claude/data-residency), [ZDR scope](https://privacy.claude.com/en/articles/8956058-i-have-a-zero-data-retention-agreement-with-anthropic-what-products-does-it-apply-to)
 - Ollama: [structured outputs](https://registry.ollama.ai/blog/structured-outputs)

@@ -338,7 +338,9 @@ tests on artdubati_test (47 passing, 08/10/2026).
    employee expenses.
 AI. Independent AI assistant (owner's mission of 12/10/2026): docs/ai/ (PLAN, ARCHITECTURE,
    SECURITY, SCHEMAS, DEPLOYMENT, COSTS), IA-0 plan only, no code, nothing installed;
-   audit and decisions D1-D15 pending. Separate module `lartdubati_ai_assistant` and gateway
+   revision 2 answers the audit of ebe35ac (separate AI server, asynchronous jobs, three AI
+   functions, egress proxy, local confidentiality pre-check, LiteLLM in its own process,
+   models and prices as placeholders until verified); audit and decisions D1-D16 pending. Separate module `lartdubati_ai_assistant` and gateway
    `lartdubati-ai-gateway`; never mixed into the catalogue module; every existing circuit
    works with the AI disabled or down.
 Last. Manual rewrite for all phases (cards citing removed or changed fields, new
