@@ -6,7 +6,7 @@
 # Since « Item and Service Requests » (docs/roadmap0/MENU_PLAN.md): MODULE = artdubati_test
 # after ROADMAP section 0 items 1-3 (5823e71, maintenance_shareholder_equipment 18.0.5.0.0,
 # module code of c010a82, PLATFORM OK (after) of the second window); AFTER =
-# maintenance_shareholder_equipment 18.0.5.0.1 (module code of 0d0f9d4, platform.py on a
+# maintenance_shareholder_equipment 18.0.5.0.1 (module code of 36c1170, platform.py on a
 # clean checkout); lartdubati_investor_home unchanged.
 # How the local tests match it (10/10/2026): Odoo source = branch 18.0 at 6ba80ed1
 # (07/09/2026, the build of the image 18.0-20260908): same code in every module, except
@@ -142,4 +142,4 @@ MODULE web_editor 18.0.1.0 d9c30141b581d4e9369c56f2bed55501dd3a822fdc485d8a8db3d
 MODULE web_quick_start_screen 18.0.1.0.0 80ab11f7bd0c1e3ae0c4b27db430a4f799c70025258d3c646b2d4f71e3741461
 MODULE web_tour 18.0.1.0 1660f964aad7a234a656a1c32324e8b59d97258b4ad4d4018632dd6ce724f5b5
 MODULE web_unsplash 18.0.1.1 8b8eaeff4ae714bb6ab6fed01b53a2da77376a114987e6ca4a4d4f2b8bb02e5c
-AFTER maintenance_shareholder_equipment 18.0.5.0.1 8893d5461887d7fbf1fab96ea8c07f64a0d47acf8c9ce6af1a7d250789a56bed
+AFTER maintenance_shareholder_equipment 18.0.5.0.1 0f02ea1b2572b4675c9d312e34ec96569b995fc6a08aca6fb042ebf51b48a4af
