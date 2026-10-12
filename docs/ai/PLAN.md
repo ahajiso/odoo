@@ -1,4 +1,4 @@
-# AI assistant – plan IA-0 (revision 2, 12/10/2026, no code, nothing installed)
+# AI assistant – plan IA-0 (revision 3, 12/10/2026, no code, nothing installed)
 
 Owner's mission of 12/10/2026: an assistant that understands a business need written in
 natural language and **prepares** what Odoo needs (supplier, item or service, contract,
@@ -11,6 +11,12 @@ a designed egress proxy; a local confidentiality pre-check before any call; IA-3
 to the circuits that exist; models, prices and provider policies kept as placeholders
 until verified on the official pages and accounts; LiteLLM in its own process, apart from
 the gateway's secrets; a hardened extractor.
+
+Revision 3 answers the audit of c9e5427, limited to its four blocking points and its
+complements (§10): `jobs.db` (temporary, never backed up) separated from `ledger.db`
+(financial metadata, backed up) on an encrypted disk; 4 vCPU / 8 GB with explicit worker
+concurrency; egress filtering in Docker's `DOCKER-USER` chain with a proxy that resolves
+names and refuses private and metadata addresses; `ack` only after Odoo's commit.
 
 This is still a plan for audit. No module, container, key or API call is created by it.
 Development starts only after the owner's answers to §6 and the auditor's green light.
@@ -29,9 +35,11 @@ Development starts only after the owner's answers to §6 and the auditor's green
    `maintenance_shareholder_equipment` nor `lartdubati_investor_home`; no existing module
    depends on it. Every existing circuit works unchanged when the AI is disabled,
    unreachable, out of budget or uninstalled.
-2. **No change to the Odoo server's infrastructure** for the AI: no new Docker network,
-   no change to `docs/deploy_modules.sh` or the other window scripts, no new service on
-   the Odoo VPS (D1). Only a module and, for its secrets, files read by `odoo_web` (D16).
+2. **No new service and no new network on the Odoo VPS**, no change to
+   `docs/deploy_modules.sh` or the other window scripts (D1). Besides the module, the only
+   change there is the delivery of its secrets (D16): with option (b), `odoo_web` is
+   recreated once with one more read-only mount, with a recorded definition, checks and a
+   rollback (DEPLOYMENT.md §4.1).
 3. **The AI proposes, Odoo decides.** The model never chooses an account, a tax, a partner,
    a product, a category, a periodicity or a date absent from the inputs, nor a
    capitalisation decision. It answers « unknown » or picks among a list Odoo sent.
@@ -154,7 +162,8 @@ that circuit's own audited development. Rights are checked with the target model
 | Phase | Content | Writes in Odoo | Real API | Exit criteria |
 |---|---|---|---|---|
 | **IA-0** | this plan, decisions §6 | none | none | audit passed, decisions answered |
-| **IA-1** | AI server alone: gateway (API + worker, job store), LiteLLM proxy, extractor, egress proxy, fake provider; synthetic data only; memory and egress tests; one capped acceptance run with synthetic adversarial documents | none (no Odoo) | acceptance only, capped, synthetic | SECURITY.md §12 tests green; egress proof; memory measured; acceptance report; digests recorded; providers' facts of §1.3 verified |
+| **IA-1** | AI server alone: gateway (API + worker, `jobs.db` / `ledger.db`), LiteLLM proxy, extractor, egress proxy, **fake provider and synthetic data only**; memory and egress tests | none (no Odoo) | **none** | SECURITY.md §12 tests green (except T-S01b); egress proof; memory measured at the configured concurrency; digests recorded |
+| **IA-1b** | capped acceptance run on real models with synthetic documents (adversarial ones included, T-S01b), token measurement | none | yes, capped, synthetic only | only after D3, D4 (identifiers and prices verified, §1.3) and D6 |
 | **IA-2** | module, read-only assistant: pre-check, interpretation, Odoo searches, extraction, questions, proposal; kill switch; cost display | only its own models | yes, **only after D6**; before D6 the module is tested with the fake gateway only | no other model written (test); investor refused; disabled / down modes tested |
 | **IA-3** | drafts in `product.creation.request` and `equipment.operation` only, as the user, with their checks; structured proposals for the rest | drafts only | yes | each draft passes the same checks as a manual one; user without rights gets the proposal, not a draft; config change between proposal and draft refused |
 | **IA-4** | after the circuits' own approvals, Odoo tracks and links the executions; new circuits (supplier, ROADMAP A) are plugged in only after their own development | through existing methods | yes | no execution without the circuit's approval |
@@ -191,7 +200,7 @@ the adversarial acceptance run is capped and uses synthetic documents only.
 
 | # | Decision | Proposal of revision 2 |
 |---|---|---|
-| D1 | Hosting | **separate small server** (2 vCPU / 4 GB) for gateway, LiteLLM, extractor and egress proxy; nothing installed on the Odoo VPS; a distinct, larger machine if Ollama comes (IA-5) |
+| D1 | Hosting | **separate server, 4 vCPU / 8 GB** (audit of c9e5427) for gateway, LiteLLM, extractor and egress proxy, data disk encrypted; worker concurrency 5 jobs, 3 extractions, 2 OCR; 2 vCPU / 4 GB only with 1 extraction and 1 OCR at a time; nothing installed on the Odoo VPS; a distinct, larger machine if Ollama comes (IA-5) |
 | D2 | Odoo ↔ gateway | **mTLS** (client certificate for Odoo, server certificate of a private CA, firewall allowing only the Odoo VPS address) **+ HMAC + idempotency**. Preferred to WireGuard because it needs no interface or firewall change on the Odoo host; WireGuard remains the alternative if the owner prefers a tunnel |
 | D3 | Providers | direct contracts (Anthropic, OpenAI), no OpenRouter |
 | D4 | Models per profile | **none chosen** before official verification (§1.3); then one pinned identifier per profile |
@@ -206,7 +215,7 @@ the adversarial acceptance run is capped and uses synthetic documents only.
 | D13 | LiteLLM | **separate process and container**, holding provider keys only, reachable only by the gateway, no UI, no database |
 | D14 | Antivirus | ClamAV postponed **only** with the hardened extractor (SECURITY.md §8) and synthetic data in IA-1 |
 | D15 | Call mode | **asynchronous jobs**: `POST /v1/jobs` → 202, gateway worker, `GET /v1/jobs/{id}` |
-| D16 (new) | Delivery of Odoo's client certificate and HMAC key to `odoo_web` | (a) files in an existing host-mounted configuration directory, if `/etc/odoo` is one (no container change); (b) a new read-only bind mount (container recreated in a planned window). Never in the database, Git, or environment variables. Choice after DEPLOYMENT.md §1 |
+| D16 | Delivery of Odoo's client certificate and HMAC key to `odoo_web` | **(b)** read-only bind mount at the fixed path `/run/secrets/lartdubati_ai/`, `odoo_web` recreated once with recorded definition, checks and rollback (DEPLOYMENT.md §4.1); (a) only if `/etc/odoo` is already a host directory (then one non-sensitive path line in `odoo.conf`). Never a secret in `odoo.conf`, the database, Git or environment variables |
 
 ## 7. Open hypotheses
 
@@ -214,9 +223,15 @@ the adversarial acceptance run is capped and uses synthetic documents only.
   unchanged, and can run without UI, database, retries or fallbacks (IA-1).
 - H-AI-2: `odoo_web` can reach the AI server's port without a change on the Odoo host
   (characterisation).
-- H-AI-3: a 2 vCPU / 4 GB server holds the four containers under the load test.
+- H-AI-3: a 4 vCPU / 8 GB server holds the four containers at the configured concurrency
+  under the load test (DEPLOYMENT.md §6).
 - H-AI-4: provider settings (retention, ZDR, region) available on the owner's accounts.
 - H-AI-5: token estimates of COSTS.md §2, measured in the acceptance run.
+- H-AI-6: on the pinned Docker version, the embedded DNS of containers on internal
+  networks does not resolve Internet names; otherwise containers get a non-forwarding
+  `dns:` setting (SECURITY.md §7, T-S21).
+- H-AI-7: each provider's usage data can be matched to an individual request (request
+  id), which decides whether `outcome_unknown` can be settled exactly (COSTS.md §4).
 
 ## 8. Accounting
 
@@ -243,6 +258,22 @@ it shows the treatment Odoo's configuration gives (categories, profiles, C1–C2
 | s4 | Rights to create each draft | **Fixed**: `check_access('create')` as the user; no rights → proposal only | §3; ARCHITECTURE.md §4 |
 | s5 | Reservation, idempotency, job state atomic | **Fixed**: one SQLite transaction (`BEGIN IMMEDIATE`) | ARCHITECTURE.md §5 |
 | s6 | Budget in the billing currency | **Fixed**: ledger keeps provider currency amount, rate and its date, EUR equivalent | COSTS.md §4 |
+
+
+## 10. Answers to the audit of c9e5427
+
+| # | Point | Answer | Where |
+|---|---|---|---|
+| 1 | One SQLite file both purged (results) and backed up 13 months (ledger) | **Fixed**: `jobs.db` (inputs and results, never backed up, purged at `ack` or 7 days, `secure_delete`, `VACUUM`) and `ledger.db` (financial metadata and idempotency tombstones only, backed up 13 months); atomic transactions across both through `ATTACH` in rollback-journal mode; AI server's data disk, swap and backup target encrypted | ARCHITECTURE.md §5.1; SECURITY.md §11; DEPLOYMENT.md §2, §7; T-S30–T-S32 |
+| 2 | 4 GB too tight for 5 concurrent jobs with OCR | **Fixed**: 4 vCPU / 8 GB recommended; explicit semaphores (5 jobs, 3 extractions, 2 OCR, 5 LLM calls) in the worker and in the extractor; 4 GB only with 1 extraction and 1 OCR; load test at the configured concurrency | ARCHITECTURE.md §5.2; DEPLOYMENT.md §2, §6; T-S34 |
+| 3 | Filtering must cover Docker's own chains | **Fixed**: `DOCKER-USER` default deny for the AI subnets, outbound only from the proxy (443, DNS to fixed resolvers), inbound only from the Odoo VPS, `userland-proxy: false`, rules re-applied and checked daily; proxy with source ACL, DNS by the proxy, refusal of private, loopback, link-local, CGNAT and metadata addresses after resolution; tests that gateway and LiteLLM cannot bypass it | SECURITY.md §7; DEPLOYMENT.md §3; T-S20–T-S23d |
+| 4 | `ack` before Odoo's commit loses results | **Fixed**: GET → validate → store → commit → `ack`; `ack` idempotent (204); purged key answers `410` without a new call | ARCHITECTURE.md §2; SCHEMAS.md §1; T-S33 |
+| c1 | « Infrastructure unchanged » too absolute | **Fixed**: « no new service nor network »; D16 (b) recreation documented with recorded definition, checks and rollback | §0.2; DEPLOYMENT.md §4.1 |
+| c2 | Fixed path, no secret in `odoo.conf` | **Fixed**: `/run/secrets/lartdubati_ai/`; `odoo.conf` holds nothing (b) or only a path (a) | SECURITY.md §3; DEPLOYMENT.md §4 |
+| c3 | Scripts recreating the container keep the mount | **Checked**: no script of this repository recreates `odoo_web`; the one-shot containers (`--volumes-from`) inherit the mount read-only and `backup_db.sh` archives only the filestore; what creates `odoo_web` is characterised (§1.1 of DEPLOYMENT.md) and is the only place to carry the mount; post-check of the module verifies it | DEPLOYMENT.md §1.1, §4.1 |
+| c4 | Calls with `missing_configuration` inconsistent | **Fixed**: 1 call without document, 2 with (extraction kept for the structured proposal, S1) | COSTS.md §1; T-S29 |
+| c5 | Exact reconciliation of `outcome_unknown` | **Fixed**: exact only if the provider's usage identifies the request (H-AI-7); otherwise reservation kept and traced manual correction | COSTS.md §4 |
+| c6 | No real data before D6 | **Confirmed**: `REAL_DATA_ALLOWED=false` on the AI server until D6, checked at job creation (T-S27); IA-1 with fake provider and synthetic data only; real calls (IA-1b) after D3, D4, D6 | §4; ARCHITECTURE.md §5.1 |
 
 ## Sources
 

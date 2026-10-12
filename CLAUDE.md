@@ -340,7 +340,10 @@ AI. Independent AI assistant (owner's mission of 12/10/2026): docs/ai/ (PLAN, AR
    SECURITY, SCHEMAS, DEPLOYMENT, COSTS), IA-0 plan only, no code, nothing installed;
    revision 2 answers the audit of ebe35ac (separate AI server, asynchronous jobs, three AI
    functions, egress proxy, local confidentiality pre-check, LiteLLM in its own process,
-   models and prices as placeholders until verified); audit and decisions D1-D16 pending. Separate module `lartdubati_ai_assistant` and gateway
+   models and prices as placeholders until verified); revision 3 answers the audit of
+   c9e5427 (jobs.db / ledger.db, 4 vCPU / 8 GB with explicit concurrency, DOCKER-USER egress
+   filtering, ack after Odoo's commit); audit pending; then IA-1 only (fake provider,
+   synthetic data); real calls and IA-2 wait for D3, D4 and D6. Separate module `lartdubati_ai_assistant` and gateway
    `lartdubati-ai-gateway`; never mixed into the catalogue module; every existing circuit
    works with the AI disabled or down.
 Last. Manual rewrite for all phases (cards citing removed or changed fields, new

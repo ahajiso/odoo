@@ -1,14 +1,15 @@
-# AI assistant – architecture (IA-0, revision 2, 12/10/2026)
+# AI assistant – architecture (IA-0, revision 3, 12/10/2026)
 
 Design only; names are proposals for the audit. Revision 2: separate server, three
-processes, asynchronous jobs, three AI functions.
+processes, asynchronous jobs, three AI functions. Revision 3: `jobs.db` / `ledger.db`,
+explicit concurrency, `ack` after Odoo's commit, Docker-aware egress filtering.
 
 ## 1. Components
 
 ```
  Odoo VPS (unchanged infrastructure)            AI server (separate, D1)
  ┌───────────────────────────────┐             ┌──────────────────────────────────────────┐
- │ odoo_web                      │   mTLS +    │  ai_gateway  (API + worker, job store)   │
+ │ odoo_web                      │   mTLS +    │  ai_gateway (API + worker, jobs/ledger)  │
  │  module lartdubati_ai_assistant├──HMAC────►│   holds: Odoo HMAC key, server cert,     │
  │  - local confidentiality      │  HTTPS,     │          LiteLLM client key              │
  │    pre-check                  │  Odoo calls │   no provider key, no Internet route     │
@@ -27,7 +28,7 @@ processes, asynchronous jobs, three AI functions.
 | Component | Holds | Talks to | Never |
 |---|---|---|---|
 | Odoo module | Odoo client cert + HMAC key (files, D16) | gateway (outbound HTTPS) | provider keys; calls to LiteLLM or providers; `sudo()` for final writes |
-| `ai_gateway` | HMAC verification key, TLS server cert, LiteLLM client key, job store and ledger (SQLite) | Odoo (answers only), LiteLLM, extractor | provider keys; Internet; PostgreSQL; Odoo account; writes to Odoo |
+| `ai_gateway` | HMAC verification key, TLS server cert, LiteLLM client key, `jobs.db` (temporary) and `ledger.db` (financial metadata) | Odoo (answers only), LiteLLM, extractor | provider keys; Internet; PostgreSQL; Odoo account; writes to Odoo |
 | `ai_litellm` | provider keys only | egress proxy | Odoo key; inbound from anything but the gateway; UI; database; retries or fallbacks of its own |
 | `ai_extractor` | nothing | answers the gateway | network egress; secrets; files after the job |
 | `ai_egress` | allow-list | approved API hosts | TLS interception; other hosts or raw IPs |
@@ -50,8 +51,19 @@ Odoo cron (short run)                     ai_gateway API              ai_gateway
                                                                        one transaction: validate,
                                                                        'succeeded'|'failed', settle cost
  ─ GET /v1/jobs/{id} (later, backoff) ──► state, result when final
- ─ POST /v1/jobs/{id}/ack ─────────────► result purged (metadata kept)
+ Odoo validates, stores, COMMITS
+ ─ POST /v1/jobs/{id}/ack (after commit) ► result purged from jobs.db (idempotent)
 ```
+
+Result handling order in Odoo (revision 3, audit point 4):
+1. `GET` the final job;
+2. validate it (schema copy, then Odoo data, §6);
+3. store it on the request (valid result, or the discard reason if invalid) and **commit**;
+4. only then `POST …/ack`;
+5. `ack` is idempotent: an already acknowledged or purged job answers `204`; a failed
+   `ack` is retried by the next cron run; a never-acknowledged result is purged after
+   7 days anyway. A crash between 3 and 4 only delays the purge; a crash before 3 loses
+   nothing (the result is still in `jobs.db`).
 
 - Odoo never waits on a model: each cron run submits and polls, then ends (seconds).
 - Same `idempotency_key` + same body digest → the existing job (no second call); same key +
@@ -63,7 +75,10 @@ Odoo cron (short run)                     ai_gateway API              ai_gateway
   reservation stays until the daily reconciliation with the provider's usage. A new
   attempt needs a user action and a new key.
 - Worker crash before `attempt_started`: the job returns to `received` (nothing was sent).
-- Results kept until acknowledged, at most 7 days; then purged.
+- Results kept in `jobs.db` until acknowledged, at most 7 days; then purged (§5.1). A
+  `POST` with the key of a purged job answers `410 result_purged` from the idempotency
+  tombstone kept in `ledger.db`: never a second call.
+- Worker concurrency is bounded explicitly (§5.2), not only by container memory.
 
 ## 3. What is AI and what is Odoo code
 
@@ -108,7 +123,8 @@ by the same cron in its short runs.
 One cron, triggered by `ir.cron._trigger()` on submission and re-armed with a backoff while
 jobs are open (2 s, 5 s, 15 s, 60 s…):
 1. requests to submit: build payload as the requester (`with_user`), POST, store the job id;
-2. open jobs: GET; final results validated against Odoo data (§6) and applied;
+2. open jobs: GET; final results validated against Odoo data (§6), stored, **committed**,
+   then acknowledged (`ack`, §2);
 3. deterministic steps of requests whose jobs are done.
 
 Each HTTP call has a short client timeout (10 s, just transport); a transport failure
@@ -128,21 +144,52 @@ Company rule on every model; investors refused by phase 4's default deny (tested
 
 ## 5. Gateway internals
 
-### 5.1 Job store and ledger (one SQLite database, WAL, on the AI server)
+### 5.1 Two databases: `jobs.db` (temporary) and `ledger.db` (financial metadata)
 
-`POST /v1/jobs` in one `BEGIN IMMEDIATE` transaction:
-1. lookup `idempotency_key`: same digest → return the job; other digest → 409;
-2. check kill switch, month cap and request cap with the **worst-case** estimate
-   (counted input tokens × input price + `max_tokens` × output price, prices from the
-   verified config);
-3. insert job `received` and the ledger reservation (provider currency, rate, date);
-4. commit → 202. Any failure → rollback, nothing reserved, nothing queued.
+Revision 3 (audit point 1): one file could not be both purged after 7 days and backed up
+for 13 months.
 
-Worker transition `received → running` by a conditional update (`WHERE state =
-'received'`), with a lease. Final transition and cost settlement (reservation replaced by
-the provider's reported usage) in one transaction.
+| | `jobs.db` | `ledger.db` |
+|---|---|---|
+| Content | job inputs (text, base64 files only while the job runs), validated results, errors | job id, request ref, opaque user ref, function, profile, route, provider, model, tokens, amounts in billing currency, rate, date and source, EUR equivalent, kind (reservation / settlement / reconciliation / manual correction), idempotency key and body SHA-256 with the final state (tombstone) |
+| Never contains | – | document text, prompts, model output, extracted values, user text, file names |
+| Lifetime | inputs deleted when the job ends; results deleted at `ack` or after 7 days; `secure_delete` on, weekly `VACUUM` | 13 months |
+| Backup | **none** | daily online backup, encrypted, kept 13 months |
+| Disk | encrypted volume of the AI server (DEPLOYMENT.md §2) | same, and encrypted backup target |
 
-### 5.2 Pipeline of a job
+Atomicity across both files: the gateway opens `ledger.db` and `ATTACH`es `jobs.db`, both
+in **rollback-journal mode (not WAL)**: SQLite commits a transaction touching several
+attached databases atomically (super-journal) only when the main database is a file and
+the journal mode is not WAL; in WAL mode each file would be atomic on its own only. Throughput (a few jobs a minute) makes WAL unnecessary. A test kills the
+process during commit and checks that neither file holds half of the transaction.
+
+`POST /v1/jobs` in one `BEGIN IMMEDIATE` transaction over both files:
+1. lookup of the key in `ledger.db` (tombstone) and `jobs.db`: same digest → the job, or
+   `410 result_purged` if its result is gone; other digest → 409;
+2. kill switch, `REAL_DATA_ALLOWED` (false until D6), month and request caps with the
+   **worst-case** estimate;
+3. insert job `received` (`jobs.db`), reservation and tombstone (`ledger.db`);
+4. commit → 202. Any failure → rollback of both.
+
+Worker transition `received → running` by a conditional update with a lease. Final
+transition (`jobs.db`), settlement and tombstone state (`ledger.db`) in one transaction.
+
+### 5.2 Concurrency (audit point 2)
+
+Explicit semaphores in the worker, configured in `profiles.yaml`; jobs beyond them wait in
+`received`:
+
+| Limit | 4 vCPU / 8 GB (recommended) | 2 vCPU / 4 GB (fallback option) |
+|---|---|---|
+| jobs running in total | 5 | 2 |
+| document extractions (text layer) | 3 | 1 |
+| OCR | 2 | 1 |
+| calls to LiteLLM in flight | 5 | 2 |
+
+The extractor enforces its own maximum of child processes (same values), so a gateway
+bug cannot exceed them. The load test (DEPLOYMENT.md §6) runs at exactly these values.
+
+### 5.3 Pipeline of a job
 
 1. second confidentiality pre-check on the inputs (and on extracted text);
 2. extraction through `ai_extractor` when documents are present;

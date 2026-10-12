@@ -1,4 +1,4 @@
-# AI assistant – costs (IA-0, revision 2, 12/10/2026)
+# AI assistant – costs (IA-0, revision 3, 12/10/2026)
 
 **Not a budget basis.** Model identifiers and prices are placeholders until verified on
 the providers' official pricing pages and the owner's accounts (PLAN.md §1.3). This
@@ -12,7 +12,9 @@ formula, the caps and the ledger. All amounts excl. tax.
 | Text only | 1 | `interpret_request` |
 | With documents | 2 | + `extract_document` |
 | Real ambiguity left by Odoo's matching | +1 | `resolve_ambiguity` |
-| Blocked by the pre-check, `missing_configuration` before extraction, out of scope | 0 or 1 | – |
+| Blocked by the pre-check | 0 | – |
+| Out of scope (e.g. consignment) | 1 | `interpret_request` only |
+| `missing_configuration` | same as above: 1 without document, 2 with | the extraction still runs so the structured proposal is complete for an authorised person (scenario S1) |
 
 Revision 1 needed five to seven calls; searches, duplicates, questions and draft mapping
 are now Odoo code (ARCHITECTURE.md §3).
@@ -60,17 +62,25 @@ share with ambiguity, +10 % retries and invalid outputs.
 | Per job | per function (`<CAP_…>`, SCHEMAS.md §4) | gateway, worst-case reservation | refused before the job is created |
 | Acceptance runs | 5 € per run | separate provider project and key with its own provider-side limit | stops at the cap |
 
-Ledger rows (one transaction with the job, ARCHITECTURE.md §5.1):
+Ledger rows in `ledger.db`, financial metadata only (one transaction with the job,
+ARCHITECTURE.md §5.1):
 `job_id`, `request_ref`, `user_ref`, function, profile, route, provider, model, kind
-(`reservation` / `settlement` / `reconciliation`), **amount in the provider's billing
+(`reservation` / `settlement` / `reconciliation` / `manual_correction`), **amount in the provider's billing
 currency**, currency, **rate to EUR and its date and source**, EUR equivalent, tokens.
 Caps are compared in EUR with the rate of the day from the configured source (to choose:
 the ECB reference rate, or a fixed conservative rate set by the owner); the original
 amount and rate are kept so a later reconciliation never rewrites history.
 
 Reservation → settlement: the worst case is reserved at creation; the provider's reported
-usage replaces it at the end; `outcome_unknown` keeps the reservation until the daily
-reconciliation with the provider's usage report.
+usage replaces it at the end.
+
+`outcome_unknown` (revision 3): an exact settlement is possible only if the provider's
+usage data identifies the individual request (request id recorded before the call, if the
+provider returns or accepts one; to verify per provider in IA-1). Otherwise the
+**reservation stays** as the cost of that job (conservative) and only a manual correction
+can change it: a ledger row of kind `manual_correction` by an « AI Budget Manager »,
+with amount, reason, evidence (e.g. the provider's daily usage) and author, never an edit
+of the original row.
 
 All values configurable on the AI server (`profiles.yaml`) and, for display thresholds, in
 Odoo settings; no module update needed.
@@ -86,6 +96,6 @@ accounting record.
 
 ## 6. Infrastructure
 
-The separate AI server (2 vCPU / 4 GB) is a fixed monthly cost to be quoted by the owner;
+The separate AI server (4 vCPU / 8 GB recommended, D1) is a fixed monthly cost to be quoted by the owner;
 it does not count against the 50 € API cap. Ollama (IA-5) needs a larger, separate machine,
 sized after measuring volumes.

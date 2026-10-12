@@ -1,8 +1,10 @@
-# AI assistant – security (IA-0, revision 2, 12/10/2026)
+# AI assistant – security (IA-0, revision 3, 12/10/2026)
 
 Threat model and controls for PLAN.md and ARCHITECTURE.md. Nothing implemented.
 Revision 2: local pre-check, mTLS + HMAC, three isolated processes, egress proxy,
-hardened extractor, data-policy rule for fallbacks, job atomicity.
+hardened extractor, data-policy rule for fallbacks, job atomicity. Revision 3: egress
+filtering designed for Docker's own chains (§7), retention split between `jobs.db` and
+`ledger.db` (§11), encrypted disk, fixed secrets path on the Odoo side (§3).
 
 ## 1. Assets
 
@@ -25,8 +27,8 @@ API keys; Odoo client certificate and HMAC key; budget; audit trail.
 |---|---|---|
 | Provider API keys | `ai_litellm` (files `/run/secrets`, 0400) | gateway, extractor, Odoo, Git, DB, env vars, logs |
 | LiteLLM client key | gateway and `ai_litellm` | Odoo, extractor |
-| HMAC key (Odoo ↔ gateway), two active for rotation | gateway; `odoo_web` (current one) as a file (D16) | Odoo database (`ir.config_parameter` is copied in every dump and readable by admins), Git, env vars, logs |
-| TLS: private CA, gateway server cert, Odoo client cert | gateway (server key), `odoo_web` (client key, D16) | elsewhere |
+| HMAC key (Odoo ↔ gateway), two active for rotation | gateway; `odoo_web` (current one) as a file under the fixed path `/run/secrets/lartdubati_ai/` (D16) | Odoo database (`ir.config_parameter` is copied in every dump and readable by admins), Git, env vars, logs |
+| TLS: private CA, gateway server cert, Odoo client cert | gateway (server key), `odoo_web` (client key and CA cert under `/run/secrets/lartdubati_ai/`, D16) | elsewhere; `odoo.conf` holds no secret (option b: fixed path, no entry; option a: a path only) |
 
 Today's `odoo_web` receives its database credentials as environment variables (visible
 in `docker inspect`); the AI secrets must not follow that pattern.
@@ -111,26 +113,76 @@ refused (wider region). Fallback only on availability errors before any answer; 
 schema failure, refusal or `outcome_unknown`. Checked at configuration load (service does
 not start otherwise) and recorded per job.
 
-## 7. Egress (D1, audit point 4)
+## 7. Egress (D1; audit points 4 of ebe35ac and 3 of c9e5427)
 
-A Docker network alone does not restrict destinations; name-based firewall rules break
-when provider IPs change. Design:
+A Docker network alone does not restrict destinations, name-based firewall rules break when
+provider IPs change, and a container with a published port normally has an outbound route
+(Docker NATs its traffic and its forwarding rules are evaluated before ordinary host
+rules). Design, in layers:
 
-- `ai_gateway`, `ai_litellm` and `ai_extractor` are only on `internal: true` networks:
-  **no route to the Internet** at all.
-- `ai_egress` is the only container on both an internal network (`net_egress`, shared with
-  `ai_litellm` only) and an external one. It is a forward proxy (Squid or similar, pinned
-  digest) allowing **only** `CONNECT` to the approved host names on port 443:
-  `api.anthropic.com`, `api.openai.com` (or the EU host if D6 chooses it); IP literals,
-  other ports, plain HTTP and every other host refused; names resolved by the proxy.
-- No TLS interception: the tunnel is end-to-end; LiteLLM verifies the provider's
-  certificate against the system CA store (verification never disabled; tested).
-- The AI server's host firewall: inbound only the gateway's port from the Odoo VPS address
-  and SSH from the owner; outbound from the host only what the proxy and updates need.
-- Tests (§10, T-S20…T-S23): from each container, direct connection to an outside IP fails;
-  from `ai_litellm` through the proxy, `example.com`, an IP literal, port 80 and an
-  approved name on another port fail; an approved host works; the extractor reaches
-  nothing; a certificate mismatch (test CA) is refused by LiteLLM.
+**Layer 1 – Docker networks.** `ai_gateway`, `ai_litellm` and `ai_extractor` are on
+`internal: true` networks, except the gateway's `net_front` that exists only to publish
+its port. `ai_egress` is the only container on the external network `net_out`. Every
+network has a fixed subnet (IPAM in the compose file) and `ai_egress` a fixed address, so
+firewall rules can name them. IPv6 disabled on these networks (or the same rules in
+`ip6tables` / the `ip6` family).
+
+**Layer 2 – host firewall in the `DOCKER-USER` chain** (or its nftables equivalent, the
+chain Docker evaluates before its own forwarding rules and never overwrites):
+
+```
+# illustrative, iptables syntax; subnets fixed in the compose file
+-A DOCKER-USER -m conntrack --ctstate ESTABLISHED,RELATED -j RETURN
+# inbound to the published gateway port: only the Odoo VPS
+-A DOCKER-USER -i <ext_if> -p tcp -d <gateway_ip> --dport 8443 -s <odoo_vps_ip> -j RETURN
+-A DOCKER-USER -i <ext_if> -d <ai_subnets> -j DROP
+# outbound: only the proxy, only HTTPS and DNS to the configured resolvers
+-A DOCKER-USER -s <ai_egress_ip> -o <ext_if> -p tcp --dport 443 -j RETURN
+-A DOCKER-USER -s <ai_egress_ip> -o <ext_if> -p udp -d <resolvers> --dport 53 -j RETURN
+-A DOCKER-USER -s <ai_egress_ip> -o <ext_if> -p tcp -d <resolvers> --dport 53 -j RETURN
+-A DOCKER-USER -s <ai_subnets> -j DROP          # default deny for every AI container
+```
+
+The rules are installed by a systemd unit ordered after Docker, re-applied after every
+Docker restart and checked by a daily script that compares them with the expected list
+(alert on difference). The Docker daemon keeps `iptables: true` (its own NAT is needed for
+the proxy) and `userland-proxy: false` so published ports go through the kernel rules
+above. The host's own outbound (OS updates) is filtered in the host's `OUTPUT` chain,
+separately.
+
+**Layer 3 – the egress proxy** (Squid or equivalent, pinned digest):
+- accepts clients only from `ai_litellm`'s fixed address (source ACL); the gateway and the
+  extractor are not on `net_egress` at all;
+- only `CONNECT` to the approved names on port 443 (`api.anthropic.com`, `api.openai.com`
+  or the EU host decided by D6); plain HTTP, other ports, IP literals refused;
+- DNS resolution done by the proxy only (its configured resolvers); after resolution,
+  destinations in private, loopback, link-local and special ranges refused:
+  `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `127.0.0.0/8`, `169.254.0.0/16`
+  (cloud metadata `169.254.169.254` included), `100.64.0.0/10`, `0.0.0.0/8`, `::1`,
+  `fc00::/7`, `fe80::/10`;
+- no TLS interception: end-to-end tunnel, LiteLLM verifies the provider's certificate
+  against the system CA store (never disabled);
+- LiteLLM uses it through `HTTPS_PROXY=http://ai_egress:3128`, `NO_PROXY` limited to the
+  internal names.
+
+**DNS inside the AI containers.** They must not resolve Internet names (a DNS query is an
+exfiltration channel). Docker's embedded resolver answers internal container names; whether
+it forwards external queries for containers on internal networks depends on the Docker
+version: to verify on the pinned version (H-AI-6). If it does, the containers get a `dns:`
+setting pointing to a non-forwarding address and the `DOCKER-USER` rules drop their port-53
+traffic (already covered by the default deny). Tested either way.
+
+**Tests** (run on the AI server, recorded in IA-1):
+
+| # | From | Attempt | Expected |
+|---|---|---|---|
+| T-S20 | gateway, LiteLLM, extractor | TCP 443 / 80 to a public IP; UDP 53 to 1.1.1.1; ICMP | fail (dropped) |
+| T-S21 | gateway, LiteLLM, extractor | resolve `example.com` | fails (no external resolution) |
+| T-S22 | LiteLLM through the proxy | `example.com:443`, an IP literal, `api.anthropic.com:80`, a name resolving to `169.254.169.254` or `127.0.0.1` (test DNS record) | refused by the proxy |
+| T-S23 | LiteLLM through the proxy | approved host with the right CA / with a test CA presenting a wrong certificate | works / refused by LiteLLM |
+| T-S23b | gateway, extractor | reach the proxy (`CONNECT` to an approved host) | impossible: not on `net_egress`; and the proxy's source ACL refuses any address but `ai_litellm`'s (tested from a test container on `net_egress`) |
+| T-S23c | outside | connect to the gateway port from an address other than the Odoo VPS | dropped |
+| T-S23d | host | restart Docker | rules present again; daily check passes |
 
 ## 8. Extractor hardening (D14)
 
@@ -171,9 +223,16 @@ Logged: job id, opaque user ref, function, profile, route, exact model as return
 versions, timestamps, duration, tokens, cost (provider currency, rate, EUR), document
 sha256, pre-check categories, validation result, error, fallback. Not logged: keys,
 certificates, signatures, document text, prompts, raw model output, bank or personal
-values. Log formatter by allow-list of fields. Retention: gateway logs 90 days; job
-results until ack (≤ 7 days); ledger 13 months; Odoo records follow the company's
-retention. Debug logging of prompts: synthetic data only, ≤ 24 h, refused in production.
+values. Log formatter by allow-list of fields.
+
+Retention (revision 3): gateway logs 90 days (metadata only); `jobs.db` inputs deleted at
+the end of the job and results at `ack` or after 7 days, **never backed up**;
+`ledger.db` (financial metadata and idempotency tombstones, no business content) 13 months,
+backed up encrypted; Odoo records follow the company's retention. The AI server's data
+disk and its backup target are encrypted (LUKS or the provider's encrypted volumes with a
+key not held by the hosting provider, to decide with D1); swap disabled or encrypted, so
+job contents never reach an unencrypted swap. Docker logs of the gateway hold no content
+(allow-list formatter), so they need no special treatment beyond rotation. Debug logging of prompts: synthetic data only, ≤ 24 h, refused in production.
 
 ## 12. Security tests (fake provider unless stated; none consumes a paid API except T-S01b, capped)
 
@@ -200,13 +259,18 @@ retention. Debug logging of prompts: synthetic data only, ≤ 24 h, refused in p
 | T-S17 | bad HMAC, old timestamp, reused nonce; no or wrong client certificate | 401 / TLS handshake refused |
 | T-S18 | wrong magic bytes, 11 MB, 200 pages, zip-bomb-like PDF, huge image | refused before or during parsing within limits |
 | T-S19 | excerpt absent from the cited page | value `unsupported` |
-| T-S20–23 | egress tests of §7 | only approved hosts reachable; TLS verified |
+| T-S20–23d | egress tests of §7 | as listed in §7 |
 | T-S24 | IBAN, NIR, payslip text in the request or document | `blocked_confidential` before any LiteLLM call (fake LiteLLM records zero calls) |
 | T-S25 | user lowers the level below the detected one | refused in Odoo and in the gateway |
 | T-S26 | unclassifiable document (OCR failure) | blocked |
 | T-S27 | real (non-synthetic) data before D6 | refused |
 | T-S28 | user without create right on `product.creation.request` / `equipment.operation` | « Prepare draft » hidden; forced call refused by the ORM; proposal kept |
-| T-S29 | intent with no allowed category | `missing_configuration`, no AI call beyond interpretation |
+| T-S29 | intent with no allowed category | `missing_configuration`; no draft; extraction still runs if a document was given (proposal for an authorised person) |
+| T-S30 | after `ack` and after 7 days | result absent from `jobs.db` (including free pages after `VACUUM`); same key → `410 result_purged`, no new call |
+| T-S31 | scan of `ledger.db` and its backup for the canary string and extracted values of the test documents | absent |
+| T-S32 | kill the gateway during the commit of a job creation | both files consistent: job + reservation + tombstone, or none |
+| T-S33 | Odoo crashes after `GET` before its commit; then after its commit before `ack` | first case: result fetched again; second: `ack` sent by the next run; `ack` twice → 204 |
+| T-S34 | 10 jobs submitted at once | at most the configured number running, extractions and OCR within their semaphores |
 
 ## 13. Residual risks
 
