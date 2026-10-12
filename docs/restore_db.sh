@@ -57,7 +57,9 @@ FILES=$(value FILESTORE_FILES)
 [ "$(sha256sum "$TGZ" | cut -d' ' -f1)" = "$(value FILESTORE_SHA256)" ] || stop "archive checksum differs; nothing done."
 # listings through a file: with pipefail, « grep -q » closing the pipe early would fail
 LIST=$(mktemp)
-trap 'rm -f "$LIST"' EXIT
+REG_OUT=$(mktemp)
+REG_ERR=$(mktemp)
+trap 'rm -f "$LIST" "$REG_OUT" "$REG_ERR"' EXIT
 docker exec -i odoo_db pg_restore --list < "$DUMP" > "$LIST" || stop "dump not readable; nothing done."
 grep -q "TABLE DATA public ir_module_module " "$LIST" || stop "dump without modules; nothing done."
 tar -tzf "$TGZ" > "$LIST" || stop "archive not readable; nothing done."
@@ -191,10 +193,18 @@ docker start odoo_web > /dev/null || true
 odoo_ready || stop "odoo_web not running or not answering after the restore (database, filestore and code restored). Check « docker logs --tail 50 odoo_web »; send this to Claude."
 # /web/health answers without loading any database (first ROADMAP 0 rollback, 11/10/2026:
 # RESTORE OK printed while artdubati_test could not load its modules): load it for real
-REG=$(echo "print('REGISTRY OK', env['ir.module.module'].search_count([('state', '=', 'installed')]))" \
-      | docker exec -i odoo_web odoo shell -d "$DB" --no-http 2>&1 | grep '^REGISTRY OK' || true)
-[ -n "$REG" ] || stop "$DB does not load its modules after the restore (odoo_web running). Send « docker logs --tail 50 odoo_web » to Claude."
-echo "$REG"
+# (audit of 061aaa1) exit code of the Odoo shell and its marker both checked, the
+# diagnostic shown on failure
+if ! echo "print('REGISTRY OK', env['ir.module.module'].search_count([('state', '=', 'installed')]))" \
+     | docker exec -i odoo_web odoo shell -d "$DB" --no-http > "$REG_OUT" 2> "$REG_ERR"; then
+  tail -15 "$REG_ERR"
+  stop "the Odoo shell failed on $DB after the restore (diagnostic above; odoo_web running). Send this to Claude."
+fi
+if ! grep -q '^REGISTRY OK' "$REG_OUT"; then
+  tail -15 "$REG_ERR"; tail -5 "$REG_OUT"
+  stop "$DB does not load its modules after the restore (no REGISTRY OK; diagnostic above). Send this to Claude."
+fi
+grep '^REGISTRY OK' "$REG_OUT"
 echo "RESTORE OK: $DB, filestore and code back to the backup of $(value STAMP); odoo_web answering."
 echo "Kept until checked: database $OLD_DB, filestore $FS/$FS_OLD."
 sql "$DB" "select name || ' ' || latest_version from ir_module_module

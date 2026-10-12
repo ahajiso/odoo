@@ -53,6 +53,17 @@ SUPPLIERINFO_LOCKED = ("partner_id", "company_id", "product_tmpl_id", "product_i
                        "product_code")
 
 
+def direct_creation_refused(env):
+    """Message of the refused direct creation (MENU_PLAN.md): every entry point, the user
+    keeps the one his access rights show. env._ (Odoo 18): translated in the user's
+    language from a plain function."""
+    return env._(
+        "Items and services are created through an item or service request, never "
+        "directly. According to your access rights: Inventory → Products → Item and "
+        "Service Requests, Purchase → Products → Item and Service Requests, or Product "
+        "Catalogue → Item and Service Requests.")
+
+
 def normalise_reference(value):
     """Internal and supplier references: trimmed, inner spaces collapsed, upper case."""
     return " ".join((value or "").split()).upper() or False
@@ -67,7 +78,7 @@ class ProductCategory(models.Model):
     _inherit = "product.category"
 
     request_ready = fields.Boolean(
-        string="Available for Product Requests",
+        string="Available for Item and Service Requests",
         help="Product creation requests may use this category. Set only by an accounting "
         "administrator (or the audited script), once the category's accounts, cost method "
         "and valuation are final.",
@@ -212,9 +223,7 @@ class ProductTemplate(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         if not self.env.su:
-            raise AccessError(_(
-                "Products are created through a product creation request (Inventory → "
-                "Products → Product Requests), never directly."))
+            raise AccessError(direct_creation_refused(self.env))
         return super().create(vals_list)
 
     def write(self, vals):
@@ -308,9 +317,7 @@ class ProductProduct(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         if not self.env.su:
-            raise AccessError(_(
-                "Products are created through a product creation request (Inventory → "
-                "Products → Product Requests), never directly."))
+            raise AccessError(direct_creation_refused(self.env))
         return super().create(vals_list)
 
     def write(self, vals):

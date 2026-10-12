@@ -44,11 +44,10 @@ window.
   Bg/Stock valued 0 €; the IT profile is ready on 218300. Next: draft bill from P00381,
   posted by an authorised accounting user; expected: fixed asset on 218300 with the IT
   profile, `asset_id` on the equipment, final cost 1 100 € excl. tax;
-- ergonomics (owner's proposal, to plan): the requests are under Inventory → Products →
-  Product Requests, not intuitive for services and subscriptions; rename the menu
-  « Item and Service Requests » and expose the same action under Purchase (and possibly
-  Invoicing → Vendors), no new model nor rule. A real subscription (supplier, amount,
-  period, renewal, documents, bills) belongs to phase A, not to the request;
+- ergonomics: « Item and Service Requests » (18.0.5.0.1), developed after the audit of
+  fa06f62, plan and deployment in MENU_PLAN.md (the paths written below are those of
+  18.0.5.0.0). A real subscription (supplier, amount, period, renewal, documents, bills)
+  belongs to phase A, not to the request;
 - the rest of the nomenclature (insurance, maintenance, software and SaaS including
   ChatGPT, energy and charges, leasing, subcontracting, transport, materials and
   consumables, workwear, supplier consignment): not opened by this deployment.

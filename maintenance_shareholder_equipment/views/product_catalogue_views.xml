@@ -7,7 +7,7 @@
         <field name="name">product.creation.request.form</field>
         <field name="model">product.creation.request</field>
         <field name="arch" type="xml">
-            <form string="Product Request">
+            <form string="Item or Service Request">
                 <header>
                     <button name="action_submit" type="object" string="Submit" class="btn-primary"
                             invisible="state != 'draft'"/>
@@ -27,6 +27,11 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,to_approve,approved,done"/>
                 </header>
                 <sheet>
+                    <!-- MENU_PLAN.md (audit of fa06f62): always visible, not only on an empty list -->
+                    <div class="alert alert-info" role="alert" name="request_scope">
+                        This request creates an item or a service in the catalogue. It does not
+                        record a contract, a subscription or a bill.
+                    </div>
                     <field name="image_1920" widget="image" class="oe_avatar"
                            options="{'preview_image': 'image_1920'}"/>
                     <div class="oe_title">
@@ -116,7 +121,7 @@
         <field name="name">product.creation.request.list</field>
         <field name="model">product.creation.request</field>
         <field name="arch" type="xml">
-            <list string="Product Requests">
+            <list string="Item and Service Requests">
                 <field name="name"/>
                 <field name="product_name"/>
                 <field name="family"/>
@@ -145,12 +150,13 @@
     </record>
 
     <record id="action_product_creation_request" model="ir.actions.act_window">
-        <field name="name">Product Requests</field>
+        <field name="name">Item and Service Requests</field>
         <field name="res_model">product.creation.request</field>
         <field name="view_mode">list,form</field>
         <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">Request a new product</p>
-            <p>Products are created through an approved request, never directly.</p>
+            <p class="o_view_nocontent_smiling_face">Request a new item or service</p>
+            <p>Items and services are created through an approved request, never directly. A
+               request creates an item or a service, not a contract, a subscription or a bill.</p>
         </field>
     </record>
 
@@ -226,7 +232,7 @@
         <field name="inherit_id" ref="product.product_category_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//sheet" position="inside">
-                <group string="Product Requests" name="catalogue">
+                <group string="Item and Service Requests" name="catalogue">
                     <field name="request_ready" groups="account.group_account_manager"/>
                     <field name="request_ready_user_id"/>
                     <field name="request_ready_date"/>
@@ -247,11 +253,29 @@
         </field>
     </record>
 
-    <!-- Inventory → Products -->
+    <!-- MENU_PLAN.md, revision 2. One action, one entry per application:
+         - Inventory → Products: the requesters of Inventory (equipment operators, inventory
+           users);
+         - Purchase → Products: the buyers;
+         - Product Catalogue (own application): the catalogue managers, who need neither
+           Inventory nor Purchase rights to approve and execute (a menu is shown only when
+           all its parents are: the roots of Inventory and Purchase need their own groups,
+           and these business rights are not given just to show a menu).
+         On an update a menuitem's groups are only added: « -group » removes the groups the
+         Inventory menu had before (18.0.5.0.0). -->
     <menuitem id="menu_product_creation_request" action="action_product_creation_request"
               parent="stock.menu_stock_inventory_control" sequence="90"
-              groups="group_equipment_operator,purchase.group_purchase_user,stock.group_stock_user,group_product_catalogue_manager"/>
+              groups="group_equipment_operator,stock.group_stock_user,-purchase.group_purchase_user,-group_product_catalogue_manager"/>
+    <menuitem id="menu_product_creation_request_purchase" action="action_product_creation_request"
+              parent="purchase.menu_purchase_products" sequence="90"
+              groups="purchase.group_purchase_user"/>
+    <menuitem id="menu_product_catalogue_root" name="Product Catalogue" sequence="136"
+              web_icon="product,static/description/icon.png"
+              groups="group_product_catalogue_manager"/>
+    <menuitem id="menu_product_catalogue_requests" action="action_product_creation_request"
+              parent="menu_product_catalogue_root" sequence="10"
+              groups="group_product_catalogue_manager"/>
     <menuitem id="menu_product_structural_correction" action="action_product_structural_correction"
-              parent="stock.menu_stock_inventory_control" sequence="91"
+              parent="menu_product_catalogue_root" sequence="20"
               groups="group_product_catalogue_manager"/>
 </odoo>

@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 21:16+0000\n"
-"PO-Revision-Date: 2026-10-09 21:16+0000\n"
+"POT-Creation-Date: 2026-10-12 12:29+0000\n"
+"PO-Revision-Date: 2026-10-12 12:29+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -1016,8 +1016,8 @@ msgstr "Nombre de pièces jointes"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_category__request_ready
-msgid "Available for Product Requests"
-msgstr "Disponible pour les demandes de produit"
+msgid "Available for Item and Service Requests"
+msgstr "Disponible pour les demandes d'articles et services"
 
 #. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
@@ -2164,6 +2164,45 @@ msgid "Item"
 msgstr "Article"
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.actions.act_window,name:maintenance_shareholder_equipment.action_product_creation_request
+#: model:ir.ui.menu,name:maintenance_shareholder_equipment.menu_product_catalogue_requests
+#: model:ir.ui.menu,name:maintenance_shareholder_equipment.menu_product_creation_request
+#: model:ir.ui.menu,name:maintenance_shareholder_equipment.menu_product_creation_request_purchase
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_category_form_catalogue
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_list
+msgid "Item and Service Requests"
+msgstr "Demandes d'articles et services"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
+msgid "Item or Service Request"
+msgstr "Demande d'article ou de service"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.actions.act_window,help:maintenance_shareholder_equipment.action_product_creation_request
+msgid ""
+"Items and services are created through an approved request, never directly. A\n"
+"               request creates an item or a service, not a contract, a subscription or a bill."
+msgstr ""
+"Les articles et services sont créés par une demande approuvée, jamais "
+"directement. Une demande crée un article ou un service, pas un contrat, un "
+"abonnement ni une facture."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"Items and services are created through an item or service request, never "
+"directly. According to your access rights: Inventory → Products → Item and "
+"Service Requests, Purchase → Products → Item and Service Requests, or "
+"Product Catalogue → Item and Service Requests."
+msgstr ""
+"Les articles et services sont créés par une demande d'article ou de service,"
+" jamais directement. Selon vos droits d'accès : Inventaire → Produits → "
+"Demandes d'articles et services, Achats → Produits → Demandes d'articles et "
+"services, ou Catalogue produits → Demandes d'articles et services."
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_category__is_fixed_asset_stock
 msgid ""
 "Items of this category are fixed assets: quantity and location come from "
@@ -3077,6 +3116,7 @@ msgstr "L'article %s est archivé."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.module.category,name:maintenance_shareholder_equipment.module_category_product_catalogue
+#: model:ir.ui.menu,name:maintenance_shareholder_equipment.menu_product_catalogue_root
 msgid "Product Catalogue"
 msgstr "Catalogue produits"
 
@@ -3110,19 +3150,6 @@ msgstr "Mouvements de produit (Ligne de mouvement de stock)"
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__product_name
 msgid "Product Name"
 msgstr "Nom du produit"
-
-#. module: maintenance_shareholder_equipment
-#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
-msgid "Product Request"
-msgstr "Demande de produit"
-
-#. module: maintenance_shareholder_equipment
-#: model:ir.actions.act_window,name:maintenance_shareholder_equipment.action_product_creation_request
-#: model:ir.ui.menu,name:maintenance_shareholder_equipment.menu_product_creation_request
-#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_category_form_catalogue
-#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_list
-msgid "Product Requests"
-msgstr "Demandes de produit"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model,name:maintenance_shareholder_equipment.model_product_structural_correction
@@ -3177,22 +3204,6 @@ msgstr ""
 "Les produits et les demandes peuvent prendre cette catégorie comme catégorie"
 " d'équipement par défaut. Désactivé pour « À classifier » et pour les "
 "catégories créées automatiquement avant le catalogue (ROADMAP section 0)."
-
-#. module: maintenance_shareholder_equipment
-#. odoo-python
-#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
-msgid ""
-"Products are created through a product creation request (Inventory → "
-"Products → Product Requests), never directly."
-msgstr ""
-"Les produits sont créés par une demande de création de produit (Inventaire →"
-" Produits → Demandes de produit), jamais directement."
-
-#. module: maintenance_shareholder_equipment
-#: model_terms:ir.actions.act_window,help:maintenance_shareholder_equipment.action_product_creation_request
-msgid "Products are created through an approved request, never directly."
-msgstr ""
-"Les produits sont créés par une demande approuvée, jamais directement."
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_cost_correction__cost_provisional
@@ -3414,8 +3425,8 @@ msgstr "Demande"
 
 #. module: maintenance_shareholder_equipment
 #: model_terms:ir.actions.act_window,help:maintenance_shareholder_equipment.action_product_creation_request
-msgid "Request a new product"
-msgstr "Demander un nouveau produit"
+msgid "Request a new item or service"
+msgstr "Demander un nouvel article ou service"
 
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__requester_id
@@ -4065,6 +4076,15 @@ msgstr "Ce champ est renseigné par la demande elle-même."
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "This operation is being processed by someone else."
 msgstr "Cette opération est en cours de traitement par quelqu'un d'autre."
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
+msgid ""
+"This request creates an item or a service in the catalogue. It does not\n"
+"                        record a contract, a subscription or a bill."
+msgstr ""
+"Cette demande crée un article ou un service dans le catalogue. Elle "
+"n'enregistre ni contrat, ni abonnement, ni facture."
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python

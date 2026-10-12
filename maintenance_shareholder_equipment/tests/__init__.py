@@ -8,3 +8,4 @@ from . import test_phase2f_cost
 from . import test_phase2f_rights
 from . import test_phase3_stock
 from . import test_product_catalogue
+from . import test_request_menus
