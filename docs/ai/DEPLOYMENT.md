@@ -76,9 +76,9 @@ leaving about 3 GB of margin. On 4 GB with 1 extraction and 1 OCR: about 3.2 GB,
 `net_llm`, `net_doc`, `net_egress` are `internal: true`; every network has a fixed
 subnet and `ai_egress` a fixed address. Filtering is done in Docker's `DOCKER-USER` chain
 (default deny for the AI subnets, outbound only for `ai_egress` on 443 and DNS to the
-configured resolvers, inbound to the gateway's port only from the Odoo VPS), installed by a
-`ai-firewall.service` before any AI container starts (§3.1) and checked every 5 minutes; `userland-proxy: false`. Full rules and tests:
-SECURITY.md §7 (T-S20 … T-S23d).
+configured resolvers, inbound to the gateway's port only from the Odoo VPS), installed by
+`ai-firewall.service` before any AI container starts (§3.1) and checked every 5 minutes;
+`userland-proxy: false`. Full rules and tests: SECURITY.md §7 (T-S20 … T-S23f).
 
 Hardening for all: non-root user, read-only root fs, size-limited `tmpfs`,
 `no-new-privileges`, `cap_drop: ALL`, seccomp (default or tighter), AppArmor profile,
