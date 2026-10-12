@@ -94,9 +94,12 @@ messages, one migration script reloading the translations; no column, no data ch
 - Full suites of both modules on that database: **282 tests, 0 failed** (271 + 11) after
   the last test correction (the first run found one error in the new test itself, a
   request without its mandatory category). On the server: **281** (the real websocket
-  class is skipped there). Clean-checkout run: test_logs/.
+  class is skipped there). Clean checkout of 0d0f9d4 on a fresh copy of the migrated
+  database: update without error, **282 tests, 0 failed**
+  (test_logs/menu_clean_checkout_282_tests_0d0f9d4.log.gz); module fingerprint
+  `8893d546…` (AFTER line of docs/phase4/platform_expected.txt).
 - HTTP routes (`docs/phase4/routes.py`) before and after the update: identical (319
-  lines); no controller added.
+  lines, test_logs/menu_routes_*.txt); no controller added.
 
 ## 5. Tooling (audit of 061aaa1)
 
