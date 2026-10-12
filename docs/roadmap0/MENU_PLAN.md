@@ -138,6 +138,15 @@ d'articles et services » under Achats → Produits, the banner in the form; onc
 catalogue manager is named, the « Catalogue produits » application with the requests
 and the structural corrections; the investor's menus unchanged.
 
+## 6.1 Deployment record (12/10/2026)
+
+Deployed on artdubati_test, **code f0de375** (maintenance_shareholder_equipment
+18.0.5.0.1): PLATFORM OK (before), 122 modules; BACKUP OK (`menu`, 552 files, 0
+attachment file missing, restored copy identical, code of the backup 5823e71); update
+OK; **281 tests, 0 failed**; PLATFORM OK (after) with the AFTER fingerprint; HTTP routes
+319 lines (as locally before and after). Interface checks and the content comparison of
+the routes: below, by the owner.
+
 ## 7. Not part of this change
 
 - Naming the catalogue manager(s) and the acceptance of the requests (README.md).

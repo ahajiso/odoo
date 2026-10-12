@@ -326,7 +326,9 @@ tests on artdubati_test (47 passing, 08/10/2026).
    Catalogue » for the catalogue managers, D4 confirmed by the audit of 561f84d: no
    Inventory nor Purchase right given just to show a menu), scope banner in the form,
    .po reloaded with overwrite by a migration script, tooling of 061aaa1 corrected;
-   282 tests locally (281 on the server), audited, deployment to come (MENU_PLAN.md §6).
+   282 tests locally, audited, merged (f0de375) and deployed on artdubati_test on
+   12/10/2026: PLATFORM OK before / after, BACKUP OK (552 files, 0 missing), 281 tests
+   0 failed, routes 319 lines (MENU_PLAN.md §6.1); interface checks to do.
    Before the acceptance: name a requester and a different catalogue manager.
    Then A-K, the manual last.
 5. Translations, deployment checklist (docs/deployment/investor_home.md).
