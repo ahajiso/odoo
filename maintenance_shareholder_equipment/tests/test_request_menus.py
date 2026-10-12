@@ -81,6 +81,11 @@ class TestRequestMenus(CatalogueCommon):
             self.assertEqual(self.action.with_context(lang=lang).name, name, lang)
             for menu in (self.menu_inventory, self.menu_purchase, self.menu_catalogue):
                 self.assertEqual(menu.with_context(lang=lang).name, name, lang)
+        # the catalogue managers' application (audit of 561f84d)
+        roots = {"en_US": "Product Catalogue", "fr_FR": "Catalogue produits",
+                 "fa_IR": "کاتالوگ محصولات"}
+        for lang, name in roots.items():
+            self.assertEqual(self.catalogue_root.with_context(lang=lang).name, name, lang)
             field = self.env["product.category"].with_context(lang=lang).fields_get(
                 ["request_ready"], ["string"])["request_ready"]["string"]
             self.assertNotIn("Product Requests", field, lang)
@@ -118,8 +123,11 @@ class TestRequestMenus(CatalogueCommon):
     def test_requesters_see_their_application_only(self):
         self.assertEqual(self._request_menus(self.buyer), self.menu_purchase)
         self.assertEqual(self._request_menus(self.stock_only), self.menu_inventory)
-        self.assertEqual(self._request_menus(self.user_operator).filtered(
-            lambda m: m == self.menu_catalogue), self.env["ir.ui.menu"])
+        # the equipment operator sees exactly the Inventory entry (audit of 561f84d); his
+        # group implies Inventory/User, which shows the root of Inventory
+        self.assertTrue(self.user_operator.has_group("stock.group_stock_user"))
+        self.assertFalse(self.user_operator.has_group("purchase.group_purchase_user"))
+        self.assertEqual(self._request_menus(self.user_operator), self.menu_inventory)
         self.assertNotIn(self.catalogue_root.id, self._visible(self.buyer))
 
     def test_accountant_gets_no_menu(self):
@@ -136,7 +144,8 @@ class TestRequestMenus(CatalogueCommon):
 
     def test_scope_banner_in_the_form(self):
         for lang, text in (("en_US", "It does not record a contract"),
-                           ("fr_FR", "contrat")):
+                           ("fr_FR", "Elle n'enregistre ni contrat"),
+                           ("fa_IR", "قرارداد، اشتراک یا صورت‌حساب ثبت نمی‌کند")):
             self.env["res.lang"]._activate_lang(lang)
             arch = self.env["product.creation.request"].with_context(lang=lang).get_views(
                 [(False, "form")])["views"]["form"]["arch"]
