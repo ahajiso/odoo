@@ -336,5 +336,10 @@ tests on artdubati_test (47 passing, 08/10/2026).
    equipment and assets, worksites and stock consumption, workwear / PPE (« VT »
    = vêtements de travail, confirmed), operational maintenance, supplier bill intake, one-off and
    employee expenses.
+AI. Independent AI assistant (owner's mission of 12/10/2026): docs/ai/ (PLAN, ARCHITECTURE,
+   SECURITY, SCHEMAS, DEPLOYMENT, COSTS), IA-0 plan only, no code, nothing installed;
+   audit and decisions D1-D15 pending. Separate module `lartdubati_ai_assistant` and gateway
+   `lartdubati-ai-gateway`; never mixed into the catalogue module; every existing circuit
+   works with the AI disabled or down.
 Last. Manual rewrite for all phases (cards citing removed or changed fields, new
    receiving procedures, Investor tab), after every functional phase.
