@@ -355,7 +355,7 @@ AI. Independent AI assistant (owner's mission of 12/10/2026): docs/ai/ (PLAN, AR
    validated by the audit of bdb2548: IA-1 authorised in the separate private repository
    lartdubati-ai-gateway (WP1-WP6, WP8 unit tests first; WP7, WP9 wait for the 4 vCPU / 8 GB
    Ubuntu 24.04 VM), no real call, no provider key, no real data, no change to Odoo; the
-   repository is ahajiso/odoo_ai_assistant (owner's choice); WP1 corrected after its audit (dc46719, 142 tests, 11/11 mutations killed), validation pending; IA-1b and IA-2 wait for D3, D4, D6. Separate module `lartdubati_ai_assistant` and gateway
+   repository is ahajiso/odoo_ai_assistant (owner's choice); WP1 corrected after two audits (161 tests, 17/17 mutations killed, tools/mutation_check.py), validation pending; IA-1b and IA-2 wait for D3, D4, D6. Separate module `lartdubati_ai_assistant` and gateway
    `lartdubati-ai-gateway`; never mixed into the catalogue module; every existing circuit
    works with the AI disabled or down.
 Last. Manual rewrite for all phases (cards citing removed or changed fields, new

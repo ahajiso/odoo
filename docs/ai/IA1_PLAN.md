@@ -437,4 +437,8 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   `unknown`, evidence pages checked, stricter value rules, calendar dates, network guard
   covering `connect_ex`, `send*`, DNS and helpers plus a static import test. Corrected in
   `dc46719`: 142 tests under Python 3.12.3 and 3.13, 11 mutations of the corrected controls,
-  11 killed. WP2 waits for the validation of WP1.
+  11 killed.
+- Audit of `dc46719` / `3ca4f50`: amount alternatives typed and bounded like the amount,
+  alternatives pairwise distinct, SCHEMAS.md precise on dates. Corrected in the gateway's
+  commit `92e9a27` (`tools/mutation_check.py`): 161 tests (3.12.3, 3.13), 17 mutations, 17 killed.
+  WP2 waits for the validation of WP1.

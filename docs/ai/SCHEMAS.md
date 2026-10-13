@@ -97,12 +97,18 @@ Extracted value:
 Rules (tightened by the audit of WP1, gateway commit `dc46719`):
 - `found`: a value, evidence, **no** alternative; `absent`: no value, no evidence, no
   alternative (an amount's currency and tax basis `unknown`); `ambiguous` /
-  `contradictory`: no value, no top-level evidence, at least two alternatives, **each with
-  its own evidence**; any other combination ⇒ `invalid_output`;
+  `contradictory`: no value, no top-level evidence, at least two **pairwise distinct**
+  alternatives (normalised text; ISO date; decimal + currency + tax basis for an amount),
+  **each with its own evidence**; any other combination ⇒ `invalid_output`;
+- an amount's alternatives are typed like the amount: `{value (decimal), currency
+  (Odoo's list or `unknown`), tax_basis, evidence}`; an ambiguous or contradictory amount
+  carries currency and tax basis only in its alternatives (top level `unknown`);
 - each piece of evidence cites a chunk that was sent **and that chunk's page** (`null` for
   the user's free text, chunk `text`); a wrong page ⇒ `invalid_output`; an excerpt not
   found in its chunk ⇒ the value becomes `unsupported`;
-- dates are ISO **and** exist in the calendar (value and alternatives).
+- the **date-typed fields of `extract_document`** are ISO **and** exist in the calendar
+  (value and alternatives); `interpret_request.date_terms` deliberately keep the user's own
+  words (« 1er janvier »), converted by Odoo, not by the model.
 
 Amounts add
 `currency` (one of the currencies Odoo sent in `allowed_currencies`, or the explicit value
