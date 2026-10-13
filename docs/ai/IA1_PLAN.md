@@ -479,3 +479,11 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   and is replaced; its invariants are kept. ARCHITECTURE.md §5.1, COSTS.md §4,
   DEPLOYMENT.md, SECURITY.md (T-S30 to T-S32) and SCHEMAS.md §2.3 still describe SQLite and
   are updated after the plan's audit. No code before the audit; WP3 waits.
+- Audit of `POSTGRES_PLAN.md` (`d76ca19`): five blocking points (key / janitor race, clear
+  `meta` and `error_message`, undefined comparison between backups, restore order with T1,
+  retention through `ai_migrator`) and three complements. Revision 2 (`ba9cbc3`): `flock`
+  on the key directory, typed and closed metadata (catalogue registered in the database,
+  Odoo file references instead of document hashes), comparison and restore through a
+  throw-away cluster, `ai_retention` role, insert-only `schema_history`, transition
+  trigger, wider fingerprint; SQLite store kept until covered. O1–O8 decided by the audit;
+  O9, O10 new. No code before the audit of revision 2.
