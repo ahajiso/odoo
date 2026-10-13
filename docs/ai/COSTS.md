@@ -66,11 +66,13 @@ Ledger rows in `ledger.db`, financial metadata only (one transaction with the jo
 ARCHITECTURE.md §5.1):
 `job_id`, `request_ref`, `user_ref`, function, profile, **budget period** (month of the
 reservation, kept by every later row of the job), route, provider, model (configured
-catalogue only), kind (`reservation` / `release` / `settlement` / `manual_correction`;
-`reconciliation` with WP4), **amount in the provider's billing currency**, currency, **rate
+catalogue only), kind (cost lines `reservation` / `settlement` / `manual_correction`;
+cancellation lines `release` / `reversal`; `reconciliation` with WP4), **amount in the provider's billing currency**, currency, **rate
 to EUR and its date and source** (configured list), EUR equivalent, tokens, SHA-256 of the
-provider's request id. A `release` is the exact negative of the reservation, written when
-the job ends, so that no row is ever modified. No free text in any row.
+provider's request id. A cancellation (`release` for the reservation, `reversal` for a
+settlement or a correction) is the exact negative of one cost line, with the same rate,
+date and source, and names it (`reverses_id`); no row is ever modified, every row is true
+by itself (`eur = amount × rate`). No free text in any row.
 Caps are compared in EUR with the rate of the day from the configured source (to choose:
 the ECB reference rate, or a fixed conservative rate set by the owner); the original
 amount and rate are kept so a later reconciliation never rewrites history.
@@ -83,9 +85,11 @@ usage data identifies the individual request (request id recorded before the cal
 provider returns or accepts one; to verify per provider in IA-1). Otherwise the
 **reservation stays** as the cost of that job (conservative) and only a manual correction
 can change it (audit of WP2): on a **final** job only, the « AI Budget Manager » gives the
-**target cost** of the job (non-negative, in the reservation's currency); the store appends
-the one `manual_correction` row that brings the job's net amount and net EUR to that
-target, in the reservation's budget period. The row carries an opaque author reference, a
+**target cost** of the job (non-negative, in the reservation's currency); the store cancels
+every active cost line of the job and appends one positive `manual_correction` line at the
+target's own rate, date and source (none if the target is zero), all in the reservation's
+budget period. Corrections read only the tombstone and the ledger: they stay possible for
+13 months, after the job's row has left `jobs.db` (an invoice may arrive late). The row carries an opaque author reference, a
 reason code from a closed list (`provider_usage_report`, `provider_invoice`,
 `provider_refund`, `duplicate_charge`) and the SHA-256 of the supporting document; the
 document and the human explanation stay in Odoo. Never an edit of an existing row.

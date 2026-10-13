@@ -153,7 +153,7 @@ for 13 months.
 
 | | `jobs.db` | `ledger.db` |
 |---|---|---|
-| Content | job inputs (text, base64 files only while the job runs), validated results, errors | job id, request ref, opaque user ref, function, profile, **budget period** (month of the reservation), route, provider, model (from the gateway's configured catalogue only), tokens, SHA-256 of the provider's request id, amounts in billing currency (non-negative from callers), rate, date and source (configured list), EUR equivalent, kind (`reservation` / `release` / `settlement` / `manual_correction`; `reconciliation` comes with WP4), for a correction: opaque author ref, reason code (closed list), SHA-256 of the evidence kept in Odoo; idempotency key and body SHA-256 with the final state (tombstone) |
+| Content | job inputs (text, base64 files only while the job runs), validated results, errors | job id, request ref, opaque user ref, function, profile, **budget period** (month of the reservation), route, provider, model (from the gateway's configured catalogue only), tokens, SHA-256 of the provider's request id, amounts in billing currency (non-negative from callers), rate, date and source (configured list), EUR equivalent, kind (cost lines `reservation` / `settlement` / `manual_correction`, cancellation lines `release` / `reversal` naming the line they cancel in `reverses_id`; `reconciliation` comes with WP4), for a correction: opaque author ref, reason code (closed list), SHA-256 of the evidence kept in Odoo; idempotency key and body SHA-256 with the final state (tombstone) |
 | Never contains | – | document text, prompts, model output, extracted values, user text, file names, any free text (no reason or comment field: the human explanation of a correction stays in Odoo) |
 | Lifetime | inputs deleted when the job ends; results deleted at `ack` or after 7 days; job rows (metadata only) deleted 30 days after the end, idempotency kept by the tombstone (a replay or a `GET` answers `result_purged`); `secure_delete` on; `VACUUM` only in the maintenance window (below) | 13 months |
 | Backup | **none** | daily online backup, encrypted, kept 13 months |
@@ -179,7 +179,17 @@ Atomicity across both files (revision 4, settings fixed):
   starts on 30/09 and ends on 01/10 is counted in September only; the month total sums the
   rows of exactly that period (audit of WP2);
 - amounts from callers (reservations, costs, caps, overrides, target costs) are
-  non-negative; only the store writes the negative rows it needs (release, correction);
+  non-negative; only the store writes the negative rows it needs (cancellations);
+- **every ledger line is true by itself** (second audit of WP2): a cost line is
+  non-negative with `eur = amount × rate` at its own rate, date and source; a cancellation
+  is the exact opposite of one cost line (same rate, date, source, period, provenance),
+  names it in `reverses_id`, and a line is cancelled at most once; a correction cancels
+  the job's active cost lines and adds one positive line at the target's own rate;
+- corrections need only the tombstone and the ledger, so they stay possible as long as the
+  ledger keeps the job (13 months), after `jobs.db` has dropped its row;
+- **provenance**: the reservation carries the planned route (provider and model from the
+  catalogue); a billable cost requires its usage (route, token counts; the provider's
+  request id, stored as SHA-256, is optional only when the provider gives none);
 - the gateway refuses to start if a pragma read back differs, or if the two files are not
   on the same filesystem (`st_dev` compared).
 

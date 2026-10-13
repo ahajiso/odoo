@@ -458,3 +458,10 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   evidence SHA-256, purged job rows deleted after 30 days; ARCHITECTURE.md §5.1 and
   COSTS.md §4 updated (`release`, periods, corrections). 234 tests (3.12.3, 3.13),
   59 mutations, 59 killed. WP3 waits for the validation of WP2.
+- Second audit of WP2 (`f856266`): correction lines false when the rate changed, no
+  correction after the 30-day purge, billable lines without provenance. Corrected in
+  `0962ed5..b238189`: true cost and cancellation lines (`reverses_id`), corrections from
+  the tombstone and the ledger, planned route on reservations and usage required for costs,
+  frozen catalogue, identifiers matched in full; ARCHITECTURE.md §5.1 and COSTS.md §4
+  updated. 264 tests (3.12.3, 3.13), 70 mutations, 70 killed. WP3 waits for the
+  validation of WP2.
