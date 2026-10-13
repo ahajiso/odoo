@@ -442,3 +442,11 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   alternatives pairwise distinct, SCHEMAS.md precise on dates. Corrected in the gateway's
   commit `92e9a27` (`tools/mutation_check.py`): 161 tests (3.12.3, 3.13), 17 mutations, 17 killed.
   WP2 waits for the validation of WP1.
+- WP1 validated by the audit of `92e9a27` / `2233754`. Its non-blocking point (the mutation
+  tool runs the unmutated suite first and stops unless it is green) done in `e97bcc7`.
+- WP2 (storage) done on 13/10/2026, commits `465c168..79bf319`: `ledger.db` main and
+  `jobs.db` attached with the settings of ARCHITECTURE.md §5.1 checked at start, append-only
+  ledger, tombstones, caps and reservation in the job's transaction, leases,
+  `outcome_unknown`, idempotent `ack`, 7-day purge, maintenance `VACUUM`; 195 tests (34 for
+  WP2, SIGKILL test of T-S32 included) under Python 3.12.3 and 3.13; 38 mutations, 38
+  killed; report `docs/WP2_REPORT.md` of the gateway repository, to audit. Next: WP3 (API).
