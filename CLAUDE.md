@@ -350,7 +350,9 @@ AI. Independent AI assistant (owner's mission of 12/10/2026): docs/ai/ (PLAN, AR
    fictitious identities; separate gateway repository, disposable Ubuntu 24.04 VM,
    iptables-nft first); revision 3 (audit of d8ae4cf: dedicated chain LARTDUBATI-AI with one
    jump, DOCKER-USER never flushed; closed production profile with no provider; VM exactly
-   4 vCPU / 8 GB) to audit before any code; IA-1b and IA-2 wait for D3, D4, D6. Separate module `lartdubati_ai_assistant` and gateway
+   4 vCPU / 8 GB); revision 4 (audit of b6dac22: explicit -F LARTDUBATI-AI inside one
+   iptables-restore --noflush transaction after a --test dry run; rule count checked in T-S37);
+   after its audit: IA-1 in the separate repository, no real call, no change to Odoo; IA-1b and IA-2 wait for D3, D4, D6. Separate module `lartdubati_ai_assistant` and gateway
    `lartdubati-ai-gateway`; never mixed into the catalogue module; every existing circuit
    works with the AI disabled or down.
 Last. Manual rewrite for all phases (cards citing removed or changed fields, new

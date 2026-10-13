@@ -1,4 +1,4 @@
-# IA-1 – development plan of the isolated AI server (revision 3, 13/10/2026, no code)
+# IA-1 – development plan of the isolated AI server (revision 4, 13/10/2026, no code)
 
 Green light of the audit of `400a3c0..95fdf3c`: **writing this plan only**. Not yet a
 green light to code, install a server or call a real API. This plan is audited before any
@@ -16,7 +16,9 @@ Revision 3 answers the audit of `d8ae4cf` (§13): a dedicated firewall chain
 `LARTDUBATI-AI` reached by one idempotent jump, `DOCKER-USER` never flushed, only the
 dedicated chain replaced atomically, and an atomicity test with per-generation counters
 (§3, P1); a closed production profile with an empty provider list in IA-1 (§5); a test VM
-of exactly 4 vCPU / 8 GB (§1, §12).
+of exactly 4 vCPU / 8 GB (§1, §12). Revision 4 answers the audit of `b6dac22` (§14): the
+replacement of the chain's content uses an explicit `-F LARTDUBATI-AI` inside the
+transaction, after a dry run with `--test`; T-S37 checks the rule count after each reload.
 
 Basis: PLAN.md revision 4 and its companions. Test numbers refer to SECURITY.md §12.
 
@@ -85,16 +87,33 @@ call except package download from the hash-locked lock file.
 `d8ae4cf`).
 - `DOCKER-USER` is shared and is **never flushed or rewritten**. The project owns a
   dedicated chain `LARTDUBATI-AI` in the `filter` table (SECURITY.md §7, layer 2).
-- **The jump.** `firewall-apply` creates the chain if missing, then installs
+- **The chain.** `firewall-apply` first creates `LARTDUBATI-AI` on its own if
+  `iptables -n -L LARTDUBATI-AI` does not find it (`iptables -N LARTDUBATI-AI`), so the
+  chain exists before any jump or content.
+- **The jump.** `firewall-apply` then installs
   `-I DOCKER-USER 1 -j LARTDUBATI-AI` only if `iptables -C DOCKER-USER -j LARTDUBATI-AI`
   does not find it. `firewall-verify` checks that the jump exists **exactly once** and in
   first position, and that the rest of `DOCKER-USER` is not this project's business (no
   rule mentioning the AI subnets outside our chain). The jump is never removed by a reload.
-- **The content.** `firewall-apply` replaces only the content of `LARTDUBATI-AI` with one
-  `iptables-restore --noflush` input for the `filter` table: the chain declaration
-  `:LARTDUBATI-AI - [0:0]` (which, with `--noflush`, empties that chain only), the full rule
-  list, one `COMMIT`: one transaction with `iptables-nft`, to be proven by T-S37. The first
-  rule is a counting rule with no target, commented with a **generation id**, so each
+- **The content** (revision 4, audit of `b6dac22`). The plan does not rely on what a chain
+  declaration line does under `--noflush` (its effect on an existing chain is not something
+  to depend on), so the input declares nothing and flushes explicitly, only our chain:
+  ```
+  *filter
+  -F LARTDUBATI-AI
+  -A LARTDUBATI-AI -m comment --comment "lartdubati-ai generation <id>"
+  -A LARTDUBATI-AI ...
+  -A LARTDUBATI-AI -s <ai_subnets> -j DROP
+  COMMIT
+  ```
+  1. dry run: `iptables-restore --test --noflush < generation.rules` (syntax and
+     references checked, nothing applied); failure → nothing applied, unit fails;
+  2. apply: `iptables-restore --noflush < generation.rules`: the flush of our chain and
+     all its new rules are **one** transaction with `iptables-nft` (to be proven by T-S37);
+     `DOCKER-USER` and every other chain stay untouched;
+  3. `firewall-verify`: content equal to the generation's expected rules (same count, same
+     order), jump exactly once in first position.
+  The first rule counts packets with no target and carries the **generation id**, so each
   generation has its own counters.
 - Any **change** of the rules goes through `firewall-change`: `systemctl stop ai-stack` →
   apply → verify → `systemctl start ai-stack`. Only the boot path (no container yet) and
@@ -111,7 +130,8 @@ call except package download from the hash-locked lock file.
      transaction touching only `LARTDUBATI-AI`;
   4. a reader takes snapshots of the chain (`nft -j list chain ip filter LARTDUBATI-AI`) in
      a tight loop: every snapshot equals A or B exactly (rules, order, generation id),
-     never a partial or empty chain;
+     never a partial or empty chain; and after **each** reload the number of rules in
+     `LARTDUBATI-AI` is exactly that of A or of B (no accumulation across reloads);
   5. **counters per generation**, without assuming continuity across reloads (a replaced
      chain starts its counters at zero): within each generation, its counting rule and its
      final drop rule both count packets of the generator's forbidden traffic before the
@@ -387,3 +407,10 @@ token counts), H-AI-7 (provider request ids in usage data).
 | 3 | VM capacity | **Fixed**: exactly 4 vCPU / 8 GB for the VM; the T-S23c client may be much smaller | §1, §12 |
 | 4 | « 50 tests » | **Corrected**: 47 distinct identifiers (the « 50 » was in the summary message, not in the documents); count stated in §8 | §8 |
 | D | IA1-D1 to D4 | validated by the audit on substance; owner to confirm | §1 |
+
+## 14. Answers to the audit of `b6dac22`
+
+| # | Point | Answer | Where |
+|---|---|---|---|
+| 1 | Under `--noflush`, the declaration `:LARTDUBATI-AI - [0:0]` must not be relied on to empty an existing chain; rules could accumulate | **Fixed**: chain created on its own if absent; idempotent jump; dry run `iptables-restore --test --noflush`; one input `*filter`, `-F LARTDUBATI-AI`, all rules, `COMMIT`; no chain declaration line | §3 P1 |
+| 2 | T-S37 must check that the rule count does not grow | **Added**: after each reload the count equals exactly that of A or B | §3 P1, T-S37 item 4 |
