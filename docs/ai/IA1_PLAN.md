@@ -471,3 +471,11 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   checked before any statement and left untouched on refusal (tested on the real version-2
   schema), catalogue pairs of strings; 286 tests (3.12.3, 3.13), 76 mutations, 76 killed.
   WP3 waits for the validation of WP2.
+- Owner's decision (13/10/2026): SQLite abandoned, WP2 rewritten on **PostgreSQL 16**
+  (database `lartdubati_ai`, schemas `ledger` and `jobs`, no connection from Odoo,
+  migrations by fingerprint, insert-only ledger, contents encrypted by the gateway with
+  keys deleted at purge, ledger-only backup). Plan written without code for audit:
+  gateway repository `docs/POSTGRES_PLAN.md` (`d76ca19`). The SQLite WP2 is not validated
+  and is replaced; its invariants are kept. ARCHITECTURE.md §5.1, COSTS.md §4,
+  DEPLOYMENT.md, SECURITY.md (T-S30 to T-S32) and SCHEMAS.md §2.3 still describe SQLite and
+  are updated after the plan's audit. No code before the audit; WP3 waits.
