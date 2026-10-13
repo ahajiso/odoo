@@ -430,5 +430,11 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   planned name `lartdubati-ai-gateway`; same role (IA1-D1). Work branch
   `claude/gallant-bohr-upcxyg`.
 - WP1 (contract, validators, fake LiteLLM) done on 13/10/2026, commits `8019d27..de42fe9`:
-  82 unit tests passing under Python 3.12.3 and 3.13, no network, no secret; report
+  82 unit tests passing under Python 3.12.3 and 3.13, no call to an AI provider or model
+  API (PyPI used only for the pinned packages), no secret; report
   `docs/WP1_REPORT.md` of that repository, to audit. Next: WP2 (storage).
+- Audit of WP1 (`8019d27..de42fe9`, mutation testing): bounded currencies with explicit
+  `unknown`, evidence pages checked, stricter value rules, calendar dates, network guard
+  covering `connect_ex`, `send*`, DNS and helpers plus a static import test. Corrected in
+  `dc46719`: 142 tests under Python 3.12.3 and 3.13, 11 mutations of the corrected controls,
+  11 killed. WP2 waits for the validation of WP1.

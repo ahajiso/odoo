@@ -94,8 +94,19 @@ Extracted value:
  "evidence": [{"chunk_id": "d1-p3-c2", "page": 3, "excerpt": "≤ 300 chars"}],
  "alternatives": [], "note": null}
 ```
-`absent` ⇒ `value: null`; `found` without evidence ⇒ `invalid_output`. Amounts add
-`currency` (from Odoo's list or `unknown`) and `tax_basis` (`excl_tax` / `incl_tax` /
+Rules (tightened by the audit of WP1, gateway commit `dc46719`):
+- `found`: a value, evidence, **no** alternative; `absent`: no value, no evidence, no
+  alternative (an amount's currency and tax basis `unknown`); `ambiguous` /
+  `contradictory`: no value, no top-level evidence, at least two alternatives, **each with
+  its own evidence**; any other combination ⇒ `invalid_output`;
+- each piece of evidence cites a chunk that was sent **and that chunk's page** (`null` for
+  the user's free text, chunk `text`); a wrong page ⇒ `invalid_output`; an excerpt not
+  found in its chunk ⇒ the value becomes `unsupported`;
+- dates are ISO **and** exist in the calendar (value and alternatives).
+
+Amounts add
+`currency` (one of the currencies Odoo sent in `allowed_currencies`, or the explicit value
+`unknown`; never `null`) and `tax_basis` (`excl_tax` / `incl_tax` /
 `unknown`). Choices: `{"choice": "<ref from Odoo's list>" | null, "status": "chosen" |
 "none_fits" | "ambiguous", "alternatives": [...], "justification": "≤ 300 chars"}`; the
 `choice` enum is generated per job from Odoo's references. No schema contains an account,
@@ -113,7 +124,7 @@ The request total is capped at 0.50 € (D11) across its jobs.
 
 ### 4.1 `interpret_request`
 
-Input: `{"text": "…", "allowed_intents": [{"ref": "i1", "code": "recurring_service", "label": "…"}], "allowed_natures": [{"ref": "n1", "code": "insurance", "label": "…"}]}`
+Input: `{"text": "…", "allowed_intents": [{"ref": "i1", "code": "recurring_service", "label": "…"}], "allowed_natures": [{"ref": "n1", "code": "insurance", "label": "…"}], "allowed_currencies": ["EUR"]}`
 
 Output:
 ```json
