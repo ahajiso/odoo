@@ -513,3 +513,9 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   while referenced, checked at start), single-generation plans (`plan_config_version`),
   exact releases of never-started attempts at restore, weekly verification up to the
   last day whose backup deadline has passed. No code before the audit of revision 6.
+- Audit of revision 6 (`55e2654`): an answered attempt could be committed without the
+  job's finalisation; composite foreign key to the catalogue not feasible. Revision 7
+  (`8d739cd`): terminal attempts closed only with the job in one transaction (deferred
+  trigger T7, crash tests around the commit, inconsistent archive refused);
+  `primary_catalogue_id` in `job_index`. The audit announced the development green
+  light after this documentary correction; it is awaited before any code.
