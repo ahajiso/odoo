@@ -465,3 +465,9 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   frozen catalogue, identifiers matched in full; ARCHITECTURE.md §5.1 and COSTS.md §4
   updated. 264 tests (3.12.3, 3.13), 70 mutations, 70 killed. WP3 waits for the
   validation of WP2.
+- Third audit of WP2 (`0962ed5..b238189`): EUR computed from the original amount instead of
+  the stored one (sub-micro amounts), schema DDL run before the version check. Corrected in
+  the following commits of the gateway repository: canonical stored amount, existing files
+  checked before any statement and left untouched on refusal (tested on the real version-2
+  schema), catalogue pairs of strings; 286 tests (3.12.3, 3.13), 76 mutations, 76 killed.
+  WP3 waits for the validation of WP2.

@@ -181,10 +181,17 @@ Atomicity across both files (revision 4, settings fixed):
 - amounts from callers (reservations, costs, caps, overrides, target costs) are
   non-negative; only the store writes the negative rows it needs (cancellations);
 - **every ledger line is true by itself** (second audit of WP2): a cost line is
-  non-negative with `eur = amount × rate` at its own rate, date and source; a cancellation
-  is the exact opposite of one cost line (same rate, date, source, period, provenance),
-  names it in `reverses_id`, and a line is cancelled at most once; a correction cancels
+  non-negative with `eur = ceil(stored amount × rate)` at its own rate, date and source,
+  the stored amount being the amount rounded up to the micro (third audit of WP2); a
+  cancellation is the exact opposite of one cost line (amount, EUR, currency, rate, date,
+  source, period, route, provider, model), names it in `reverses_id`, and a line is
+  cancelled at most once; its tokens and provider request hash are read on the cancelled
+  line through `reverses_id`; a correction cancels
   the job's active cost lines and adds one positive line at the target's own rate;
+- schema: at start the store checks the existing files **before any statement**: empty
+  files are initialised, otherwise the tables and `schema_version` must be exactly those of
+  the code, else it refuses to start and leaves the files untouched; migrations are an
+  explicit, backed-up, audited tool, never the start-up;
 - corrections need only the tombstone and the ledger, so they stay possible as long as the
   ledger keeps the job (13 months), after `jobs.db` has dropped its row;
 - **provenance**: the reservation carries the planned route (provider and model from the

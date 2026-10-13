@@ -71,8 +71,10 @@ cancellation lines `release` / `reversal`; `reconciliation` with WP4), **amount 
 to EUR and its date and source** (configured list), EUR equivalent, tokens, SHA-256 of the
 provider's request id. A cancellation (`release` for the reservation, `reversal` for a
 settlement or a correction) is the exact negative of one cost line, with the same rate,
-date and source, and names it (`reverses_id`); no row is ever modified, every row is true
-by itself (`eur = amount × rate`). No free text in any row.
+date, source and route, and names it (`reverses_id`; tokens and the provider request hash
+stay on the cancelled line); no row is ever modified, every row is true by itself
+(`eur = ceil(stored amount × rate)`, the stored amount being rounded up to the micro). No
+free text in any row.
 Caps are compared in EUR with the rate of the day from the configured source (to choose:
 the ECB reference rate, or a fixed conservative rate set by the owner); the original
 amount and rate are kept so a later reconciliation never rewrites history.
