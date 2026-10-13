@@ -494,3 +494,10 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   O9 mandatory (write-once target, verification on the owner's machine), closed purge
   function on the database clock, retained periods refused by the invariants. O9 and O10
   decided by the audit. No code before the audit of revision 3.
+- Audit of revision 3 (`af45074`): circular backup format and accounting provenance
+  not enforced in SQL; two tests asked (correction against period retention, owner-side
+  chronology). Revision 4 (`53e200d`): inner manifest without archive digests, one
+  encrypted object with its S3 checksum; provenance per line kind in T1, used entry kept
+  in the outcome, `fallback_used` derived; period lock L3 and its race test; chronology
+  from the store's own timestamps; real Object Lock test as an exit criterion before any
+  real data. No code before the audit of revision 4.
