@@ -64,9 +64,13 @@ share with ambiguity, +10 % retries and invalid outputs.
 
 Ledger rows in `ledger.db`, financial metadata only (one transaction with the job,
 ARCHITECTURE.md §5.1):
-`job_id`, `request_ref`, `user_ref`, function, profile, route, provider, model, kind
-(`reservation` / `settlement` / `reconciliation` / `manual_correction`), **amount in the provider's billing
-currency**, currency, **rate to EUR and its date and source**, EUR equivalent, tokens.
+`job_id`, `request_ref`, `user_ref`, function, profile, **budget period** (month of the
+reservation, kept by every later row of the job), route, provider, model (configured
+catalogue only), kind (`reservation` / `release` / `settlement` / `manual_correction`;
+`reconciliation` with WP4), **amount in the provider's billing currency**, currency, **rate
+to EUR and its date and source** (configured list), EUR equivalent, tokens, SHA-256 of the
+provider's request id. A `release` is the exact negative of the reservation, written when
+the job ends, so that no row is ever modified. No free text in any row.
 Caps are compared in EUR with the rate of the day from the configured source (to choose:
 the ECB reference rate, or a fixed conservative rate set by the owner); the original
 amount and rate are kept so a later reconciliation never rewrites history.
@@ -78,9 +82,13 @@ usage replaces it at the end.
 usage data identifies the individual request (request id recorded before the call, if the
 provider returns or accepts one; to verify per provider in IA-1). Otherwise the
 **reservation stays** as the cost of that job (conservative) and only a manual correction
-can change it: a ledger row of kind `manual_correction` by an « AI Budget Manager »,
-with amount, reason, evidence (e.g. the provider's daily usage) and author, never an edit
-of the original row.
+can change it (audit of WP2): on a **final** job only, the « AI Budget Manager » gives the
+**target cost** of the job (non-negative, in the reservation's currency); the store appends
+the one `manual_correction` row that brings the job's net amount and net EUR to that
+target, in the reservation's budget period. The row carries an opaque author reference, a
+reason code from a closed list (`provider_usage_report`, `provider_invoice`,
+`provider_refund`, `duplicate_charge`) and the SHA-256 of the supporting document; the
+document and the human explanation stay in Odoo. Never an edit of an existing row.
 
 All values configurable on the AI server (`profiles.yaml`) and, for display thresholds, in
 Odoo settings; no module update needed.

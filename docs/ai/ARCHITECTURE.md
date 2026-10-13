@@ -153,9 +153,9 @@ for 13 months.
 
 | | `jobs.db` | `ledger.db` |
 |---|---|---|
-| Content | job inputs (text, base64 files only while the job runs), validated results, errors | job id, request ref, opaque user ref, function, profile, route, provider, model, tokens, amounts in billing currency, rate, date and source, EUR equivalent, kind (reservation / settlement / reconciliation / manual correction), idempotency key and body SHA-256 with the final state (tombstone) |
-| Never contains | – | document text, prompts, model output, extracted values, user text, file names |
-| Lifetime | inputs deleted when the job ends; results deleted at `ack` or after 7 days; `secure_delete` on; `VACUUM` only in the maintenance window (below) | 13 months |
+| Content | job inputs (text, base64 files only while the job runs), validated results, errors | job id, request ref, opaque user ref, function, profile, **budget period** (month of the reservation), route, provider, model (from the gateway's configured catalogue only), tokens, SHA-256 of the provider's request id, amounts in billing currency (non-negative from callers), rate, date and source (configured list), EUR equivalent, kind (`reservation` / `release` / `settlement` / `manual_correction`; `reconciliation` comes with WP4), for a correction: opaque author ref, reason code (closed list), SHA-256 of the evidence kept in Odoo; idempotency key and body SHA-256 with the final state (tombstone) |
+| Never contains | – | document text, prompts, model output, extracted values, user text, file names, any free text (no reason or comment field: the human explanation of a correction stays in Odoo) |
+| Lifetime | inputs deleted when the job ends; results deleted at `ack` or after 7 days; job rows (metadata only) deleted 30 days after the end, idempotency kept by the tombstone (a replay or a `GET` answers `result_purged`); `secure_delete` on; `VACUUM` only in the maintenance window (below) | 13 months |
 | Backup | **none** | daily online backup, encrypted, kept 13 months |
 | Disk | encrypted volume of the AI server (DEPLOYMENT.md §2) | same, and encrypted backup target |
 
@@ -168,8 +168,18 @@ Atomicity across both files (revision 4, settings fixed):
   several attached databases atomically through its super-journal only when the main
   database is a file and the journal mode is not WAL);
 - `PRAGMA synchronous=FULL` on both;
-- one writer connection in the gateway (API and worker serialise their writes through it,
-  `BEGIN IMMEDIATE`); throughput (a few jobs a minute) makes this sufficient;
+- **one gateway process, one `Store`, one connection** shared by the API and the worker
+  threads; every public method of the store holds its lock, so transactions never
+  interleave on the connection and no read sees another thread's uncommitted writes (audit
+  of WP2: the first version was not serialised); each write is `BEGIN IMMEDIATE`; several
+  processes would stay safe through SQLite's file locks (busy timeout 10 s) but are not
+  the planned deployment; throughput (a few jobs a minute) makes this sufficient;
+- **budget period**: every ledger row of a job carries the month of its reservation; a
+  release, settlement or correction written later stays in that month, so a job that
+  starts on 30/09 and ends on 01/10 is counted in September only; the month total sums the
+  rows of exactly that period (audit of WP2);
+- amounts from callers (reservations, costs, caps, overrides, target costs) are
+  non-negative; only the store writes the negative rows it needs (release, correction);
 - the gateway refuses to start if a pragma read back differs, or if the two files are not
   on the same filesystem (`st_dev` compared).
 

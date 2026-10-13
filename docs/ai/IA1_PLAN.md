@@ -450,3 +450,11 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   `outcome_unknown`, idempotent `ack`, 7-day purge, maintenance `VACUUM`; 195 tests (34 for
   WP2, SIGKILL test of T-S32 included) under Python 3.12.3 and 3.13; 38 mutations, 38
   killed; report `docs/WP2_REPORT.md` of the gateway repository, to audit. Next: WP3 (API).
+- Audit of WP2 (`465c168..79bf319`): negative amounts could lower the caps, month total
+  wrong across a month change, shared store not serialised, free text in `ledger.db`.
+  Corrected in `6f4eea2..c6c84d7`: non-negative money, budget period per row (inherited
+  from the reservation), one `Store` per process under a lock, closed catalogue and hashes
+  instead of free text, corrections as a target cost with author ref / reason code /
+  evidence SHA-256, purged job rows deleted after 30 days; ARCHITECTURE.md §5.1 and
+  COSTS.md §4 updated (`release`, periods, corrections). 234 tests (3.12.3, 3.13),
+  59 mutations, 59 killed. WP3 waits for the validation of WP2.
