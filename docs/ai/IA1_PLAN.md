@@ -423,3 +423,12 @@ call, no provider key, no real data, no installation or change in Odoo; WP7 and 
 for the disposable VM and run the planned infrastructure tests. IA1-D1 to IA1-D4 confirmed:
 separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
 `iptables-nft` first and a dedicated nftables table if T-S37 fails.
+
+## 16. Progress
+
+- Repository: the owner chose **`ahajiso/odoo_ai_assistant`** (private) instead of the
+  planned name `lartdubati-ai-gateway`; same role (IA1-D1). Work branch
+  `claude/gallant-bohr-upcxyg`.
+- WP1 (contract, validators, fake LiteLLM) done on 13/10/2026, commits `8019d27..de42fe9`:
+  82 unit tests passing under Python 3.12.3 and 3.13, no network, no secret; report
+  `docs/WP1_REPORT.md` of that repository, to audit. Next: WP2 (storage).
