@@ -348,7 +348,9 @@ AI. Independent AI assistant (owner's mission of 12/10/2026): docs/ai/ (PLAN, AR
    revision 2 (audit of 2fab28d: test matrix by phase with an IA-1-only exit criterion, fake
    providers on net_fake with an IA-1-only proxy exception, env allow-lists, atomicity test,
    fictitious identities; separate gateway repository, disposable Ubuntu 24.04 VM,
-   iptables-nft first) to audit before any code; IA-1b and IA-2 wait for D3, D4, D6. Separate module `lartdubati_ai_assistant` and gateway
+   iptables-nft first); revision 3 (audit of d8ae4cf: dedicated chain LARTDUBATI-AI with one
+   jump, DOCKER-USER never flushed; closed production profile with no provider; VM exactly
+   4 vCPU / 8 GB) to audit before any code; IA-1b and IA-2 wait for D3, D4, D6. Separate module `lartdubati_ai_assistant` and gateway
    `lartdubati-ai-gateway`; never mixed into the catalogue module; every existing circuit
    works with the AI disabled or down.
 Last. Manual rewrite for all phases (cards citing removed or changed fields, new

@@ -15,7 +15,8 @@ the gateway's secrets; a hardened extractor.
 Revision 3 answers the audit of c9e5427, limited to its four blocking points and its
 complements (§10): `jobs.db` (temporary, never backed up) separated from `ledger.db`
 (financial metadata, backed up) on an encrypted disk; 4 vCPU / 8 GB with explicit worker
-concurrency; egress filtering in Docker's `DOCKER-USER` chain with a proxy that resolves
+concurrency; egress filtering in a dedicated chain reached from Docker's `DOCKER-USER` (revision of
+IA1_PLAN.md: never flushed) with a proxy that resolves
 names and refuses private and metadata addresses; `ack` only after Odoo's commit.
 
 Revision 4 answers the audit of c325634 (§11): fail-closed start (the AI containers run

@@ -128,21 +128,40 @@ network has a fixed subnet (IPAM in the compose file) and `ai_egress` a fixed ad
 firewall rules can name them. IPv6 disabled on these networks (or the same rules in
 `ip6tables` / the `ip6` family).
 
-**Layer 2 – host firewall in the `DOCKER-USER` chain** (or its nftables equivalent, the
-chain Docker evaluates before its own forwarding rules and never overwrites):
+**Layer 2 – host firewall: a dedicated chain `LARTDUBATI-AI`, reached from
+`DOCKER-USER`** (revision 5, audit of `d8ae4cf`). `DOCKER-USER` is the chain Docker
+evaluates before its own forwarding rules, but it is shared: it may hold administrative
+rules that are not this project's. The project therefore **never flushes or rewrites
+`DOCKER-USER`**; it owns only its own chain:
+- one jump `-I DOCKER-USER 1 -j LARTDUBATI-AI`, installed only if `iptables -C` does not
+  find it, verified to exist **exactly once** and in first position; any other rule of
+  `DOCKER-USER` is left untouched (and its checksum compared before and after each apply
+  in the tests);
+- the project's rules live in `LARTDUBATI-AI` only, and only its content is replaced,
+  atomically (IA1_PLAN.md P1);
+- traffic not concerning the AI subnets falls through to `RETURN` and continues in
+  `DOCKER-USER` as before.
 
 ```
 # illustrative, iptables syntax; subnets fixed in the compose file
--A DOCKER-USER -m conntrack --ctstate ESTABLISHED,RELATED -j RETURN
+-A LARTDUBATI-AI -m comment --comment "lartdubati-ai generation <id>"   # counting rule, no target
+-A LARTDUBATI-AI -m conntrack --ctstate ESTABLISHED,RELATED -j RETURN
 # inbound to the published gateway port: only the Odoo VPS
--A DOCKER-USER -i <ext_if> -p tcp -d <gateway_ip> --dport 8443 -s <odoo_vps_ip> -j RETURN
--A DOCKER-USER -i <ext_if> -d <ai_subnets> -j DROP
+-A LARTDUBATI-AI -i <ext_if> -p tcp -d <gateway_ip> --dport 8443 -s <odoo_vps_ip> -j RETURN
+-A LARTDUBATI-AI -i <ext_if> -d <ai_subnets> -j DROP
 # outbound: only the proxy, only HTTPS and DNS to the configured resolvers
--A DOCKER-USER -s <ai_egress_ip> -o <ext_if> -p tcp --dport 443 -j RETURN
--A DOCKER-USER -s <ai_egress_ip> -o <ext_if> -p udp -d <resolvers> --dport 53 -j RETURN
--A DOCKER-USER -s <ai_egress_ip> -o <ext_if> -p tcp -d <resolvers> --dport 53 -j RETURN
--A DOCKER-USER -s <ai_subnets> -j DROP          # default deny for every AI container
+-A LARTDUBATI-AI -s <ai_egress_ip> -o <ext_if> -p tcp --dport 443 -j RETURN
+-A LARTDUBATI-AI -s <ai_egress_ip> -o <ext_if> -p udp -d <resolvers> --dport 53 -j RETURN
+-A LARTDUBATI-AI -s <ai_egress_ip> -o <ext_if> -p tcp -d <resolvers> --dport 53 -j RETURN
+-A LARTDUBATI-AI -s <ai_subnets> -j DROP          # default deny for every AI container
 ```
+
+Alternative if T-S37 shows the replacement is not cleanly atomic with `iptables-nft`
+(IA1-D4): a dedicated nftables table `inet lartdubati_ai` with its own base chain on the
+`forward` hook, at a priority before Docker's filter, loaded with `nft -f` (one
+transaction: `flush chain` and the rules in the same file); a `drop` in any base chain is
+final in nftables, so this table restricts the AI subnets without touching `DOCKER-USER`
+at all.
 
 The rules are installed by `ai-firewall.service` and the containers are started only by
 `ai-stack.service` after the rules are verified (layer 2b); a timer re-checks them every
@@ -156,8 +175,8 @@ exist and are verified, after a boot or a Docker restart:
 - containers have **no Docker restart policy** (`restart: "no"`) and the daemon runs with
   `live-restore: false`: Docker never starts or keeps them on its own;
 - `ai-firewall.service` (oneshot, `After=docker.service`, `Requires=docker.service`,
-  `PartOf=docker.service`): installs the `DOCKER-USER` rules, then verifies them against
-  the expected file; fails if they differ;
+  `PartOf=docker.service`): installs the jump (idempotent) and the content of `LARTDUBATI-AI`,
+  then verifies both against the expected file; fails if they differ;
 - `ai-stack.service` (`Requires=docker.service ai-firewall.service`,
   `After=docker.service ai-firewall.service`, `PartOf=docker.service`): `ExecStartPre` runs
   the same verification again, `ExecStart` starts the compose project, `ExecStop` stops it;
@@ -172,8 +191,9 @@ exist and are verified, after a boot or a Docker restart:
 **Layer 3 – the egress proxy** (Squid or equivalent, pinned digest):
 - accepts clients only from `ai_litellm`'s fixed address (source ACL); the gateway and the
   extractor are not on `net_egress` at all;
-- only `CONNECT` to the approved names on port 443 (`api.anthropic.com`, `api.openai.com`
-  or the EU host decided by D6); plain HTTP, other ports, IP literals refused;
+- only `CONNECT` to the approved names on port 443; the list is **empty until D3 and D6**
+  are decided (no real API name, not even as a placeholder: IA1_PLAN.md §5), then the hosts
+  those decisions name; plain HTTP, other ports, IP literals refused;
 - DNS resolution done by the proxy only (its configured resolvers); after resolution,
   destinations in private, loopback, link-local and special ranges refused:
   `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `127.0.0.0/8`, `169.254.0.0/16`
@@ -188,7 +208,7 @@ exist and are verified, after a boot or a Docker restart:
 exfiltration channel). Docker's embedded resolver answers internal container names; whether
 it forwards external queries for containers on internal networks depends on the Docker
 version: to verify on the pinned version (H-AI-6). If it does, the containers get a `dns:`
-setting pointing to a non-forwarding address and the `DOCKER-USER` rules drop their port-53
+setting pointing to a non-forwarding address and the `LARTDUBATI-AI` rules drop their port-53
 traffic (already covered by the default deny). Tested either way.
 
 **Tests** (run on the AI server, recorded in IA-1):
@@ -203,7 +223,7 @@ traffic (already covered by the default deny). Tested either way.
 | T-S23c | outside | connect to the gateway port from an address other than the Odoo VPS | dropped |
 | T-S23d | host | restart Docker; reboot the host | rules present again; check passes |
 | T-S23e | host | reboot and `systemctl restart docker`, with a capture started before Docker on every AI bridge interface and on the external interface | no AI container running before `ai-firewall` succeeded (journal and `docker events` timestamps); no packet from the AI subnets to a non-allowed destination in the capture |
-| T-S23f | host | remove one `DOCKER-USER` rule, then reboot with a corrupted expected-rules file | the timer stops `ai-stack` within 5 minutes; after reboot `ai-stack` does not start and no AI container runs |
+| T-S23f | host | remove one `LARTDUBATI-AI` rule or the jump from `DOCKER-USER`, then reboot with a corrupted expected-rules file | the timer stops `ai-stack` within 5 minutes; after reboot `ai-stack` does not start and no AI container runs |
 
 ## 8. Extractor hardening (D14)
 

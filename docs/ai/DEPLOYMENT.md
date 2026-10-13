@@ -68,13 +68,14 @@ leaving about 3 GB of margin. On 4 GB with 1 extraction and 1 OCR: about 3.2 GB,
 
 | Container | Image | Networks | Inbound | Egress | Limits (initial) |
 |---|---|---|---|---|---|
-| `ai_gateway` | own image, pinned base digest, hash-locked deps | `net_front` (published port), `net_llm`, `net_doc` | Odoo VPS only, mTLS (`DOCKER-USER` rule) | **none**: dropped by the `DOCKER-USER` default deny (SECURITY.md §7) | 1 CPU, 512 MB, pids 128 |
+| `ai_gateway` | own image, pinned base digest, hash-locked deps | `net_front` (published port), `net_llm`, `net_doc` | Odoo VPS only, mTLS (`LARTDUBATI-AI` rule) | **none**: dropped by the `LARTDUBATI-AI` default deny (SECURITY.md §7) | 1 CPU, 512 MB, pids 128 |
 | `ai_litellm` | LiteLLM image **by digest**, signature checked | `net_llm`, `net_egress` (both internal) | gateway only | through `ai_egress` only | 1 CPU, 1.5 GB, pids 256 |
 | `ai_extractor` | own image (pypdf / pdfminer, Tesseract fra/eng/fas), pinned | `net_doc` (internal) | gateway only | none | 2 CPU, 3 GB, pids 64; children capped by its own semaphore |
 | `ai_egress` | forward proxy, pinned digest | `net_egress` (internal), `net_out` (external) | `ai_litellm` only | allow-listed hosts, port 443, CONNECT only | 0.5 CPU, 128 MB |
 
 `net_llm`, `net_doc`, `net_egress` are `internal: true`; every network has a fixed
-subnet and `ai_egress` a fixed address. Filtering is done in Docker's `DOCKER-USER` chain
+subnet and `ai_egress` a fixed address. Filtering is done in the dedicated chain
+`LARTDUBATI-AI`, reached by one jump from Docker's `DOCKER-USER` chain (never flushed)
 (default deny for the AI subnets, outbound only for `ai_egress` on 443 and DNS to the
 configured resolvers, inbound to the gateway's port only from the Odoo VPS), installed by
 `ai-firewall.service` before any AI container starts (§3.1) and checked every 5 minutes;
@@ -93,14 +94,14 @@ Docker daemon: `live-restore: false`, `userland-proxy: false`, `iptables: true`.
 ```ini
 # /etc/systemd/system/ai-firewall.service
 [Unit]
-Description=AI server DOCKER-USER rules
+Description=AI server firewall (chain LARTDUBATI-AI and its jump from DOCKER-USER)
 Requires=docker.service
 After=docker.service
 PartOf=docker.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/opt/ai/bin/firewall-apply      # installs the rules from /opt/ai/firewall/expected.rules
+ExecStart=/opt/ai/bin/firewall-apply      # jump (idempotent) + content of LARTDUBATI-AI; never flushes DOCKER-USER
 ExecStart=/opt/ai/bin/firewall-verify     # exits non-zero on any difference
 [Install]
 WantedBy=multi-user.target
@@ -145,7 +146,7 @@ Egress proxy allow-list (illustrative; final names from D3 / D6):
 
 ```
 acl litellm src <ai_litellm_ip>/32
-acl api_hosts dstdomain api.anthropic.com api.openai.com
+acl api_hosts dstdomain <names decided by D3 / D6; empty until then>
 acl ssl_port port 443
 acl to_special dst 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.0/8 169.254.0.0/16 100.64.0.0/10 0.0.0.0/8 ::1 fc00::/7 fe80::/10
 http_access deny !litellm

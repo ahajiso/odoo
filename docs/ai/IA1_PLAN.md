@@ -1,4 +1,4 @@
-# IA-1 – development plan of the isolated AI server (revision 2, 13/10/2026, no code)
+# IA-1 – development plan of the isolated AI server (revision 3, 13/10/2026, no code)
 
 Green light of the audit of `400a3c0..95fdf3c`: **writing this plan only**. Not yet a
 green light to code, install a server or call a real API. This plan is audited before any
@@ -11,6 +11,12 @@ IA-1 profile and a test that the production profile refuses the same destination
 container environments built from an allow-list (§6); an atomicity test combining
 captures, rule snapshots and counters (§3, P1); synthetic personal data generated from
 fictitious identities only (§7).
+
+Revision 3 answers the audit of `d8ae4cf` (§13): a dedicated firewall chain
+`LARTDUBATI-AI` reached by one idempotent jump, `DOCKER-USER` never flushed, only the
+dedicated chain replaced atomically, and an atomicity test with per-generation counters
+(§3, P1); a closed production profile with an empty provider list in IA-1 (§5); a test VM
+of exactly 4 vCPU / 8 GB (§1, §12).
 
 Basis: PLAN.md revision 4 and its companions. Test numbers refer to SECURITY.md §12.
 
@@ -40,9 +46,9 @@ the Odoo VPS; any real document or real user text.
 | # | Decision | Proposal |
 |---|---|---|
 | IA1-D1 | Where the gateway code lives | **separate private repository `lartdubati-ai-gateway`**: this repository is the Odoo addons folder cloned at `/opt/odoo/addons/custom`, so the AI server's code must never live here. The owner creates it and gives this session access; `docs/ai/` stays here as the design record |
-| IA1-D2 | Where container and isolation tests run | **dedicated disposable VM** given by the owner, root access, reinstalled at the end of IA-1. This development session has the Docker client but no Docker daemon: it runs unit tests only |
+| IA1-D2 | Where container and isolation tests run | **dedicated disposable VM of exactly 4 vCPU and 8 GB RAM** (the target capacity, so that the load test can validate H-AI-3), Ubuntu 24.04, root access, reinstalled at the end of IA-1; the stand-in « Odoo » client of T-S23c can be a much smaller machine or a second address. This development session has the Docker client but no Docker daemon: it runs unit tests only |
 | IA1-D3 | OS of the VM and of the future AI server | **Ubuntu 24.04 LTS** (audit of `2fab28d`: more proven than 26.04 for this security work); same on the VM and the server |
-| IA1-D4 | Firewall backend | **`iptables-nft` on `DOCKER-USER` first**; switch to a dedicated nftables table only if the atomicity test (P1) fails |
+| IA1-D4 | Firewall backend | **`iptables-nft` first, with the dedicated chain `LARTDUBATI-AI` reached from `DOCKER-USER`** (never flushed); switch to a dedicated nftables table only if the atomicity test (P1) fails |
 
 ## 2. Repository layout (in `lartdubati-ai-gateway`)
 
@@ -75,29 +81,49 @@ call except package download from the hash-locked lock file.
 
 ## 3. Precisions required by the audit of `400a3c0..95fdf3c`
 
-**P1 – Atomic firewall reload, or the stack stopped first.**
-- `firewall-apply` builds one `iptables-restore --noflush` input for the `filter` table:
-  `-F DOCKER-USER`, the full rule list, a single `COMMIT` (one netlink transaction with
-  `iptables-nft`).
-- Any **change** of the rules goes through `firewall-change`: `systemctl stop ai-stack`
-  → apply → verify → `systemctl start ai-stack`. Only the boot path (no container yet)
-  and the 5-minute check (verify only) skip the stop.
-- **Atomicity test T-S37** (revision 2, audit of `2fab28d`: a lack of successful
-  connections alone does not prove atomicity). During 1 000 reloads alternating two rule
-  sets A and B that differ only in harmless rules (comments / an extra drop rule):
-  1. traffic generator in a test container on an AI subnet sending SYNs at a high rate to
-     a non-allowed external address and to an allowed one through the proxy;
-  2. captures on `any` and on the external interface (no SYN to the non-allowed address
-     may appear on the external interface);
-  3. `nft monitor ruleset` recording: each reload must appear as **one** transaction;
-  4. a reader taking snapshots of the chain (`nft -j list chain ip filter DOCKER-USER`)
-     in a tight loop: every snapshot must equal A or B exactly, never a partial or empty
-     chain;
-  5. rule counters: the counter of the final default-deny rule increases continuously
-     (no gap in which packets bypassed it), read before and after each reload; no packet
-     counted on any `ACCEPT` that does not exist in A or B.
-  Pass: all five hold. If not: IA1-D4 switch to a dedicated nftables table loaded with
-  `nft -f`, and the same test again.
+**P1 – Atomic firewall reload, or the stack stopped first** (revision 3, audit of
+`d8ae4cf`).
+- `DOCKER-USER` is shared and is **never flushed or rewritten**. The project owns a
+  dedicated chain `LARTDUBATI-AI` in the `filter` table (SECURITY.md §7, layer 2).
+- **The jump.** `firewall-apply` creates the chain if missing, then installs
+  `-I DOCKER-USER 1 -j LARTDUBATI-AI` only if `iptables -C DOCKER-USER -j LARTDUBATI-AI`
+  does not find it. `firewall-verify` checks that the jump exists **exactly once** and in
+  first position, and that the rest of `DOCKER-USER` is not this project's business (no
+  rule mentioning the AI subnets outside our chain). The jump is never removed by a reload.
+- **The content.** `firewall-apply` replaces only the content of `LARTDUBATI-AI` with one
+  `iptables-restore --noflush` input for the `filter` table: the chain declaration
+  `:LARTDUBATI-AI - [0:0]` (which, with `--noflush`, empties that chain only), the full rule
+  list, one `COMMIT`: one transaction with `iptables-nft`, to be proven by T-S37. The first
+  rule is a counting rule with no target, commented with a **generation id**, so each
+  generation has its own counters.
+- Any **change** of the rules goes through `firewall-change`: `systemctl stop ai-stack` →
+  apply → verify → `systemctl start ai-stack`. Only the boot path (no container yet) and
+  the 5-minute check (verify only) skip the stop.
+- **Atomicity test T-S37.** A foreign test rule is first added to `DOCKER-USER` (outside
+  our chain) and the checksum of `DOCKER-USER` without our jump's counters is recorded.
+  Then 1 000 reloads alternate two generations A and B of `LARTDUBATI-AI` that differ only
+  in their generation id and a harmless extra drop rule, while:
+  1. a traffic generator in a test container on an AI subnet sends SYNs at a high rate to a
+     non-allowed external address, and requests through the proxy to an allowed fake;
+  2. captures run on `any` and on the external interface: **no** SYN to the non-allowed
+     address may appear on the external interface;
+  3. `nft monitor ruleset` records the changes: each reload must appear as **one**
+     transaction touching only `LARTDUBATI-AI`;
+  4. a reader takes snapshots of the chain (`nft -j list chain ip filter LARTDUBATI-AI`) in
+     a tight loop: every snapshot equals A or B exactly (rules, order, generation id),
+     never a partial or empty chain;
+  5. **counters per generation**, without assuming continuity across reloads (a replaced
+     chain starts its counters at zero): within each generation, its counting rule and its
+     final drop rule both count packets of the generator's forbidden traffic before the
+     next reload (the generation was really traversed and really dropped), and no packet is
+     counted on a rule that exists neither in A nor in B. The jump in `DOCKER-USER`, never
+     replaced, keeps its own counter, which only increases (a cross-check, not a
+     requirement on our chain);
+  6. at the end, `DOCKER-USER` still contains the foreign test rule, its checksum is
+     unchanged, and the jump exists exactly once.
+  Pass: all six hold. If not: IA1-D4 switch to the dedicated nftables table
+  (`inet lartdubati_ai`, base chain on `forward` before Docker's filter, `flush chain` and
+  rules in one `nft -f` file), then the same test again, with snapshots of that chain.
 
 **P2 – T-S23e capture before Docker.** `ai-capture.service` (VM only):
 `Before=docker.service`, runs `tcpdump -i any -n -U -w …` (the `any` pseudo-interface sees
@@ -164,24 +190,33 @@ and profile trust the system CA store only.
 
 **The exception, strictly IA-1.** The proxy configuration is generated from one base file
 by a generator with two profiles:
-- `production`: allow-list = the real API names decided by D3 / D6 (placeholders until
-  then); `deny to_special` for every private, loopback, link-local, CGNAT and metadata
-  range; no hosts file;
+- `production` (revision 3, audit of `d8ae4cf`): **closed** while D3 and D6 are not
+  decided: an **empty** allow-list, **no** real API name and no placeholder name;
+  `deny to_special` for every private, loopback, link-local, CGNAT and metadata range; no
+  hosts file. The production `profiles.yaml` and LiteLLM configuration have **no external
+  route**: `allowed_providers` is empty, and the gateway and LiteLLM refuse to start if a
+  route names a provider while that list is empty (the list is filled only by IA-1b's plan,
+  after D3 and D6);
 - `ia1`: the same file, **plus** exactly one rule placed before the `to_special` denial:
   `http_access allow CONNECT ssl_port litellm fake_names fake_dst`, where `fake_names` =
-  the two `.ia1.test` names and `fake_dst` = `172.31.250.3/32 172.31.250.4/32`; the real
-  API names are **removed** from the allow-list in this profile; the hosts file is added.
+  the two `.ia1.test` names and `fake_dst` = `172.31.250.3/32 172.31.250.4/32`; its
+  allow-list holds nothing else; the hosts file is added.
   Both name **and** address must match; nothing else private is allowed.
 
 **Proofs.**
-- T-S38: the production profile is generated, then checked (text and a parser): no
-  `.ia1.test` name, no `172.31.250.` address, no hosts file, no test CA in any production
-  file; and the production-profile proxy, started on the VM attached to `net_fake`, refuses
+- T-S38: the two generated profiles are compared:
+  - IA-1 profile: exactly the two fake providers, nothing else;
+  - production profile in IA-1: **no provider at all** (empty allow-list, no route in
+    `profiles.yaml` nor in LiteLLM's configuration), and the gateway with a route added by
+    hand refuses to start;
+  - production artefacts (images, configuration files, compose file): no `.ia1.test` name,
+    no `172.31.250.` address, no hosts file, no test CA, no exception rule;
+  and the production-profile proxy, started on the VM attached to `net_fake`, refuses
   `CONNECT` to both fake names and to both addresses (`to_special`), while the `ia1`
   profile accepts them only with name and address together (a fake name resolved to another
   private address, and another name resolved to a fake address, are both refused).
 - T-S39: the fakes cannot relay or reach anything: they are only on `net_fake` (internal),
-  the `DOCKER-USER` default deny covers `172.31.250.0/29` except the proxy's own address,
+  the `LARTDUBATI-AI` default deny covers `172.31.250.0/29` except the proxy's own address,
   their environment has no proxy variable (§6), the program has no outbound HTTP client
   dependency; tests: from inside each fake, connections to a public IP, to the proxy's
   port and to the other networks fail; requests to the fake in absolute-URI form or with
@@ -234,6 +269,9 @@ by a generator with two profiles:
   canary string and every job built from fixtures carries `synthetic: true`.
 
 ## 8. Test matrix (audit point 1) and exit criterion
+
+The matrix lists **47 distinct test identifiers** (T-S01a … T-S40, with the lettered
+variants T-S09b and T-S23b … T-S23f).
 
 Legend: **IA-1** = fully run in IA-1; **IA-1 (gateway part)** = the gateway / server side
 is run in IA-1, the Odoo side is carried to IA-2; **IA-2** = needs the Odoo module, carried
@@ -334,7 +372,18 @@ token counts), H-AI-7 (provider request ids in usage data).
 
 - confirmation of IA1-D1 to IA1-D4;
 - the private repository and this session's access to it;
-- the disposable Ubuntu 24.04 VM with root access, and a second address (or small VM) for
-  the stand-in « Odoo » client of T-S23c; the owner runs the VM scripts prepared by the
+- the disposable Ubuntu 24.04 VM with **exactly 4 vCPU and 8 GB RAM** and root access,
+  and a second, much smaller machine or address for the stand-in « Odoo » client of
+  T-S23c; the owner runs the VM scripts prepared by the
   session, as for the Odoo server;
 - nothing on the Odoo VPS, `artdubati_test` or the provider accounts in IA-1.
+
+## 13. Answers to the audit of `d8ae4cf`
+
+| # | Point | Answer | Where |
+|---|---|---|---|
+| 1 | `-F DOCKER-USER` would remove foreign rules; a monotone counter is impossible on a recreated chain | **Fixed**: dedicated chain `LARTDUBATI-AI`, one idempotent jump verified exactly once in first position, `DOCKER-USER` never flushed, only our chain replaced in one `iptables-restore --noflush` transaction; T-S37 with captures, `nft monitor`, A/B snapshots, counters per generation (no continuity assumed), and a foreign rule kept intact; nftables table if not atomic | §3 P1; SECURITY.md §7 |
+| 2 | Production profile must be closed in IA-1 | **Fixed**: empty allow-list, no real nor placeholder API name, no external route; gateway and LiteLLM refuse to start with a route while the provider list is empty; T-S38 compares IA-1 profile (two fakes only) and production profile (none) | §5; SECURITY.md §7; DEPLOYMENT.md §3 |
+| 3 | VM capacity | **Fixed**: exactly 4 vCPU / 8 GB for the VM; the T-S23c client may be much smaller | §1, §12 |
+| 4 | « 50 tests » | **Corrected**: 47 distinct identifiers (the « 50 » was in the summary message, not in the documents); count stated in §8 | §8 |
+| D | IA1-D1 to D4 | validated by the audit on substance; owner to confirm | §1 |
