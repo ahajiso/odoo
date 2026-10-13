@@ -519,3 +519,13 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   trigger T7, crash tests around the commit, inconsistent archive refused);
   `primary_catalogue_id` in `job_index`. The audit announced the development green
   light after this documentary correction; it is awaited before any code.
+- Audit of revision 7 (`8d739cd`): green light for the PostgreSQL code (§15), with the
+  precision that T7 fires from both attempt_outcomes and job_outcomes. WP2 on PostgreSQL
+  developed in the gateway repository (`3f4d9f0`..`d54e126`): schema V0001 (T1–T7, database
+  clock, closed purge functions), PgStore with attempts and fallbacks, application
+  encryption with the key-directory lock and janitor, check_database(), data-only
+  archives with trusted load, comparison and restore, write-once target client (local
+  stub) and owner-side verification, contract 2.0 changes, crash tests. 531 tests on
+  Python 3.12.3 and 3.13; 64 PostgreSQL mutations: 58 killed, 6 declared equivalent.
+  Report and SQLite → PostgreSQL coverage matrix: docs/WP2_REPORT.md of the gateway
+  repository; deviations listed there for the audit. Waiting for the audit; WP3 waits.
