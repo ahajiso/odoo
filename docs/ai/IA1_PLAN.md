@@ -501,3 +501,9 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   in the outcome, `fallback_used` derived; period lock L3 and its race test; chronology
   from the store's own timestamps; real Object Lock test as an exit criterion before any
   real data. No code before the audit of revision 4.
+- Audit of revision 4 (`53e200d`): one used entry per job incompatible with fallbacks
+  after a first attempt; deterministic tar test and `VersionId` ordering to correct.
+  Revision 5 (`b64cfd4`): several attempts per job (frozen chain `job_plan`, insert-only
+  `job_attempts` / `attempt_outcomes`, one reservation per planned attempt, costs and
+  corrections per attempt), tar test on identical inputs, chronology on `LastModified`
+  only with the full-object checksum read back. No code before the audit of revision 5.
