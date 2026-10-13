@@ -345,9 +345,10 @@ AI. Independent AI assistant (owner's mission of 12/10/2026): docs/ai/ (PLAN, AR
    filtering, ack after Odoo's commit); revision 4 answers the audit of c325634 (fail-closed
    start: ai-firewall then ai-stack systemd units, no Docker restart policy; SQLite settings;
    local health checks), validated by the audit of 400a3c0..95fdf3c. docs/ai/IA1_PLAN.md
-   (IA-1 development plan: separate gateway repository, fake providers, synthetic data, test
-   VM, atomic firewall reload, capture before Docker, health probes, dockerd crash) to audit
-   before any code; IA-1b and IA-2 wait for D3, D4, D6. Separate module `lartdubati_ai_assistant` and gateway
+   revision 2 (audit of 2fab28d: test matrix by phase with an IA-1-only exit criterion, fake
+   providers on net_fake with an IA-1-only proxy exception, env allow-lists, atomicity test,
+   fictitious identities; separate gateway repository, disposable Ubuntu 24.04 VM,
+   iptables-nft first) to audit before any code; IA-1b and IA-2 wait for D3, D4, D6. Separate module `lartdubati_ai_assistant` and gateway
    `lartdubati-ai-gateway`; never mixed into the catalogue module; every existing circuit
    works with the AI disabled or down.
 Last. Manual rewrite for all phases (cards citing removed or changed fields, new

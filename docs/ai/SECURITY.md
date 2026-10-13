@@ -280,7 +280,7 @@ job contents never reach an unencrypted swap. Docker logs of the gateway hold no
 | T-S17 | bad HMAC, old timestamp, reused nonce; no or wrong client certificate | 401 / TLS handshake refused |
 | T-S18 | wrong magic bytes, 11 MB, 200 pages, zip-bomb-like PDF, huge image | refused before or during parsing within limits |
 | T-S19 | excerpt absent from the cited page | value `unsupported` |
-| T-S20–23d | egress tests of §7 | as listed in §7 |
+| T-S20–23f | egress and start tests of §7 | as listed in §7 |
 | T-S24 | IBAN, NIR, payslip text in the request or document | `blocked_confidential` before any LiteLLM call (fake LiteLLM records zero calls) |
 | T-S25 | user lowers the level below the detected one | refused in Odoo and in the gateway |
 | T-S26 | unclassifiable document (OCR failure) | blocked |
@@ -292,6 +292,14 @@ job contents never reach an unencrypted swap. Docker logs of the gateway hold no
 | T-S32 | application exception, `SIGKILL` of the gateway, and hard reset of the test machine during commits | after restart, each transaction fully present in both files or absent from both; pragmas and same-filesystem check enforced at start |
 | T-S33 | Odoo crashes after `GET` before its commit; then after its commit before `ack` | first case: result fetched again; second: `ack` sent by the next run; `ack` twice → 204 |
 | T-S34 | 10 jobs submitted at once | at most the configured number running, extractions and OCR within their semaphores |
+| T-S35 | LiteLLM and proxy health probes (IA1_PLAN.md P3) | internal checks only; LiteLLM's port and health routes unreachable from every container but the gateway |
+| T-S36 | `kill -9` of `dockerd` / `containerd` (IA1_PLAN.md P4) | no unfiltered egress; stack stopped until a controlled resume |
+| T-S37 | 1 000 firewall reloads under traffic (IA1_PLAN.md P1) | captures, `nft monitor`, chain snapshots and counters show one transaction per reload, never a partial chain |
+| T-S38 | production proxy profile vs the IA-1 fake providers (IA1_PLAN.md §5) | no IA-1 name, address, hosts file or test CA in production files; production profile refuses the fakes |
+| T-S39 | fake providers (IA1_PLAN.md §5) | no egress, no relay, no proxy variables |
+| T-S40 | environment allow-lists (IA1_PLAN.md §6) | extra or provider-secret-named variables refused; values never printed |
+
+Phase of each test (IA-1, IA-1 gateway part, IA-2, IA-1b): IA1_PLAN.md §8.
 
 ## 13. Residual risks
 

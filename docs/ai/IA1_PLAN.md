@@ -1,11 +1,18 @@
-# IA-1 – development plan of the isolated AI server (revision 1, 12/10/2026, no code)
+# IA-1 – development plan of the isolated AI server (revision 2, 13/10/2026, no code)
 
 Green light of the audit of `400a3c0..95fdf3c`: **writing this plan only**. Not yet a
 green light to code, install a server or call a real API. This plan is audited before any
 implementation.
 
-Basis: PLAN.md revision 4 and its companions (ARCHITECTURE, SECURITY, SCHEMAS,
-DEPLOYMENT, COSTS). Section and test numbers below refer to them.
+Revision 2 answers the audit of `2fab28d` (§11): an exhaustive matrix of the security
+tests by phase, with an exit criterion limited to what IA-1 can really run (§8); the
+topology, DNS and TLS of the fake providers, with an exception that exists only in the
+IA-1 profile and a test that the production profile refuses the same destinations (§5);
+container environments built from an allow-list (§6); an atomicity test combining
+captures, rule snapshots and counters (§3, P1); synthetic personal data generated from
+fictitious identities only (§7).
+
+Basis: PLAN.md revision 4 and its companions. Test numbers refer to SECURITY.md §12.
 
 ## 0. Scope
 
@@ -13,194 +20,321 @@ DEPLOYMENT, COSTS). Section and test numbers below refer to them.
 - the gateway (FastAPI API + worker, `jobs.db` / `ledger.db`), the three functions with
   their schemas, the confidentiality pre-check, minimisation, validation, budget ledger,
   idempotency, `ack`, mTLS + HMAC;
-- a **fake provider** (two services imitating the Anthropic and OpenAI APIs on a test
-  network) and a **fake LiteLLM** for unit tests;
+- **fake providers** (two services imitating the Anthropic and OpenAI APIs, §5) and a
+  **fake LiteLLM** for unit tests;
 - the real LiteLLM proxy image (pinned), configured **only** with the fake providers'
-  addresses, to observe what it sends (H-AI-1, without any real call);
-- the extractor (text layer, OCR, sandboxed child per document);
-- the egress proxy, the firewall rules, the systemd units (`ai-firewall`, `ai-stack`,
-  check timer, capture unit for the tests);
-- synthetic data set, test suites, load and isolation tests, the IA-1 report.
+  addresses, to observe what it sends (H-AI-1) without any real call;
+- the extractor, the egress proxy, the firewall rules, the systemd units, the capture unit
+  for the tests;
+- the synthetic data set, the test suites, the load and isolation tests, the IA-1 report.
 
-**Not in IA-1** (unchanged gates): any real provider key or call (IA-1b, after D3, D4, D6
-and official verification), any Odoo module or change on `artdubati_test`, any change on
-the Odoo VPS, any real document or real user text.
+A small **test client** stands in for Odoo (it signs requests with HMAC and presents a test
+client certificate); it is not Odoo and proves nothing about the Odoo module.
 
-## 1. Decisions needed to start (owner)
+**Not in IA-1**: any real provider key or call (IA-1b, after D3, D4, D6 and the official
+verification of providers); any Odoo module or change on `artdubati_test`; any change on
+the Odoo VPS; any real document or real user text.
 
-| # | Decision | Options | Recommendation |
-|---|---|---|---|
-| IA1-D1 | Where the gateway code lives | (a) a new private repository `lartdubati-ai-gateway`; (b) a directory of this repository | **(a)**: this repository is the Odoo addons folder cloned at `/opt/odoo/addons/custom`; the AI server's code must never be deployed with Odoo's modules nor be readable from `odoo_web`. The owner creates it and gives this session access (`add_repo`); `docs/ai/` stays here as the design record |
-| IA1-D2 | Where container and isolation tests run | (a) a disposable VM given by the owner (same OS family as the future AI server); (b) the future AI server itself, before it holds any secret | **(a)** for everything; (b) is acceptable as the « disposable » machine as long as it is reinstalled before IA-1b. This development session has the Docker client but **no Docker daemon**: it runs unit tests only |
-| IA1-D3 | OS of the AI server and of the test VM | e.g. Debian 13 or Ubuntu 26.04 LTS | an LTS with nftables, AppArmor and systemd ≥ 252; same on VM and server |
-| IA1-D4 | Firewall backend | (a) `iptables-restore` on `DOCKER-USER` (iptables-nft); (b) a separate nftables table hooked on `forward` | **(a)** first, because Docker's own chains are iptables-based; (b) if WP7 shows (a) is not atomic on the chosen OS (§3, P1) |
+## 1. Decisions (audit recommendation → owner to confirm)
 
-## 2. Repository layout (in `lartdubati-ai-gateway`, IA1-D1 a)
+| # | Decision | Proposal |
+|---|---|---|
+| IA1-D1 | Where the gateway code lives | **separate private repository `lartdubati-ai-gateway`**: this repository is the Odoo addons folder cloned at `/opt/odoo/addons/custom`, so the AI server's code must never live here. The owner creates it and gives this session access; `docs/ai/` stays here as the design record |
+| IA1-D2 | Where container and isolation tests run | **dedicated disposable VM** given by the owner, root access, reinstalled at the end of IA-1. This development session has the Docker client but no Docker daemon: it runs unit tests only |
+| IA1-D3 | OS of the VM and of the future AI server | **Ubuntu 24.04 LTS** (audit of `2fab28d`: more proven than 26.04 for this security work); same on the VM and the server |
+| IA1-D4 | Firewall backend | **`iptables-nft` on `DOCKER-USER` first**; switch to a dedicated nftables table only if the atomicity test (P1) fails |
+
+## 2. Repository layout (in `lartdubati-ai-gateway`)
 
 ```
 gateway/            FastAPI app, worker, storage (ledger.db + jobs.db), budget, auth,
                     pre-check, minimisation, prompts, validation, routing
 schemas/            JSON Schema files (contract 2.0) with their SHA-256 list
 extractor/          service + sandboxed child, limits, chunking, OCR
-fakes/              fake_litellm (unit tests), fake_anthropic, fake_openai (stack tests),
-                    with recorded answers and failure modes (SCHEMAS.md §7)
-deploy/             compose.yaml (restart: "no", fixed subnets, hardening), Dockerfiles,
-                    lock files with hashes, egress proxy config, firewall/expected.rules,
-                    systemd units, scripts (firewall-apply, firewall-verify, capture)
-fixtures/           synthetic data set (§5) and its generator
-tests/unit/         run anywhere (this session, CI): no Docker, no network
-tests/stack/        run on the test VM: compose stack with fakes
-tests/isolation/    run on the test VM as root: firewall, start order, crash, capture
+fakes/              fake_litellm (unit tests); fake_provider (one program, two
+                    personalities: anthropic, openai) for the stack tests (§5)
+testclient/         the Odoo stand-in (HMAC, client certificate)
+deploy/
+  compose.yaml              production profile: no fake, no test CA, no exception
+  compose.ia1.yaml          IA-1 overlay: net_fake, fakes, test CA, proxy exception (§5)
+  proxy/                    proxy.base.conf + generator: production / ia1 outputs
+  firewall/                 expected.rules (production), expected.ia1.rules, apply,
+                            verify, change
+  systemd/                  ai-firewall, ai-stack, check timer, ai-capture (tests only)
+  env/                      allow-lists of environment variable names per container (§6)
+  Dockerfiles, lock files with hashes
+fixtures/           generator of the synthetic data set (§7) and its outputs' hash list
+tests/unit/         anywhere (this session, CI): no Docker, no network
+tests/stack/        on the VM: compose stack with fakes
+tests/isolation/    on the VM as root: firewall, start order, crashes, captures
 docs/               IA-1 report, measurements, pinned versions record
 ```
 
-CI (if the owner enables GitHub Actions on that repository): unit tests only, no secret,
-no outbound call except package download from the hash-locked lock file.
+CI (if the owner enables it on that repository): unit tests only, no secret, no outbound
+call except package download from the hash-locked lock file.
 
 ## 3. Precisions required by the audit of `400a3c0..95fdf3c`
 
 **P1 – Atomic firewall reload, or the stack stopped first.**
-- `firewall-apply` writes one `iptables-restore --noflush` input containing, for the
-  `filter` table, `-F DOCKER-USER` followed by the full rule list and a single `COMMIT`;
-  with the iptables-nft backend this is one netlink transaction. WP7 verifies it: a test
-  floods connection attempts from an AI container during 1 000 reloads and counts any
-  packet that left (expected 0).
-- In addition (defence in depth), any **change** of the rules goes through
-  `firewall-change`: `systemctl stop ai-stack` → apply → verify → `systemctl start
-  ai-stack`. Only the boot path (no container running yet) and the 5-minute check
-  (verify only, no apply) skip the stop.
-- If WP7 shows the reload is not atomic on the chosen OS: IA1-D4 (b), a dedicated nftables
-  table (`table inet ai_guard`, chain on `forward` hook with a priority before Docker's
-  filter), loaded with `nft -f` (transactional by design), dropping AI-subnet traffic not
-  explicitly allowed; `DOCKER-USER` then only mirrors it.
+- `firewall-apply` builds one `iptables-restore --noflush` input for the `filter` table:
+  `-F DOCKER-USER`, the full rule list, a single `COMMIT` (one netlink transaction with
+  `iptables-nft`).
+- Any **change** of the rules goes through `firewall-change`: `systemctl stop ai-stack`
+  → apply → verify → `systemctl start ai-stack`. Only the boot path (no container yet)
+  and the 5-minute check (verify only) skip the stop.
+- **Atomicity test T-S37** (revision 2, audit of `2fab28d`: a lack of successful
+  connections alone does not prove atomicity). During 1 000 reloads alternating two rule
+  sets A and B that differ only in harmless rules (comments / an extra drop rule):
+  1. traffic generator in a test container on an AI subnet sending SYNs at a high rate to
+     a non-allowed external address and to an allowed one through the proxy;
+  2. captures on `any` and on the external interface (no SYN to the non-allowed address
+     may appear on the external interface);
+  3. `nft monitor ruleset` recording: each reload must appear as **one** transaction;
+  4. a reader taking snapshots of the chain (`nft -j list chain ip filter DOCKER-USER`)
+     in a tight loop: every snapshot must equal A or B exactly, never a partial or empty
+     chain;
+  5. rule counters: the counter of the final default-deny rule increases continuously
+     (no gap in which packets bypassed it), read before and after each reload; no packet
+     counted on any `ACCEPT` that does not exist in A or B.
+  Pass: all five hold. If not: IA1-D4 switch to a dedicated nftables table loaded with
+  `nft -f`, and the same test again.
 
-**P2 – T-S23e capture before Docker.** Bridges do not exist before Docker starts, so:
-- `ai-capture.service` (tests only, enabled on the VM for T-S23e runs):
-  `Before=docker.service`, `WantedBy=multi-user.target`, runs `tcpdump -i any -n -U -w
-  /var/log/ai-test/any-%b.pcap` (the `any` pseudo-interface sees bridges and veths created
-  later) and a second `tcpdump -i <ext_if>` (packets after NAT, as seen by the outside);
-- evidence combined by the analysis script: packets whose source is in the AI subnets (on
-  `any`) or whose destination is not an allowed one (on `<ext_if>`), versus
-  `journalctl -u ai-firewall -u ai-stack -u docker` timestamps, `docker events` (from
-  dockerd's start) and each container's `State.StartedAt`;
-- pass: no AI container started before `ai-firewall` succeeded, no packet from an AI
-  subnet to a non-allowed destination, on 10 consecutive reboots and 10 Docker restarts.
+**P2 – T-S23e capture before Docker.** `ai-capture.service` (VM only):
+`Before=docker.service`, runs `tcpdump -i any -n -U -w …` (the `any` pseudo-interface sees
+bridges and veths created later) and a second capture on the external interface; the
+analysis combines both with `journalctl -u ai-firewall -u ai-stack -u docker`,
+`docker events` (from dockerd's start) and each container's `State.StartedAt`. Pass: no AI
+container started before `ai-firewall` succeeded, no packet from an AI subnet to a
+non-allowed destination, on 10 reboots and 10 Docker restarts.
 
-**P3 – Health probes of LiteLLM and of the egress proxy.**
-- Docker `HEALTHCHECK` = internal check without network: for LiteLLM, the process is alive
-  and its listening socket exists (read from `/proc/net/tcp*` inside the container); for
-  the proxy, its own check command (`squid -k check` or the equivalent of the chosen
-  proxy) plus the same socket check. No HTTP probe.
-- LiteLLM's own unauthenticated health routes on its service port (if the pinned version
-  has them and they cannot be disabled or put behind authentication) are reachable only
-  from `net_llm`, whose sole other member is the gateway. WP4 checks whether they can be
-  disabled or authenticated; otherwise the gateway is the only client by network design.
-- Test T-S35: from the extractor, the egress proxy and a throw-away test container on
-  each network (`net_doc`, `net_egress`, `net_front`), LiteLLM's port and any health
-  route are unreachable; from a test container on `net_egress`, the proxy refuses it by
-  its source ACL; from the gateway, LiteLLM's health routes answer at most liveness
-  (no configuration, no key, no model list).
+**P3 – Health probes of LiteLLM and of the proxy.** Docker `HEALTHCHECK` = internal check
+without network (process alive, listening socket present in `/proc/net/tcp*`; the proxy's
+own check command). LiteLLM's unauthenticated health routes, if they cannot be disabled or
+authenticated in the pinned version, are reachable only from `net_llm` (gateway only).
+**T-S35**: from the extractor, the proxy and throw-away containers on each other network,
+LiteLLM's port and health routes are unreachable; from the gateway they answer liveness at
+most (no configuration, key or model list).
 
-**P4 – Brutal crash of `dockerd`.**
-- Test T-S36 on the VM: `kill -9 $(pidof dockerd)` while jobs run, with the capture unit
-  active; then let systemd restart Docker (its unit's `Restart=`) and observe:
-  containers during the outage (they may keep running under `containerd-shim`; the kernel
-  rules stay in place), containers after dockerd's return (`live-restore: false`), state
-  of `ai-firewall` and `ai-stack`.
-- Expected design, confirmed or corrected by the test: `ai-firewall` and `ai-stack` get
-  `BindsTo=docker.service` in addition to `PartOf=`, so that any transition of
-  `docker.service` to inactive or failed stops them; after Docker's automatic restart, the
-  stack **stays stopped** until a controlled resume (`systemctl start ai-stack`, which
-  re-verifies the rules), with an alert. Jobs interrupted after `attempt_started` become
-  `outcome_unknown` (not retried).
-- The same test with `kill -9` of `containerd`, and with `systemctl restart docker`
-  (T-S23d) for comparison. Results and the final unit settings go in the IA-1 report.
+**P4 – Brutal crash of `dockerd`.** **T-S36**: `kill -9` of `dockerd` (and separately of
+`containerd`) while jobs run, capture active; observe containers during the outage and
+after Docker's automatic restart, and the states of `ai-firewall` / `ai-stack`. Expected
+design: `BindsTo=docker.service` (with `PartOf=`) on both units; after the automatic
+restart the stack **stays stopped** until a controlled `systemctl start ai-stack`, with an
+alert; interrupted jobs become `outcome_unknown`. Result and final settings in the report.
 
-## 4. Work packages (each a few small commits, unit tests first)
+## 4. Work packages
 
-| WP | Content | Tests (SECURITY.md §12 numbers where they exist) | Where |
+| WP | Content | Where |
+|---|---|---|
+| WP1 | Contract: JSON Schemas, SHA-256 list, validators; fake LiteLLM with failure modes | unit |
+| WP2 | Storage: `ledger.db` main + `jobs.db` attached, pragmas, same-filesystem check, single writer, states, leases, tombstones, purge, maintenance `VACUUM` | unit + VM |
+| WP3 | API: jobs, `ack`, `/v1/health`, mTLS (test CA per run), HMAC, kill switch, `REAL_DATA_ALLOWED=false`, maintenance mode; test client | unit |
+| WP5 | Pre-check and minimisation (gateway side): detectors fr / en / fa, levels, floor rule, unclassifiable → blocked, pseudonymisation | unit |
+| WP6 | Extractor: magic bytes, limits before parsing, sandboxed child, tmpfs per job, OCR, chunking, evidence check, instruction-like flag, semaphore | unit + stack |
+| WP4 | Worker: semaphores, pipeline, routes and data-policy check at load, fallbacks, budget reservation / settlement / manual correction, ledger currency and rate; LiteLLM client | unit + stack |
+| WP8 | Synthetic data set (§7); canaries; scenario fixtures as recorded fake answers | unit + stack |
+| WP7 | Infrastructure: compose (production + IA-1 overlay), fake providers (§5), proxy profiles, firewall apply / verify / change (P1), units with `BindsTo=` (P4), daemon settings, internal health checks (P3), environment allow-lists (§6) | VM |
+| WP9 | Load and memory test at the configured concurrency; IA-1 report | VM |
+
+Order: WP1 → WP2 → WP3 → WP5 → WP6 → WP4 → WP8 → WP7 → WP9. Small commits, unit tests
+first.
+
+## 5. Fake providers: topology, DNS, TLS and the IA-1-only exception (audit point 2)
+
+**Topology (IA-1 overlay only).**
+- Network `net_fake`: `internal: true`, fixed subnet `172.31.250.0/29`; members:
+  `ai_egress` (`172.31.250.2`), `fake_anthropic` (`172.31.250.3`), `fake_openai`
+  (`172.31.250.4`). No other container is on it.
+- `fake_anthropic` and `fake_openai`: the same small program (`fakes/fake_provider`) in
+  two personalities; it answers the provider-style API paths with recorded fixtures and
+  failure modes, and records each request body for the H-AI-1 analysis.
+- Names: `anthropic.fake.ia1.test` and `openai.fake.ia1.test` (the reserved `.test`
+  top-level domain: they can never exist on the Internet). LiteLLM's IA-1 configuration
+  points each fake route to these names with an explicit `api_base`; the real provider
+  host names appear nowhere in the IA-1 configuration.
+
+**DNS.** Only the proxy resolves them, through an IA-1-only hosts file mounted in the proxy
+(`hosts_file` directive) mapping the two names to the two fixed addresses. The gateway,
+LiteLLM and the extractor still have no external resolution (T-S21); LiteLLM sends
+`CONNECT anthropic.fake.ia1.test:443` to the proxy, as it would for a real host.
+
+**TLS.** A test CA generated per IA-1 environment issues the fakes' certificates for those
+names. Only the IA-1 overlay adds this CA to LiteLLM's trust bundle; the production image
+and profile trust the system CA store only.
+
+**The exception, strictly IA-1.** The proxy configuration is generated from one base file
+by a generator with two profiles:
+- `production`: allow-list = the real API names decided by D3 / D6 (placeholders until
+  then); `deny to_special` for every private, loopback, link-local, CGNAT and metadata
+  range; no hosts file;
+- `ia1`: the same file, **plus** exactly one rule placed before the `to_special` denial:
+  `http_access allow CONNECT ssl_port litellm fake_names fake_dst`, where `fake_names` =
+  the two `.ia1.test` names and `fake_dst` = `172.31.250.3/32 172.31.250.4/32`; the real
+  API names are **removed** from the allow-list in this profile; the hosts file is added.
+  Both name **and** address must match; nothing else private is allowed.
+
+**Proofs.**
+- T-S38: the production profile is generated, then checked (text and a parser): no
+  `.ia1.test` name, no `172.31.250.` address, no hosts file, no test CA in any production
+  file; and the production-profile proxy, started on the VM attached to `net_fake`, refuses
+  `CONNECT` to both fake names and to both addresses (`to_special`), while the `ia1`
+  profile accepts them only with name and address together (a fake name resolved to another
+  private address, and another name resolved to a fake address, are both refused).
+- T-S39: the fakes cannot relay or reach anything: they are only on `net_fake` (internal),
+  the `DOCKER-USER` default deny covers `172.31.250.0/29` except the proxy's own address,
+  their environment has no proxy variable (§6), the program has no outbound HTTP client
+  dependency; tests: from inside each fake, connections to a public IP, to the proxy's
+  port and to the other networks fail; requests to the fake in absolute-URI form or with
+  `CONNECT` get a 4xx and produce no outbound packet (capture).
+- At the end of IA-1, the compose overlay, the hosts file, the test CA and the fakes are
+  removed with the VM; the AI server for IA-1b is installed from the production profile
+  only (DEPLOYMENT.md §8 checklist line added in IA-1b's plan).
+
+## 6. Environment allow-lists instead of scanning for secrets (complement)
+
+- No scan or log of the VM's environment. Each container's environment is built
+  explicitly in compose from `deploy/env/<container>.allow` (names only, with fixed
+  values or secret-file paths); no `env_file` pass-through, no `${VAR}` substitution from
+  the host shell except the documented profile selector.
+- `deploy/check_env.py` reads the rendered configuration (`docker compose config`) and
+  fails if a container has a variable not in its allow-list, or a variable whose **name**
+  matches known provider-secret names (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
+  `AZURE_*_KEY`, `*_API_KEY` except the allow-listed LiteLLM client key file path…). It
+  prints names only, never values.
+- At start, the gateway and LiteLLM compare their own environment **names** with the
+  allow-list and refuse to start on a difference (names logged, values never).
+- T-S40: a container started with an extra variable, or with `ANTHROPIC_API_KEY` set to a
+  dummy value, is refused by the check and by the service itself; the dummy value appears
+  in no output (canary).
+
+## 7. Synthetic data set (complement on personal data)
+
+- Generated by a deterministic script (fixed seed) from templates; no real document,
+  and **no identifier copied from any real or published example** (including the sample
+  IBANs or NIRs found in documentation).
+- **Fictitious identities first**: a fixed list of invented persons and companies (names
+  built from invented syllables, fictitious streets in fictitious towns, a postal code
+  range marked fictitious in the fixtures); every personal identifier is then **derived
+  from these identities** by the generator:
+  - IBAN: country code + bank and branch codes from a fixture list of invented codes +
+    account number derived from the identity's id; check digits computed (mod 97);
+  - NIR: sex digit, year, month from the fictitious birth date, a department code, an
+    invented commune code and order number, key computed (97 − n mod 97);
+  - card numbers: prefix from the payment networks' documented test ranges, remaining
+    digits derived from the identity's id, Luhn digit computed;
+  - phone numbers and e-mail addresses: ranges and domains reserved for fiction or tests
+    (e.g. `example.com`, `.test`).
+- A test checks that every identifier in the fixtures is produced by the generator from a
+  listed identity (re-generation gives the same file hashes) and that none appears in a
+  denylist of published sample values.
+- Documents: policies, subscriptions, quotes, bills, contracts, consignment,
+  contradictory and incomplete variants, in fr / en / fa; scans rendered with noise;
+  adversarial variants (injected instructions in text, white text, metadata, form fields,
+  footnotes; bomb-like PDFs; huge images; wrong magic bytes). Each fixture carries a unique
+  canary string and every job built from fixtures carries `synthetic: true`.
+
+## 8. Test matrix (audit point 1) and exit criterion
+
+Legend: **IA-1** = fully run in IA-1; **IA-1 (gateway part)** = the gateway / server side
+is run in IA-1, the Odoo side is carried to IA-2; **IA-2** = needs the Odoo module, carried
+to IA-2's plan; **IA-1b** = needs real providers.
+
+| Test | Subject | Phase | Part run in IA-1 |
 |---|---|---|---|
-| WP1 | Contract: JSON Schemas (envelope, job, three functions, errors), SHA-256 list, validators; fake LiteLLM with failure modes | schema tests; T-S02, T-S03, T-S04, T-S07 | unit |
-| WP2 | Storage: `ledger.db` main + `jobs.db` attached, pragmas (`DELETE`, `FULL`), same-filesystem check, single writer, job states, leases, tombstones, purge, maintenance `VACUUM` | T-S08, T-S09, T-S09b, T-S30, T-S32 (exception and `SIGKILL` in unit; hard reset on the VM) | unit + VM |
-| WP3 | API: `POST/GET /v1/jobs`, `ack`, `/v1/health`; mTLS (test CA generated per test run) and HMAC (two keys, nonce cache); kill switch; `REAL_DATA_ALLOWED=false`; maintenance mode | T-S17, T-S27, T-S33 (gateway side), ack idempotence, 410 | unit |
-| WP4 | Worker: semaphores, pipeline, routes and data-policy check at load, fallbacks on availability only, budget reservation / settlement / manual correction, ledger in billing currency with rate; LiteLLM client (OpenAI-compatible call to the proxy) | T-S05, T-S06, T-S10, T-S14, T-S34; H-AI-1 observed through the fake providers behind the real LiteLLM (what it sends for structured outputs and region parameters) | unit + stack |
-| WP5 | Pre-check and minimisation: detectors (bank, identity, HR, personal, legal) in fr / en / fa, levels, floor rule, unclassifiable → blocked, pseudonymisation | T-S24, T-S25, T-S26; per-detector true / false positive sets | unit |
-| WP6 | Extractor: magic bytes, size / page limits read before parsing, sandboxed child with rlimits, tmpfs per job, OCR fra / eng / fas, chunking with page refs, evidence check, instruction-like text flag, own semaphore | T-S18, T-S19, T-S01a, bomb-like PDFs and images | unit + stack |
-| WP7 | Infrastructure: compose (fixed subnets, `internal`, hardening, `restart: "no"`), egress proxy (source ACL, CONNECT 443, allow-list, `to_special`, own DNS), firewall apply / verify / change (P1), units (`ai-firewall`, `ai-stack` with `BindsTo=` per P4, check timer), Docker daemon settings, internal health checks (P3) | T-S20 … T-S23f, T-S35, T-S36, atomic reload test (P1) | VM |
-| WP8 | Synthetic data set and generator (§5); canary strings; scenario fixtures S1–S17 as recorded fake answers | T-S13, T-S31 (canaries absent from logs, `ledger.db` and its backup) | unit + stack |
-| WP9 | Load and memory test at the configured concurrency; IA-1 report | DEPLOYMENT.md §6; T-S34 | VM |
+| T-S01a | injected instructions, fake answers obeying them | IA-1 (gateway part) | gateway validation blocks every forbidden effect; Odoo's re-validation → IA-2 |
+| T-S01b | adversarial documents on real models | IA-1b | – |
+| T-S02 | invalid JSON, extra / missing field | IA-1 | all |
+| T-S03 | account or tax in the answer | IA-1 | all |
+| T-S04 | category ref outside the list | IA-1 (gateway part) | gateway refusal; forged answer refused by Odoo → IA-2 |
+| T-S05 | provider 5xx / 429, fallback rules | IA-1 | all (fake routes with declared policies) |
+| T-S06 | provider slower than the worker timeout | IA-1 (gateway part) | job `failed: timeout`; « Odoo cron never blocked » → IA-2 |
+| T-S07 | refusal, truncation | IA-1 | all |
+| T-S08 | concurrent POSTs, same key | IA-1 | all |
+| T-S09 | replay same / other body | IA-1 | all |
+| T-S09b | worker killed after `attempt_started` | IA-1 | all |
+| T-S10 | request cap, month cap, override | IA-1 (gateway part) | 402s and the signed override field; « only an AI Budget Manager » (Odoo group) → IA-2 |
+| T-S11 | user without AI group; investor | IA-2 | – |
+| T-S12 | other company's records | IA-2 | – |
+| T-S13 | canaries and keys absent from logs | IA-1 (gateway part) | gateway, LiteLLM, extractor, proxy and fake logs; Odoo logs → IA-2 |
+| T-S14 | wider-policy fallback, OpenRouter, `latest` refused at load | IA-1 | all |
+| T-S15 | gateway down / disabled, providers down: existing Odoo circuits | IA-2 | gateway's `disabled` / `provider_unavailable` answers are covered by T-S05 and WP3 tests |
+| T-S16 | config / schema / candidates changed before « Prepare draft » | IA-2 | the gateway returns `config_version` and schema versions in `meta` (WP3 test) |
+| T-S17 | HMAC and client certificate | IA-1 | all, with the test client |
+| T-S18 | file limits and bombs | IA-1 | all |
+| T-S19 | excerpt absent from the cited page | IA-1 (gateway part) | gateway evidence check; Odoo's re-check → IA-2 |
+| T-S20 | direct outbound from AI containers | IA-1 | all (VM) |
+| T-S21 | external DNS from AI containers | IA-1 | all (VM) |
+| T-S22 | proxy refusals (other host, IP literal, port, private / metadata resolution) | IA-1 | all (VM), production and IA-1 profiles |
+| T-S23 | approved host, right / wrong certificate | IA-1 (fakes) + IA-1b | with the fakes and the test CA in IA-1; the real hosts' certificates in IA-1b |
+| T-S23b | gateway / extractor cannot use the proxy | IA-1 | all (VM) |
+| T-S23c | gateway port from a non-allowed address | IA-1 | with a stand-in address for « Odoo VPS » (the test client's); repeated with the real Odoo VPS address at IA-2's deployment |
+| T-S23d | Docker restart, reboot | IA-1 | all (VM) |
+| T-S23e | capture before Docker (P2) | IA-1 | all (VM) |
+| T-S23f | rule removed, corrupted expected file | IA-1 | all (VM) |
+| T-S24 | bank / identity / payslip data blocked | IA-1 (gateway part) | gateway pre-check on inputs and extracted text, fake LiteLLM records zero calls; Odoo's pre-check before submission → IA-2 |
+| T-S25 | declared level below detected | IA-1 (gateway part) | gateway refusal; Odoo refusal → IA-2 |
+| T-S26 | unclassifiable document | IA-1 | all (gateway and extractor) |
+| T-S27 | real data before D6 | IA-1 (gateway part) | `REAL_DATA_ALLOWED=false`, non-synthetic jobs refused; Odoo's marking → IA-2 |
+| T-S28 | no create right on the target circuit | IA-2 | – |
+| T-S29 | no allowed category (`missing_configuration`) | IA-2 | – |
+| T-S30 | purge after `ack` / 7 days, `410` | IA-1 | all |
+| T-S31 | canaries absent from `ledger.db` and its backup | IA-1 | all |
+| T-S32 | exception, `SIGKILL`, hard reset during commits | IA-1 | all (hard reset on the VM) |
+| T-S33 | crash order around `ack` | IA-1 (gateway part) | result available until `ack`, `ack` idempotent (204 twice), `410` after purge; Odoo's commit-then-ack and crash cases → IA-2 |
+| T-S34 | concurrency semaphores | IA-1 | all |
+| T-S35 | health probes not reachable (P3) | IA-1 | all (VM) |
+| T-S36 | `dockerd` / `containerd` crash (P4) | IA-1 | all (VM) |
+| T-S37 | atomic firewall reload (P1) | IA-1 | all (VM) |
+| T-S38 | IA-1 exception absent from the production profile | IA-1 | all (VM) |
+| T-S39 | fakes without egress, unable to relay | IA-1 | all (VM) |
+| T-S40 | environment allow-lists | IA-1 | all |
 
-Order: WP1 → WP2 → WP3 → WP5 → WP6 → WP4 → WP8 → WP7 → WP9. WP1 to WP6 and WP8 need no
-machine (unit tests in this session or CI); WP7 and WP9 need the VM (IA1-D2).
+**Exit criterion of IA-1**: every test marked **IA-1** passes, and the « part run in IA-1 »
+of every test marked **IA-1 (gateway part)** passes, with logs kept; the load test passes
+at the configured concurrency; H-AI-1, H-AI-6, H-IA1-1, H-IA1-2 and H-IA1-3 (§10) are
+answered with evidence. The Odoo parts and the **IA-2** tests are copied, as open items,
+into IA-2's plan; T-S01b and the real-host part of T-S23 into IA-1b's plan. The IA-1 report
+lists the verified, the not verified, the open hypotheses, the pinned versions and digests,
+and the final unit and firewall settings; it is audited.
 
-## 5. Synthetic data set
+## 9. Guards against real calls and real data
 
-- Generated by a script from templates (no real document ever copied): insurance
-  policies (RC Pro, décennale, warehouse), subscriptions (internet, phone, ChatGPT), quotes
-  and bills (van, trailer, tiles, workwear, equipment), rental and loan contracts,
-  consignment, contradictory and incomplete variants; French, English and Persian.
-- Fictitious companies and persons from a fixed list; IBAN, NIR, card numbers generated
-  with valid checksums only for the pre-check tests, from reserved test ranges where they
-  exist.
-- Scans: the same documents rendered to images with noise, rotation and low resolution
-  for OCR.
-- Adversarial: injected instructions in visible text, white text, metadata, form fields,
-  footnotes; decompression-bomb-like PDFs; oversized images; wrong magic bytes.
-- Every fixture carries a unique canary string, searched for in logs, `ledger.db` and its
-  backup (T-S13, T-S31); every request built from fixtures carries `synthetic: true`.
-
-## 6. Guards against real calls and real data
-
-- No real key exists in IA-1. The test suites fail if an environment variable or secret
-  file looks like a provider key (`sk-…`, `sk-ant-…`) or if a route points to a host that
-  is not a fake provider.
-- The egress proxy's allow-list on the VM contains **only the fake providers' names**
-  (served on a test network with a test CA); the real API hosts are absent, so even a
-  misconfigured LiteLLM cannot reach them.
+- No real key exists in IA-1; environment allow-lists and the name check (§6) refuse
+  provider-secret names.
+- The proxy's IA-1 profile allows **only** the two fake names at their two addresses; the
+  real API names are absent from it, so even a misconfigured LiteLLM cannot reach them.
 - `REAL_DATA_ALLOWED=false`; jobs without `synthetic: true` are refused (T-S27).
-
-## 7. Pinned versions
-
-At implementation time, each component version (Python, FastAPI, LiteLLM image, base
-images, proxy, Tesseract) is chosen at least two weeks after its release, recorded with
-its digest or hash and its source in `docs/pinned_versions.md` of the gateway repository;
-LiteLLM's image signature and `.pth` list checked (SECURITY.md §9). Versions are not chosen
-in this plan.
-
-## 8. Exit criteria and report
-
-IA-1 is done when, on the test VM and in unit tests:
-- every test of SECURITY.md §12 except T-S01b, plus P1's atomic reload test, T-S35 and
-  T-S36, passes, with logs kept;
-- the load test passes at the configured concurrency (memory figures recorded);
-- H-AI-1 (what LiteLLM sends to each provider format), H-AI-6 (DNS on internal networks)
-  and the P4 behaviour are answered with evidence;
-- the IA-1 report lists what was verified, what was not, the open hypotheses, the pinned
-  versions and digests, and the final unit and firewall settings.
-
-The report is audited. Only then can IA-1b (real calls with synthetic data, after D3, D4,
-D6 and the official verification of providers) or the AI server's installation for real be
-planned.
-
-## 9. What the owner provides or does
-
-- IA1-D1 to IA1-D4;
-- the private repository and this session's access to it;
-- the disposable test VM (IA1-D2), with root access for the isolation tests, and the
-  commands to run there (the session prepares scripts; the owner runs them, as for the
-  Odoo server);
-- nothing on the Odoo VPS, `artdubati_test` or the provider accounts in IA-1.
 
 ## 10. Open hypotheses settled by IA-1
 
 | # | Hypothesis | Settled by |
 |---|---|---|
-| H-AI-1 | LiteLLM passes structured outputs and region parameters to each provider format | WP4, fake providers behind the real LiteLLM |
-| H-AI-3 | 4 vCPU / 8 GB holds the stack at the configured concurrency | WP9 |
-| H-AI-6 | no Internet DNS resolution from internal networks | WP7, T-S21 |
-| H-IA1-1 | `iptables-restore --noflush` with one `COMMIT` is atomic on the chosen OS | WP7, P1 |
-| H-IA1-2 | after a `dockerd` crash, `BindsTo=` keeps the stack stopped until a controlled resume | WP7, P4 |
-| H-IA1-3 | LiteLLM's unauthenticated health routes can be disabled or are only reachable from the gateway | WP4 / WP7, P3 |
+| H-AI-1 | LiteLLM's requests to each provider format (structured outputs, region parameters) | WP4, request bodies recorded by the fakes |
+| H-AI-3 | 4 vCPU / 8 GB at the configured concurrency | WP9 |
+| H-AI-6 | no Internet DNS from internal networks | T-S21 |
+| H-IA1-1 | `iptables-restore --noflush` with one `COMMIT` is atomic on Ubuntu 24.04 | T-S37 |
+| H-IA1-2 | `BindsTo=` keeps the stack stopped after a `dockerd` crash until a controlled resume | T-S36 |
+| H-IA1-3 | LiteLLM's unauthenticated health routes can be disabled or are reachable only from the gateway | T-S35 |
 
-H-AI-2 (Odoo reachability), H-AI-4 (provider settings), H-AI-5 (real token counts) and
-H-AI-7 (provider request ids in usage data) are **not** settled by IA-1.
+Not settled by IA-1: H-AI-2 (Odoo reachability), H-AI-4 (provider settings), H-AI-5 (real
+token counts), H-AI-7 (provider request ids in usage data).
+
+## 11. Answers to the audit of `2fab28d`
+
+| # | Point | Answer | Where |
+|---|---|---|---|
+| 1 | « All of SECURITY §12 except T-S01b » impossible without the Odoo module | **Fixed**: exhaustive matrix (IA-1 / IA-1 gateway part / IA-2 / IA-1b); exit criterion limited to what IA-1 runs; the rest copied into IA-2's and IA-1b's plans | §8 |
+| 2 | Fake providers' private addresses vs `to_special` | **Fixed**: `net_fake` with two fixed addresses, `.ia1.test` names resolved by the proxy's IA-1 hosts file, test CA only in the IA-1 overlay, one exception requiring name and address, generated only in the `ia1` profile; production profile proven to refuse the same destinations (T-S38); fakes without egress nor relay (T-S39) | §5 |
+| c1 | Environment scan | **Fixed**: allow-lists per container, name checks only, values never printed (T-S40) | §6 |
+| c2 | Atomicity proof | **Fixed**: captures + `nft monitor` + chain snapshots + rule counters (T-S37) | §3 P1 |
+| c3 | Synthetic personal data | **Fixed**: fictitious identities first, identifiers derived and checksummed by the generator, nothing copied from real or published samples, regeneration and denylist tests | §7 |
+| D | IA1-D1 to D4 | **Adopted as recommended**: separate private repository, dedicated disposable VM, Ubuntu 24.04 LTS, `iptables-nft` first | §1 |
+
+## 12. What the owner provides or does
+
+- confirmation of IA1-D1 to IA1-D4;
+- the private repository and this session's access to it;
+- the disposable Ubuntu 24.04 VM with root access, and a second address (or small VM) for
+  the stand-in « Odoo » client of T-S23c; the owner runs the VM scripts prepared by the
+  session, as for the Odoo server;
+- nothing on the Odoo VPS, `artdubati_test` or the provider accounts in IA-1.
