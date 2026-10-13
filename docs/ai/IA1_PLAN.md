@@ -43,7 +43,7 @@ client certificate); it is not Odoo and proves nothing about the Odoo module.
 verification of providers); any Odoo module or change on `artdubati_test`; any change on
 the Odoo VPS; any real document or real user text.
 
-## 1. Decisions (audit recommendation → owner to confirm)
+## 1. Decisions (confirmed by the owner after the audit of `bdb2548`)
 
 | # | Decision | Proposal |
 |---|---|---|
@@ -414,3 +414,12 @@ token counts), H-AI-7 (provider request ids in usage data).
 |---|---|---|---|
 | 1 | Under `--noflush`, the declaration `:LARTDUBATI-AI - [0:0]` must not be relied on to empty an existing chain; rules could accumulate | **Fixed**: chain created on its own if absent; idempotent jump; dry run `iptables-restore --test --noflush`; one input `*filter`, `-F LARTDUBATI-AI`, all rules, `COMMIT`; no chain declaration line | §3 P1 |
 | 2 | T-S37 must check that the rule count does not grow | **Added**: after each reload the count equals exactly that of A or B | §3 P1, T-S37 item 4 |
+
+## 15. Green light (audit of `bdb2548`)
+
+Revision 4 validated. IA-1 authorised, strictly within these limits: only in the separate
+repository `lartdubati-ai-gateway`; WP1 to WP6 and WP8 start with unit tests; no real API
+call, no provider key, no real data, no installation or change in Odoo; WP7 and WP9 wait
+for the disposable VM and run the planned infrastructure tests. IA1-D1 to IA1-D4 confirmed:
+separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
+`iptables-nft` first and a dedicated nftables table if T-S37 fails.

@@ -32,7 +32,7 @@ Development starts only after the owner's answers to §6 and the auditor's green
 | [SECURITY.md](SECURITY.md) | trust boundaries, confidentiality pre-check, mTLS + HMAC, egress proxy, isolation, logging, tests |
 | [SCHEMAS.md](SCHEMAS.md) | the stable contract: jobs, three AI functions, limits, uncertainty, idempotency |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | characterisation (read-only), separate server, containers, secrets, operations, rollback |
-| [IA1_PLAN.md](IA1_PLAN.md) | development plan of IA-1 (fake providers, synthetic data, test matrix by phase), revision 2, to audit before any code |
+| [IA1_PLAN.md](IA1_PLAN.md) | development plan of IA-1 (fake providers, synthetic data, test matrix by phase), revision 4, validated by the audit of `bdb2548`; IA-1 authorised within its limits |
 | [COSTS.md](COSTS.md) | token estimates, cost formula, illustrative ranges (not a budget basis), caps and ledger |
 
 ## 0. Rules carried by every AI phase
