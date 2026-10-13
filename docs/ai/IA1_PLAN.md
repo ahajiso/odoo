@@ -507,3 +507,9 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   `job_attempts` / `attempt_outcomes`, one reservation per planned attempt, costs and
   corrections per attempt), tar test on identical inputs, chronology on `LastModified`
   only with the full-object checksum read back. No code before the audit of revision 5.
+- Audit of revision 5 (`b64cfd4`): frozen plans not executable after a deployment, and
+  reservations of never-started attempts kept at restore. Revision 6 (`55e2654`): versioned
+  configuration registry in the image (bundles and prompts per `config_version`, kept
+  while referenced, checked at start), single-generation plans (`plan_config_version`),
+  exact releases of never-started attempts at restore, weekly verification up to the
+  last day whose backup deadline has passed. No code before the audit of revision 6.
