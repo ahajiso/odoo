@@ -487,3 +487,10 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   throw-away cluster, `ai_retention` role, insert-only `schema_history`, transition
   trigger, wider fingerprint; SQLite store kept until covered. O1–O8 decided by the audit;
   O9, O10 new. No code before the audit of revision 2.
+- Audit of revision 2 (`ba9cbc3`): four blocking points (catalogue not closing
+  `policy_ref`, checks running code from the backup, mutable comparison base, 30 days
+  enforced only by the application). Revision 3 (`af45074`): immutable `catalogue_id`
+  freezing the execution configuration, data-only exports loaded on trusted migrations,
+  O9 mandatory (write-once target, verification on the owner's machine), closed purge
+  function on the database clock, retained periods refused by the invariants. O9 and O10
+  decided by the audit. No code before the audit of revision 3.
