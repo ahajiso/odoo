@@ -626,3 +626,12 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   loop on 10 000 random cases, bound checked up to 64 000 groups, quadratic mutation
   500 500 iterations for 20 000). WP6 authorised (document extraction, strict limits per page
   and per document); its plan comes first, for audit.
+- WP6 plan revision 1 (`docs/WP6_PLAN.md` of the gateway repository): extractor service with
+  one sandboxed child per document and phase (text, then OCR), magic bytes at intake and in
+  the extractor, strict limits (10 MiB, 50 pages per file, 100 per job, 20 000 characters per
+  page refused not truncated, 300 000 per file, 600 000 per job, 40 Mpx, 300 DPI, child CPU /
+  memory / wall clock), failure mapping (engine failure → `extraction_failed`, OCR reading
+  nothing → `confidentiality_refused`), pypdfium2 + Pillow + Tesseract fra/eng/fas, chunks
+  `d{file}-p{page}-c{k}`, deterministic instruction-like detector in the gateway, semaphores
+  text 3 / OCR 2 in the extractor too; questions Q1-Q10. Waiting for its audit before any
+  code.
