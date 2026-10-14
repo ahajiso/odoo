@@ -607,3 +607,10 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   plus a 1 MB ceiling, benchmark apart (`tools/precheck_bench.py`). 919 tests on Python
   3.12.3 and 3.13.16; 64/64 WP5 mutations killed. Waiting for the targeted audit; WP6 does
   not start before its green light.
+- Audit of `7da5bf7`: both confidentiality defects corrected, no new leak found; one
+  verification blocker left (growth ratios on wall time failed under a loaded machine).
+  Corrected (`bf34697`): growth on CPU time (`time.process_time`), minimum of three runs,
+  bound 24× set from measurements (linear worst 11.7× under load, quadratic mutation 59×);
+  wall time kept only for the 1 MB ceiling. Performance file passed three times in a row
+  with eight busy loops on four cores; quadratic mutation killed; 919 tests on Python
+  3.12.3 and 3.13.16. Waiting for the audit; WP6 not before its green light.
