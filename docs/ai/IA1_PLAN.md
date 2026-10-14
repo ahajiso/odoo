@@ -633,5 +633,12 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   memory / wall clock), failure mapping (engine failure → `extraction_failed`, OCR reading
   nothing → `confidentiality_refused`), pypdfium2 + Pillow + Tesseract fra/eng/fas, chunks
   `d{file}-p{page}-c{k}`, deterministic instruction-like detector in the gateway, semaphores
-  text 3 / OCR 2 in the extractor too; questions Q1-Q10. Waiting for its audit before any
-  code.
+  text 3 / OCR 2 in the extractor too; questions Q1-Q10.
+- Audit of `f17c391`: six blocking points (body read before the limit, job limits on a
+  one-file route, `preexec_fn`, memory 3.5 GiB vs 3 GiB and `tmpfs`, blank below 0.1 % ink,
+  `busy` as a definitive failure); Q1, Q2, Q4, Q5, Q9, Q10 accepted, Q3, Q6 to revise, Q7, Q8
+  provisional. Plan revision 2: streamed body, job limits in the gateway, stdlib launcher
+  then `execve`, aggregated memory + `tmpfs` budget (reserve 512 MiB, children 2 560 MiB),
+  OCR page by page, blank only without ink, deterministic merge, outcome classes with delayed
+  requeue (migration V0002, `failed / maintenance` after five retries, Q11), warnings merged
+  before the final validation (Q12). Waiting for its audit before any code.
