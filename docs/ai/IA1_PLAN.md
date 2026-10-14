@@ -596,3 +596,14 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   §2 (rule 4 dropped, Iranian code needs its keyword, Arabic exclusive letters reduced to
   ة, cards never after « + », mobile prefixes with lengths). Waiting for its audit; WP6
   waits.
+- Audit of `f8c169b`: WP5 not validated (cards filtered on their first digit missed the
+  Mastercard 2-series; valid Iranian national codes without their keyword sent in clear;
+  flaky 1 MB performance test). Corrected in the gateway repository (`cdad03f`..`7da5bf7`):
+  cards = 13–19 digits and Luhn on every window of whole digit groups, any first digit (a
+  card next to an expiry date is now found too); every valid Iranian code masked with an
+  `IDENTITY_<tag>_<n>` placeholder (canonical check, reserved word, restoration),
+  `restricted` only with its keyword, a French mobile passing the check still masked as a
+  phone; performance checked as growth per step (32 kB → 256 kB, median of three, bound 16×)
+  plus a 1 MB ceiling, benchmark apart (`tools/precheck_bench.py`). 919 tests on Python
+  3.12.3 and 3.13.16; 64/64 WP5 mutations killed. Waiting for the targeted audit; WP6 does
+  not start before its green light.
