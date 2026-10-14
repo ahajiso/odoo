@@ -647,4 +647,17 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   ink and without text layer); Q11, Q12 accepted. Plan revision 3: `infrastructure_retries`
   0–5 and a per-file `document_retry_mask`, `RLIMIT_AS` / `RLIMIT_CPU` never retried,
   expired leases counted, storage reservation held across the two phases, one monotonic
-  deadline from `X-Deadline-Ms`, `tmpfs` 192 MiB. Waiting for its audit before any code.
+  deadline from `X-Deadline-Ms`, `tmpfs` 192 MiB.
+- Audit of `68f7787`: green light for WP6 development. WP6 developed in the gateway repository
+  (`46b2c71`..`8bebd90`): file types at intake; migration V0002 (extraction retries, the three
+  expired-lease cases, direct-SQL rules); `extractor/` (stdlib launcher then `execv`, text phase
+  with pypdfium2 and Pillow, OCR page by page through Tesseract, plain ASGI service, one
+  deadline per request, aggregated memory / `tmpfs` budget); `gateway/extraction.py` (job
+  limits, chunks, next store call); deterministic instruction-like flag. Deviations for the
+  audit: OCR child at 512 MiB (limits are inherited), no FastAPI in the extractor, header block
+  bounded to 8 KiB, the Flate bomb ends by `SIGABRT` and is retried once. Audit of `d4017cf`
+  (provisional): client deadline bounded (`>=`), warnings name their file (contract and
+  SCHEMAS.md), finite OCR confidences, plan aligned on the archive; corrected. 1 193 tests on
+  Python 3.12.3 and 3.13.16, 74/74 WP6 mutations killed or equivalent (one declared). Report
+  docs/WP6_REPORT.md; real OCR and hardening on the VM (WP7). Waiting for the final audit;
+  WP4 not before its green light.
