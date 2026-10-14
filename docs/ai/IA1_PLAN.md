@@ -571,3 +571,9 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   Revision 2 of the plan: field matrix, full placeholder cycle (per-job namespace,
   validation masked then original, issued placeholders only, crash behaviour), per-page
   unclassifiable rule on natural text only. Waiting for its audit.
+- Audit of `b32c006` (WP5 plan revision 2): two blocking points (a script check is not a
+  language identification; altered placeholders outside evidence fields) and three
+  precisions. Revision 3: local deterministic language identification against fr / en / fa
+  and nine decoys, every string of an answer checked for reserved forms with a 128-bit
+  namespace, `content_b64` in the matrix with a recursive exhaustiveness test, exact phone
+  forms, per-segment normalisation with position mapping. Waiting for its audit.
