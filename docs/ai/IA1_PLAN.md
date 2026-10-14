@@ -709,5 +709,12 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   gate inside the client before connecting and before the first byte → call; each slot
   checks the watchdog's beat and its lease deadline itself (no reliance on a flag) before
   claims, extraction, attempt start and the first byte; a body above 2 MiB never gives a
-  usage; pair approvals anchored in the bundle by their exact SHA-256. Waiting for its audit;
-  no WP4 code before.
+  usage; pair approvals anchored in the bundle by their exact SHA-256. Green light for the
+  code (audit of `e9e40c2`; Q16–Q18 validated).
+- WP4 developed (gateway `110095c`..`9363ae5`, report `docs/WP4_REPORT.md`): configuration and
+  load checks, routing manifest and LiteLLM rendering, V0003, estimator per attempt, LiteLLM
+  client with phases and both gates, mapping of every end, prompt / data block / selection /
+  warnings cut, pipeline, worker threads with watchdog and fatal stop, entry point (T-S40),
+  `set_cost.py`; 1 418 tests on 3.12 / 3.13, 62/62 WP4 mutations killed (six survivors of the
+  first run closed by tests). Deviations for the audit: settlement at the reservation's rate,
+  every entity approved, raw-socket client. Waiting for the code audit.
