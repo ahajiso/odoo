@@ -65,21 +65,29 @@ their `tmpfs` bytes: text child 384 MiB, OCR child 512 MiB + its Tesseract 512 M
 bitmap 48 MiB = 1 072 MiB, input 10 MiB per request; WP9 measures and may lower it), egress
 proxy 150 MB, OS and Docker 1 GB → about 5.5 GB, plus PostgreSQL 0.8 GB (POSTGRES_PLAN.md
 §8 of the gateway repository) → about **6.3 GB on 8 GB, a margin of about 1.7 GB**, below the
-≥ 2 GB criterion of §6. These are worst-case **address-space** bounds (resident memory is
-lower); WP9 measures them, and if the measured margin is below 2 GB the extractor's budget
-is reduced first (one OCR child, or two text children). The 2 vCPU / 4 GB fallback is
-withdrawn (POSTGRES_PLAN.md, O7).
+≥ 2 GB criterion of §6. These are worst-case **address-space** bounds, not measured
+resident memory. **Decision (audit of `12e2f8f` / `e174481`)**: the VM stays 4 vCPU / 8 GB.
+- WP9 exit criterion: a margin of **at least 2 GB measured in RSS / cgroup memory** during
+  the load test (§6); **no production** while it is not met.
+- First fallback if it fails: the **reduced extractor profile** — container 2.5 GiB,
+  reserve 512 MiB and budget 2 048 MiB, **OCR = 1, text = 2** (worst admitted mix: 1 072 +
+  2 × 384 + 8 × 10 = 1 920 MiB) — written into `extractor/limits.json` (the start-up check
+  refuses a configuration whose reserve plus budget exceeds the container limit, so the
+  file changes with the container), then measured again.
+- Only if that profile is too slow: a larger VM, never a smaller safety margin.
+- The 2 vCPU / 4 GB fallback is withdrawn (POSTGRES_PLAN.md, O7).
 
 ## 3. Containers and networks
 
 | Container | Image | Networks | Inbound | Egress | Limits (initial) |
 |---|---|---|---|---|---|
-| `ai_gateway` | own image, pinned base digest, hash-locked deps | `net_front` (published port), `net_llm`, `net_doc` | Odoo VPS only, mTLS (`LARTDUBATI-AI` rule) | **none**: dropped by the `LARTDUBATI-AI` default deny (SECURITY.md §7) | 1 CPU, 512 MB, pids 128 |
+| `ai_gateway` | own image, pinned base digest, hash-locked deps | `net_front` (published port), `net_llm`, `net_doc`, `net_db` | Odoo VPS only, mTLS (`LARTDUBATI-AI` rule) | **none**: dropped by the `LARTDUBATI-AI` default deny (SECURITY.md §7) | 1 CPU, 512 MB, pids 128 |
 | `ai_litellm` | LiteLLM image **by digest**, signature checked | `net_llm`, `net_egress` (both internal) | gateway only | through `ai_egress` only | 1 CPU, 1.5 GB, pids 256 |
 | `ai_extractor` | own image (pypdfium2, Pillow, uvicorn; Tesseract 5 with fra / eng / fas `tessdata_fast`), pinned (`deploy/extractor/Dockerfile` of the gateway repository) | `net_doc` (internal) | gateway only | none | 2 CPU, 3 GB, pids 64; children capped by its own semaphore |
 | `ai_egress` | forward proxy, pinned digest | `net_egress` (internal), `net_out` (external) | `ai_litellm` only | allow-listed hosts, port 443, CONNECT only | 0.5 CPU, 128 MB |
+| `ai_postgres` | official `postgres:16.<minor>-bookworm` **by digest** (two-week rule, WP7) | `net_db` (internal) | `ai_gateway` only (role `ai_gateway`); the owner's one-shot tools run while the stack is stopped or at night (POSTGRES_PLAN.md §7–§9) | **none** | 1 CPU, **768 MiB (≈ 0.8 GB)**, pids 128; data directory on the **encrypted** data volume (`/opt/ai/pg`), no published port |
 
-`net_llm`, `net_doc`, `net_egress` are `internal: true`; every network has a fixed
+`net_llm`, `net_doc`, `net_egress`, `net_db` are `internal: true`; every network has a fixed
 subnet and `ai_egress` a fixed address. Filtering is done in the dedicated chain
 `LARTDUBATI-AI`, reached by one jump from Docker's `DOCKER-USER` chain (never flushed)
 (default deny for the AI subnets, outbound only for `ai_egress` on 443 and DNS to the
@@ -245,7 +253,8 @@ On the AI server, fake provider, synthetic documents, **at the configured concur
 (ARCHITECTURE.md §5.2): 20 jobs submitted at once (mix of 50-page text PDFs and 10-page
 scans), repeated for 30 minutes; `docker stats` every 5 s. Pass if: running jobs,
 extractions and OCR never exceed their semaphores (T-S34); no container exceeds its limit;
-no OOM kill; host available memory ≥ 2 GB on 8 GB (≥ 0.8 GB on the 4 GB fallback);
+no OOM kill; margin ≥ 2 GB on 8 GB measured in RSS / cgroup memory (no production
+otherwise; first fallback: the reduced extractor profile of §2);
 queued jobs all finish. Result in `docs/ai/characterisation/load_<date>.txt`. The Odoo
 VPS is not involved.
 

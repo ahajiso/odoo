@@ -24,6 +24,11 @@ gateway repository).
  └───────────────────────────────┘             │        │ net_egress (internal) per-doc   │
                                                │        ▼                  child process  │
                                                │  ai_egress (CONNECT proxy, allow-list)   │
+                                               │                                          │
+                                               │  ai_gateway ── net_db (internal) ──►     │
+                                               │  ai_postgres (PostgreSQL 16, schemas     │
+                                               │   ledger + jobs; encrypted volume;       │
+                                               │   no egress; gateway and one-shot tools) │
                                                └────────┬─────────────────────────────────┘
                                                         ▼ Internet: approved API hosts only
 ```
@@ -31,10 +36,11 @@ gateway repository).
 | Component | Holds | Talks to | Never |
 |---|---|---|---|
 | Odoo module | Odoo client cert + HMAC key (files, D16) | gateway (outbound HTTPS) | provider keys; calls to LiteLLM or providers; `sudo()` for final writes |
-| `ai_gateway` | HMAC verification key, TLS server cert, LiteLLM client key, PostgreSQL access as `ai_gateway` (schema `jobs` temporary, schema `ledger` financial metadata) | Odoo (answers only), LiteLLM, extractor | provider keys; Internet; PostgreSQL; Odoo account; writes to Odoo |
+| `ai_gateway` | HMAC verification key, TLS server cert, LiteLLM client key, PostgreSQL access as `ai_gateway` (schema `jobs` temporary, schema `ledger` financial metadata) | Odoo (answers only), LiteLLM, extractor, `ai_postgres` (as `ai_gateway` only: no DDL, no DELETE on the ledger) | provider keys; Internet; Odoo's own database (`odoo_db`); Odoo account; writes to Odoo |
 | `ai_litellm` | provider keys only | egress proxy | Odoo key; inbound from anything but the gateway; UI; database; retries or fallbacks of its own |
 | `ai_extractor` | nothing | answers the gateway | network egress; secrets; files after the job |
 | `ai_egress` | allow-list | approved API hosts | TLS interception; other hosts or raw IPs |
+| `ai_postgres` | the `ledger` and `jobs` schemas (contents of `jobs` as application ciphertext only), its own superuser password | answers the gateway and the owner's one-shot tools (migrate, backup export, retention, restore) | any egress; any other container; a published port; content keys (held by the gateway) |
 
 A compromise of LiteLLM exposes the provider keys (limited by provider-side spend caps and
 key rotation) but not the Odoo HMAC key nor the client certificate; a compromise of the
