@@ -685,4 +685,15 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   worker threads in the gateway process, pipeline with the second pre-check, data block with
   a random boundary, chunk selection, deterministic warnings and the (file, page) invariant,
   mapping of every attempt end, estimator from the limits, fixed rate table, stdlib LiteLLM
-  client, owner's correction tool; questions Q1–Q11. Waiting for its audit.
+  client, owner's correction tool; questions Q1–Q11. Audit of `f1bcbe3`: not validated (five
+  blocking points: no fallback after a possibly billed HTTP error, estimate not an upper bound,
+  returned model and usage, more than 20 warnings, LiteLLM configuration with secrets; plus
+  thread supervision, entity / subprocessor references, first available chunk per file).
+- WP4 plan revision 2 (`6a2ff93`): fallback only after a proven not-sent phase or a settled
+  cost (408 / 429 / 5xx / partial transmission possibly billed); one token per byte of the
+  serialised request, schema included, plus a fixed overhead, `Decimal` rounded up, V0003
+  (`budget_request_exceeded` without attempt); returned model ≠ frozen model → `invalid_output`,
+  usage always settled when known, kept when missing, real cost and refusal above the bounds;
+  summary warning per category when the list is cut; routing manifest without secret, LiteLLM
+  configuration rendered with key references, WP7 proofs; Q12–Q15 new. Waiting for its audit;
+  no WP4 code before.
