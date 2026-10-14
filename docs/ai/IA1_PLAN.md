@@ -680,3 +680,9 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   criterion a margin ≥ 2 GB measured in RSS / cgroup, no production otherwise; first
   fallback the reduced extractor profile (2.5 GiB, OCR 1, text 2, `limits.json` adapted),
   then a larger VM. WP4 plan authorised, no WP4 code before its audit.
+- WP4 plan revision 1 (`docs/WP4_PLAN.md` of the gateway repository): JSON configuration
+  (bundles with alias, billing, data policy and owner-listed fallbacks; `profiles.json`),
+  worker threads in the gateway process, pipeline with the second pre-check, data block with
+  a random boundary, chunk selection, deterministic warnings and the (file, page) invariant,
+  mapping of every attempt end, estimator from the limits, fixed rate table, stdlib LiteLLM
+  client, owner's correction tool; questions Q1–Q11. Waiting for its audit.
