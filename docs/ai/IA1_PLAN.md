@@ -703,5 +703,11 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   the three mandatory chunks); independent watchdog checked by the scheduler, fatal stop of
   the process, pre-send fence on a monotonic lease deadline, store fence; fixed order of the
   HTTP 200 checks with separate rows; subprocessors as normalised triplets (subset for the
-  same entity, versioned owner approval of the pair between entities); Q16–Q18 new. Waiting
-  for its audit; no WP4 code before.
+  same entity, versioned owner approval of the pair between entities); Q16–Q18 new. Audit of
+  `88fcb44`: conditional validation, Q16–Q18 accepted; gate order blocking, two precisions.
+- WP4 plan revision 4 (`e9e40c2`): size check → first gate → `mark_attempt_started` → second
+  gate inside the client before connecting and before the first byte → call; each slot
+  checks the watchdog's beat and its lease deadline itself (no reliance on a flag) before
+  claims, extraction, attempt start and the first byte; a body above 2 MiB never gives a
+  usage; pair approvals anchored in the bundle by their exact SHA-256. Waiting for its audit;
+  no WP4 code before.
