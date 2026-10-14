@@ -550,3 +550,9 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   628 tests on Python 3.12.3 and 3.13; 33 WP3 mutations, 33 killed. Report and decisions
   for the audit: docs/WP3_REPORT.md of the gateway repository. Waiting for the audit;
   WP5 waits.
+- Audit of `18f6c8d`: no green light yet; blocking: a request signed before a restart but
+  in the same second was accepted. Fixed in `2562d8f`: the whole start second is refused
+  (boundary tests of the audit's scenario); hidden key entries and a symlinked key
+  directory refused; TLS maximum version fixed at 1.3; report precised on the cost
+  currency (one non-zero (currency, rate, date) group, else EUR), with a test. 635 tests on
+  Python 3.12.3 and 3.13; 36 WP3 mutations, 36 killed. Waiting for the audit; WP5 waits.
