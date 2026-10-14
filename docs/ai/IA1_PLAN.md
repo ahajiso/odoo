@@ -564,3 +564,10 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   Q2 natural persons: civil-title heuristic now, Odoo's `person_names` list in contract
   2.1 with IA-2; Q3 default level `internal`; Q4 « RIB » alone restricted; Q5 job error
   `confidentiality_refused` after extraction). Waiting for its audit before any code.
+- Audit of `bbac18f` (WP5 plan revision 1): no green light for code yet; Q1 option (b)
+  accepted (exact public-provider domains, every e-mail and phone masked; Odoo's partner
+  rule mandatory in IA-2), Q2 civil titles in WP5 and `person_names` left to IA-2, Q3 and
+  Q4 accepted, Q5 `confidentiality_refused` (existing code) allowed as an attempt-less end.
+  Revision 2 of the plan: field matrix, full placeholder cycle (per-job namespace,
+  validation masked then original, issued placeholders only, crash behaviour), per-page
+  unclassifiable rule on natural text only. Waiting for its audit.
