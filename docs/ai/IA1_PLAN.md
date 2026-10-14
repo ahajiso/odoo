@@ -556,3 +556,11 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   directory refused; TLS maximum version fixed at 1.3; report precised on the cost
   currency (one non-zero (currency, rate, date) group, else EUR), with a test. 635 tests on
   Python 3.12.3 and 3.13; 36 WP3 mutations, 36 killed. Waiting for the audit; WP5 waits.
+- Audit of `893f7dd`: WP3 validated in the IA-1 scope (TCP, firewall, single API
+  instance and load stay for WP7 / WP9); green light for WP5. WP5 plan revision 1
+  (docs/WP5_PLAN.md of the gateway repository): detectors and rules of SECURITY.md §4 as
+  read, and five questions (Q1 e-mails and phones without Odoo's partner list: proposed
+  public-provider and mobile rule plus masking of every e-mail and phone before any call;
+  Q2 natural persons: civil-title heuristic now, Odoo's `person_names` list in contract
+  2.1 with IA-2; Q3 default level `internal`; Q4 « RIB » alone restricted; Q5 job error
+  `confidentiality_refused` after extraction). Waiting for its audit before any code.
