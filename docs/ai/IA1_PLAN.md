@@ -641,4 +641,10 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   then `execve`, aggregated memory + `tmpfs` budget (reserve 512 MiB, children 2 560 MiB),
   OCR page by page, blank only without ink, deterministic merge, outcome classes with delayed
   requeue (migration V0002, `failed / maintenance` after five retries, Q11), warnings merged
-  before the final validation (Q12). Waiting for its audit before any code.
+  before the final validation (Q12).
+- Audit of `5139cb0`: four precisions (separate retry counters, storage reserved for the
+  whole request and Tesseract stdout capped, one deadline per request, blank only without
+  ink and without text layer); Q11, Q12 accepted. Plan revision 3: `infrastructure_retries`
+  0–5 and a per-file `document_retry_mask`, `RLIMIT_AS` / `RLIMIT_CPU` never retried,
+  expired leases counted, storage reservation held across the two phases, one monotonic
+  deadline from `X-Deadline-Ms`, `tmpfs` 192 MiB. Waiting for its audit before any code.
