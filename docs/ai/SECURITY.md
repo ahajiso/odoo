@@ -3,8 +3,8 @@
 Threat model and controls for PLAN.md and ARCHITECTURE.md. Nothing implemented.
 Revision 2: local pre-check, mTLS + HMAC, three isolated processes, egress proxy,
 hardened extractor, data-policy rule for fallbacks, job atomicity. Revision 3: egress
-filtering designed for Docker's own chains (§7), retention split between `jobs.db` and
-`ledger.db` (§11), encrypted disk, fixed secrets path on the Odoo side (§3). Revision 4:
+filtering designed for Docker's own chains (§7), retention split between the `jobs` schema and
+the `ledger` schema (§11), encrypted disk, fixed secrets path on the Odoo side (§3). Revision 4:
 fail-closed start (§7, layer 2b), local health checks separated from the protected route.
 
 ## 1. Assets
@@ -231,8 +231,10 @@ ClamAV postponed only with all of the following, and synthetic data in IA-1:
 - one **disposable child process per document**, started by the extractor service, killed
   at the end or on any limit; files on a per-job `tmpfs` wiped after the job; **no shared
   volume** with any container;
-- limits per child: CPU time (e.g. 30 s text, 120 s OCR), address space (e.g. 512 MB),
-  max output file size, no new processes beyond OCR helpers, open files;
+- limits per child (WP6, applied by a stdlib launcher before `execve`): CPU time 30 s text,
+  120 s OCR, 20 s per Tesseract page; address space 384 MiB text, 512 MiB OCR child and
+  Tesseract (limits are inherited); output file size, open files, no core; processes bounded
+  by the container's `pids_limit`; one deadline per request (≤ 300 s for the job);
 - container: non-root, read-only root fs, `cap_drop: ALL`, `no-new-privileges`, Docker's
   seccomp profile tightened (no `ptrace`, no `mount`…), an AppArmor profile limiting file
   access to the job directory, `pids_limit`, memory and CPU limits, no egress;
@@ -266,9 +268,9 @@ sha256, pre-check categories, validation result, error, fallback. Not logged: ke
 certificates, signatures, document text, prompts, raw model output, bank or personal
 values. Log formatter by allow-list of fields.
 
-Retention (revision 3): gateway logs 90 days (metadata only); `jobs.db` inputs deleted at
+Retention (revision 3): gateway logs 90 days (metadata only); inputs in the `jobs` schema deleted at
 the end of the job and results at `ack` or after 7 days, **never backed up**;
-`ledger.db` (financial metadata and idempotency tombstones, no business content) 13 months,
+the `ledger` schema (financial metadata and idempotency tombstones, no business content) 13 months,
 backed up encrypted; Odoo records follow the company's retention. The AI server's data
 disk and its backup target are encrypted (LUKS or the provider's encrypted volumes with a
 key not held by the hosting provider, to decide with D1); swap disabled or encrypted, so
@@ -307,9 +309,9 @@ job contents never reach an unencrypted swap. Docker logs of the gateway hold no
 | T-S27 | real (non-synthetic) data before D6 | refused |
 | T-S28 | user without create right on `product.creation.request` / `equipment.operation` | « Prepare draft » hidden; forced call refused by the ORM; proposal kept |
 | T-S29 | intent with no allowed category | `missing_configuration`; no draft; extraction still runs if a document was given (proposal for an authorised person) |
-| T-S30 | after `ack` and after 7 days | result absent from `jobs.db` (including free pages after the maintenance `VACUUM`); same key → `410 result_purged`, no new call; no `VACUUM` while a job is `running` |
-| T-S31 | scan of `ledger.db` and its backup for the canary string and extracted values of the test documents | absent |
-| T-S32 | application exception, `SIGKILL` of the gateway, and hard reset of the test machine during commits | after restart, each transaction fully present in both files or absent from both; pragmas and same-filesystem check enforced at start |
+| T-S30 | after `ack` and after 7 days | result absent from the `jobs` schema (its ciphertext deleted and its key destroyed, POSTGRES_PLAN.md §5); same key → `410 result_purged`, no new call |
+| T-S31 | scan of the `ledger` schema and its backup for the canary string and extracted values of the test documents | absent |
+| T-S32 | application exception, `SIGKILL` of the gateway, and hard reset of the test machine during commits | after restart, each transaction fully present or absent (one PostgreSQL transaction); migrations, catalogue and server settings checked at start (crash points tested in WP2; hard reset of the VM in WP9) |
 | T-S33 | Odoo crashes after `GET` before its commit; then after its commit before `ack` | first case: result fetched again; second: `ack` sent by the next run; `ack` twice → 204 |
 | T-S34 | 10 jobs submitted at once | at most the configured number running, extractions and OCR within their semaphores |
 | T-S35 | LiteLLM and proxy health probes (IA1_PLAN.md P3) | internal checks only; LiteLLM's port and health routes unreachable from every container but the gateway |

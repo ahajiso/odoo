@@ -25,7 +25,7 @@ Basis: PLAN.md revision 4 and its companions. Test numbers refer to SECURITY.md 
 ## 0. Scope
 
 **In IA-1**
-- the gateway (FastAPI API + worker, `jobs.db` / `ledger.db`), the three functions with
+- the gateway (FastAPI API + worker, PostgreSQL 16 schemas `jobs` / `ledger`), the three functions with
   their schemas, the confidentiality pre-check, minimisation, validation, budget ledger,
   idempotency, `ack`, mTLS + HMAC;
 - **fake providers** (two services imitating the Anthropic and OpenAI APIs, §5) and a
@@ -55,7 +55,7 @@ the Odoo VPS; any real document or real user text.
 ## 2. Repository layout (in `lartdubati-ai-gateway`)
 
 ```
-gateway/            FastAPI app, worker, storage (ledger.db + jobs.db), budget, auth,
+gateway/            FastAPI app, worker, storage (PostgreSQL: ledger + jobs), budget, auth,
                     pre-check, minimisation, prompts, validation, routing
 schemas/            JSON Schema files (contract 2.0) with their SHA-256 list
 extractor/          service + sandboxed child, limits, chunking, OCR
@@ -173,7 +173,7 @@ alert; interrupted jobs become `outcome_unknown`. Result and final settings in t
 | WP | Content | Where |
 |---|---|---|
 | WP1 | Contract: JSON Schemas, SHA-256 list, validators; fake LiteLLM with failure modes | unit |
-| WP2 | Storage: `ledger.db` main + `jobs.db` attached, pragmas, same-filesystem check, single writer, states, leases, tombstones, purge, maintenance `VACUUM` | unit + VM |
+| WP2 | Storage: PostgreSQL 16 (schemas `ledger` insert-only and `jobs` temporary, triggers T1–T7, roles, migrations, encrypted contents, archives), states, leases, idempotency, purge (POSTGRES_PLAN.md; SQLite superseded on 13/10/2026) | unit + VM |
 | WP3 | API: jobs, `ack`, `/v1/health`, mTLS (test CA per run), HMAC, kill switch, `REAL_DATA_ALLOWED=false`, maintenance mode; test client | unit |
 | WP5 | Pre-check and minimisation (gateway side): detectors fr / en / fa, levels, floor rule, unclassifiable → blocked, pseudonymisation | unit |
 | WP6 | Extractor: magic bytes, limits before parsing, sandboxed child, tmpfs per job, OCR, chunking, evidence check, instruction-like flag, semaphore | unit + stack |
@@ -336,7 +336,7 @@ to IA-2's plan; **IA-1b** = needs real providers.
 | T-S28 | no create right on the target circuit | IA-2 | – |
 | T-S29 | no allowed category (`missing_configuration`) | IA-2 | – |
 | T-S30 | purge after `ack` / 7 days, `410` | IA-1 | all |
-| T-S31 | canaries absent from `ledger.db` and its backup | IA-1 | all |
+| T-S31 | canaries absent from the `ledger` schema and its backup | IA-1 | all |
 | T-S32 | exception, `SIGKILL`, hard reset during commits | IA-1 | all (hard reset on the VM) |
 | T-S33 | crash order around `ack` | IA-1 (gateway part) | result available until `ack`, `ack` idempotent (204 twice), `410` after purge; Odoo's commit-then-ack and crash cases → IA-2 |
 | T-S34 | concurrency semaphores | IA-1 | all |
@@ -659,5 +659,17 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   (provisional): client deadline bounded (`>=`), warnings name their file (contract and
   SCHEMAS.md), finite OCR confidences, plan aligned on the archive; corrected. 1 193 tests on
   Python 3.12.3 and 3.13.16, 74/74 WP6 mutations killed or equivalent (one declared). Report
-  docs/WP6_REPORT.md; real OCR and hardening on the VM (WP7). Waiting for the final audit;
-  WP4 not before its green light.
+  docs/WP6_REPORT.md; real OCR and hardening on the VM (WP7).
+- Final audit of WP6 (`8bebd90`): **WP6 validated** (deadline, file / page provenance of the
+  warnings and finite OCR confidences confirmed; the NaN mutation's equivalence accepted;
+  OCR at 512 MiB, minimal ASGI, one retry after `SIGABRT` and the archive behaviour
+  accepted). Documentation aligned before WP4: OCR 512 MiB and weight 1 072 MiB (WP6_PLAN),
+  10 MiB, pypdfium2 / Pillow / Tesseract, extraction 300 s distinct from the model call
+  120 s, and the last SQLite descriptions of ARCHITECTURE, SCHEMAS, DEPLOYMENT, SECURITY,
+  PLAN, COSTS and this plan replaced by PostgreSQL (past audit rows kept, marked
+  superseded). Finding of the alignment: with PostgreSQL (0.8 GB) and the extractor at
+  3 GiB, the worst-case address-space total is about 6.3 GB on 8 GB, a margin of about
+  1.7 GB, below the ≥ 2 GB criterion: WP9 measures resident memory and, if needed, reduces
+  the extractor's budget first (DEPLOYMENT.md §2). Next: the WP4 plan (worker, fake
+  providers), including the invariant that a warning names a real extracted (file, page)
+  pair or both null (`invalid_output` otherwise).

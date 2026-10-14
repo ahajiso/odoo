@@ -4,7 +4,7 @@ Revision 2: the AI runs on a **separate server**; the Odoo VPS gets **no new ser
 no new network**, and its scripts are unchanged. Its only infrastructure change is the
 delivery of the module's secrets (D16), which with option (b) recreates `odoo_web` with one
 more read-only mount (§4.1, with its rollback). Revision 3: 4 vCPU / 8 GB with explicit
-concurrency, encrypted disk, `jobs.db` not backed up and `ledger.db` backed up, Docker-aware
+concurrency, encrypted disk, the `jobs` schema not backed up and the `ledger` schema backed up, Docker-aware
 firewall. Revision 4: fail-closed start through systemd (§3.1), local health checks (§3.2).
 Nothing is to run before the audit and the owner's go, except the read-only
 characterisation of §1.
@@ -52,17 +52,23 @@ sudo nft list ruleset 2>/dev/null || sudo iptables -S
 | Size | **4 vCPU, 8 GB RAM**, 40 GB disk (recommended, keeps 5 concurrent jobs); fallback 2 vCPU / 4 GB only with the reduced concurrency of ARCHITECTURE.md §5.2 (1 extraction, 1 OCR); a distinct, larger machine if Ollama comes (IA-5) |
 | Location | EU data centre of a provider chosen by the owner (the host is a processor too; its DPA in the processing records) |
 | OS | a supported LTS distribution, automatic security updates of the OS only (not of the containers), AppArmor enabled |
-| Disk | data volume (`/opt/ai`: `jobs.db`, `ledger.db`, secrets) **encrypted** (LUKS, key not held by the hosting provider, unlocked by the owner at boot or by a key file on a separate volume, to decide); swap off or encrypted; backup target encrypted |
+| Disk | data volume (`/opt/ai`: the PostgreSQL data directory with the `jobs` and `ledger` schemas, secrets) **encrypted** (LUKS, key not held by the hosting provider, unlocked by the owner at boot or by a key file on a separate volume, to decide); swap off or encrypted; backup target encrypted |
 | Access | SSH by key only, from the owner's addresses; no password login |
 | Inbound | the gateway's HTTPS port from the Odoo VPS address only (mTLS); nothing else |
 | Outbound | through `ai_egress` for the containers; OS updates for the host |
-| Test / production | one gateway per environment (separate ports, keys, CA-issued client certs, budgets, `jobs.db` and `ledger.db`); production only after the separation of `docs/deployment/investor_home.md` §0 |
+| Test / production | one gateway per environment (separate ports, keys, CA-issued client certs, budgets, the `jobs` schema and the `ledger` schema); production only after the separation of `docs/deployment/investor_home.md` §0 |
 
 Memory budget on 8 GB at the concurrency of ARCHITECTURE.md §5.2 (to confirm by §6):
-gateway 400 MB, LiteLLM proxy 1 GB, extractor 2.5 GB (3 text extractions of ~300 MB and
-2 OCR children of ~700 MB at peak), egress proxy 150 MB, OS and Docker 1 GB → about 5 GB,
-leaving about 3 GB of margin. On 4 GB with 1 extraction and 1 OCR: about 3.2 GB, margin
-0.8 GB, acceptable only with that reduced concurrency.
+gateway 400 MB, LiteLLM proxy 1 GB, extractor 3 GiB (WP6: a 512 MiB reserve for the
+service and a 2 560 MiB budget enforced at admission over the children's address space and
+their `tmpfs` bytes: text child 384 MiB, OCR child 512 MiB + its Tesseract 512 MiB + one
+bitmap 48 MiB = 1 072 MiB, input 10 MiB per request; WP9 measures and may lower it), egress
+proxy 150 MB, OS and Docker 1 GB → about 5.5 GB, plus PostgreSQL 0.8 GB (POSTGRES_PLAN.md
+§8 of the gateway repository) → about **6.3 GB on 8 GB, a margin of about 1.7 GB**, below the
+≥ 2 GB criterion of §6. These are worst-case **address-space** bounds (resident memory is
+lower); WP9 measures them, and if the measured margin is below 2 GB the extractor's budget
+is reduced first (one OCR child, or two text children). The 2 vCPU / 4 GB fallback is
+withdrawn (POSTGRES_PLAN.md, O7).
 
 ## 3. Containers and networks
 
@@ -70,7 +76,7 @@ leaving about 3 GB of margin. On 4 GB with 1 extraction and 1 OCR: about 3.2 GB,
 |---|---|---|---|---|---|
 | `ai_gateway` | own image, pinned base digest, hash-locked deps | `net_front` (published port), `net_llm`, `net_doc` | Odoo VPS only, mTLS (`LARTDUBATI-AI` rule) | **none**: dropped by the `LARTDUBATI-AI` default deny (SECURITY.md §7) | 1 CPU, 512 MB, pids 128 |
 | `ai_litellm` | LiteLLM image **by digest**, signature checked | `net_llm`, `net_egress` (both internal) | gateway only | through `ai_egress` only | 1 CPU, 1.5 GB, pids 256 |
-| `ai_extractor` | own image (pypdf / pdfminer, Tesseract fra/eng/fas), pinned | `net_doc` (internal) | gateway only | none | 2 CPU, 3 GB, pids 64; children capped by its own semaphore |
+| `ai_extractor` | own image (pypdfium2, Pillow, uvicorn; Tesseract 5 with fra / eng / fas `tessdata_fast`), pinned (`deploy/extractor/Dockerfile` of the gateway repository) | `net_doc` (internal) | gateway only | none | 2 CPU, 3 GB, pids 64; children capped by its own semaphore |
 | `ai_egress` | forward proxy, pinned digest | `net_egress` (internal), `net_out` (external) | `ai_litellm` only | allow-listed hosts, port 443, CONNECT only | 0.5 CPU, 128 MB |
 
 `net_llm`, `net_doc`, `net_egress` are `internal: true`; every network has a fixed
@@ -137,7 +143,7 @@ rules first.
 
 | Check | Used by | How | Network / secret |
 |---|---|---|---|
-| Docker `HEALTHCHECK` of the gateway | Docker, alerts | command inside the container: worker heartbeat file updated less than 60 s ago, `ledger.db` opens read-only, pragmas as expected | none / none |
+| Docker `HEALTHCHECK` of the gateway | Docker, alerts | command inside the container: worker heartbeat file updated less than 60 s ago, the database answers as `ai_gateway`, server settings as expected (POSTGRES_PLAN.md §5.5) | none / none |
 | Docker `HEALTHCHECK` of the extractor | Docker | command inside the container: service process alive, job directory writable | none / none |
 | Docker `HEALTHCHECK` of LiteLLM and of the proxy | Docker | command inside the container against its own loopback (`127.0.0.1`), unauthenticated liveness only, never reachable from another container or the host | loopback of its own namespace / none |
 | `GET /v1/health` | Odoo's cron | external route, mTLS + HMAC like all routes (SCHEMAS.md §1) | protected / Odoo's client cert and HMAC key |
@@ -228,9 +234,10 @@ in environment variables, in `odoo.conf`, or in backups of this repository.
   change it (COSTS.md §4).
 - **Firewall check**: every 5 minutes (`ai-firewall-check.timer`); on difference the stack
   is stopped and an alert sent (SECURITY.md §7, layer 2b).
-- **Purge**: hourly job deleting acknowledged results and results older than 7 days from
-  `jobs.db`; weekly `VACUUM` of `jobs.db` only in the maintenance window (new jobs answered
-  `503 maintenance`, no job `running`; ARCHITECTURE.md §5.1); the purge count is a metric.
+- **Purge**: hourly `jobs.purge_expired()` deleting acknowledged results and results older
+  than 7 days from the `jobs` schema (contents are application ciphertext whose per-job keys
+  are destroyed, POSTGRES_PLAN.md §5); PostgreSQL's autovacuum, no maintenance window; the
+  purge count is a metric.
 
 ## 6. Load and memory test (IA-1, before any deployment)
 
@@ -247,8 +254,8 @@ VPS is not involved.
 | Data | Where | Backup |
 |---|---|---|
 | Requests, proposals, jobs (Odoo side), attachments | Odoo database and filestore | existing `backup_db.sh` before installing or updating the module |
-| `jobs.db` (job inputs and results, temporary) | AI server, encrypted volume | **never backed up**; purged at `ack` or after 7 days |
-| `ledger.db` (financial metadata, idempotency tombstones) | AI server, encrypted volume | daily online backup to an encrypted target, kept 13 months |
+| the `jobs` schema (job inputs and results, temporary) | AI server, encrypted volume | **never backed up**; purged at `ack` or after 7 days |
+| the `ledger` schema (financial metadata, idempotency) | AI server, encrypted volume | daily encrypted export to a write-once target, verified by the owner's machine, kept 13 months (POSTGRES_PLAN.md §6) |
 | Configuration, prompts, schemas | private Git repository | Git |
 | Secrets | AI server and owner's password manager | not in any backup archive of the repo |
 

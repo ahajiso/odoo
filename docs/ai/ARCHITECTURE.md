@@ -4,7 +4,8 @@ Design only; names are proposals for the audit. Revision 2: separate server, thr
 processes, asynchronous jobs, three AI functions. Revision 3: `jobs.db` / `ledger.db`,
 explicit concurrency, `ack` after Odoo's commit, Docker-aware egress filtering. Revision 4:
 SQLite settings fixed (§5.1), stack started only after the firewall is verified
-(DEPLOYMENT.md §3.1).
+(DEPLOYMENT.md §3.1). 13/10/2026: SQLite superseded by PostgreSQL 16 (§5.1; WP2 of the
+gateway repository).
 
 ## 1. Components
 
@@ -30,7 +31,7 @@ SQLite settings fixed (§5.1), stack started only after the firewall is verified
 | Component | Holds | Talks to | Never |
 |---|---|---|---|
 | Odoo module | Odoo client cert + HMAC key (files, D16) | gateway (outbound HTTPS) | provider keys; calls to LiteLLM or providers; `sudo()` for final writes |
-| `ai_gateway` | HMAC verification key, TLS server cert, LiteLLM client key, `jobs.db` (temporary) and `ledger.db` (financial metadata) | Odoo (answers only), LiteLLM, extractor | provider keys; Internet; PostgreSQL; Odoo account; writes to Odoo |
+| `ai_gateway` | HMAC verification key, TLS server cert, LiteLLM client key, PostgreSQL access as `ai_gateway` (schema `jobs` temporary, schema `ledger` financial metadata) | Odoo (answers only), LiteLLM, extractor | provider keys; Internet; PostgreSQL; Odoo account; writes to Odoo |
 | `ai_litellm` | provider keys only | egress proxy | Odoo key; inbound from anything but the gateway; UI; database; retries or fallbacks of its own |
 | `ai_extractor` | nothing | answers the gateway | network egress; secrets; files after the job |
 | `ai_egress` | allow-list | approved API hosts | TLS interception; other hosts or raw IPs |
@@ -54,7 +55,7 @@ Odoo cron (short run)                     ai_gateway API              ai_gateway
                                                                        'succeeded'|'failed', settle cost
  ─ GET /v1/jobs/{id} (later, backoff) ──► state, result when final
  Odoo validates, stores, COMMITS
- ─ POST /v1/jobs/{id}/ack (after commit) ► result purged from jobs.db (idempotent)
+ ─ POST /v1/jobs/{id}/ack (after commit) ► result purged from the `jobs` schema (idempotent)
 ```
 
 Result handling order in Odoo (revision 3, audit point 4):
@@ -65,7 +66,7 @@ Result handling order in Odoo (revision 3, audit point 4):
 5. `ack` is idempotent: an already acknowledged or purged job answers `204`; a failed
    `ack` is retried by the next cron run; a never-acknowledged result is purged after
    7 days anyway. A crash between 3 and 4 only delays the purge; a crash before 3 loses
-   nothing (the result is still in `jobs.db`).
+   nothing (the result is still in the `jobs` schema).
 
 - Odoo never waits on a model: each cron run submits and polls, then ends (seconds).
 - Same `idempotency_key` + same body digest → the existing job (no second call); same key +
@@ -77,9 +78,9 @@ Result handling order in Odoo (revision 3, audit point 4):
   reservation stays until the daily reconciliation with the provider's usage. A new
   attempt needs a user action and a new key.
 - Worker crash before `attempt_started`: the job returns to `received` (nothing was sent).
-- Results kept in `jobs.db` until acknowledged, at most 7 days; then purged (§5.1). A
+- Results kept in the `jobs` schema until acknowledged, at most 7 days; then purged (§5.1). A
   `POST` with the key of a purged job answers `410 result_purged` from the idempotency
-  tombstone kept in `ledger.db`: never a second call.
+  tombstone kept in the `ledger` schema: never a second call.
 - Worker concurrency is bounded explicitly (§5.2), not only by container memory.
 
 ## 3. What is AI and what is Odoo code
@@ -146,79 +147,42 @@ Company rule on every model; investors refused by phase 4's default deny (tested
 
 ## 5. Gateway internals
 
-### 5.1 Two databases: `jobs.db` (temporary) and `ledger.db` (financial metadata)
+### 5.1 Storage: PostgreSQL 16, schemas `ledger` and `jobs`
 
-Revision 3 (audit point 1): one file could not be both purged after 7 days and backed up
-for 13 months.
+Owner's decision of 13/10/2026: the two SQLite files of revisions 3–4 are replaced by one
+PostgreSQL 16 database (`lartdubati_ai`, its own container on `net_db`); design
+`docs/POSTGRES_PLAN.md` of the gateway repository (revision 7), implemented and validated
+in WP2 (`a174a16`), the SQLite store removed (`e1b1171`). The split of revision 3 is kept as
+two schemas:
 
-| | `jobs.db` | `ledger.db` |
+| | schema `jobs` | schema `ledger` |
 |---|---|---|
-| Content | job inputs (text, base64 files only while the job runs), validated results, errors | job id, request ref, opaque user ref, function, profile, **budget period** (month of the reservation), route, provider, model (from the gateway's configured catalogue only), tokens, SHA-256 of the provider's request id, amounts in billing currency (non-negative from callers), rate, date and source (configured list), EUR equivalent, kind (cost lines `reservation` / `settlement` / `manual_correction`, cancellation lines `release` / `reversal` naming the line they cancel in `reverses_id`; `reconciliation` comes with WP4), for a correction: opaque author ref, reason code (closed list), SHA-256 of the evidence kept in Odoo; idempotency key and body SHA-256 with the final state (tombstone) |
-| Never contains | – | document text, prompts, model output, extracted values, user text, file names, any free text (no reason or comment field: the human explanation of a correction stays in Odoo) |
-| Lifetime | inputs deleted when the job ends; results deleted at `ack` or after 7 days; job rows (metadata only) deleted 30 days after the end, idempotency kept by the tombstone (a replay or a `GET` answers `result_purged`); `secure_delete` on; `VACUUM` only in the maintenance window (below) | 13 months |
-| Backup | **none** | daily online backup, encrypted, kept 13 months |
-| Disk | encrypted volume of the AI server (DEPLOYMENT.md §2) | same, and encrypted backup target |
+| Content | job rows (state, lease, open attempt, retry counters of the extraction), job inputs and results as **application ciphertext** (per-job keys, POSTGRES_PLAN §5) | index, plan, attempts and their outcomes, job outcomes, cost lines (`reservation` / `settlement` / `manual_correction`, cancellations `release` / `reversal` naming the line they cancel), catalogue, rates; idempotency key and body SHA-256; opaque author ref, closed reason code and evidence SHA-256 of a correction |
+| Never contains | clear content | document text, prompts, model output, extracted values, user text, file names, any free text |
+| Rules | transitions enforced by triggers (T4, T5, V0002), contents removed at the final state | **insert-only** (T3), every rule in SQL (T1–T7, `check_invariants()`), the job's outcome follows its last attempt |
+| Lifetime | contents removed when the job ends, results at `ack` or after 7 days, rows 30 days after the end | 13 months (`purge_periods()`, retention role) |
+| Backup | **none** | daily export of the ledger, encrypted, to a write-once target, verified by the owner's machine (POSTGRES_PLAN §6) |
 
-Atomicity across both files (revision 4, settings fixed):
-- `ledger.db` is the **main** database; `jobs.db` is **attached** (`ATTACH`) on every
-  connection;
-- both files in the **same directory of the same encrypted filesystem** (`/opt/ai/data`),
-  so the super-journal and both journals live on one filesystem;
-- `PRAGMA journal_mode=DELETE` on both (never WAL: SQLite commits a transaction touching
-  several attached databases atomically through its super-journal only when the main
-  database is a file and the journal mode is not WAL);
-- `PRAGMA synchronous=FULL` on both;
-- **one gateway process, one `Store`, one connection** shared by the API and the worker
-  threads; every public method of the store holds its lock, so transactions never
-  interleave on the connection and no read sees another thread's uncommitted writes (audit
-  of WP2: the first version was not serialised); each write is `BEGIN IMMEDIATE`; several
-  processes would stay safe through SQLite's file locks (busy timeout 10 s) but are not
-  the planned deployment; throughput (a few jobs a minute) makes this sufficient;
-- **budget period**: every ledger row of a job carries the month of its reservation; a
-  release, settlement or correction written later stays in that month, so a job that
-  starts on 30/09 and ends on 01/10 is counted in September only; the month total sums the
-  rows of exactly that period (audit of WP2);
-- amounts from callers (reservations, costs, caps, overrides, target costs) are
-  non-negative; only the store writes the negative rows it needs (cancellations);
-- **every ledger line is true by itself** (second audit of WP2): a cost line is
-  non-negative with `eur = ceil(stored amount × rate)` at its own rate, date and source,
-  the stored amount being the amount rounded up to the micro (third audit of WP2); a
-  cancellation is the exact opposite of one cost line (amount, EUR, currency, rate, date,
-  source, period, route, provider, model), names it in `reverses_id`, and a line is
-  cancelled at most once; its tokens and provider request hash are read on the cancelled
-  line through `reverses_id`; a correction cancels
-  the job's active cost lines and adds one positive line at the target's own rate;
-- schema: at start the store checks the existing files **before any statement**: empty
-  files are initialised, otherwise the tables and `schema_version` must be exactly those of
-  the code, else it refuses to start and leaves the files untouched; migrations are an
-  explicit, backed-up, audited tool, never the start-up;
-- corrections need only the tombstone and the ledger, so they stay possible as long as the
-  ledger keeps the job (13 months), after `jobs.db` has dropped its row;
-- **provenance**: the reservation carries the planned route (provider and model from the
-  catalogue); a billable cost requires its usage (route, token counts; the provider's
-  request id, stored as SHA-256, is optional only when the provider gives none);
-- the gateway refuses to start if a pragma read back differs, or if the two files are not
-  on the same filesystem (`st_dev` compared).
+- The gateway connects as `ai_gateway` only (no DDL, no DELETE on the ledger); migrations
+  are explicit files applied by `tools/migrate.py` as `ai_migrator`, never at start-up; at
+  start the gateway checks the applied migrations, the catalogue fingerprint and the server
+  settings, and refuses to start otherwise.
+- Atomicity: one PostgreSQL transaction per operation (creation with its reservations and
+  idempotency, claim, attempt start, attempt end, final transition with settlement), row
+  locks and advisory locks as inventoried in POSTGRES_PLAN §4; the database clock, never
+  the caller's, dates periods and retention.
+- **Budget period**, **every ledger line true by itself**, **provenance** and the rules of
+  corrections are unchanged from revision 4 and now enforced in SQL (T1, T2, T7).
+- Retries of the extraction (WP6, migration V0002): `not_before`, `infrastructure_retries`
+  (0–5) and a per-file `document_retry_mask`; the delay is computed by the database.
+- Tests: crash points inside each transaction, concurrency, archives (export, trusted load,
+  restore), direct-SQL rules and mutations (T-S32 on PostgreSQL); the hard stop of the VM
+  during commits is part of WP9.
 
-**Maintenance window for `VACUUM`** (weekly): the gateway answers new jobs with `503
-maintenance`, waits until no job is `running`, runs `VACUUM` on `jobs.db` only, then
-resumes; never during job execution. `ledger.db` is not vacuumed (append-mostly).
-
-Tests: an application exception and a `SIGKILL` of the gateway during the commit, and a
-**hard stop of the test machine** (reset of the virtual machine) during a loop of commits;
-after restart, each transaction is either fully present in both files or absent from both
-(T-S32).
-
-`POST /v1/jobs` in one `BEGIN IMMEDIATE` transaction over both files:
-1. lookup of the key in `ledger.db` (tombstone) and `jobs.db`: same digest → the job, or
-   `410 result_purged` if its result is gone; other digest → 409;
-2. kill switch, `REAL_DATA_ALLOWED` (false until D6), month and request caps with the
-   **worst-case** estimate;
-3. insert job `received` (`jobs.db`), reservation and tombstone (`ledger.db`);
-4. commit → 202. Any failure → rollback of both.
-
-Worker transition `received → running` by a conditional update with a lease. Final
-transition (`jobs.db`), settlement and tombstone state (`ledger.db`) in one transaction.
+`POST /v1/jobs` in one transaction: lookup of the key (same digest → the job, or `410
+result_purged` if its result is gone; other digest → 409); kill switch, `REAL_DATA_ALLOWED`
+(false until D6), month and request caps with the **worst-case** estimate; job `received`,
+encrypted parts, reservations and index; commit → 202. Any failure → rollback.
 
 ### 5.2 Concurrency (audit point 2)
 
@@ -263,12 +227,15 @@ Candidates are sent as `p1`, `cat3`… never database ids; the model answers wit
 
 ## 8. Document chain
 
-1. Upload in Odoo; type by magic bytes (PDF, PNG, JPEG), ≤ 10 MB, ≤ 50 pages; Odoo
+1. Upload in Odoo; type by magic bytes (PDF, PNG, JPEG), ≤ 10 MiB, ≤ 50 pages; Odoo
    pre-check on the file metadata (and on the text layer if Odoo can read it locally
    without new dependencies; otherwise the gateway's pre-check is the first one on the
    content, which happens on the company's own AI server, before any external call).
-2. Gateway → extractor: one disposable sandboxed child process per document
-   (SECURITY.md §8): text layer per page, OCR only for pages without text (D7).
+2. Gateway → extractor: one disposable sandboxed child process per document and phase
+   (SECURITY.md §8; WP6_PLAN.md of the gateway repository): text layer per page
+   (pypdfium2, Pillow for images), OCR (Tesseract) only for pages with fewer than 50 letters
+   and some ink (D7); the whole extraction of a job is bounded by **300 s** on one clock,
+   before and separately from the model call (`timeout_s` below).
 3. Pre-check on extracted text; detected sensitive content → job `blocked_confidential`
    before any LiteLLM call.
 4. Chunking per page / paragraph with `chunk_id`, page, document sha256.
@@ -285,7 +252,7 @@ read-only, in a private configuration repository, with their SHA-256 returned as
 # profiles.yaml (gateway)
 profiles:
   fast:      {route: r_fast,  max_cost_eur: <…>, timeout_s: 30}
-  document:  {route: r_doc,   max_cost_eur: <…>, timeout_s: 120}
+  document:  {route: r_doc,   max_cost_eur: <…>, timeout_s: 120}   # the model call only; extraction: 300 s before it
   reasoning: {route: r_reas,  max_cost_eur: <…>, timeout_s: 180}
   local:     {route: r_local, enabled: false}
 routes:

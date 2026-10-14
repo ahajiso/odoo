@@ -13,7 +13,7 @@ until verified on the official pages and accounts; LiteLLM in its own process, a
 the gateway's secrets; a hardened extractor.
 
 Revision 3 answers the audit of c9e5427, limited to its four blocking points and its
-complements (§10): `jobs.db` (temporary, never backed up) separated from `ledger.db`
+complements (§10): the `jobs` schema (temporary, never backed up) separated from the `ledger` schema
 (financial metadata, backed up) on an encrypted disk; 4 vCPU / 8 GB with explicit worker
 concurrency; egress filtering in a dedicated chain reached from Docker's `DOCKER-USER` (revision of
 IA1_PLAN.md: never flushed) with a proxy that resolves
@@ -21,7 +21,8 @@ names and refuses private and metadata addresses; `ack` only after Odoo's commit
 
 Revision 4 answers the audit of c325634 (§11): fail-closed start (the AI containers run
 only after the firewall rules are installed and verified, through systemd), SQLite
-settings fixed, Docker's local health checks separated from the protected route.
+settings fixed (superseded on 13/10/2026: PostgreSQL 16, ARCHITECTURE.md §5.1), Docker's
+local health checks separated from the protected route.
 
 This is still a plan for audit. No module, container, key or API call is created by it.
 Development starts only after the owner's answers to §6 and the auditor's green light.
@@ -168,7 +169,7 @@ that circuit's own audited development. Rights are checked with the target model
 | Phase | Content | Writes in Odoo | Real API | Exit criteria |
 |---|---|---|---|---|
 | **IA-0** | this plan, decisions §6 | none | none | audit passed, decisions answered |
-| **IA-1** | AI server alone: gateway (API + worker, `jobs.db` / `ledger.db`), LiteLLM proxy, extractor, egress proxy, **fake provider and synthetic data only**; memory and egress tests | none (no Odoo) | **none** | SECURITY.md §12 tests green (except T-S01b); egress proof; memory measured at the configured concurrency; digests recorded |
+| **IA-1** | AI server alone: gateway (API + worker, the `jobs` schema / the `ledger` schema), LiteLLM proxy, extractor, egress proxy, **fake provider and synthetic data only**; memory and egress tests | none (no Odoo) | **none** | SECURITY.md §12 tests green (except T-S01b); egress proof; memory measured at the configured concurrency; digests recorded |
 | **IA-1b** | capped acceptance run on real models with synthetic documents (adversarial ones included, T-S01b), token measurement | none | yes, capped, synthetic only | only after D3, D4 (identifiers and prices verified, §1.3) and D6 |
 | **IA-2** | module, read-only assistant: pre-check, interpretation, Odoo searches, extraction, questions, proposal; kill switch; cost display | only its own models | yes, **only after D6**; before D6 the module is tested with the fake gateway only | no other model written (test); investor refused; disabled / down modes tested |
 | **IA-3** | drafts in `product.creation.request` and `equipment.operation` only, as the user, with their checks; structured proposals for the rest | drafts only | yes | each draft passes the same checks as a manual one; user without rights gets the proposal, not a draft; config change between proposal and draft refused |
@@ -262,7 +263,7 @@ it shows the treatment Odoo's configuration gives (categories, profiles, C1–C2
 | s2 | Injection test with a fake provider proves only validation | **Agreed**: capped acceptance run with synthetic adversarial documents on the real models; both results reported | SECURITY.md §12, T-S01b |
 | s3 | Jurisdiction compatibility of fallbacks | **Fixed**: data-policy attributes per route, « equal or stricter » rule, owner's explicit list | SECURITY.md §6 |
 | s4 | Rights to create each draft | **Fixed**: `check_access('create')` as the user; no rights → proposal only | §3; ARCHITECTURE.md §4 |
-| s5 | Reservation, idempotency, job state atomic | **Fixed**: one SQLite transaction (`BEGIN IMMEDIATE`) | ARCHITECTURE.md §5 |
+| s5 | Reservation, idempotency, job state atomic | **Fixed**: one SQLite transaction (`BEGIN IMMEDIATE`); since 13/10/2026 one PostgreSQL transaction (ARCHITECTURE.md §5.1) | ARCHITECTURE.md §5 |
 | s6 | Budget in the billing currency | **Fixed**: ledger keeps provider currency amount, rate and its date, EUR equivalent | COSTS.md §4 |
 
 
@@ -270,7 +271,7 @@ it shows the treatment Odoo's configuration gives (categories, profiles, C1–C2
 
 | # | Point | Answer | Where |
 |---|---|---|---|
-| 1 | One SQLite file both purged (results) and backed up 13 months (ledger) | **Fixed**: `jobs.db` (inputs and results, never backed up, purged at `ack` or 7 days, `secure_delete`, `VACUUM`) and `ledger.db` (financial metadata and idempotency tombstones only, backed up 13 months); atomic transactions across both through `ATTACH` in rollback-journal mode; AI server's data disk, swap and backup target encrypted | ARCHITECTURE.md §5.1; SECURITY.md §11; DEPLOYMENT.md §2, §7; T-S30–T-S32 |
+| 1 | One SQLite file both purged (results) and backed up 13 months (ledger) | **Fixed**: `jobs.db` (inputs and results, never backed up, purged at `ack` or 7 days, `secure_delete`, `VACUUM`) and `ledger.db` (financial metadata and idempotency tombstones only, backed up 13 months); atomic transactions across both through `ATTACH` in rollback-journal mode; AI server's data disk, swap and backup target encrypted | ARCHITECTURE.md §5.1; SECURITY.md §11; DEPLOYMENT.md §2, §7; T-S30–T-S32 *(Superseded on 13/10/2026: PostgreSQL 16 replaces SQLite, ARCHITECTURE.md §5.1.)* |
 | 2 | 4 GB too tight for 5 concurrent jobs with OCR | **Fixed**: 4 vCPU / 8 GB recommended; explicit semaphores (5 jobs, 3 extractions, 2 OCR, 5 LLM calls) in the worker and in the extractor; 4 GB only with 1 extraction and 1 OCR; load test at the configured concurrency | ARCHITECTURE.md §5.2; DEPLOYMENT.md §2, §6; T-S34 |
 | 3 | Filtering must cover Docker's own chains | **Fixed**: `DOCKER-USER` default deny for the AI subnets, outbound only from the proxy (443, DNS to fixed resolvers), inbound only from the Odoo VPS, `userland-proxy: false`, rules re-applied and checked daily; proxy with source ACL, DNS by the proxy, refusal of private, loopback, link-local, CGNAT and metadata addresses after resolution; tests that gateway and LiteLLM cannot bypass it | SECURITY.md §7; DEPLOYMENT.md §3; T-S20–T-S23d |
 | 4 | `ack` before Odoo's commit loses results | **Fixed**: GET → validate → store → commit → `ack`; `ack` idempotent (204); purged key answers `410` without a new call | ARCHITECTURE.md §2; SCHEMAS.md §1; T-S33 |
@@ -287,7 +288,7 @@ it shows the treatment Odoo's configuration gives (categories, profiles, C1–C2
 | # | Point | Answer | Where |
 |---|---|---|---|
 | 1 | Start-up race between Docker, the AI containers and the `DOCKER-USER` rules | **Fixed**: no Docker restart policy and `live-restore: false`; `ai-firewall.service` installs and verifies the rules; `ai-stack.service` (`Requires=` / `After=` docker and ai-firewall, `PartOf=docker.service`) verifies again in `ExecStartPre` and only then starts the containers; on failure they stay stopped; 5-minute timer stops the stack on any difference; restarts only through `systemctl restart ai-stack` | SECURITY.md §7 layer 2b; DEPLOYMENT.md §3.1; T-S23d–T-S23f |
-| 2 | SQLite atomicity details | **Fixed**: `ledger.db` main, `jobs.db` attached, same directory on the same encrypted filesystem (checked at start), `journal_mode=DELETE`, `synchronous=FULL`, single writer, `VACUUM` only in a maintenance window with no job running; test with exception, `SIGKILL` and hard reset of the test machine | ARCHITECTURE.md §5.1; T-S30, T-S32 |
+| 2 | SQLite atomicity details | **Fixed**: `ledger.db` main, `jobs.db` attached, same directory on the same encrypted filesystem (checked at start), `journal_mode=DELETE`, `synchronous=FULL`, single writer, `VACUUM` only in a maintenance window with no job running; test with exception, `SIGKILL` and hard reset of the test machine | ARCHITECTURE.md §5.1; T-S30, T-S32 *(Superseded on 13/10/2026: PostgreSQL 16 replaces SQLite, ARCHITECTURE.md §5.1.)* |
 | 3 | Health check vs protected routes | **Fixed**: Docker health checks are commands inside each container (no network beyond its own loopback, no secret); `/v1/health` is an external route protected by mTLS + HMAC, used by Odoo's cron | DEPLOYMENT.md §3.2; SCHEMAS.md §1 |
 
 Scope announced by the auditor once this revision is accepted: **IA-1 only**, fake
