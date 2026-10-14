@@ -585,3 +585,14 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   score defined; lists hand-written for the project. One deviation argued for the audit:
   « email » or « phone » followed by a space is refused only before a hex run. Waiting for
   its audit.
+- Audit of `8c998e3`: green light for WP5 (reserved-form rule accepted, rule 4 to drop or
+  justify, Persian lists to be reviewed by a Persian reader before IA-1b or IA-2). WP5
+  developed in the gateway repository (`6a6f137`..`84acad0`): Q5 (`confidentiality_refused`
+  as an attempt-less end, SQL and store), `gateway/precheck/` (per-segment normalisation
+  with a map to the original, detectors with their checks, fr / en / fa identification
+  against nine decoys with exact rational rules, the recursive field matrix, levels,
+  minimisation and the placeholder cycle). 845 tests on Python 3.12.3 and 3.13; 53 WP5
+  mutations and 2 Q5 mutations, all killed. Decisions for the audit in docs/WP5_REPORT.md
+  §2 (rule 4 dropped, Iranian code needs its keyword, Arabic exclusive letters reduced to
+  ة, cards never after « + », mobile prefixes with lengths). Waiting for its audit; WP6
+  waits.
