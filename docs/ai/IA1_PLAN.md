@@ -673,3 +673,10 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   the extractor's budget first (DEPLOYMENT.md §2). Next: the WP4 plan (worker, fake
   providers), including the invariant that a warning names a real extracted (file, page)
   pair or both null (`invalid_output` otherwise).
+- Audit of the alignment (`12e2f8f` / `e174481`): two contradictions corrected (`10abc71`):
+  the gateway's own PostgreSQL no longer listed as forbidden; `ai_postgres` and `net_db` in
+  the components, the network diagram and the container table (internal, gateway only, no
+  egress, encrypted volume, 768 MiB). Memory decision: VM 4 vCPU / 8 GB kept; WP9 exit
+  criterion a margin ≥ 2 GB measured in RSS / cgroup, no production otherwise; first
+  fallback the reduced extractor profile (2.5 GiB, OCR 1, text 2, `limits.json` adapted),
+  then a larger VM. WP4 plan authorised, no WP4 code before its audit.
