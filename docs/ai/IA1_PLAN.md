@@ -577,3 +577,11 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   and nine decoys, every string of an answer checked for reserved forms with a 128-bit
   namespace, `content_b64` in the matrix with a recursive exhaustiveness test, exact phone
   forms, per-segment normalisation with position mapping. Waiting for its audit.
+- Audit of `4721ad2` (WP5 plan revision 3): two blocking points (the reserved-form pattern
+  missed `_` and a bare prefix; short texts accepted without a positive language proof)
+  and three precisions. Revision 4: deterministic reserved-form checks (canonical form,
+  issued set, reserved prefixes), repeated after restoration; positive proof of fr / en /
+  fa for short extracted pages, interface language only for short user text; mixed fr / en
+  score defined; lists hand-written for the project. One deviation argued for the audit:
+  « email » or « phone » followed by a space is refused only before a hex run. Waiting for
+  its audit.
