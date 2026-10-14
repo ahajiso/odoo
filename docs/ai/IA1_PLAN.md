@@ -529,3 +529,13 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   Python 3.12.3 and 3.13; 64 PostgreSQL mutations: 58 killed, 6 declared equivalent.
   Report and SQLite → PostgreSQL coverage matrix: docs/WP2_REPORT.md of the gateway
   repository; deviations listed there for the audit. Waiting for the audit; WP3 waits.
+- Audit of `d54e126`: WP2 almost validated (6 equivalent mutations, coverage matrix and
+  the six deviations accepted; GET of a purged result → 410, tested in WP3; V0001 may
+  still be corrected; the missing real S3 adapter blocks real data, not WP3). Blocking:
+  the attempt result → job state / error mapping. Corrected in `6a6c47c`, `a174a16`:
+  `ledger.outcome_fits()` in T7 and `check_invariants()` (`outcome_mismatch`), job error
+  in `check_consistency()`, PgStore derives and refuses; direct SQL (every pair),
+  application, altered-outcome and tampered-archive tests; README and CLAUDE.md of the
+  gateway updated. 615 tests on Python 3.12.3 and 3.13; 74 PostgreSQL mutations: 67
+  killed, 7 declared equivalent (new: « T7 answered not the result », covered by the
+  mapping). Waiting for the audit; WP3 waits for its green light.

@@ -355,7 +355,7 @@ AI. Independent AI assistant (owner's mission of 12/10/2026): docs/ai/ (PLAN, AR
    validated by the audit of bdb2548: IA-1 authorised in the separate private repository
    lartdubati-ai-gateway (WP1-WP6, WP8 unit tests first; WP7, WP9 wait for the 4 vCPU / 8 GB
    Ubuntu 24.04 VM), no real call, no provider key, no real data, no change to Odoo; the
-   repository is ahajiso/odoo_ai_assistant (owner's choice); WP1 validated (audit of 92e9a27); WP2 SQLite superseded by the owner (13/10/2026): WP2 on PostgreSQL 16, plan docs/POSTGRES_PLAN.md of the gateway repository, revision 7 (8d739cd) authorised by its audit; WP2 on PostgreSQL developed (d54e126: 531 tests, 64 mutations, 58 killed and 6 declared equivalent), report docs/WP2_REPORT.md of the gateway repository, waiting for its audit; IA-1b and IA-2 wait for D3, D4, D6. Separate module `lartdubati_ai_assistant` and gateway
+   repository is ahajiso/odoo_ai_assistant (owner's choice); WP1 validated (audit of 92e9a27); WP2 SQLite superseded by the owner (13/10/2026): WP2 on PostgreSQL 16, plan docs/POSTGRES_PLAN.md of the gateway repository, revision 7 (8d739cd) authorised by its audit; WP2 on PostgreSQL developed (d54e126); audit of d54e126: attempt result → job state / error mapping to enforce, corrected (a174a16: 615 tests, 74 mutations, 67 killed and 7 declared equivalent), report docs/WP2_REPORT.md of the gateway repository, waiting for its audit, WP3 waits for the green light; IA-1b and IA-2 wait for D3, D4, D6. Separate module `lartdubati_ai_assistant` and gateway
    `lartdubati-ai-gateway`; never mixed into the catalogue module; every existing circuit
    works with the AI disabled or down.
 Last. Manual rewrite for all phases (cards citing removed or changed fields, new
