@@ -539,3 +539,14 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   gateway updated. 615 tests on Python 3.12.3 and 3.13; 74 PostgreSQL mutations: 67
   killed, 7 declared equivalent (new: « T7 answered not the result », covered by the
   mapping). Waiting for the audit; WP3 waits for its green light.
+- Audit of `a174a16`: WP2 on PostgreSQL validated (7 equivalent mutations, the six
+  deviations and the coverage matrix accepted); green light for WP3. SQLite store removed
+  in a dedicated commit (`e1b1171`, generic amount tests kept). WP3 developed (`2f0de7c`..):
+  API (jobs, ack, health) behind mutual TLS (TLS 1.3, private CA, client certificate
+  required) and HMAC (signed requests and answers, ±60 s, nonce cache, refusal of requests
+  signed before start, two keys), kill switch, `REAL_DATA_ALLOWED=true` refused before D6,
+  maintenance flag, 410 on a purged result, every answer checked against the contract,
+  test client and test CA per run; a WP2 read defect found and fixed (metadata arrays).
+  628 tests on Python 3.12.3 and 3.13; 33 WP3 mutations, 33 killed. Report and decisions
+  for the audit: docs/WP3_REPORT.md of the gateway repository. Waiting for the audit;
+  WP5 waits.
