@@ -150,7 +150,7 @@ Input: `{"document_kind_hint": "insurance_policy" | "bill" | "quote" | "contract
 `fields` and their order come from Odoo's table per intent and document kind (contract
 clauses included: this replaces revision 1's `analyse_contract`).
 
-Output: `{"document_kind": {choice among the hint list}, "fields": {name → extracted value | amount | choice}, "lines": [{"description", "quantity", "unit_price"}], "warnings": [{"code": "instruction_like_text" | "low_ocr_quality" | "pages_skipped", "page": 2}]}`
+Output: `{"document_kind": {choice among the hint list}, "fields": {name → extracted value | amount | choice}, "lines": [{"description", "quantity", "unit_price"}], "warnings": [{"code": "instruction_like_text" | "low_ocr_quality" | "pages_skipped", "file": 1, "page": 2}]}` (`file`: index 1–3 in `input.files`, or null; added in WP6 after the audit of d4017cf so the same page number in two files gives two warnings; `instruction_like_text` is also produced by the gateway itself, deterministically)
 
 ### 4.3 `resolve_ambiguity`
 
