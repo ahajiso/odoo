@@ -613,4 +613,11 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   bound 24× set from measurements (linear worst 11.7× under load, quadratic mutation 59×);
   wall time kept only for the 1 MB ceiling. Performance file passed three times in a row
   with eight busy loops on four cores; quadratic mutation killed; 919 tests on Python
-  3.12.3 and 3.13.16. Waiting for the audit; WP6 not before its green light.
+  3.12.3 and 3.13.16.
+- Audit of `bf34697`: functional and confidentiality still validated; the timed growth
+  ratio still not reproducible (`identify` 31× once for 24×). Test-only correction
+  (`9c237ec`): the card window loop moved to `detectors.card_windows`, which counts its
+  inner iterations; tests require at most 20 per digit group (synthetic lengths and the
+  eleven adversarial units); the quadratic mutation fails deterministically; 1 MB wall-time
+  smoke test kept. Performance file three times green, 6/6 card mutations killed, 934 tests
+  on Python 3.12.3 and 3.13.16. Waiting for the audit; WP6 not before its green light.
