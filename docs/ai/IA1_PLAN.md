@@ -620,4 +620,9 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   inner iterations; tests require at most 20 per digit group (synthetic lengths and the
   eleven adversarial units); the quadratic mutation fails deterministically; 1 MB wall-time
   smoke test kept. Performance file three times green, 6/6 card mutations killed, 934 tests
-  on Python 3.12.3 and 3.13.16. Waiting for the audit; WP6 not before its green light.
+  on Python 3.12.3 and 3.13.16.
+- Audit of `9c237ec`..`b18d89e`: **WP5 validated** (144 detector tests and 59 performance /
+  complexity tests green on the auditor's machine, `card_windows()` equivalent to the former
+  loop on 10 000 random cases, bound checked up to 64 000 groups, quadratic mutation
+  500 500 iterations for 20 000). WP6 authorised (document extraction, strict limits per page
+  and per document); its plan comes first, for audit.
