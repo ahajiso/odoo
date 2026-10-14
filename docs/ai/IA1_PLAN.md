@@ -695,5 +695,13 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   (`budget_request_exceeded` without attempt); returned model ≠ frozen model → `invalid_output`,
   usage always settled when known, kept when missing, real cost and refusal above the bounds;
   summary warning per category when the list is cut; routing manifest without secret, LiteLLM
-  configuration rendered with key references, WP7 proofs; Q12–Q15 new. Waiting for its audit;
-  no WP4 code before.
+  configuration rendered with key references, WP7 proofs; Q12–Q15 new. Audit of `6a2ff93`:
+  six answers validated, four points left (reservation per attempt, supervision, HTTP 200
+  without a usable answer, subprocessors).
+- WP4 plan revision 3 (`88fcb44`): one request, reservation and size check per attempt, one
+  common data block under the smallest budget with an exact worst-case size (about 216 KB for
+  the three mandatory chunks); independent watchdog checked by the scheduler, fatal stop of
+  the process, pre-send fence on a monotonic lease deadline, store fence; fixed order of the
+  HTTP 200 checks with separate rows; subprocessors as normalised triplets (subset for the
+  same entity, versioned owner approval of the pair between entities); Q16–Q18 new. Waiting
+  for its audit; no WP4 code before.
