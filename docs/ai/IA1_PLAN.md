@@ -722,5 +722,7 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   deviations accepted). Corrected (`598ef97`..): gate reads the stop, store never closed under
   a live worker, permits waited for with beats and the gate, usage bounded before Money / SQL,
   monthly budget alert once per period, future rates refused, `set_cost.py` connection file,
-  fatal path without logging; 1 441 tests on 3.12 / 3.13, 77/77 WP4 mutations. Waiting for
-  the audit.
+  fatal path without logging; 1 441 tests on 3.12 / 3.13, 77/77 WP4 mutations. **WP4
+  validated by the audit of `555f527`**; follow-ups for WP7: exported budget metric (today a
+  log line and an in-memory event), route test and mutation for the budget check after
+  `POST /v1/jobs`. Next: WP7 on the disposable VM (plan first), then WP8.
