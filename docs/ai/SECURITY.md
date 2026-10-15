@@ -175,13 +175,19 @@ exist and are verified, after a boot or a Docker restart:
 - containers have **no Docker restart policy** (`restart: "no"`) and the daemon runs with
   `live-restore: false`: Docker never starts or keeps them on its own;
 - `ai-firewall.service` (oneshot, `After=docker.service`, `Requires=docker.service`,
-  `PartOf=docker.service`): installs the jump (idempotent) and the content of `LARTDUBATI-AI`,
+  `BindsTo=docker.service`): installs the jump (idempotent) and the content of `LARTDUBATI-AI`,
   then verifies both against the expected file; fails if they differ;
 - `ai-stack.service` (`Requires=docker.service ai-firewall.service`,
-  `After=docker.service ai-firewall.service`, `PartOf=docker.service`): `ExecStartPre` runs
-  the same verification again, `ExecStart` starts the compose project, `ExecStop` stops it;
+  `After=docker.service ai-firewall.service`, `BindsTo=docker.service containerd.service`):
+  `ExecStartPre` runs the same verification again and refuses a firewall applied before the
+  current Docker instance, `ExecStart` starts the compose project, `ExecStop` stops it;
   if the verification fails, nothing is started;
-- a Docker restart stops `ai-stack` (`PartOf`), re-runs `ai-firewall`, then `ai-stack`;
+- a full boot runs `ai-firewall`, its verification, then `ai-stack`; after **any** stop,
+  restart or crash of Docker or containerd, `ai-stack` and `ai-firewall` stop (`BindsTo=`) and
+  **stay stopped**: no `PartOf=`, neither unit is wanted by `docker.service`; the only resume is
+  the controlled command `ai-resume` (restart `ai-firewall`, verify, start `ai-stack`); jobs
+  interrupted become `outcome_unknown` only after that resume, by the lease recovery (audit of
+  WP7 plan `36d5443`);
 - `ai-firewall-check.timer` (every 5 minutes): verification; on difference, `systemctl stop
   ai-stack` and an alert (fail closed);
 - operational rule: the AI containers are never started by hand with `docker start` /
@@ -221,8 +227,8 @@ traffic (already covered by the default deny). Tested either way.
 | T-S23 | LiteLLM through the proxy | approved host with the right CA / with a test CA presenting a wrong certificate | works / refused by LiteLLM |
 | T-S23b | gateway, extractor | reach the proxy (`CONNECT` to an approved host) | impossible: not on `net_egress`; and the proxy's source ACL refuses any address but `ai_litellm`'s (tested from a test container on `net_egress`) |
 | T-S23c | outside | connect to the gateway port from an address other than the Odoo VPS | dropped |
-| T-S23d | host | restart Docker; reboot the host | rules present again; check passes |
-| T-S23e | host | reboot and `systemctl restart docker`, with a capture started before Docker on every AI bridge interface and on the external interface | no AI container running before `ai-firewall` succeeded (journal and `docker events` timestamps); no packet from the AI subnets to a non-allowed destination in the capture |
+| T-S23d | host | restart Docker; reboot the host | reboot: rules present, stack started through `ai-firewall` then `ai-stack`, check passes; Docker restart: stack stopped and still stopped after two timer runs, then `ai-resume` re-applies the rules and starts it |
+| T-S23e | host | reboot and `systemctl restart docker`, with a capture started before Docker on every AI bridge interface and on the external interface | no AI container running before `ai-firewall` succeeded after a reboot, and none at all after a Docker restart until `ai-resume` (journal and `docker events` timestamps); no packet from the AI subnets to a non-allowed destination in the capture |
 | T-S23f | host | remove one `LARTDUBATI-AI` rule or the jump from `DOCKER-USER`, then reboot with a corrupted expected-rules file | the timer stops `ai-stack` within 5 minutes; after reboot `ai-stack` does not start and no AI container runs |
 
 ## 8. Extractor hardening (D14)

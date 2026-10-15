@@ -163,10 +163,12 @@ most (no configuration, key or model list).
 
 **P4 – Brutal crash of `dockerd`.** **T-S36**: `kill -9` of `dockerd` (and separately of
 `containerd`) while jobs run, capture active; observe containers during the outage and
-after Docker's automatic restart, and the states of `ai-firewall` / `ai-stack`. Expected
-design: `BindsTo=docker.service` (with `PartOf=`) on both units; after the automatic
-restart the stack **stays stopped** until a controlled `systemctl start ai-stack`, with an
-alert; interrupted jobs become `outcome_unknown`. Result and final settings in the report.
+after Docker's automatic restart, and the states of `ai-firewall` / `ai-stack`. Design
+(amended by the audit of the WP7 plan `36d5443`): `BindsTo=docker.service` on both units
+(and `containerd.service` on `ai-stack`), **no `PartOf=`**; after any Docker restart or crash
+the stack **stays stopped** until the controlled `ai-resume` (restart `ai-firewall`, verify,
+start `ai-stack`), with an alert; interrupted jobs become `outcome_unknown` only after that
+resume, by the lease recovery. Result and final settings in the report.
 
 ## 4. Work packages
 
@@ -371,7 +373,7 @@ and the final unit and firewall settings; it is audited.
 | H-AI-3 | 4 vCPU / 8 GB at the configured concurrency | WP9 |
 | H-AI-6 | no Internet DNS from internal networks | T-S21 |
 | H-IA1-1 | `iptables-restore --noflush` with one `COMMIT` is atomic on Ubuntu 24.04 | T-S37 |
-| H-IA1-2 | `BindsTo=` keeps the stack stopped after a `dockerd` crash until a controlled resume | T-S36 |
+| H-IA1-2 | `BindsTo=` (no `PartOf=`) keeps the stack stopped after a `dockerd` or `containerd` crash until `ai-resume` | T-S36 |
 | H-IA1-3 | LiteLLM's unauthenticated health routes can be disabled or are reachable only from the gateway | T-S35 |
 
 Not settled by IA-1: H-AI-2 (Odoo reachability), H-AI-4 (provider settings), H-AI-5 (real
@@ -731,4 +733,18 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   firewall generator / apply / verify / change, units with `BindsTo=`, health checks,
   environment allow-lists, the WP4 proofs, WP3 / WP6 leftovers, WP4 follow-ups; files and
   unit tests here, suites on the VM; Q1–Q6 (who runs the VM, proxy, budget metric, AppArmor,
-  LUKS on the VM, stand-in Odoo address). Waiting for its audit; no WP7 code before.
+  LUKS on the VM, stand-in Odoo address). Audit of `36d5443`: not validated (extractor
+  AppArmor and seccomp belong to WP7; Compose ignores secret uid / gid / mode; `PartOf` /
+  `BindsTo` restart nothing: after any Docker restart or crash the stack stays stopped until a
+  controlled resume; PCAPs hold tokens and canaries; Debian packages, SBOM, scanner policy,
+  LiteLLM provenance). Q1 (SSH to the disposable VM only, expiring key), Q2 (Squid from a dated
+  snapshot), Q3, Q5 (key typed manually), Q6 decided; Q4 refused.
+- WP7 plan revision 2: AppArmor profile, seccomp generated from Docker's default minus a fixed
+  list, and a Landlock ruleset per job in `launch.py`; secrets as host files (numeric owners,
+  per-service read-only mounts, W7-1 cross-read); units with `BindsTo=` only, `stack-precheck`
+  refusing a firewall older than Docker, `ai-resume`; raw captures 0600 on the LUKS volume,
+  header-only flow summaries, manifest and signed result; Debian snapshot with exact versions,
+  Trivy policy (critical fails), Syft SBOM; LiteLLM built from a pinned source commit with
+  hash-locked dependencies; `check-subnets`; protected `metrics.prom`; T-S23c from outside;
+  single API (W7-4). P4 above, SECURITY.md layer 2b and DEPLOYMENT.md §3.1 amended to the
+  resume rule. Waiting for its audit; no WP7 code before.

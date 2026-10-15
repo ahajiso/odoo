@@ -111,10 +111,11 @@ Docker daemon: `live-restore: false`, `userland-proxy: false`, `iptables: true`.
 Description=AI server firewall (chain LARTDUBATI-AI and its jump from DOCKER-USER)
 Requires=docker.service
 After=docker.service
-PartOf=docker.service
+BindsTo=docker.service                    # stop only; no PartOf=: nothing restarts it after Docker
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+ExecStartPre=/opt/ai/bin/check-subnets    # no overlap with routes, other Docker networks, VPNs
 ExecStart=/opt/ai/bin/firewall-apply      # jump (idempotent) + content of LARTDUBATI-AI; never flushes DOCKER-USER
 ExecStart=/opt/ai/bin/firewall-verify     # exits non-zero on any difference
 [Install]
@@ -124,12 +125,13 @@ WantedBy=multi-user.target
 [Unit]
 Description=AI server containers
 Requires=docker.service ai-firewall.service
-After=docker.service ai-firewall.service
-PartOf=docker.service
+After=docker.service containerd.service ai-firewall.service
+BindsTo=docker.service containerd.service
+RequiresMountsFor=/opt/ai/data
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStartPre=/opt/ai/bin/firewall-verify
+ExecStartPre=/opt/ai/bin/stack-precheck   # firewall-verify; firewall newer than Docker; subnets; AppArmor; secrets
 ExecStart=/usr/bin/docker compose -p ai -f /opt/ai/compose.yaml up -d --no-build
 ExecStop=/usr/bin/docker compose -p ai -f /opt/ai/compose.yaml stop
 [Install]
@@ -139,9 +141,12 @@ WantedBy=multi-user.target
 #   every 5 min: firewall-verify || (systemctl stop ai-stack; alert)
 ```
 
-Sequence after a boot or a Docker restart: Docker starts with no AI container running
-(no restart policy, no live restore) → `ai-firewall` installs and verifies → `ai-stack`
-verifies again and starts the containers. Rules missing or invalid → `ai-stack` fails,
+Sequence after a full boot: Docker starts with no AI container running (no restart policy,
+no live restore) → `ai-firewall` installs and verifies → `ai-stack` verifies again and starts
+the containers. After any stop, restart or crash of Docker or containerd: both units stop
+(`BindsTo=`) and **stay stopped**; the only resume is `/opt/ai/bin/ai-resume` (restart
+`ai-firewall`, verify, start `ai-stack`), after which the lease recovery sets the interrupted
+jobs `outcome_unknown` (audit of the WP7 plan `36d5443`). Rules missing or invalid → `ai-stack` fails,
 containers stay stopped, alert. Tests T-S23d, T-S23e, T-S23f (SECURITY.md §7). A
 container that crashes stays stopped (no restart policy): the health alert and the
 timer report it; it is restarted by `systemctl restart ai-stack`, which re-verifies the
