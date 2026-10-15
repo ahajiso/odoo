@@ -758,4 +758,8 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   no unexpected supplementary group in the seven services); a closed set
   `sensitive_raw_artifacts` (captures, `nft monitor` outputs, recorded bodies, other raw
   outputs) in the manifest, `DELETION.json` strictly equal to it. Q7 decided: owner
-  countersignature mandatory on `RESULT.json` and `DELETION.json`. Development under way.
+  countersignature mandatory on `RESULT.json` and `DELETION.json`. WP7 part 1 written and
+  unit-tested in the gateway repository (report `docs/WP7_REPORT.md` part 1, runbook
+  `docs/WP7_VM_RUNBOOK.md`); open for the audit: Landlock grants, provider keys in LiteLLM's
+  process environment only (DEPLOYMENT.md §4 wording), H-WP7-5 (gateway key without the master
+  key), H-WP7-6, H-WP7-7. Next: the VM campaign.
