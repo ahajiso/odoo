@@ -747,4 +747,10 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   Trivy policy (critical fails), Syft SBOM; LiteLLM built from a pinned source commit with
   hash-locked dependencies; `check-subnets`; protected `metrics.prom`; T-S23c from outside;
   single API (W7-4). P4 above, SECURITY.md layer 2b and DEPLOYMENT.md §3.1 amended to the
-  resume rule. Waiting for its audit; no WP7 code before.
+  resume rule. Audit of `08cc963..c56e6bf`: three targeted points (fakes sharing uid 10005,
+  `check-subnets` refusing the project's own routes after `compose stop`, deletion appended to a
+  signed result). Revision 3: one uid / gid per service and all pairs cross-read; project
+  networks created once as external networks, ids recorded, only their exact own routes
+  accepted; `DELETION.json` signed separately and chained to `RESULT.json`; fixable HIGH fails
+  in gateway / LiteLLM / Squid; Q7 (owner countersignature). Waiting for its audit; no WP7
+  code before.
