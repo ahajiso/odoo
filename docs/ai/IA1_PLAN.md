@@ -717,4 +717,10 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   warnings cut, pipeline, worker threads with watchdog and fatal stop, entry point (T-S40),
   `set_cost.py`; 1 418 tests on 3.12 / 3.13, 62/62 WP4 mutations killed (six survivors of the
   first run closed by tests). Deviations for the audit: settlement at the reservation's rate,
-  every entity approved, raw-socket client. Waiting for the code audit.
+  every entity approved, raw-socket client. Audit of `9363ae5`: not validated (stop did not
+  close the gate, permit waits counted as stuck, gigantic usage, `alert_ratio` unused; four
+  deviations accepted). Corrected (`598ef97`..): gate reads the stop, store never closed under
+  a live worker, permits waited for with beats and the gate, usage bounded before Money / SQL,
+  monthly budget alert once per period, future rates refused, `set_cost.py` connection file,
+  fatal path without logging; 1 441 tests on 3.12 / 3.13, 77/77 WP4 mutations. Waiting for
+  the audit.
