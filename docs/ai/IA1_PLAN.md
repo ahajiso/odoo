@@ -752,5 +752,10 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   signed result). Revision 3: one uid / gid per service and all pairs cross-read; project
   networks created once as external networks, ids recorded, only their exact own routes
   accepted; `DELETION.json` signed separately and chained to `RESULT.json`; fixable HIGH fails
-  in gateway / LiteLLM / Squid; Q7 (owner countersignature). Waiting for its audit; no WP7
-  code before.
+  in gateway / LiteLLM / Squid; Q7 (owner countersignature). **WP7 authorised by the audit of
+  `976af15`** with two corrections folded into the plan's first documentary commit: PostgreSQL
+  as 10007:10007 from an image derived from the pinned one (initialisation, restart, re-read,
+  no unexpected supplementary group in the seven services); a closed set
+  `sensitive_raw_artifacts` (captures, `nft monitor` outputs, recorded bodies, other raw
+  outputs) in the manifest, `DELETION.json` strictly equal to it. Q7 decided: owner
+  countersignature mandatory on `RESULT.json` and `DELETION.json`. Development under way.
