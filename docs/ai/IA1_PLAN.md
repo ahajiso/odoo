@@ -726,3 +726,9 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   validated by the audit of `555f527`**; follow-ups for WP7: exported budget metric (today a
   log line and an in-memory event), route test and mutation for the budget check after
   `POST /v1/jobs`. Next: WP7 on the disposable VM (plan first), then WP8.
+- WP7 plan revision 1 (`docs/WP7_PLAN.md` of the gateway repository): images by digest,
+  closed production compose and IA-1 overlay, fake provider program, proxy profiles,
+  firewall generator / apply / verify / change, units with `BindsTo=`, health checks,
+  environment allow-lists, the WP4 proofs, WP3 / WP6 leftovers, WP4 follow-ups; files and
+  unit tests here, suites on the VM; Q1–Q6 (who runs the VM, proxy, budget metric, AppArmor,
+  LUKS on the VM, stand-in Odoo address). Waiting for its audit; no WP7 code before.
