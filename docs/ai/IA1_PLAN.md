@@ -762,4 +762,8 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   unit-tested in the gateway repository (report `docs/WP7_REPORT.md` part 1, runbook
   `docs/WP7_VM_RUNBOOK.md`); open for the audit: Landlock grants, provider keys in LiteLLM's
   process environment only (DEPLOYMENT.md §4 wording), H-WP7-5 (gateway key without the master
-  key), H-WP7-6, H-WP7-7. Next: the VM campaign.
+  key), H-WP7-6, H-WP7-7. Audit of `04b2735..3fd8572`: not validated (five guards that could
+  sign an incomplete campaign), corrected in the gateway repository (report §6); decisions: keys
+  in LiteLLM's process environment accepted with core dumps off (DEPLOYMENT.md §4 amended),
+  `custom_auth` and H-WP7-6/7 blocking suites, Landlock grants accepted. Waiting for its audit,
+  then the VM campaign.

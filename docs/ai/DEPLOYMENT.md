@@ -185,11 +185,16 @@ metadata address is refused too.
 
 | Side | Files | Note |
 |---|---|---|
-| AI server | `/opt/ai/secrets/{anthropic,openai}_key` → `ai_litellm` only; `litellm_client_key` → gateway and LiteLLM; `hmac_keys`, TLS server key and cert, CA cert → gateway | directory 0700 root; mounted as Docker secrets (files, 0400) |
+| AI server | `/opt/ai/secrets/litellm/{anthropic,openai,master,gateway}_key` → `ai_litellm` only; `/opt/ai/secrets/gateway/litellm_key` (same value as LiteLLM's `gateway_key`), `hmac/`, TLS server key and cert, client CA cert → gateway | one directory per service, owned by its numeric uid, 0500, files 0400, bind-mounted read-only into that service only (Compose without Swarm ignores the uid / mode of `secrets:`; WP7_PLAN.md §2.2 of the gateway repository) |
 | Odoo VPS | Odoo client key and cert, CA cert, current HMAC key | fixed path inside `odoo_web`: **`/run/secrets/lartdubati_ai/`** (D16); `odoo.conf` holds no secret and, by default, nothing at all for the AI |
 
 The owner keeps a copy in a password manager; secrets never in Git, in the Odoo database,
-in environment variables, in `odoo.conf`, or in backups of this repository.
+in a **configured** environment (compose, image, host shell, `docker inspect`), in `odoo.conf`,
+or in backups of this repository. Single exception (audit of the WP7 part 1, `04b2735..3fd8572`):
+LiteLLM reads provider keys only through its process environment, so its entrypoint wrapper
+loads them from its own 0400 files into the process it `exec`s — never into the container's
+configuration — with core dumps disabled at every layer (compose `core: 0`, `RLIMIT_CORE` 0,
+the server's `core_pattern` `|/bin/false`), checked at each start and by a test.
 
 ### 4.1 D16 on the Odoo VPS (revision 3)
 
