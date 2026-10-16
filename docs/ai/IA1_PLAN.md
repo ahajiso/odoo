@@ -765,5 +765,7 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   key), H-WP7-6, H-WP7-7. Audit of `04b2735..3fd8572`: not validated (five guards that could
   sign an incomplete campaign), corrected in the gateway repository (report §6); decisions: keys
   in LiteLLM's process environment accepted with core dumps off (DEPLOYMENT.md §4 amended),
-  `custom_auth` and H-WP7-6/7 blocking suites, Landlock grants accepted. Waiting for its audit,
-  then the VM campaign.
+  `custom_auth` and H-WP7-6/7 blocking suites, Landlock grants accepted. Audit of
+  `1db86be..7c1c6a7`: campaign not bound to the tested code, destructive LUKS step; corrected
+  (immutable `CAMPAIGN.json`, every resource checked before any write, nested mounts refused).
+  Waiting for its audit, then the VM campaign.
