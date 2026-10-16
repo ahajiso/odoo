@@ -772,4 +772,7 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   campaign over run / finish / delete, atomic writes, identity checked again after each suite and
   before signing; LUKS volume built under `.pending` and published by an atomic link, mount points
   checked before any write; mode set by `fchmod`, empty directories in the tree digest).
-  Waiting for its audit, then the VM campaign.
+  WP7 local part validated at `5e70454` (audit of `5e70454..6396b7a`: 1 752 tests, 126/126 WP7
+  mutations). Next: the VM campaign (runbook of the gateway repository); WP7 done only after all
+  VM suites pass (real OCR included), RESULT.json signed and countersigned, audit, raw evidence
+  deleted, DELETION.json signed and countersigned.
