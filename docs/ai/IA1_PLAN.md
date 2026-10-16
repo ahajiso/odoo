@@ -768,4 +768,8 @@ separate private repository, disposable Ubuntu 24.04 LTS VM of 4 vCPU / 8 GB,
   `custom_auth` and H-WP7-6/7 blocking suites, Landlock grants accepted. Audit of
   `1db86be..7c1c6a7`: campaign not bound to the tested code, destructive LUKS step; corrected
   (immutable `CAMPAIGN.json`, every resource checked before any write, nested mounts refused).
+  Audit of `f701cae..c339752`: two interruption / concurrency cases; corrected (exclusive lock per
+  campaign over run / finish / delete, atomic writes, identity checked again after each suite and
+  before signing; LUKS volume built under `.pending` and published by an atomic link, mount points
+  checked before any write; mode set by `fchmod`, empty directories in the tree digest).
   Waiting for its audit, then the VM campaign.
