@@ -118,7 +118,7 @@ class ContractLine(models.Model):
         protected = {"equipment_billing_mode", "equipment_rental_start", "equipment_rental_end",
                      "product_id", "equipment_id", "equipment_nature", "contract_id",
                      "price_unit", "specific_price", "quantity", "discount",
-                     "uom_id", "automatic_price"}
+                     "uom_id", "automatic_price", "date_start", "date_end"}
         if protected.intersection(vals):
             packages = self.filtered(lambda ln: ln.equipment_billing_mode == "one_off")
             packages._lock_equipment_one_off()
@@ -302,6 +302,39 @@ class ContractContract(models.Model):
         "res.currency", string="Contract Currency (stored)",
         compute="_compute_equipment_currency_id", store=True,
     )
+
+    def write(self, vals):
+        # OCA prepares the bill from the parent (not only the rental line),
+        # notably using invoice_partner_id rather than partner_id.
+        protected = {"partner_id", "invoice_partner_id", "company_id",
+                     "currency_id", "manual_currency_id", "journal_id", "pricelist_id",
+                     "contract_type", "line_recurrence", "contract_template_id",
+                     "payment_term_id", "fiscal_position_id", "generation_type",
+                     "date_start", "date_end"}
+        keys = protected.intersection(vals)
+        if keys:
+            for contract in self:
+                packages = contract.sudo().with_context(active_test=False).contract_line_ids.filtered(
+                    lambda line: line.equipment_billing_mode == "one_off")
+                # Share the billing lock and revision: concurrent creation of
+                # the first bill must not race a change of supplier/currency.
+                packages._lock_equipment_one_off()
+                contract.invalidate_recordset(list(keys))
+                changed = False
+                for key in keys:
+                    current = contract[key]
+                    value = vals[key]
+                    if self._fields[key].type == "many2one":
+                        current = current.id
+                    elif self._fields[key].type == "date":
+                        value = fields.Date.to_date(value) or False
+                    if current != value:
+                        changed = True
+                        break
+                if changed and packages._equipment_one_off_history():
+                    raise UserError(_("A billed one-off package commitment cannot be changed, "
+                                      "even after bill cancellation."))
+        return super().write(vals)
 
     def unlink(self):
         # PostgreSQL cascades contract deletion to its lines without calling their

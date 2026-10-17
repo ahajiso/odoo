@@ -151,7 +151,7 @@ class TestOneOffRental(EquipmentCommon):
                 cl.write(vals)
         with self.assertRaises(ValidationError), self.env.cr.savepoint():
             cl.write({"is_auto_renew": True})
-        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+        with self.assertRaises(UserError), self.env.cr.savepoint():
             cl.contract_id.write({"line_recurrence": False})
 
     def test_billing_lock_updates_parent_revision_and_is_not_a_public_field(self):
@@ -190,6 +190,7 @@ class TestOneOffRental(EquipmentCommon):
                    {"discount": 50}, {"quantity": 2}, {"product_id": self.drill.id},
                    {"uom_id": self.env.ref("uom.product_uom_dozen").id},
                    {"automatic_price": True},
+                   {"date_start": "2026-10-16"}, {"date_end": "2026-10-18"},
                    {"equipment_rental_start": "2026-10-17 06:00:00"},
                    {"equipment_rental_end": "2026-10-17 16:00:00"},
                    {"price_unit": 1200, "equipment_rental_start": "2026-10-17 06:00:00",
@@ -230,6 +231,104 @@ class TestOneOffRental(EquipmentCommon):
         self.assertEqual(replacement.amount_tax, 24)
         replacement.with_user(accountant).action_post()
         self.assertEqual(replacement.state, "posted")
+
+    def test_cancelled_package_keeps_parent_billing_identity_and_civil_dates(self):
+        op = self._execute_package()
+        contract = op.contract_ids
+        cl = contract.contract_line_ids
+        old = op.bill_ids
+        original_dates = (cl.date_start, cl.date_end)
+        original_identity = (old.partner_id, old.company_id, old.currency_id, old.journal_id)
+        old.button_cancel()
+        other_partner = self.env["res.partner"].create({"name": "TEST unapproved supplier"})
+        other_company = self.env["res.company"].create({"name": "TEST unapproved company"})
+        usd = self.env["res.currency"].search([("name", "=", "USD")], limit=1)
+        self.assertTrue(usd)
+        usd.active = True
+        other_journal = self.env["account.journal"].create({
+            "name": "TEST unapproved purchase journal", "code": "TPKG",
+            "type": "purchase", "company_id": self.company.id, "currency_id": usd.id,
+        })
+        pricelist = self.env["product.pricelist"].create({
+            "name": "TEST unapproved USD prices", "currency_id": usd.id,
+        })
+        terms = self.env["account.payment.term"].create({"name": "TEST unapproved payment terms"})
+        fiscal = self.env["account.fiscal.position"].create({
+            "name": "TEST unapproved fiscal position", "company_id": self.company.id,
+        })
+        template = self.env["contract.template"].create({
+            "name": "TEST unapproved template", "contract_type": "purchase",
+        })
+        accountant = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "TEST parent contract accountant", "login": "parent_package_accountant",
+            "email": "parent_package_accountant@example.com", "company_id": self.company.id,
+            "company_ids": [Command.set((self.company | other_company).ids)],
+            "groups_id": [Command.set([self.env.ref("base.group_user").id,
+                                       self.env.ref("account.group_account_manager").id])],
+        })
+        changes = [{"partner_id": other_partner.id}, {"invoice_partner_id": other_partner.id},
+                   {"company_id": other_company.id}, {"currency_id": usd.id},
+                   {"manual_currency_id": usd.id}, {"journal_id": other_journal.id},
+                   {"pricelist_id": pricelist.id}, {"payment_term_id": terms.id},
+                   {"fiscal_position_id": fiscal.id}, {"contract_template_id": template.id},
+                   {"contract_type": "sale"}, {"line_recurrence": False},
+                   {"date_start": fields.Date.add(cl.date_start, days=-1)},
+                   {"date_end": fields.Date.add(cl.date_end, days=1)},
+                   {"partner_id": other_partner.id, "invoice_partner_id": other_partner.id,
+                    "journal_id": other_journal.id, "currency_id": usd.id}]
+        # Archived lines must still protect their parent's historical commitment.
+        for archived in (False, True):
+            cl.active = not archived
+            for target in (contract.with_user(accountant), contract.sudo()):
+                for values in changes:
+                    with self.subTest(archived=archived, sudo=target.env.su, values=values), \
+                            self.assertRaisesRegex(UserError, "even after bill cancellation"), \
+                            self.env.cr.savepoint():
+                        target.write(values)
+        cl.active = True
+        # Identical identity values and ordinary notes are harmless writes.
+        contract.with_user(accountant).write({
+            "partner_id": contract.partner_id.id,
+            "invoice_partner_id": contract.invoice_partner_id.id,
+            "journal_id": contract.journal_id.id,
+            "manual_currency_id": contract.manual_currency_id.id,
+            "company_id": contract.company_id.id, "date_end": contract.date_end,
+            "note": "TEST unchanged approved commitment",
+        })
+        action = cl.with_user(accountant).action_create_equipment_one_off_bill()
+        replacement = self.env["account.move"].browse(action["res_id"])
+        self.assertEqual((replacement.partner_id, replacement.company_id,
+                          replacement.currency_id, replacement.journal_id), original_identity)
+        self.assertEqual((cl.date_start, cl.date_end), original_dates)
+        self.assertEqual(replacement.invoice_line_ids.contract_line_id, cl)
+        self.assertEqual(replacement.amount_untaxed, 120)
+        self.assertEqual(cl.equipment_rental_hours, 4)
+        self.assertEqual(op.bill_ids, old | replacement)
+        replacement.with_user(accountant).action_post()
+        self.assertEqual(replacement.state, "posted")
+
+    def test_early_physical_return_keeps_approved_package_civil_end(self):
+        start = fields.Datetime.now().replace(hour=8, minute=0, second=0, microsecond=0)
+        op = self._package(rental_start=start, rental_end=start + timedelta(days=1, hours=4))
+        op.action_submit()
+        op.with_user(self.user_approver).action_approve()
+        op.action_execute()
+        op = self.env["equipment.operation"].browse(op.id)
+        cl = op.contract_ids.contract_line_ids
+        approved_dates = (cl.date_start, cl.date_end)
+        equipment = op.line_ids.equipment_id
+        restitution = self._operation(
+            "restitution", user=self.user_both, partner_id=self.lender.id,
+            lines=[dict(equipment_id=equipment.id)])
+        restitution._refresh_stop_lines()
+        self.assertTrue(restitution.stop_line_ids.filtered(lambda stop: stop._will_stop()))
+        restitution.action_execute()
+        self.assertEqual(restitution.state, "done")
+        self.assertFalse(equipment.active)
+        self.assertFalse(equipment._internal_quants())
+        self.assertEqual((cl.date_start, cl.date_end), approved_dates)
+        self.assertEqual(cl.equipment_rental_hours, 28)
+        self.assertEqual(op.bill_ids.amount_untaxed, 120)
 
     def test_accounting_administrator_can_recreate_a_cancelled_package_bill(self):
         op = self._execute_package()

@@ -1,7 +1,7 @@
 # Location fournisseur ponctuelle — proposition du 17/10/2026
 
 Le propriétaire demande de rendre testable la location de quatre heures du chariot
-CHA25E. Version proposée : maintenance_shareholder_equipment **18.0.5.2.2** et
+CHA25E. Version proposée : maintenance_shareholder_equipment **18.0.5.2.3** et
 lartdubati_investor_home **18.0.3.1.0**. Aucun déploiement serveur dans cette tâche.
 
 ## Parcours et choix
@@ -42,9 +42,11 @@ lartdubati_investor_home **18.0.3.1.0**. Aucun déploiement serveur dans cette t
   restent possibles, leur montant diminue le cumul du moniteur.
 - Dès la première facture, les termes approuvés du forfait restent gelés, même
   après annulation : produit, unité, quantité, prix manuel et calculé, remise et
-  horaires. Le remplacement reprend le même engagement ; référence fournisseur,
+  horaires et dates civiles. Le fournisseur, le contact facturé, la société,
+  la devise et les paramètres de facturation du parent sont également gelés,
+  y compris si la ligne est archivée. Le remplacement reprend le même engagement ; référence fournisseur,
   taxes et pièces jointes du brouillon restent modifiables. Arrêter la possession
-  ne change pas le prix ni ne déclenche un remboursement.
+  ne change ni les dates approuvées ni le prix et ne déclenche aucun remboursement.
 - Moniteur : montant brut de forfait avec périodicité `one_off`, libellé traduit,
   aucun équivalent mensuel et aucune alerte « périodicité non prise en charge » pour
   ce mode. Le cumul des factures comptabilisées et avoirs reste inchangé. La présence

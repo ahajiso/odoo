@@ -392,7 +392,15 @@ to another move type, including after cancellation. The contract line identity
 and its deletion remain protected while any historical supplier bill refers to it.
 Once a supplier bill exists, the approved package commitment stays frozen even
 after cancellation: product, unit, quantity, price and its manual source, discount,
-planned start/end times and pricing mode. Cancellation replaces the accounting
+planned start/end times, calendar start/end dates and pricing mode. The parent
+contract supplier, invoicing contact, company, currency and billing determinants
+(manual currency, journal, pricelist, contract type/template, per-line billing,
+payment terms, fiscal position, generation type and parent dates) cannot change
+while a package has historical bills, including cancelled bills and archived lines.
+The parent guard shares the package billing lock/revision and allows identical
+values and ordinary notes. Physical return, including early return, preserves
+the approved package dates and amount; it still moves and archives the equipment.
+Cancellation replaces the accounting
 document and never reopens the executed approval. A replacement uses the same
 commitment. Supplier reference, taxes and supporting attachments remain editable
 on the draft. Draft accounting inputs remain subject to existing posting validations. Use normal

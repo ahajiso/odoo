@@ -39,9 +39,10 @@ inchangés. Les tests utilisent un contexte anglais explicite pour les assertion
 anglaises. Le test historique de migration vérifie maintenant le stock incomplet
 attendu indépendamment de la langue, après préparation des autres candidats.
 
-**Résultat après gel de l’engagement : 0 failed, 0 error(s) of 304 tests**.
-Les 301 cas de 1aa5355 et les 303 de 62ef439 sont des résultats historiques,
-remplacés par cette régression. Le nouveau cas couvre le gel après annulation.
+**Résultat après gel du parent et des dates civiles : 0 failed, 0 error(s) of 306 tests**.
+Les 301 cas de 1aa5355, 303 de 62ef439 et 304 de 7044b36 sont historiques,
+remplacés par cette régression. Les nouveaux cas couvrent le parent après
+annulation et la restitution anticipée sans changement de période approuvée.
 Voir test-results.txt. Le compte Odoo inclut des tests/sous-tests ignorés : les
 tours historiques et Hoot ne s’exécutent pas faute de websocket-client, comme
 sur l’image serveur documentée. La classe TestInvestorWebsocket est aussi ignorée
@@ -50,7 +51,7 @@ Le lot historique de 20 tests ciblés de 62ef439 (forfait et moniteur) couvrait 
 avec changement de compte et l’historique. Ce lot est complété par les chemins API de
 saisie/copie manuelle et le verrouillage du lien inverse, puis la régression
 complète est relancée sur le code final, avec les vues définitives. Ces cas
-recoupent les 304 ; ils ne s’ajoutent pas au total.
+recoupent les 306 ; ils ne s’ajoutent pas au total.
 
 Commande exécutée sur cette base et ces sources, après installation :
 
@@ -158,3 +159,23 @@ ils ne sont pas présentés comme réexécutés pour ce correctif ORM. Les six e
 du manuel sont régénérés avec contrôle Chromium du débordement mobile FR/EN/FA.
 La livraison 18.0.5.2.2 n’ajoute aucun schéma au candidat 62ef439, mais conserve
 les prérequis d’isolation de toute la livraison au forfait.
+
+## Audit de 7044b36 — parent et période civile
+
+`date_start` et `date_end` de la ligne restent gelés. Le nouveau test parent
+refuse fournisseur, contact facturé, société, devise explicite/manuelle, journal,
+liste de prix, modèle, type, récurrence par ligne, conditions de paiement, position
+fiscale et dates du parent, avec comptable et sudo, ligne active puis archivée.
+Il vérifie aussi un changement combiné et l’acceptation des valeurs identiques
+et des notes. Après annulation, le remplacement garde fournisseur, société,
+devise, journal, dates civiles, durée et montant, puis est comptabilisé. Les
+corrections comptables du brouillon restent testées par le cas de 7044b36.
+
+Le retour physique anticipé d’un forfait de 28 heures est exécuté : équipement
+archivé et absent du stock, période et 120 EUR HT inchangés. Les retours récurrents
+restent couverts par la suite. Le premier lot ciblé (23 cas) a signalé une attente
+de fixture avant rafraîchissement des lignes à arrêter ; cette attente a été
+corrigée avant la régression complète, sans ajouter ce lot au total final.
+Aucun nouveau terme traduit, champ stocké, contrôleur, ACL ou règle investisseur.
+Version 18.0.5.2.3, sans nouveau schéma par rapport à 7044b36. Déploiement partagé
+toujours refusé ; aucune intervention distante.

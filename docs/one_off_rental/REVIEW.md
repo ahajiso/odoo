@@ -1,3 +1,49 @@
+# Réponse à l’audit de 7044b36 — dates civiles et contrat parent
+
+**Constat accepté ; nouveau candidat 18.0.5.2.3 proposé, fusion non autorisée.**
+Le gel précédent protégeait les termes de ligne mais laissait modifier la période
+civile et le parent utilisé par OCA pour préparer la facture. Ces chemins sont fermés.
+
+- `contract.line.write` protège aussi `date_start` et `date_end`, même après annulation.
+- `contract.contract.write` gèle fournisseur, contact facturé (`invoice_partner_id`,
+  effectivement utilisé par `_prepare_invoice` OCA), société, devise et source
+  manuelle de devise, journal, liste de prix, type de contrat, modèle, récurrence
+  par ligne, conditions de paiement, position fiscale, type de génération et
+  dates du parent. Le contrôle inclut les lignes archivées et les pièces annulées.
+  Les valeurs identiques et les notes restent possibles. Aucun bypass sudo/contexte.
+- Le parent prend le même verrou et incrémente la même révision ORM que la création
+  de facture, puis relit ses paramètres avant de vérifier l’historique. Il ne peut
+  donc pas modifier l’identité pendant la création concurrente de la première facture.
+- La restitution physique d’un forfait ne raccourcit plus la période civile
+  approuvée. Le retour anticipé sort et archive le matériel, conserve prix et
+  dates et ne lance aucun remboursement. Les lignes récurrentes gardent leur arrêt
+  OCA normal. Aucun circuit de modification/réapprobation après exécution n’est ajouté.
+
+Le test existant après annulation tente désormais aussi les deux dates civiles.
+Un nouveau cas essaie les changements parent séparément puis fournisseur/contact/
+journal/devise ensemble, avec un administrateur comptable et sudo, ligne active
+puis archivée. La facture de remplacement conserve fournisseur, société, devise,
+journal, période civile, quatre heures et 120 EUR HT, reste liée à l’opération
+et peut être comptabilisée. Les dates civiles sont celles de la ligne liée ; la
+date comptable de la nouvelle pièce reste déterminée normalement par Odoo.
+Un second nouveau cas vérifie une restitution anticipée d’un forfait de 28 heures,
+avant sa fin civile, sans changement des dates ni des 120 EUR HT approuvés.
+
+Le premier lot ciblé a révélé que la nouvelle fixture de restitution lisait les
+lignes à arrêter avant de les rafraîchir. Le test utilise maintenant le même
+rafraîchissement que le workflow ; la régression complète est relancée sur la
+source finale. Les corrections comptables du brouillon (référence, taxes,
+pièces jointes) restent couvertes par le cas précédent. Le message de refus
+existant est réutilisé, avec ses traductions Odoo FR/FA déjà exportées.
+
+CPT-25 et le journal FR/EN/FA, définitions, PDF/Word et empreintes sont mis à jour.
+Résultats et exclusions : VALIDATION.md / test-results.txt. La PR reste en
+brouillon : **aucune fusion, isolation distante, modification de base distante ou
+déploiement**. Le préalable d’isolation réelle et d’audit des outils adaptés reste
+inchangé et distinct d’une éventuelle autorisation de fusion.
+
+---
+
 # Réponse à l’audit de 62ef439 — gel de l’engagement
 
 **Constat accepté ; nouveau candidat proposé, fusion non autorisée.** Les corrections

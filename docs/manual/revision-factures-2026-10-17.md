@@ -119,3 +119,11 @@ Le remplacement conserve produit, unité, quantité, prix, remise et horaires ;
 référence fournisseur, taxes et pièces jointes du brouillon restent modifiables.
 Version proposée maintenance_shareholder_equipment 18.0.5.2.2, sans nouveau schéma.
 Fusion toujours soumise à autorisation ; déploiement soumis à isolation réelle.
+
+## Audit du contrat parent (7044b36)
+
+CPT-25 FR/EN/FA : dates civiles de ligne et fournisseur/contact facturé, société,
+devise et paramètres de facturation du contrat restent gelés après facturation,
+y compris après annulation et avec une ligne archivée. Une restitution anticipée
+conserve la période approuvée et le montant, sans bloquer le mouvement physique.
+Version proposée 18.0.5.2.3. Aucun déploiement ou fusion autorisé par ce correctif.

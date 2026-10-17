@@ -891,6 +891,10 @@ class EquipmentOperation(models.Model):
         date = self._today
         for stop in self.stop_line_ids.filtered(lambda s: s._will_stop()):
             contract_line = stop.contract_line_id
+            # A physical return does not amend the approved package period,
+            # including when the equipment is returned before its planned end.
+            if contract_line.equipment_billing_mode == "one_off":
+                continue
             if contract_line.date_end and contract_line.date_end <= date:
                 continue
             contract_line.stop(date)
