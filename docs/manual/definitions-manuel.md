@@ -24,7 +24,7 @@ d'une fiche et outils : `lartdubati_manual/tools/README.md`.
 | reference | Référence | Reference | مرجع | REF-01 à REF-10 |
 | admin | Admin Odoo | Odoo Admin | مدیر اودو | ADM-01 à ADM-12 |
 | parc | Responsable parc | Fleet manager | انباردار/امین اموال | PARC-01 à PARC-11 |
-| comptable | Comptable | Accountant | حسابدار | CPT-01 à CPT-15 |
+| comptable | Comptable | Accountant | حسابدار | CPT-01 à CPT-21 |
 | chantier | Chantier | Site | کارگاه | CH-01 à CH-03 |
 | investisseur | Investisseur | Investor | سرمایه‌گذار | INV-01 à INV-04 |
 
@@ -315,3 +315,32 @@ d'import pour que la correspondance automatique fonctionne du premier coup.
   `maintenance-manuel-odoo.md` §« Publication »).
 - Éditer une page sans lancer `refresh.py` : le sommaire, la recherche des
   autres pages et les liens automatiques restent sur l'ancien état.
+
+## Cas pratiques de factures — 17/10/2026
+
+CPT-07 renvoie désormais au catalogue gouverné (aucune création directe).
+CPT-16 prépare les tiers, catégories et demandes ; CPT-17 Orange ; CPT-18
+honoraires ; CPT-19 Google Workspace et Gemini ; CPT-20 facture mixte Leroy
+Merlin ; CPT-21 recense les parcours complémentaires. Les trois langues sont
+alignées. Les quatre pièces fournies sont des spécimens : exemples dans
+artdubati_test, sans comptabilisation réelle. Contrôles en lecture seule :
+catégories disponibles, article télécom existant, taxe 20% EU S et répartitions,
+actions de demandes, opérations, factures, contrats et moniteur.
+
+Les liens ajoutés à SCREENS utilisent les actions vérifiées :
+maintenance_shareholder_equipment.action_product_creation_request,
+maintenance_shareholder_equipment.action_equipment_operation et
+lartdubati_investor_home.action_stock_monitor. Les liens ouvrent la session
+courante et ne changent pas de base. La procédure fait vérifier la base et
+la société avant toute saisie. Aucun identifiant numérique d'enregistrement
+ni pièce nominative n'est publié dans le manuel.
+
+Les autres fiches historiques restent à réviser dans le chantier global prévu
+par CLAUDE.md ; ces nouveaux cas décrivent le parcours courant et ne valident
+pas les anciens parcours d'entrée ou de sortie.
+
+Le spécimen Leroy Merlin a été corrigé à la demande du propriétaire avant
+son utilisation pédagogique : 910,05 HT + 182,00 TVA (arrondi par ligne) =
+1 092,05 TTC. PDF sous static/templates/facture-specimen-leroy-merlin-corrigee.pdf ;
+carrelage exprimé en boîtes pour cet exercice, sans surface inventée.
+Le fichier reste explicitement fictif ; ce n'est pas un modèle d'import CSV.

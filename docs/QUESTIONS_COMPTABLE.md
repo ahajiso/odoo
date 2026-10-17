@@ -52,3 +52,22 @@ production).
 | C13 | Comptes comptables utilisés dans les fiches CPT-02 à CPT-08 du manuel | Plan comptable général, présentés « à valider » | Fiches du manuel et plan comptable | Oui |
 | C14 | Cases de la CA3 pour l'autoliquidation nationale de sous-traitance | Aucune case sur les 4 taxes (avertissement dans CPT-10, CPT-11) | Lignes de répartition des taxes d'autoliquidation | Oui |
 | C15 | Régime de TVA : débits ou encaissements ? | Les deux régimes restent disponibles : le régime appliqué est celui de la taxe choisie sur chaque ligne (taxes « S » encaissement, « G » débits) | Taxes sur les lignes ; désactiver les taxes du régime non retenu, positions fiscales | Oui |
+
+## Complément documentaire du 17/10/2026 — quatre factures spécimens
+
+Ces propositions complètent C24/C25 ; aucune configuration n'a été appliquée.
+
+| # | Question | Choix proposé pour l'exercice | Où le changer | Paramétrable |
+|---|---|---|---|---|
+| C26 | Catégories honoraires comptables et SaaS encore absentes : comptes à retenir ? | Honoraires sur 622600 ; SaaS sur une subdivision dédiée de 628000. Propositions de test à valider, sans utiliser 606400 ni capitaliser un abonnement. | Catégories de produits sous Services Purchased, compte de charge et disponibilité des demandes, par administrateur comptable | Oui |
+| C27 | Achat Google en Irlande : taxe, déduction et déclaration ? | Réutiliser la taxe existante 20% EU S : 33,80 de TVA due (445210) et 33,80 déductible (445662) sur 169,00 HT si déduction intégrale. Contrôler le régime B2B, les numéros TVA et les droits réels ; aucune déclaration générée. | Taxe d'achat, répartitions, position fiscale et facture | Oui |
+| C28 | Scie à 519,97 HT, vêtements/EPI et unité commerciale du carrelage ? | Ne pas appliquer de seuil automatique. Classer chaque scie selon C24 et la politique d'immobilisation ; suivre deux équipements physiques. Vêtements et coffret suivis en quantité. Confirmer boîte/m² et configuration de valorisation avant ouverture des catégories. | Catégories produit et équipement, unités et profils d'immobilisation | Oui |
+
+Contrôles préalables des pièces : Orange présente un écart d'arrondi de TVA
+(13,01 annoncé contre 13,00 par ligne ou 12,99 globalement) : pièce corrigée
+ou justification nécessaire, sans ligne d'équilibrage arbitraire.
+À la demande du propriétaire, le spécimen pédagogique Leroy Merlin a été corrigé
+avant intégration au manuel : prix et quantités conservés, unité carrelage fixée
+pour l'exercice à la boîte, brut 951,30 HT, remise unique 41,25 HT, net 910,05 HT,
+TVA arrondie par ligne 182,00, TTC 1 092,05. Le PDF fictif est livré dans
+lartdubati_manual/static/templates/facture-specimen-leroy-merlin-corrigee.pdf.
