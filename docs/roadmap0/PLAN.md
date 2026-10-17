@@ -375,3 +375,15 @@ Insurance and financing registers: standard / OCA search reported separately fir
   configured categories and treatments; D9 approver different from the requester (who
   may then execute if catalogue manager). Archiving strategy, no change to posted
   entries and the stock moves deferred to C24 / C25 validated.
+
+## Owner amendment — autonomous catalogue profile, 17/10/2026
+
+The owner explicitly requested a special role for test users and superadministrators
+who create and approve their own product requests. This supersedes the unconditional
+requester/approver separation in D9 only for explicitly assigned members of
+`group_product_catalogue_autonomous`. The ordinary manager rule stays unchanged.
+The exception is a separate, unassigned-by-default level implying the catalogue
+manager; it does not imply equipment or accounting privileges. No direct product
+creation or validation bypass is introduced. Request actors and snapshots remain
+unchanged. See DEFINITIONS.md and ADM-13; version 18.0.5.1.0 requires review and a
+module update before this role exists or can take effect on artdubati_test.

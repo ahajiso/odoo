@@ -396,7 +396,7 @@ lot_position AS (
 rental AS (
     -- the active rental line of a supplier contract (unique: phase 1 overlap rule)
     SELECT DISTINCT ON (cl.equipment_id) cl.equipment_id, cl.specific_price,
-           cl.quantity, cl.discount, cl.recurring_rule_type, cl.recurring_interval,
+           cl.quantity, cl.discount, cl.recurring_rule_type, cl.recurring_interval, cl.equipment_billing_mode,
            cl.date_start, cl.date_end, cc.equipment_currency_id
       FROM contract_line cl JOIN contract_contract cc ON cc.id = cl.contract_id
      WHERE cl.equipment_id IS NOT NULL AND cl.equipment_nature = 'rental'
@@ -488,12 +488,13 @@ valued AS (
            rl.specific_price * rl.quantity * (1 - COALESCE(rl.discount, 0) / 100.0)
                AS rent_amount,
            rl.equipment_currency_id AS rent_currency_id,
-           rl.recurring_rule_type AS rent_rule_type, rl.recurring_interval AS rent_interval,
+           CASE WHEN rl.equipment_billing_mode = 'one_off' THEN 'one_off'
+                ELSE rl.recurring_rule_type END AS rent_rule_type, rl.recurring_interval AS rent_interval,
            rl.date_start AS rent_start, rl.date_end AS rent_end,
-           (CASE rl.recurring_rule_type
+           (CASE WHEN rl.equipment_billing_mode = 'one_off' THEN NULL ELSE CASE rl.recurring_rule_type
                  WHEN 'monthly' THEN 1 WHEN 'monthlylastday' THEN 1
                  WHEN 'quarterly' THEN 3 WHEN 'semesterly' THEN 6 WHEN 'yearly' THEN 12
-            END) * NULLIF(rl.recurring_interval, 0) AS rent_months,
+            END END) * NULLIF(rl.recurring_interval, 0) AS rent_months,
            lr.date_end AS last_rental_end,
            (p.family = 'asset' AND p.ownership_status IN ('owned', 'lent_out'))
                AS company_asset,
@@ -652,7 +653,8 @@ alerted AS (
        (CASE WHEN m.ownership_status = 'lent_out'
                   AND COALESCE(m.insurance_status, '') <> 'insured' THEN 1 ELSE 0 END)
            AS alert_lent_uninsured,
-       (CASE WHEN m.rent_start IS NOT NULL AND m.rent_months IS NULL THEN 1 ELSE 0 END)
+       (CASE WHEN m.rent_start IS NOT NULL AND m.rent_months IS NULL
+                  AND m.rent_rule_type <> 'one_off' THEN 1 ELSE 0 END)
            AS alert_rent_period_unsupported,
        (CASE WHEN m.company_asset AND m.raw_asset_id IS NULL AND NOT m.fixed_asset_category
                   AND NOT m.automated_valuation THEN 1 ELSE 0 END) AS alert_no_asset,

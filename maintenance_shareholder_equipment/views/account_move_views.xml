@@ -6,7 +6,9 @@
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='account_id']" position="after">
+                <field name="equipment_contract_billing_mode" column_invisible="True"/>
                 <field name="contract_line_id" optional="show"
+                       readonly="equipment_contract_billing_mode == 'one_off' and parent.move_type == 'in_invoice'"
                        column_invisible="parent.move_type not in ('in_invoice', 'in_refund')"
                        domain="[('contract_id.contract_type', '=', 'purchase'),
                                 ('contract_id.partner_id', 'child_of', parent.commercial_partner_id),

@@ -18,6 +18,7 @@ from .maintenance_equipment import INSURANCE_STATUS, WARRANTY_STATUS
 from .product_catalogue import FAMILIES, normalise_barcode, normalise_reference
 
 MANAGER_GROUP = "maintenance_shareholder_equipment.group_product_catalogue_manager"
+AUTONOMOUS_GROUP = "maintenance_shareholder_equipment.group_product_catalogue_autonomous"
 REQUESTER_GROUPS = (
     "maintenance_shareholder_equipment.group_equipment_operator",
     "purchase.group_purchase_user",
@@ -553,7 +554,8 @@ class ProductCreationRequest(models.Model):
                 raise AccessError(_("Only product catalogue managers can approve a request."))
             if request.state != "to_approve":
                 raise UserError(_("%s is not waiting for approval.", request.name))
-            if not self.env.su and request.requester_id == self.env.user:
+            if (not self.env.su and request.requester_id == self.env.user
+                    and not self.env.user.has_group(AUTONOMOUS_GROUP)):
                 raise UserError(_("%s: the requester cannot approve his own request.",
                                   request.name))
             request._check_values()

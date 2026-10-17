@@ -1842,3 +1842,9 @@ msgstr "· مبالغ به ارز هر انبار"
 #: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
 msgid "— no rate on"
 msgstr "— نرخی موجود نیست در"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "One-off Package"
+msgstr "مبلغ ثابت یک‌باره"

@@ -42,3 +42,19 @@ class TestUserGroupsView(TransactionCase):
         self.assertIn(self.env.ref("stock.group_stock_user"), operator.implied_ids)
         self.assertNotIn(operator, approver.trans_implied_ids)
         self.assertNotIn(approver, operator.trans_implied_ids)
+
+    def test_autonomous_catalogue_is_a_visible_separate_level(self):
+        manager = self.env.ref("maintenance_shareholder_equipment.group_product_catalogue_manager")
+        autonomous = self.env.ref(
+            "maintenance_shareholder_equipment.group_product_catalogue_autonomous")
+        visible, _debug = self._visible_selection_fields()
+        self.assertTrue(any(
+            name.startswith("sel_groups_")
+            and {str(manager.id), str(autonomous.id)}.issubset(name.split("_")[2:])
+            for name in visible
+        ))
+        self.assertIn(manager, autonomous.trans_implied_ids)
+        for xmlid in ("base.group_system", "account.group_account_manager",
+                      "maintenance_shareholder_equipment.group_equipment_operator",
+                      "maintenance_shareholder_equipment.group_equipment_approver"):
+            self.assertNotIn(self.env.ref(xmlid), autonomous.trans_implied_ids)

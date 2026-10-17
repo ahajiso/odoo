@@ -22,9 +22,9 @@ d'une fiche et outils : `lartdubati_manual/tools/README.md`.
 | --- | --- | --- | --- | --- |
 | index | Accueil | Home | خانه | — (profils, gabarit, règles, journal) |
 | reference | Référence | Reference | مرجع | REF-01 à REF-10 |
-| admin | Admin Odoo | Odoo Admin | مدیر اودو | ADM-01 à ADM-12 |
+| admin | Admin Odoo | Odoo Admin | مدیر اودو | ADM-01 à ADM-13 |
 | parc | Responsable parc | Fleet manager | انباردار/امین اموال | PARC-01 à PARC-11 |
-| comptable | Comptable | Accountant | حسابدار | CPT-01 à CPT-15 |
+| comptable | Comptable | Accountant | حسابدار | CPT-01 à CPT-26 |
 | chantier | Chantier | Site | کارگاه | CH-01 à CH-03 |
 | investisseur | Investisseur | Investor | سرمایه‌گذار | INV-01 à INV-04 |
 
@@ -215,7 +215,7 @@ persans en FA).
 | Base | artdubati (production) ; artdubati_test (base de test) |
 | Conteneur | odoo_web |
 | Modules sur mesure | `/opt/odoo/addons/custom` sur le serveur = clone de github.com/ahajiso/odoo |
-| Module métier | maintenance_shareholder_equipment, version 18.0.1.0.2, dépend de maintenance et stock |
+| Module métier | maintenance_shareholder_equipment, version préparée 18.0.5.2.0 (non déployée ; ADM-05), dépendances complètes dans le manifeste |
 | Module facturation BTP | lartdubati_facturation 18.0.1.0.0 : taux réduits 10 %/5,5 % réactivés, taxes et position fiscale d'autoliquidation de sous-traitance (art. 283-2 nonies CGI), articles main-d'œuvre/matériaux/conseil avec comptes 704/707/706, mentions BTP sur res.company (onglet « Mentions BTP ») imprimées sur facture et devis, menu d'export FEC, conditions de paiement. Installé sur artdubati_test uniquement. |
 | Module bandeau d'environnement | lartdubati_env_ribbon 18.0.1.0.0 : bandeau rouge quand le nom de la base se termine par `_test`, `_staging` ou `_dev`. Composant Owl purement client (`static/src/env_ribbon/env_ribbon.{js,xml,css}`), aucune donnée serveur. Pour le désactiver temporairement le temps d'une capture d'écran, voir §2 « Prendre les captures sans bandeau de test » — aucune modification du module ni du serveur. |
 | Dépôts OCA ajoutés | server-ux-18 (date_range), account-reconcile-18 (account_reconcile_oca, account_statement_base), bank-statement-import-18 (OFX, CAMT) ; addons_path mis à jour dans `/opt/odoo/config/odoo.conf` |
@@ -315,3 +315,68 @@ d'import pour que la correspondance automatique fonctionne du premier coup.
   `maintenance-manuel-odoo.md` §« Publication »).
 - Éditer une page sans lancer `refresh.py` : le sommaire, la recherche des
   autres pages et les liens automatiques restent sur l'ancien état.
+
+## Cas pratiques de factures — 17/10/2026
+
+CPT-07 renvoie désormais au catalogue gouverné (aucune création directe).
+CPT-16 prépare les tiers, catégories et demandes ; CPT-17 Orange ; CPT-18
+honoraires ; CPT-19 Google Workspace et Gemini ; CPT-20 facture mixte Leroy
+Merlin ; CPT-21 recense les parcours complémentaires. Les trois langues sont
+alignées. Les quatre pièces fournies sont des spécimens : exemples dans
+artdubati_test, sans comptabilisation réelle. Contrôles en lecture seule :
+catégories disponibles, article télécom existant, taxe 20% EU S et répartitions,
+actions de demandes, opérations, factures, contrats et moniteur.
+
+Les liens ajoutés à SCREENS utilisent les actions vérifiées :
+maintenance_shareholder_equipment.action_product_creation_request,
+maintenance_shareholder_equipment.action_equipment_operation et
+lartdubati_investor_home.action_stock_monitor. Les liens ouvrent la session
+courante et ne changent pas de base. La procédure fait vérifier la base et
+la société avant toute saisie. Aucun identifiant numérique d'enregistrement
+ni pièce nominative n'est publié dans le manuel.
+
+Les autres fiches historiques restent à réviser dans le chantier global prévu
+par CLAUDE.md ; ces nouveaux cas décrivent le parcours courant et ne valident
+pas les anciens parcours d'entrée ou de sortie.
+
+Le spécimen Leroy Merlin a été corrigé à la demande du propriétaire avant
+son utilisation pédagogique : 910,05 HT + 182,00 TVA (arrondi par ligne) =
+1 092,05 TTC. PDF sous static/templates/facture-specimen-leroy-merlin-corrigee.pdf ;
+carrelage exprimé en boîtes pour cet exercice, sans surface inventée.
+Le fichier reste explicitement fictif ; ce n'est pas un modèle d'import CSV.
+
+## Locations et prêt — complément du 17/10/2026
+
+CPT-22 camionnette louée ; CPT-23 SUV de fonction loué ; CPT-24 WC WCHANT
+pour trois mois ; CPT-25 CHA25E pour quatre heures ; CPT-26 scie sur table
+Ryobi RTS1800EF-G prêtée par Manager. Les données TEST fictives ont été
+autorisées par le propriétaire. Le prêt entrant est borrowed, pas lent_out.
+La famille durable_equipment de la demande impose actuellement stock et série ;
+Fleet n'est pas installé. La réception ne propose que monthly, quarterly, yearly
+et des champs Date : le cas quatre heures reste un brouillon bloqué, sans
+fausse récurrence mensuelle ni comptabilisation forcée. Aucune fonctionnalité
+horaire ni liaison Fleet n'est implémentée par cette documentation.
+
+## Profil catalogue autonome — décision du 17/10/2026
+
+ADM-13 décrit le niveau explicite « Gestionnaire autonome du catalogue (Test /
+Superadmin) » (Autonomous Catalogue Manager (Test / Superadmin), مدیر مستقل
+کاتالوگ (تست / مدیر ارشد)). Version du module préparée : 18.0.5.1.0 ;
+non déployée au cours de cette révision. Le groupe implique le gestionnaire du
+catalogue et permet d'approuver sa propre demande, sans création directe et
+sans élargir les droits d'opération matériel, de comptabilité ou d'administration.
+Aucune attribution automatique. La règle ordinaire reste demandeur ≠ approbateur.
+FR/EN/FA et CPT-16, CPT-22 à CPT-26 renvoient à cette exception. Les deux nouvelles
+entrées de traduction de groupe proviennent d'un export Odoo en base isolée des
+mêmes enregistrements XML, puis ont été traduites en français et persan.
+
+
+## Location ponctuelle — développement autorisé du 17/10/2026
+
+CPT-25 remplace le brouillon bloqué par le mode explicite Forfait unique : horaires,
+fuseau, durée, approbation, réception réelle, facture brouillon unique et restitution.
+Les versions proposées sont maintenance_shareholder_equipment 18.0.5.2.0 et
+lartdubati_investor_home 18.0.3.1.0, non déployées. Les anciennes limites horaires
+ci-dessus décrivent le serveur avant cette mise à jour. Aucun prorata horaire ni
+frais automatique. Les frais/cautions restent séparés du loyer. FR/EN/FA alignés,
+liens Odoo et exports PDF/Word à jour. Documentation technique : docs/one_off_rental/.

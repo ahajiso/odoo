@@ -1,6 +1,6 @@
 {
     "name": "Maintenance - Equipment Ownership, Stock and Assets",
-    "version": "18.0.5.0.1",
+    "version": "18.0.5.2.3",
     "summary": "Equipment ownership status, serial number, fixed asset, contracts "
     "and supplier bill integration (L'Art du Bâti).",
     "author": "UBI Solutions",

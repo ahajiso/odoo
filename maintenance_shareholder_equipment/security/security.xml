@@ -221,8 +221,9 @@
 
     <!-- ROADMAP section 0 (docs/roadmap0/PLAN.md §2.4): product catalogue. Own category,
          not the phase 2 groups. Requesters are the equipment operators, buyers and
-         inventory users; the catalogue manager approves (never his own request) and
-         executes. Nobody creates a product directly. -->
+         inventory users; the catalogue manager approves other users' requests and
+         executes. Self-approval requires the explicit autonomous role below.
+         Nobody creates a product directly. -->
     <record id="module_category_product_catalogue" model="ir.module.category">
         <field name="name">Product Catalogue</field>
         <field name="parent_id" ref="base.module_category_inventory"/>
@@ -235,6 +236,12 @@
              outside the request's execution (product.template.create) -->
         <field name="implied_ids" eval="[(4, ref('product.group_product_manager'))]"/>
         <field name="comment">Approves and executes product creation requests (never his own request) and corrects the structural fields of a product with a reason.</field>
+    </record>
+    <record id="group_product_catalogue_autonomous" model="res.groups">
+        <field name="name">Autonomous Catalogue Manager (Test / Superadmin)</field>
+        <field name="category_id" ref="module_category_product_catalogue"/>
+        <field name="implied_ids" eval="[(4, ref('group_product_catalogue_manager'))]"/>
+        <field name="comment">For explicitly designated test users and superadministrators only. Can approve and execute their own product creation requests. Catalogue checks, traceability and the ban on direct product creation still apply. Does not grant equipment operation approval or accounting administration.</field>
     </record>
     <record id="rule_product_structural_correction_company" model="ir.rule">
         <field name="name">Structural corrections: multi-company</field>

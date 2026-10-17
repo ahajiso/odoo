@@ -2,6 +2,7 @@
 (docs/phase3/PLAN.md §1-1, §3.2, §6.2)."""
 import importlib.util
 import os
+import re
 
 from odoo import Command
 from odoo.exceptions import ValidationError
@@ -83,11 +84,15 @@ class TestMonitorStock(EquipmentCommon):
                 self.assertEqual(location.monitor_currency_id, self.company.currency_id)
 
     def test_migration_stops_on_a_candidate_without_address(self):
+        # Make this stock the only incomplete warehouse candidate, so the error
+        # identifies it regardless of the language of the migration environment.
+        others = self.env["stock.warehouse"].search([]).lot_stock_id - self.stock
+        others.address_id = self.address
         self.env.cr.execute(
             "UPDATE stock_location SET is_monitor_stock = NULL, monitor_currency_id = NULL, "
             "address_id = NULL WHERE id = %s", [self.stock.id])
         self.stock.invalidate_recordset()
-        with self.assertRaisesRegex(ValidationError, "city and a country"):
+        with self.assertRaisesRegex(ValidationError, re.escape(self.stock.complete_name)):
             self._migrate()
 
     def test_precheck_finds_blocking_data(self):

@@ -1,6 +1,7 @@
 import json
 
 import psycopg2
+import pytz
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
@@ -146,6 +147,43 @@ class EquipmentOperation(models.Model):
     contract_end = fields.Date(string="Planned End")
     open_ended = fields.Boolean(string="Open-Ended")
     periodicity = fields.Selection(PERIODICITY, default="monthly")
+    rental_billing_mode = fields.Selection(
+        [("recurring", "Recurring"), ("one_off", "One-off Package")],
+        string="Rental Billing", required=True, default="recurring",
+    )
+    rental_start = fields.Datetime(string="Planned Rental Start")
+    rental_end = fields.Datetime(string="Planned Rental End")
+    rental_timezone = fields.Char(string="Rental Time Zone", default=lambda self: self.env.user.tz or "UTC")
+    rental_hours = fields.Float(string="Planned Duration (hours)", compute="_compute_rental_hours")
+
+    @api.depends("rental_start", "rental_end")
+    def _compute_rental_hours(self):
+        for op in self:
+            op.rental_hours = ((op.rental_end - op.rental_start).total_seconds() / 3600
+                               if op.rental_start and op.rental_end else 0)
+
+    @api.onchange("rental_billing_mode")
+    def _onchange_rental_billing_mode(self):
+        if self.rental_billing_mode == "one_off":
+            self.open_ended = False
+            self.periodicity = False
+        elif not self.periodicity:
+            self.periodicity = "monthly"
+
+    @api.onchange("operation_type", "receipt_branch")
+    def _onchange_rental_operation_type(self):
+        if self.operation_type != "receipt" or self.receipt_branch != "rented":
+            self.rental_billing_mode = "recurring"
+
+    def _one_off_dates(self):
+        self.ensure_one()
+        try:
+            tz = pytz.timezone(self.rental_timezone or "")
+        except pytz.UnknownTimeZoneError:
+            raise ValidationError(_("Choose a valid rental time zone.")) from None
+        return tuple(pytz.UTC.localize(value).astimezone(tz).date()
+                     for value in (self.rental_start, self.rental_end))
+
     contract_attachment_ids = fields.Many2many(
         "ir.attachment", "equipment_operation_contract_attachment_rel", "operation_id",
         "attachment_id", string="Contract Documents",
@@ -355,6 +393,9 @@ class EquipmentOperation(models.Model):
             "contract_mode": op.contract_mode, "contract": op.contract_id.id,
             "exit_nature": op.exit_nature, "start": str(op.contract_start or ""),
             "end": str(op.contract_end or ""), "open_ended": op.open_ended,
+            "rental_billing_mode": op.rental_billing_mode,
+            "rental_start": str(op.rental_start or ""), "rental_end": str(op.rental_end or ""),
+            "rental_timezone": op.rental_timezone,
             "periodicity": op.periodicity, "offsite": op.offsite_location_id.id,
             "new_location": op.new_location_name or "",
             "lines": sorted(
@@ -850,6 +891,10 @@ class EquipmentOperation(models.Model):
         date = self._today
         for stop in self.stop_line_ids.filtered(lambda s: s._will_stop()):
             contract_line = stop.contract_line_id
+            # A physical return does not amend the approved package period,
+            # including when the equipment is returned before its planned end.
+            if contract_line.equipment_billing_mode == "one_off":
+                continue
             if contract_line.date_end and contract_line.date_end <= date:
                 continue
             contract_line.stop(date)
@@ -874,7 +919,7 @@ class EquipmentOperation(models.Model):
 
     def _contract_line_vals(self, line, nature, product):
         start = self.contract_start or self._today
-        return {
+        vals = {
             "product_id": product.id,
             "name": "%s – %s" % (product.display_name, line.equipment_id.display_name),
             "quantity": 1,
@@ -889,9 +934,18 @@ class EquipmentOperation(models.Model):
             "equipment_nature": nature,
         }
 
+        if self.rental_billing_mode == "one_off":
+            start, end = self._one_off_dates()
+            vals.update(equipment_billing_mode="one_off", equipment_origin_operation_id=self.id,
+                        equipment_rental_start=self.rental_start,
+                        equipment_rental_end=self.rental_end, date_start=start, date_end=end,
+                        recurring_next_date=False, is_auto_renew=False)
+        return vals
+
     def _add_contract_lines(self, contract_type, lines, nature, product):
         if not lines:
             return
+        before = self.contract_id.contract_line_ids if self.contract_mode == "existing" else self.env["contract.line"]
         vals = [Command.create(self._contract_line_vals(line, nature, product)) for line in lines]
         if self.contract_mode == "existing" and self.contract_id and contract_type == "purchase":
             contract = self.contract_id
@@ -905,6 +959,10 @@ class EquipmentOperation(models.Model):
                 "line_recurrence": True,
                 "contract_line_ids": vals,
             })
+        if self.rental_billing_mode == "one_off":
+            for contract_line in contract.contract_line_ids - before:
+                bill = contract_line._create_equipment_one_off_bill()
+                self.write({"bill_ids": [Command.link(bill.id)]})
         for attachment in self.contract_attachment_ids:
             attachment.copy({"res_model": "contract.contract", "res_id": contract.id})
         self.write({"contract_ids": [Command.link(contract.id)]})
@@ -930,6 +988,9 @@ class EquipmentOperation(models.Model):
                     raise ValidationError(_("%(label)s %(name)s belongs to another company.",
                                             label=label, name=rec.display_name))
 
+        if op.rental_billing_mode == "one_off" and not (
+                op.operation_type == "receipt" and op.receipt_branch == "rented"):
+            raise ValidationError(_("One-off billing is supported only for supplier rental receipts."))
         if not op.line_ids:
             errors.append(_("at least one line"))
         same_company(op.partner_id, _("Partner"))
@@ -1093,9 +1154,22 @@ class EquipmentOperation(models.Model):
                 errors.append(_("the bill as a PDF file in the field « Bill (PDF) »"))
 
     def _check_third_party_contract(self, errors, need):
-        need(self.contract_start, _("contract start"))
-        need(self.open_ended or self.contract_end, _("planned end (or open-ended)"))
-        if self.contract_end and self.contract_start and self.contract_end < self.contract_start:
+        if self.rental_billing_mode == "one_off":
+            need(self.rental_start, _("planned rental start time"))
+            need(self.rental_end, _("planned rental end time"))
+            if self.rental_start and self.rental_end:
+                if self.rental_end <= self.rental_start:
+                    raise ValidationError(_("The rental end must be after its start."))
+                self._one_off_dates()
+            if self.open_ended:
+                raise ValidationError(_("A one-off rental cannot be open-ended."))
+        else:
+            need(self.contract_start, _("contract start"))
+            need(self.open_ended or self.contract_end, _("planned end (or open-ended)"))
+            if not self.periodicity:
+                need(self.periodicity, _("contract periodicity"))
+        if (self.rental_billing_mode != "one_off" and self.contract_end and self.contract_start
+                and self.contract_end < self.contract_start):
             raise ValidationError(_("The planned end is before the start."))
         nature = "loan" if self.receipt_branch == "borrowed" or self.exit_nature == "loan" else "rental"
         contract_type = "sale" if self.operation_type == "exit" else "purchase"
@@ -1122,7 +1196,7 @@ class EquipmentOperation(models.Model):
         if contract.partner_id.commercial_partner_id != self.partner_id.commercial_partner_id:
             raise ValidationError(_("The contract %s belongs to another partner.", contract.display_name))
         lines = contract.contract_line_ids.filtered(lambda ln: not ln.is_canceled)
-        start = self.contract_start or self._today
+        start = self._one_off_dates()[0] if self.rental_billing_mode == "one_off" else (self.contract_start or self._today)
         if lines and all(ln.date_end and ln.date_end < start for ln in lines):
             raise ValidationError(_("The contract %s has ended.", contract.display_name))
         if nature == "loan":

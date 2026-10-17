@@ -1,0 +1,31 @@
+Final 122-module regression after audit of 7044b36; maintenance 18.0.5.2.3.
+Command: -u maintenance_shareholder_equipment,lartdubati_investor_home --test-enable --test-tags /maintenance_shareholder_equipment,/lartdubati_investor_home --workers=0 --http-port=8079 --max-cron-threads=0 --stop-after-init --log-level=test
+Counts include framework skips (historical tours/Hoot/websocket); performance excluded.
+304 cases from 7044b36 are historical; the current 306 include parent identity and early-return cases.
+After cancellation: reject line calendar dates and parent supplier/invoice contact/company/currency/manual currency/journal/pricelist/template/type/per-line billing/payment terms/fiscal position/parent dates.
+Parent changes tested as accountant and sudo, with active and archived lines; identical values and notes remain allowed.
+Replacement keeps original supplier, company, currency, journal, calendar dates, 4 hours and 120 EUR excl. tax, then posts.
+Early physical return of a TEST 28-hour package removes/archives equipment while retaining dates and 120 EUR excl. tax.
+Prior commitment guard and draft supplier-ref/tax/attachment corrections remain covered.
+Full current log: scratch/oneoff/parity/audit-parent-final.log.
+First targeted attempt had one fixture failure: read stop lines before workflow refresh; fixed before this full run.
+Historical shared-script refusal, business UI and two-cursor concurrency proofs: see VALIDATION.md; not rerun for this ORM correction.
+
+2026-10-17 14:27:24,394 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_one_off_rental: Starting TestOneOffRental.test_cancelled_package_keeps_parent_billing_identity_and_civil_dates ...
+2026-10-17 14:27:26,314 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_one_off_rental: Starting TestOneOffRental.test_early_physical_return_keeps_approved_package_civil_end ...
+2026-10-17 14:28:43,871 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped TestPhase2fTours.test_approver_alone_opens_and_approves : websocket-client module is not installed
+2026-10-17 14:28:44,698 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped Subtest TestPhase2fTours.test_approver_alone_opens_every_document_after_execution (model='purchase.order') : websocket-client module is not installed
+2026-10-17 14:28:44,699 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped Subtest TestPhase2fTours.test_approver_alone_opens_every_document_after_execution (model='stock.picking') : websocket-client module is not installed
+2026-10-17 14:28:44,700 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped Subtest TestPhase2fTours.test_approver_alone_opens_every_document_after_execution (model='stock.lot') : websocket-client module is not installed
+2026-10-17 14:28:44,700 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped Subtest TestPhase2fTours.test_approver_alone_opens_every_document_after_execution (model='account.move') : websocket-client module is not installed
+2026-10-17 14:28:44,701 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped Subtest TestPhase2fTours.test_approver_alone_opens_every_document_after_execution (model='contract.contract') : websocket-client module is not installed
+2026-10-17 14:28:44,983 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped TestPhase2fTours.test_operator_alone_cannot_approve : websocket-client module is not installed
+2026-10-17 14:29:59,766 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.tests.suite: skipped setUpClass (odoo.addons.lartdubati_investor_home.tests.test_investor_security.TestInvestorWebsocket) : websocket-client module is not installed
+2026-10-17 14:30:40,921 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.lartdubati_investor_home.tests.test_stock_monitor_ui: skipped TestStockMonitorUnit.test_dashboard_unit : websocket-client module is not installed
+2026-10-17 14:30:44,347 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.lartdubati_investor_home.tests.test_stock_monitor_ui: skipped Subtest TestStockMonitorTours.test_dashboard_tours (user='mon_investor') : websocket-client module is not installed
+2026-10-17 14:30:44,371 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.lartdubati_investor_home.tests.test_stock_monitor_ui: skipped Subtest TestStockMonitorTours.test_dashboard_tours (user='mon_accountant') : websocket-client module is not installed
+2026-10-17 14:30:44,527 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.lartdubati_investor_home.tests.test_stock_monitor_ui: skipped TestStockMonitorTours.test_investor_home_tour : websocket-client module is not installed
+2026-10-17 14:30:44,541 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.service.server: 306 post-tests in 225.70s, 385557 queries
+2026-10-17 14:30:44,542 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.tests.stats: lartdubati_investor_home: 136 tests 73.26s 123940 queries
+2026-10-17 14:30:44,542 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.tests.stats: maintenance_shareholder_equipment: 278 tests 151.21s 261347 queries
+2026-10-17 14:30:44,542 21884 INFO artdubati_test_oneoff_parity_v2_local odoo.tests.result: 0 failed, 0 error(s) of 306 tests when loading database 'artdubati_test_oneoff_parity_v2_local'

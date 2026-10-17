@@ -42,6 +42,14 @@ fail() {
 [ -n "$COMMIT" ] || { echo "Give the commit announced by Claude as fourth argument."; exit 1; }
 TARGET=$(git -C "$ADDONS" rev-parse --verify --quiet "$COMMIT^{commit}") || {
   echo "Commit $COMMIT not found: run the fetch step of the README first."; exit 1; }
+# This historical script is tied to the shared odoo_web service. The one-off
+# release adds stored fields: updating only artdubati_test would break artdubati.
+# Fail closed even when called directly, before stopping or changing anything.
+if git -C "$ADDONS" cat-file -e "$TARGET:docs/one_off_rental/README.md" 2>/dev/null; then
+  echo "STOP: one-off rentals require an isolated test service, checkout and filestore."
+  echo "This shared-service script cannot deploy this release. See docs/one_off_rental/DEPLOYMENT.md."
+  exit 1
+fi
 [ "$(git -C "$ADDONS" rev-parse origin/main)" = "$TARGET" ] || {
   echo "origin/main is not $COMMIT: fetch again or check the commit with Claude."; exit 1; }
 [ -z "$(git -C "$ADDONS" status --porcelain --untracked-files=no)" ] || {

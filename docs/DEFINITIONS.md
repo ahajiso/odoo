@@ -342,3 +342,76 @@ The integration with OCA modules (order of the `action_post()` overrides, one as
 unit with `asset_product_item`, no duplicate equipment from `maintenance_account`, free
 loan producing no invoice) is a design assumption until Odoo integration tests confirm
 it. List and status in CLAUDE.md.
+
+## Explicit autonomous catalogue role (owner decision, 17/10/2026)
+
+Ordinary catalogue managers may not approve their own product creation requests.
+An explicitly assigned **Autonomous Catalogue Manager (Test / Superadmin)** role
+is the sole non-superuser exception: its holder may create, submit, approve and
+execute the same request. This is intended for designated test accounts and
+superadministrators, not automatically for all administrators or all test-database
+users. It is a separate level implying only the existing catalogue manager role;
+no account is assigned it by module installation or update.
+
+The workflow remains the creation request: direct template/variant creation stays
+blocked, all accounting/category/duplicate/document/company/unit validations and
+approval snapshots still apply, and the requester, approver and executor remain
+recorded. A context key, database name or user name does not enable self-approval.
+The role does not grant equipment operation approval/execution or accounting
+administration. Those are separate business permissions. The owner may assign
+this exception to a production superadministrator deliberately; no database-name
+heuristic enables it. Implementation: maintenance_shareholder_equipment 18.0.5.1.0.
+
+
+## Owner amendment — one-off supplier equipment rental (17/10/2026)
+
+The owner authorises a timed one-off rental workflow for the four-hour forklift.
+An explicit one-off mode on a supplier rental receipt records planned start/end
+Datetimes, an explicit time zone for contract calendar dates, duration and positive
+untaxed package rent per physical unit (quantity 1). Approval includes these values.
+Execution keeps actual movement timestamps, creates the equipment rental contract
+line and a single draft bill. Ordinary recurring lines retain their normal behaviour.
+One-off lines are excluded from recurring billing, automatic renewal and monthly
+rent equivalents; posted supplier bills/refunds still contribute to cumulative rent.
+A non-cancelled package bill is reused and a duplicate cannot be posted. An accounting
+administrator can replace a cancelled draft through the protected contract
+line action. Refunds never make the package automatically invoiceable again.
+The physical return always needs a restitution operation. Planned hours do not
+backdate movements or automatically trigger returns. Ancillary fees, deposits,
+overtime and penalties remain separately entered and reviewed; no automatic charge.
+Existing date-based overlap rules remain conservative for multiple rentals on a day.
+See docs/one_off_rental/README.md and CPT-25. Proposed versions 18.0.5.2.0 and
+18.0.3.1.0; review, matching-platform tests and controlled deployment still required.
+
+
+## Audit correction — 17/10/2026, one-off rentals
+
+A supplier bill line linked to a one-off rental cannot lose/change its contract
+line, move or display type, or be deleted. Its bill cannot be deleted or converted
+to another move type, including after cancellation. The contract line identity
+and its deletion remain protected while any historical supplier bill refers to it.
+Once a supplier bill exists, the approved package commitment stays frozen even
+after cancellation: product, unit, quantity, price and its manual source, discount,
+planned start/end times, calendar start/end dates and pricing mode. The parent
+contract supplier, invoicing contact, company, currency and billing determinants
+(manual currency, journal, pricelist, contract type/template, per-line billing,
+payment terms, fiscal position, generation type and parent dates) cannot change
+while a package has historical bills, including cancelled bills and archived lines.
+The parent guard shares the package billing lock/revision and allows identical
+values and ordinary notes. Physical return, including early return, preserves
+the approved package dates and amount; it still moves and archives the equipment.
+Cancellation replaces the accounting
+document and never reopens the executed approval. A replacement uses the same
+commitment. Supplier reference, taxes and supporting attachments remain editable
+on the draft. Draft accounting inputs remain subject to existing posting validations. Use normal
+Odoo cancellation followed by the package bill action to replace a bill; never
+remove historical bills. An immutable workflow origin on the contract line links
+every replacement to the original equipment operation. Its Bills tab lists all
+successive bills and states. The narrow internal link update grants no operation
+write rights to the accounting user.
+
+The shared-service deployment plan for 1aa5355 is withdrawn. Test-only upgrades
+adding stored fields require an isolated test service, independent checkout and
+filestore, configuration and database access, verified on the old code first.
+Unused production does not make new code compatible with its old schema. No
+production upgrade or infrastructure change was performed by this correction.
