@@ -117,12 +117,16 @@ class ContractLine(models.Model):
             raise AccessError(_("This field is maintained by the billing workflow."))
         protected = {"equipment_billing_mode", "equipment_rental_start", "equipment_rental_end",
                      "product_id", "equipment_id", "equipment_nature", "contract_id",
-                     "price_unit", "specific_price", "quantity", "discount"}
+                     "price_unit", "specific_price", "quantity", "discount",
+                     "uom_id", "automatic_price"}
         if protected.intersection(vals):
             packages = self.filtered(lambda ln: ln.equipment_billing_mode == "one_off")
             packages._lock_equipment_one_off()
-            if packages.sudo()._equipment_one_off_bills():
-                raise UserError(_("Cancel the one-off bill before changing its package commitment."))
+            # Cancellation replaces an accounting document, not the approved
+            # commitment. Historical bills keep these terms frozen as well.
+            if packages._equipment_one_off_history():
+                raise UserError(_("A billed one-off package commitment cannot be changed, "
+                                  "even after bill cancellation."))
         return super().write(vals)
 
     def _lock_equipment_one_off(self):

@@ -4920,13 +4920,6 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
-#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
-msgid "Cancel the one-off bill before changing its package commitment."
-msgstr ""
-"Annulez la facture ponctuelle avant de modifier l’engagement du forfait."
-
-#. module: maintenance_shareholder_equipment
-#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "Choose a valid rental time zone."
 msgstr "Choisissez un fuseau horaire de location valide."
@@ -5102,3 +5095,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_origin_operation_id
 msgid "Original Equipment Operation"
 msgstr "Opération matériel d’origine"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid ""
+"A billed one-off package commitment cannot be changed, even after bill "
+"cancellation."
+msgstr ""
+"L’engagement d’un forfait déjà facturé ne peut plus être modifié, même après"
+" annulation de la facture."

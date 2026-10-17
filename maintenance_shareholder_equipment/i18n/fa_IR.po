@@ -4836,12 +4836,6 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
-#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
-msgid "Cancel the one-off bill before changing its package commitment."
-msgstr "پیش از تغییر تعهد مبلغ ثابت، صورتحساب موردی را لغو کنید."
-
-#. module: maintenance_shareholder_equipment
-#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "Choose a valid rental time zone."
 msgstr "یک منطقه زمانی معتبر برای اجاره انتخاب کنید."
@@ -5011,3 +5005,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_origin_operation_id
 msgid "Original Equipment Operation"
 msgstr "عملیات اولیه تجهیزات"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid ""
+"A billed one-off package commitment cannot be changed, even after bill "
+"cancellation."
+msgstr ""
+"تعهد مبلغ ثابت یک‌باره پس از صدور صورتحساب، حتی پس از لغو صورتحساب، قابل "
+"تغییر نیست."

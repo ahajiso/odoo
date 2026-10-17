@@ -39,17 +39,18 @@ inchangés. Les tests utilisent un contexte anglais explicite pour les assertion
 anglaises. Le test historique de migration vérifie maintenant le stock incomplet
 attendu indépendamment de la langue, après préparation des autres candidats.
 
-**Résultat après correction d’audit : 0 failed, 0 error(s) of 303 tests**.
-Les 301 cas de 1aa5355 sont un résultat historique, remplacé par cette régression.
+**Résultat après gel de l’engagement : 0 failed, 0 error(s) of 304 tests**.
+Les 301 cas de 1aa5355 et les 303 de 62ef439 sont des résultats historiques,
+remplacés par cette régression. Le nouveau cas couvre le gel après annulation.
 Voir test-results.txt. Le compte Odoo inclut des tests/sous-tests ignorés : les
 tours historiques et Hoot ne s’exécutent pas faute de websocket-client, comme
 sur l’image serveur documentée. La classe TestInvestorWebsocket est aussi ignorée
 avant ses méthodes. Le test de performance 10 000 lignes n’est pas sélectionné.
-Un lot de 20 tests ciblés (forfait et moniteur) couvre les gardes, le détachement
+Le lot historique de 20 tests ciblés de 62ef439 (forfait et moniteur) couvrait les gardes, le détachement
 avec changement de compte et l’historique. Ce lot est complété par les chemins API de
 saisie/copie manuelle et le verrouillage du lien inverse, puis la régression
 complète est relancée sur le code final, avec les vues définitives. Ces cas
-recoupent les 303 ; ils ne s’ajoutent pas au total.
+recoupent les 304 ; ils ne s’ajoutent pas au total.
 
 Commande exécutée sur cette base et ces sources, après installation :
 
@@ -68,7 +69,7 @@ puis remplacée, remise totale refusée, droits du bouton et traductions EN/FR/F
 Les tentatives antérieures ont révélé les défauts ci-dessus ; seules les sorties
 finales sans échec sont retenues, sans additionner les tests qui se recoupent.
 
-Deux connexions REPEATABLE READ réelles sur une ligne TEST commise dans cette
+Lors de 62ef439, deux connexions REPEATABLE READ réelles sur une ligne TEST commise dans cette
 même base à 122 modules : les deux observent l’absence de facture ; la première
 crée et commit. La seconde reçoit SerializationFailure sur la ligne de contrat
 révisée, puis une nouvelle transaction réutilise l’unique facture brouillon.
@@ -82,7 +83,7 @@ par le forfait ; le rôle catalogue reste une permission explicite distincte.
 
 ## Interface, traductions et manuel
 
-Formulaire et onglet d’historique contrôlés dans Chromium sur cette même base à 122 modules,
+Lors de 62ef439, formulaire et onglet d’historique contrôlés dans Chromium sur cette même base à 122 modules,
 français et persan, bureau et mobile : libellés traduits, début 10:00 et fin 14:00
 avec navigateur Europe/Paris, durée exactement 4, sélection Forfait unique,
 récurrence et fin ouverte cachées. Captures locales vérifiées, dont le persan RTL.
@@ -137,3 +138,23 @@ Les PDF sont déclarés binaires dans .gitattributes et les espaces terminaux du
 résumé de tests sont retirés. Le contrôle de livraison porte désormais sur la
 comparaison complète `git diff --check f0de375..HEAD`, avec retour 0 attendu et
 vérifié après le commit correctif ; l’ancienne affirmation sur 1aa5355 est retirée.
+
+## Audit de 62ef439 — engagement inchangé après annulation
+
+La garde de modification utilise tout l’historique des factures fournisseur,
+annulées incluses. Le nouveau test tente 120 → 1 200 EUR HT et 10 h–14 h →
+8 h–18 h après annulation, puis produit, unité, quantité, remise et modes/sources
+du prix avec un comptable réel et sudo. Il vérifie le refus et un remplacement
+à 120 EUR HT avec les mêmes produit/unité/quantité/remise et quatre heures prévues.
+La référence fournisseur, une taxe de 20 % et une pièce jointe restent modifiables
+sur le brouillon ; la facture est ensuite comptabilisée à 144 EUR TTC.
+
+La première tentative locale a signalé l’absence d’adresse courriel du nouveau
+compte de test et l’ancien test autorisant une remise après annulation. La fixture
+et cette attente obsolète ont été corrigées avant la régression complète finale.
+Ces tentatives ne sont pas additionnées au total publié. Les contrôles Chromium
+métier et les deux connexions concurrentes décrits plus haut datent de 62ef439 ;
+ils ne sont pas présentés comme réexécutés pour ce correctif ORM. Les six exports
+du manuel sont régénérés avec contrôle Chromium du débordement mobile FR/EN/FA.
+La livraison 18.0.5.2.2 n’ajoute aucun schéma au candidat 62ef439, mais conserve
+les prérequis d’isolation de toute la livraison au forfait.

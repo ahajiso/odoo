@@ -111,3 +111,11 @@ annulée ; son remplacement passe par annulation puis création normale. L’op�
 conserve toutes les factures successives et leurs états dans l’onglet Factures.
 Version proposée maintenance_shareholder_equipment 18.0.5.2.1 ; les six exports
 PDF/Word sont régénérés. Aucun déploiement ou changement d’infrastructure distant.
+
+## Audit du gel de l’engagement (62ef439)
+
+CPT-25 FR/EN/FA : annuler une facture ne permet plus de modifier le forfait approuvé.
+Le remplacement conserve produit, unité, quantité, prix, remise et horaires ;
+référence fournisseur, taxes et pièces jointes du brouillon restent modifiables.
+Version proposée maintenance_shareholder_equipment 18.0.5.2.2, sans nouveau schéma.
+Fusion toujours soumise à autorisation ; déploiement soumis à isolation réelle.

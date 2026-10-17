@@ -374,7 +374,7 @@ line and a single draft bill. Ordinary recurring lines retain their normal behav
 One-off lines are excluded from recurring billing, automatic renewal and monthly
 rent equivalents; posted supplier bills/refunds still contribute to cumulative rent.
 A non-cancelled package bill is reused and a duplicate cannot be posted. An accounting
-administrator can replace a cancelled/deleted draft through the protected contract
+administrator can replace a cancelled draft through the protected contract
 line action. Refunds never make the package automatically invoiceable again.
 The physical return always needs a restitution operation. Planned hours do not
 backdate movements or automatically trigger returns. Ancillary fees, deposits,
@@ -390,7 +390,12 @@ A supplier bill line linked to a one-off rental cannot lose/change its contract
 line, move or display type, or be deleted. Its bill cannot be deleted or converted
 to another move type, including after cancellation. The contract line identity
 and its deletion remain protected while any historical supplier bill refers to it.
-Draft accounting inputs remain subject to existing posting validations. Use normal
+Once a supplier bill exists, the approved package commitment stays frozen even
+after cancellation: product, unit, quantity, price and its manual source, discount,
+planned start/end times and pricing mode. Cancellation replaces the accounting
+document and never reopens the executed approval. A replacement uses the same
+commitment. Supplier reference, taxes and supporting attachments remain editable
+on the draft. Draft accounting inputs remain subject to existing posting validations. Use normal
 Odoo cancellation followed by the package bill action to replace a bill; never
 remove historical bills. An immutable workflow origin on the contract line links
 every replacement to the original equipment operation. Its Bills tab lists all

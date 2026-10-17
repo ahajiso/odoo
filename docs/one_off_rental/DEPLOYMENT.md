@@ -72,7 +72,7 @@ n’est pas une sauvegarde de l’environnement isolé.
    audité ; sauvegarder et tester la restauration du test isolé.
 3. Arrêter **le service test uniquement**, changer **son checkout uniquement**, puis
    exécuter avec sa configuration la mise à jour conjointe de
-   maintenance_shareholder_equipment **18.0.5.2.1** et lartdubati_investor_home
+   maintenance_shareholder_equipment **18.0.5.2.2** et lartdubati_investor_home
    **18.0.3.1.0** sur **artdubati_test uniquement**.
 4. Avant démarrage, exécuter les tests de VALIDATION.md sur ce schéma mis à jour,
    puis les contrôles de plateforme. En cas d’échec, garder le test arrêté et

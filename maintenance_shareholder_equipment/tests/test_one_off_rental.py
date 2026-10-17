@@ -163,6 +163,74 @@ class TestOneOffRental(EquipmentCommon):
         with self.assertRaises(AccessError):
             cl.with_user(self.user_operator).write({"equipment_billing_revision": 0})
 
+    def test_cancelled_bill_does_not_reopen_approved_package_commitment(self):
+        # 08:00–12:00 UTC = the approved 10:00–14:00 Europe/Paris slot.
+        op = self._package(rental_start="2026-10-17 08:00:00",
+                           rental_end="2026-10-17 12:00:00")
+        op.action_submit()
+        op.with_user(self.user_approver).action_approve()
+        op.action_execute()
+        op = self.env["equipment.operation"].browse(op.id)
+        cl = op.contract_ids.contract_line_ids
+        old = op.bill_ids
+        self.assertEqual(old.amount_untaxed, 120)
+        approved_product = cl.product_id
+        approved_uom = cl.uom_id
+        old.button_cancel()
+        accountant = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "TEST cancelled package accountant", "login": "cancelled_package_accountant",
+            "email": "cancelled_package_accountant@example.com",
+            "company_id": self.company.id, "company_ids": [Command.set(self.company.ids)],
+            "groups_id": [Command.set([self.env.ref("base.group_user").id,
+                                       self.env.ref("account.group_account_manager").id])],
+        })
+        # Include the inverse price source and automatic pricing, not only its
+        # computed display value. The server guard also applies to sudo callers.
+        changes = [{"price_unit": 1200}, {"specific_price": 1200},
+                   {"discount": 50}, {"quantity": 2}, {"product_id": self.drill.id},
+                   {"uom_id": self.env.ref("uom.product_uom_dozen").id},
+                   {"automatic_price": True},
+                   {"equipment_rental_start": "2026-10-17 06:00:00"},
+                   {"equipment_rental_end": "2026-10-17 16:00:00"},
+                   {"price_unit": 1200, "equipment_rental_start": "2026-10-17 06:00:00",
+                    "equipment_rental_end": "2026-10-17 16:00:00"}]
+        for target in (cl.with_user(accountant), cl.sudo()):
+            for values in changes:
+                with self.subTest(sudo=target.env.su, values=values), \
+                        self.assertRaisesRegex(UserError, "even after bill cancellation"), \
+                        self.env.cr.savepoint():
+                    target.write(values)
+        self.assertEqual(cl.price_subtotal, 120)
+        self.assertEqual(cl.equipment_rental_start, fields.Datetime.to_datetime("2026-10-17 08:00:00"))
+        self.assertEqual(cl.equipment_rental_end, fields.Datetime.to_datetime("2026-10-17 12:00:00"))
+        self.assertEqual(cl.equipment_rental_hours, 4)
+        action = cl.with_user(accountant).action_create_equipment_one_off_bill()
+        replacement = self.env["account.move"].browse(action["res_id"])
+        self.assertNotEqual(replacement, old)
+        self.assertEqual(replacement.amount_untaxed, 120)
+        self.assertEqual(replacement.invoice_line_ids.product_id, approved_product)
+        self.assertEqual(replacement.invoice_line_ids.product_uom_id, approved_uom)
+        self.assertEqual(replacement.invoice_line_ids.quantity, 1)
+        self.assertEqual(replacement.invoice_line_ids.discount, 0)
+        self.assertEqual(op.bill_ids, old | replacement)
+        # Accounting corrections do not amend the approved untaxed package.
+        tax = self.env["account.tax"].create({
+            "name": "TEST rental VAT 20%", "amount": 20, "type_tax_use": "purchase",
+            "company_id": self.company.id,
+        })
+        replacement.with_user(accountant).write({"ref": "TEST corrected supplier reference"})
+        replacement.invoice_line_ids.with_user(accountant).write({"tax_ids": [Command.set(tax.ids)]})
+        attachment = self.env["ir.attachment"].with_user(accountant).create({
+            "name": "TEST supplier supporting document.txt", "raw": b"TEST only",
+            "res_model": "account.move", "res_id": replacement.id,
+        })
+        self.assertEqual(attachment.res_id, replacement.id)
+        self.assertEqual(replacement.ref, "TEST corrected supplier reference")
+        self.assertEqual(replacement.amount_untaxed, 120)
+        self.assertEqual(replacement.amount_tax, 24)
+        replacement.with_user(accountant).action_post()
+        self.assertEqual(replacement.state, "posted")
+
     def test_accounting_administrator_can_recreate_a_cancelled_package_bill(self):
         op = self._execute_package()
         cl = op.contract_ids.contract_line_ids
@@ -289,9 +357,9 @@ class TestOneOffRental(EquipmentCommon):
         old = op.bill_ids
         cl = op.contract_ids.contract_line_ids
         old.button_cancel()
-        cl.write({"discount": 100})
-        with self.assertRaises(ValidationError):
-            cl._create_equipment_one_off_bill()
+        with self.assertRaises(UserError):
+            cl.write({"discount": 100})
+        self.assertEqual(cl.price_subtotal, 120)
         manual = old.copy()
         manual.invoice_line_ids.discount = 100
         with self.assertRaisesRegex(UserError, "package amount"):

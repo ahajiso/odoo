@@ -1,7 +1,7 @@
 # Location fournisseur ponctuelle — proposition du 17/10/2026
 
 Le propriétaire demande de rendre testable la location de quatre heures du chariot
-CHA25E. Version proposée : maintenance_shareholder_equipment **18.0.5.2.1** et
+CHA25E. Version proposée : maintenance_shareholder_equipment **18.0.5.2.2** et
 lartdubati_investor_home **18.0.3.1.0**. Aucun déploiement serveur dans cette tâche.
 
 ## Parcours et choix
@@ -40,8 +40,11 @@ lartdubati_investor_home **18.0.3.1.0**. Aucun déploiement serveur dans cette t
   quantité, produit/service ou un montant HT différent de l'engagement. Le contrôle
   fournisseur/société/compte de location existant reste actif. Les avoirs ordinaires
   restent possibles, leur montant diminue le cumul du moniteur.
-- Les termes du forfait ne peuvent être modifiés tant qu'une facture non annulée
-  existe. Arrêter la possession ne change pas le prix ni ne déclenche un remboursement.
+- Dès la première facture, les termes approuvés du forfait restent gelés, même
+  après annulation : produit, unité, quantité, prix manuel et calculé, remise et
+  horaires. Le remplacement reprend le même engagement ; référence fournisseur,
+  taxes et pièces jointes du brouillon restent modifiables. Arrêter la possession
+  ne change pas le prix ni ne déclenche un remboursement.
 - Moniteur : montant brut de forfait avec périodicité `one_off`, libellé traduit,
   aucun équivalent mensuel et aucune alerte « périodicité non prise en charge » pour
   ce mode. Le cumul des factures comptabilisées et avoirs reste inchangé. La présence

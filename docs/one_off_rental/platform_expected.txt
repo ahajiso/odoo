@@ -128,5 +128,5 @@ MODULE web_tour 18.0.1.0 1660f964aad7a234a656a1c32324e8b59d97258b4ad4d4018632dd6
 MODULE web_unsplash 18.0.1.1 8b8eaeff4ae714bb6ab6fed01b53a2da77376a114987e6ca4a4d4f2b8bb02e5c /usr/lib/python3/dist-packages/odoo/addons
 
 AFTER lartdubati_investor_home 18.0.3.1.0 64cc3bcbe29df6fbcec3c0f4e76e0a9d10f2b4d57282e6a523861d71553f3a22 /workspace/odoo
-AFTER lartdubati_manual 18.0.1.0.0 22a8b116af887e2dc915bf9b871ef020c21c50efd2025512c81898192ca5d8f0 /workspace/odoo
-AFTER maintenance_shareholder_equipment 18.0.5.2.1 85c9b8d40b506b7edb1bccc380109d7daa1b89e0d53abf62024fc9bad4b93212 /workspace/odoo
+AFTER lartdubati_manual 18.0.1.0.0 45e0eb5eacb67af5c43a3e06415a7a2fbd55ee810a9e91bc117a6bec71388f99 /workspace/odoo
+AFTER maintenance_shareholder_equipment 18.0.5.2.2 0284f89f0c666daa93de6c21451fa4ef4476db8b73c19f061daa6f512e9851da /workspace/odoo

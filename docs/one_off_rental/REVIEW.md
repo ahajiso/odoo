@@ -1,3 +1,50 @@
+# Réponse à l’audit de 62ef439 — gel de l’engagement
+
+**Constat accepté ; nouveau candidat proposé, fusion non autorisée.** Les corrections
+de 62ef439 ont été validées par l’audit, mais celui-ci a révélé que l’annulation
+rouvrait les termes approuvés. Cette possibilité est supprimée dans la proposition
+**18.0.5.2.2**, sans nouveau champ ni circuit de modification après exécution.
+
+`contract.line.write` conserve le verrou de concurrence et consulte maintenant
+`_equipment_one_off_history`, qui inclut les factures annulées. Dès la première
+facture, produit, unité, quantité, prix calculé et source manuelle du prix, remise,
+mode de tarification et horaires prévus restent gelés. L’identité technique reste
+protégée par la garde précédente. Aucun contexte RPC ni sudo ne dispense de ce gel.
+`_equipment_one_off_bills` continue à exclure les pièces annulées pour permettre
+leur remplacement : recherche d’une facture réutilisable et gel de l’engagement
+utilisent volontairement deux recherches distinctes.
+
+Le nouveau test reproduit l’approbation de 120 EUR HT pour le 17/10/2026 de
+10 h à 14 h Europe/Paris, l’exécution, la création puis l’annulation de la facture.
+Il tente ensuite de passer à 1 200 EUR HT et à 8 h–18 h, séparément et ensemble,
+avec un administrateur comptable et avec sudo. Produit, unité, quantité, remise
+et source du prix sont aussi couverts. Chaque tentative est refusée. La facture
+de remplacement reprend le produit, l’unité, la quantité, la remise et les
+120 EUR HT d’origine ; les quatre heures restent inchangées sur le contrat.
+Le même test corrige la référence fournisseur, applique une taxe de 20 % et ajoute
+une pièce jointe au brouillon, puis comptabilise 120 EUR HT + 24 EUR de taxe.
+Toutes les pièces restent rattachées à l’opération exécutée.
+
+L’ancien test de remise totale modifiait aussi le contrat après annulation ; il
+attend désormais le refus de cette modification. La remise à 100 % sur une copie
+de facture reste refusée à la comptabilisation par le contrôle de montant existant.
+
+`docs/DEFINITIONS.md` dit désormais « cancelled draft ». CPT-25 FR/EN/FA,
+le journal et les six exports PDF/Word sont corrigés : annuler ne donne jamais
+l’autorisation de modifier l’engagement. Le message de refus est exporté depuis
+Odoo et traduit en français et persan.
+
+Résultats finaux et exclusions : VALIDATION.md et test-results.txt. Les contrôles
+Chromium de l’interface métier et de concurrence de 62ef439 restent des preuves
+historiques ; la régression ORM complète est relancée pour ce candidat. Aucun
+contrôleur, vue métier, champ stocké ou droit d’accès n’est ajouté par ce correctif.
+
+**Fusion et déploiement restent deux décisions distinctes.** La PR reste en
+brouillon. Aucune opération distante n’est effectuée ; isolation réelle de la base
+de test et audit des outils adaptés restent obligatoires avant déploiement.
+
+---
+
 # Réponse à l’audit de 1aa5355 — 17/10/2026
 
 **Décision reçue : fusion refusée.** L’audit transmis par le propriétaire identifie
