@@ -382,3 +382,23 @@ overtime and penalties remain separately entered and reviewed; no automatic char
 Existing date-based overlap rules remain conservative for multiple rentals on a day.
 See docs/one_off_rental/README.md and CPT-25. Proposed versions 18.0.5.2.0 and
 18.0.3.1.0; review, matching-platform tests and controlled deployment still required.
+
+
+## Audit correction — 17/10/2026, one-off rentals
+
+A supplier bill line linked to a one-off rental cannot lose/change its contract
+line, move or display type, or be deleted. Its bill cannot be deleted or converted
+to another move type, including after cancellation. The contract line identity
+and its deletion remain protected while any historical supplier bill refers to it.
+Draft accounting inputs remain subject to existing posting validations. Use normal
+Odoo cancellation followed by the package bill action to replace a bill; never
+remove historical bills. An immutable workflow origin on the contract line links
+every replacement to the original equipment operation. Its Bills tab lists all
+successive bills and states. The narrow internal link update grants no operation
+write rights to the accounting user.
+
+The shared-service deployment plan for 1aa5355 is withdrawn. Test-only upgrades
+adding stored fields require an isolated test service, independent checkout and
+filestore, configuration and database access, verified on the old code first.
+Unused production does not make new code compatible with its old schema. No
+production upgrade or infrastructure change was performed by this correction.

@@ -932,7 +932,8 @@ class EquipmentOperation(models.Model):
 
         if self.rental_billing_mode == "one_off":
             start, end = self._one_off_dates()
-            vals.update(equipment_billing_mode="one_off", equipment_rental_start=self.rental_start,
+            vals.update(equipment_billing_mode="one_off", equipment_origin_operation_id=self.id,
+                        equipment_rental_start=self.rental_start,
                         equipment_rental_end=self.rental_end, date_start=start, date_end=end,
                         recurring_next_date=False, is_auto_renew=False)
         return vals

@@ -3,7 +3,7 @@
 Demande du propriétaire : un profil particulier pour les utilisateurs de test et
 les superadmins, permettant de créer et valider sa propre référence. Décision
 consignée dans DEFINITIONS.md ; proposition initiale 18.0.5.1.0, intégrée dans la
-livraison **18.0.5.2.0** avec la location ponctuelle, non déployée.
+livraison **18.0.5.2.1** avec la location ponctuelle, non déployée.
 
 ## Comportement
 
@@ -52,7 +52,7 @@ Il n'y a pas de nouveau contrôleur HTTP ni de nouvelle dépendance.
 Suivre ADM-05 et docs/phase4/README.md : fenêtre de déploiement, sauvegarde vérifiée,
 plateforme conforme et empreinte du nouveau code, inventaire des routes avant/après,
 arrêt/code/mise à jour ENSEMBLE de maintenance_shareholder_equipment et
-lartdubati_investor_home/reprise sur artdubati_test (livraison ponctuelle 5.2.0).
+lartdubati_investor_home/reprise sur artdubati_test (livraison ponctuelle 5.2.1).
 Ne pas réutiliser comme preuve l'ancienne empreinte AFTER de la version 18.0.5.0.1.
 Exécuter les tests d'intégration du module et les contrôles de groupes, puis vérifier
 les traductions dans la fiche utilisateur. Rien n'est automatiquement attribué :
@@ -66,12 +66,12 @@ Le nouveau profil n’a pas été nécessaire à cette validation par autrui et 
 pas actif sur le serveur ; il permettra l’auto-approbation future après déploiement
 et attribution explicite. La validation des opérations matériel reste distincte.
 Le chariot quatre heures attend le déploiement de la location ponctuelle de la
-livraison 5.2.0 ; son opération existante reste en brouillon sur le serveur.
+livraison 5.2.1 ; son opération existante reste en brouillon sur le serveur.
 
 
 ## Complément lors du développement ponctuel
 
-La version proposée est désormais 18.0.5.2.0 et inclut le parcours ponctuel.
+La version proposée est désormais 18.0.5.2.1 et inclut le parcours ponctuel.
 La plateforme locale a été reconstruite avec les 122 modules du serveur, leurs
 empreintes et les versions OCA exactes. Le contrôle de sources admet seulement
 les neuf écarts d'images/polices déjà prouvés pour la même image Docker ; les

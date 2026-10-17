@@ -59,7 +59,7 @@ MODULE l10n_fr_account 18.0.2.2 27b64a2322204779d8400c06182dafcbdd036260eef8edc3
 MODULE lartdubati_env_ribbon 18.0.1.0.0 bf5894e2131d7732be3d5e0cb5ac2be319915f82b28ed703eada38754a447bbf /workspace/odoo
 MODULE lartdubati_facturation 18.0.1.0.0 e3453593d3330651cdefb96f72effa0b78f1eab20c9eb8a4352c67c8e6c830c0 /workspace/odoo
 MODULE lartdubati_investor_home 18.0.3.1.0 64cc3bcbe29df6fbcec3c0f4e76e0a9d10f2b4d57282e6a523861d71553f3a22 /workspace/odoo
-MODULE lartdubati_manual 18.0.1.0.0 8443e0544b7eb74c3a7061b040a4c881b14eed3232b8aa137dd2b26fa6a830da /workspace/odoo
+MODULE lartdubati_manual 18.0.1.0.0 22a8b116af887e2dc915bf9b871ef020c21c50efd2025512c81898192ca5d8f0 /workspace/odoo
 MODULE mail 18.0.1.18 ed6157af91435d673da0c7f331e7aedb046d7cf39b6000141c5955736f61cd7d /workspace/scratch/oneoff/parity/server/addons
 MODULE mail_bot 18.0.1.2 78fd0c61d2d12c350bf5d6c0fa96e07829b0371f18dc12f733bb590eff30654f /workspace/scratch/oneoff/parity/server/addons
 MODULE maintenance 18.0.1.0 0152ded998ce15429f73099aa656bf7043c40835f07eb8c8a84b746ea3ccb5a6 /workspace/scratch/oneoff/parity/server/addons
@@ -70,7 +70,7 @@ MODULE maintenance_partner 18.0.1.0.1 efee24db71424aa23069a2c439cca2e5bb1421082e
 MODULE maintenance_product 18.0.1.0.2 3a03eafc76389078ca35defe98cbe45523aba8f91727c4d754fbe6e21536201d /workspace/scratch/oneoff/parity/addons
 MODULE maintenance_request_purchase 18.0.1.0.0 77b4736f23489e6c6c41879313774f93dddd3f3ab00801c173b0fc47432c7ad6 /workspace/scratch/oneoff/parity/addons
 MODULE maintenance_request_repair 18.0.1.0.0 d839950f94ae1260939c81609d5ab24ac185c025b9b0f2273177295c886e692b /workspace/scratch/oneoff/parity/addons
-MODULE maintenance_shareholder_equipment 18.0.5.2.0 357c94572590eea08f22d82d9a2f94cf111d251932f59b42e03ed387afe15064 /workspace/odoo
+MODULE maintenance_shareholder_equipment 18.0.5.2.1 cf10cbe9337cc9e56450403cb3f5f7eb40e33fc43edd58cd24e895a11c91c020 /workspace/odoo
 MODULE mis_builder 18.0.1.10.0 ca69eff09cc2a3de161c5e9167ddd46dabaac82ed77c4b60a754ddaa82e5b24d /workspace/scratch/oneoff/parity/addons
 MODULE onboarding 18.0.1.2 14d4c5a1eba207a6ec5c4759da8604fc0907b74e5345bc0427167113544dd41c /workspace/scratch/oneoff/parity/server/addons
 MODULE partner_autocomplete 18.0.1.1 bbab70c95ba3fe97689877af00298da261bc229345c2a161159f5169c6d11314 /workspace/scratch/oneoff/parity/server/addons

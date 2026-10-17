@@ -133,7 +133,7 @@
                             <field name="bill_ref" invisible="bill_mode != 'create'"/>
                             <field name="bill_date" invisible="bill_mode != 'create'"/>
                             <field name="bill_attachment_ids" widget="many2many_binary" invisible="bill_mode != 'create'"/>
-                            <field name="bill_ids" widget="many2many_tags" invisible="not bill_ids"/>
+                            <field name="bill_ids" widget="many2many_tags" groups="account.group_account_invoice,purchase.group_purchase_user,maintenance_shareholder_equipment.group_equipment_approver" invisible="not bill_ids"/>
                         </group>
                     </group>
                     <group string="Contract"
@@ -164,6 +164,16 @@
                         <field name="new_location_parent_id" invisible="offsite_location_id"/>
                     </group>
                     <notebook>
+                        <page string="Bills" groups="account.group_account_invoice,maintenance_shareholder_equipment.group_equipment_approver" invisible="rental_billing_mode != 'one_off' or not bill_ids">
+                            <field name="bill_ids" readonly="1">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="display_name"/>
+                                    <field name="state"/>
+                                    <field name="amount_untaxed"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
                         <page string="Lines" name="lines">
                             <!-- Short table; a click opens the line's sheet with every field. -->
                             <field name="line_ids">

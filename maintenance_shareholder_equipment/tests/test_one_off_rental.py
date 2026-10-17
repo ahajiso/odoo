@@ -178,8 +178,66 @@ class TestOneOffRental(EquipmentCommon):
         bill = self.env["account.move"].browse(action["res_id"])
         self.assertEqual(bill.amount_untaxed, 120)
         self.assertEqual(bill.state, "draft")
-        self.assertNotIn(bill, op.bill_ids)
+        self.assertIn(bill, op.bill_ids)
+        self.assertEqual(set(op.bill_ids.mapped("state")), {"cancel", "draft"})
+        self.assertEqual(cl.equipment_origin_operation_id, op)
         self.assertEqual(cl.with_user(accountant).action_create_equipment_one_off_bill()["res_id"], bill.id)
+
+    def test_accountant_cannot_detach_package_then_bill_it_again(self):
+        op = self._execute_package()
+        bill = op.bill_ids
+        cl = bill.invoice_line_ids.contract_line_id
+        accountant = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "TEST package accountant", "login": "package_detach_accountant",
+            "company_id": self.company.id, "company_ids": [Command.set(self.company.ids)],
+            "groups_id": [Command.set([self.env.ref("base.group_user").id,
+                                       self.env.ref("account.group_account_manager").id])],
+        })
+        line = bill.invoice_line_ids.with_user(accountant)
+        # Exact audit exploit: detach the rental and leave account 613500, then post.
+        with self.assertRaises(UserError), self.env.cr.savepoint():
+            line.write({"contract_line_id": False, "account_id": self.acc_expense.id})
+            bill.with_user(accountant).action_post()
+        self.assertEqual(line.contract_line_id, cl)
+        self.assertEqual(line.account_id, self.acc_rent)
+        self.assertEqual(cl.with_user(accountant).action_create_equipment_one_off_bill()["res_id"], bill.id)
+        self.assertEqual(len(cl._equipment_one_off_bills()), 1)
+        bill.with_user(accountant).action_post()
+        self.assertEqual(bill.state, "posted")
+
+    def test_package_history_cannot_be_deleted_or_retyped_even_after_cancel(self):
+        op = self._execute_package()
+        bill = op.bill_ids
+        line = bill.invoice_line_ids
+        cl = line.contract_line_id
+        other = self.env["account.move"].create({
+            "move_type": "in_invoice", "partner_id": bill.partner_id.id,
+            "company_id": self.company.id, "journal_id": bill.journal_id.id,
+        })
+        for cancel in (False, True):
+            if cancel:
+                bill.button_cancel()
+            actions = [lambda: line.write({"contract_line_id": False}),
+                       lambda: line.write({"move_id": other.id}),
+                       lambda: line.write({"display_type": "line_note"}),
+                       lambda: line.unlink(), lambda: bill.unlink(),
+                       lambda: bill.write({"invoice_line_ids": [Command.clear()]}),
+                       lambda: bill.write({"move_type": "in_refund"}),
+                       lambda: cl.write({"equipment_billing_mode": "recurring"}),
+                       lambda: cl.unlink(), lambda: cl.contract_id.unlink()]
+            for action in actions:
+                with self.subTest(cancelled=cancel, action=action), self.assertRaises(UserError), self.env.cr.savepoint():
+                    action()
+        replacement = cl._create_equipment_one_off_bill()
+        self.assertEqual(op.bill_ids, bill | replacement)
+        replacement.action_post()
+        self.assertEqual(op.bill_ids.filtered(lambda move: move.state == "posted"), replacement)
+        self.assertEqual(op.bill_ids.filtered(lambda move: move.state == "cancel"), bill)
+        replacement.button_cancel()
+        third = cl._create_equipment_one_off_bill()
+        self.assertEqual(op.bill_ids, bill | replacement | third)
+        with self.assertRaises(AccessError):
+            cl.write({"equipment_origin_operation_id": False})
 
     def test_separate_delivery_collection_and_insurance_fees_total_295(self):
         op = self._execute_package()

@@ -16,6 +16,7 @@
                     <field name="equipment_id"/>
                     <field name="equipment_nature" required="equipment_id"/>
                     <field name="equipment_billing_mode" invisible="not equipment_id"/>
+                    <field name="equipment_origin_operation_id" groups="maintenance_shareholder_equipment.group_equipment_operator,maintenance_shareholder_equipment.group_equipment_approver,maintenance.group_equipment_manager" invisible="equipment_billing_mode != 'one_off'"/>
                     <field name="equipment_rental_start" invisible="equipment_billing_mode != 'one_off'"/>
                     <field name="equipment_rental_end" invisible="equipment_billing_mode != 'one_off'"/>
                     <field name="equipment_rental_hours" invisible="equipment_billing_mode != 'one_off'"/>

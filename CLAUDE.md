@@ -20,11 +20,13 @@
   (owner's choice, keep it and keep the documentation as is), so
   `stock.location.warehouse_id` is empty for Bg/Stock and its children. Never rely on
   `warehouse_id` to find a stock's warehouse, address or country.
-- One container `odoo_web` and one addons folder serve both databases: acceptable only
-  while there is no real production (08/10/2026). Separate test and production
-  environments (services, code, databases, filestores, backups, controlled promotion)
-  are a mandatory prerequisite before any production use: docs/deployment/investor_home.md,
-  section 0.
+- One container `odoo_web` and one addons folder currently serve both databases.
+  The audit of 1aa5355 (17/10/2026) rejects a test-only schema upgrade on this shared
+  service, even without real production use. Before the one-off release, isolate
+  test service, checkout, configuration, database access and filestore on the old
+  code. Production upgrades are not authorised. The old shared deploy script refuses
+  this release; docs/one_off_rental/DEPLOYMENT.md records the mandatory isolation gate.
+  See also docs/deployment/investor_home.md, section 0.
 - Single company. DB container: odoo_db (`docker exec -i odoo_db psql -U odoo -d artdubati_test`).
 - Languages: en_US, fr_FR, fa_IR (RTL). All UI strings translatable; .po files come from
   `odoo --i18n-export`, never written by hand.
@@ -99,7 +101,10 @@
   docs/manual/maintenance-manuel-odoo.md and docs/manual/definitions-manuel.md; tools:
   lartdubati_manual/tools/README.md. Read them before touching the manual. Investor
   profile tab in the three manuals.
-- Update module on the server: `docker exec -i odoo_web odoo -d artdubati_test -u <module>
+- Historical shared-service commands below are NOT valid for the one-off release.
+  Do not execute them for this PR: isolate test first and audit tools for that
+  dedicated service (docs/one_off_rental/DEPLOYMENT.md).
+  Historical update command: `docker exec -i odoo_web odoo -d artdubati_test -u <module>
   --stop-after-init` then `docker restart odoo_web`.
   Run tests: `docker exec -i odoo_web odoo -d artdubati_test -u <module> --test-enable
   --test-tags /<module> --workers 0 --http-port 8079 --stop-after-init 2>&1 | tail -40`
@@ -351,7 +356,7 @@ are unchanged. Implementation proposed in 18.0.5.1.0, awaiting review and deploy
 The owner authorises development of timed, one-off supplier equipment rentals for
 the four-hour forklift. Normal equipment approval and stock execution remain in
 force; a package has one draft bill and no recurring/monthly rent. Proposed versions:
-maintenance_shareholder_equipment 18.0.5.2.0, lartdubati_investor_home 18.0.3.1.0.
+maintenance_shareholder_equipment 18.0.5.2.1, lartdubati_investor_home 18.0.3.1.0.
 Technical decisions, validation limits and controlled rollout: docs/one_off_rental/.
 
 Server inventory received 17/10/2026: the local integration environment now reproduces

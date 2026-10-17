@@ -33,6 +33,9 @@ class AccountMoveLine(models.Model):
     # OCA maintenance_account field, redeclared: a reversal is built with copy() and
     # must not start with the equipment of the original bill.
     equipment_ids = fields.Many2many(copy=False)
+    equipment_contract_billing_mode = fields.Selection(
+        related="contract_line_id.equipment_billing_mode", readonly=True,
+    )
 
     # ------------------------------------------------------- link, both relations
 
@@ -59,7 +62,17 @@ class AccountMoveLine(models.Model):
                       "line.", line=line.display_name)
                 )
 
+    def _one_off_bill_lines(self):
+        return self.filtered(lambda line: line.move_id.move_type == "in_invoice"
+                             and line.contract_line_id.equipment_billing_mode == "one_off")
+
     def write(self, vals):
+        for line in self._one_off_bill_lines():
+            for field in ("contract_line_id", "move_id", "display_type"):
+                current = line[field].id if self._fields[field].type == "many2one" else line[field]
+                if field in vals and (vals[field] or False) != (current or False):
+                    raise UserError(_("A one-off bill keeps its contract link and history. "
+                                      "Cancel it and create a replacement."))
         if "equipment_ids" in vals and not self.env.su:
             before = {line.id: line.equipment_ids for line in self}
             res = super().write(vals)
@@ -72,6 +85,12 @@ class AccountMoveLine(models.Model):
                     )
             return res
         return super().write(vals)
+
+    def unlink(self):
+        if self._one_off_bill_lines():
+            raise UserError(_("A one-off bill keeps its contract link and history. "
+                              "Cancel it and create a replacement."))
+        return super().unlink()
 
     def _link_equipment(self, equipments):
         """Link equipment to this line, both relations, in the order compatible with the
@@ -138,6 +157,20 @@ class AccountMoveLine(models.Model):
 
 class AccountMove(models.Model):
     _inherit = "account.move"
+
+    def write(self, vals):
+        if "move_type" in vals:
+            for move in self:
+                if move.move_type != vals["move_type"] and move.line_ids._one_off_bill_lines():
+                    raise UserError(_("A one-off bill keeps its contract link and history. "
+                                      "Cancel it and create a replacement."))
+        return super().write(vals)
+
+    def unlink(self):
+        if self.line_ids._one_off_bill_lines():
+            raise UserError(_("A one-off bill keeps its contract link and history. "
+                              "Cancel it and create a replacement."))
+        return super().unlink()
 
     def action_post(self):
         self._check_asset_supplier_refunds()

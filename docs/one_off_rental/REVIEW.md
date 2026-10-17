@@ -1,51 +1,85 @@
-# Revue technique du 17/10/2026
+# Réponse à l’audit de 1aa5355 — 17/10/2026
 
-Périmètre relu : différence entre le serveur actuel (`f0de375`, empreintes des
-modules vérifiées contre l'inventaire reçu) et la proposition (code `aff72e6` puis correction OCA décrite ci-dessous), profil
-catalogue compris. Revue effectuée dans ce chat ; aucun avis d'un autre réviseur
-GitHub n'est enregistré. Les résultats d'exécution sont dans VALIDATION.md.
+**Décision reçue : fusion refusée.** L’audit transmis par le propriétaire identifie
+deux blocages métier/déploiement et un défaut de traçabilité. La première revue
+avait manqué ces points. La PR reste en brouillon et doit être réauditée sur le
+nouveau commit ; aucune fusion ou opération serveur n’a été effectuée.
 
-- Entrées RPC : l'action publique de création de facture exige administrateur
-  comptable et écriture du contrat ; aucun sudo de création sur cette entrée.
-  Le chemin d'exécution d'opération conserve ses contrôles opérateur/approbateur.
-  Les méthodes privées ne constituent pas des entrées RPC publiques.
-- Catalogue : l'exception d'autoapprobation exige un groupe explicite, qui implique
-  seulement le gestionnaire du catalogue. Aucune attribution automatique, aucun
-  droit supplémentaire d'approbation des mouvements physiques. Les contrôles de
-  référence, famille, doublons et exécution de demande restent actifs.
-- Montants : une unité physique, un service de location et une facture brouillon
-  pour le forfait. La comptabilisation vérifie fournisseur/société, service, devise,
-  quantité et montant HT. Frais, cautions et remplacement restent distincts.
-- Concurrence : verrou stable des lignes de contrat et révision écrite par ORM
-  forcent une reprise de transaction en REPEATABLE READ. Le simple verrou sans
-  révision aurait laissé l'instantané obsolète ; la vérification à deux connexions
-  couvre ce cas. Aucune écriture métier SQL directe.
-- Cycle de vie : aucune échéance périodique, reconduction ou équivalence mensuelle
-  pour un forfait. Les autres lignes récurrentes conservent le moteur OCA. Annuler
-  la facture permet son remplacement ; un avoir ne relance pas la facturation.
-  Les engagements facturés sont protégés contre leur modification.
-- Dates : horodatages UTC et fuseau explicite pour les dates civiles du contrat.
-  Les widgets suivent le navigateur. Pas de prorata horaire, de dépassement
-  automatique, ni de rotations contractuelles multiples le même jour.
-- Mise à jour : les champs stockés sont lus par le moniteur ; les DEUX modules
-  doivent être mis à jour application arrêtée. Les valeurs existantes prennent
-  `recurring`. L'empreinte d'approbation change : réapprobation normale si requise.
+## 1. Détachement de la facture : constat accepté, corrigé
 
-La vérification sur OCA contract 18.0.2.5.3 a trouvé un défaut bloquant :
-`_insert_markers` appelait `strftime` sur les dates récurrentes absentes du forfait.
-Corrigé dans notre surcharge, uniquement pour `one_off`, en gardant sa description ;
-le préparateur OCA et les autres contrats restent inchangés. Le test du parcours
-complet vérifie aussi le préparateur de ligne. Les tests communs fixent leur contexte
-à en_US pour leurs assertions anglaises, indépendamment du français activé par le
-plan comptable. Le test de migration prépare les autres stocks candidats avec une
-adresse et vérifie que l’erreur cite le stock incomplet attendu, dans toute langue.
+Le contrôle de comptabilisation seul ne suffisait pas : retirer contract_line_id
+et quitter le compte 613500 faisait disparaître la preuve de facturation.
 
-Aucun autre défaut bloquant identifié dans ce périmètre. Cela n'atteste pas d'un audit
-indépendant, d'une exécution serveur ou d'une validation comptable des comptes et
-taxes. La procédure contrôlée reste applicable avant toute utilisation distante.
+- account.move.line.write refuse de changer le lien de contrat, le mouvement ou
+  le type d’affichage d’une ligne de facture fournisseur au forfait. Les écritures
+  identiques restent possibles pour les mécanismes Odoo. Le lien est aussi en
+  lecture seule dans le formulaire ; la protection réelle est côté serveur.
+- unlink refuse sa suppression, y compris via les commandes relationnelles du
+  parent. account.move.unlink refuse la suppression de la pièce entière et write
+  interdit sa conversion en autre type de mouvement.
+- Les protections restent actives après annulation. contract.line protège son
+  identité et sa suppression tant qu’une facture fournisseur historique, même
+  annulée, la référence. On ne peut pas retirer le mode one_off pour désactiver les
+  gardes. La suppression du contrat parent est aussi refusée pour empêcher la
+  cascade SQL de contourner unlink de sa ligne, y compris pour une ligne archivée.
+  Aucune exception par contexte RPC ou sudo n’est ajoutée à ces gardes.
+- Les données comptables du brouillon restent contrôlées à la comptabilisation
+  (montant HT, devise, quantité, service, fournisseur et société). Le remplacement
+  utilise l’annulation Odoo puis la création/réutilisation normale du forfait.
 
-Le test historique de traduction active explicitement en_US et fr_FR avant de
-comparer les deux libellés. Lorsque l'anglais est désactivé, cette version Odoo
-met volontairement à jour le texte source en_US lors d'une écriture française ;
-le test supposait à tort que l'anglais était toujours actif. Il ne s'agit pas
-d'une correction du moteur de traduction ou du moniteur.
+Le test reproduit exactement le détachement + changement vers un autre compte avec
+un utilisateur administrateur comptable réel, puis vérifie le lien, le compte et
+l’unicité avant comptabilisation. Un second test couvre suppression de ligne et
+facture, effacement via le parent, déplacement de ligne, changement de type de
+ligne/pièce et retrait du mode/de la ligne de contrat, avant/après annulation.
+
+## 2. Déploiement partagé : constat accepté, procédure retirée
+
+Mettre à jour seulement artdubati_test puis redémarrer le code partagé aurait
+chargé de nouveaux champs sur l’ancien schéma d’artdubati. « Production non
+utilisée » ne résout pas ce défaut. Aucune mise à jour de production n’est autorisée.
+
+DEPLOYMENT.md exige désormais la séparation préalable, **sur l’ancien code**, du
+service test, de son checkout, de sa configuration, de ses accès PostgreSQL et de
+son filestore. Les services doivent être limités à leur base respective. Les
+sauvegardes et outils de mise à jour/retour arrière doivent cibler explicitement
+cet environnement isolé ; les anciens scripts ne sont pas réutilisables tels quels.
+
+Le script historique deploy_modules.sh refuse les livraisons contenant le forfait
+avant tout arrêt/changement de code, même en appel direct. La séparation distante
+n’a pas été réalisée ni simulée comme acquise. L’adaptation opérationnelle des
+outils et l’audit de l’inventaire réel restent des préalables au déploiement.
+Les fiches ADM-05/CPT-25 FR/EN/FA reflètent cette interdiction.
+
+## 3. Historique des remplacements : constat accepté, corrigé
+
+La ligne de contrat conserve equipment_origin_operation_id, renseigné par le
+workflow et non modifiable par le comptable. La création ou réutilisation d’une
+facture ajoute son lien à cette seule opération via une élévation privée limitée.
+Le comptable ne reçoit aucun droit général d’écriture sur les opérations.
+La liste est réservée aux droits de consultation existants. L’ancien champ de
+factures du groupe Achat est également limité aux profils lecteurs : il était
+chargé même invisible et empêchait un opérateur sans droits comptables d’ouvrir
+une réception comportant une facture. Aucune ACL n’est élargie.
+
+L’opération garde les factures annulées et toutes leurs remplaçantes. Son onglet
+Factures les affiche en lecture seule avec référence, état et montant HT. Le test
+qui attendait l’absence du remplacement est corrigé. Un test couvre deux
+remplacements successifs et la consultation des états annulé/brouillon/comptabilisé.
+
+## 4. Espaces du diff : constat accepté, preuve rectifiée
+
+Le contrôle annoncé concernait le diff de travail ; il ne prouvait pas la propreté
+de la comparaison complète avec main. Les espaces terminaux du résumé de tests
+sont retirés ; les PDF sont déclarés binaires dans .gitattributes. Les prochaines
+preuves indiquent la commande sur la comparaison complète f0de375..HEAD et son
+code de retour, pas seulement git diff --check sans référence.
+
+## Résultats et statut
+
+Voir VALIDATION.md et test-results.txt pour les résultats finaux et leurs limites.
+Le rôle catalogue autonome, la non-récurrence et la reprise de sérialisation ne sont
+pas élargis. Aucun nouvel accès investisseur, aucune route HTTP ni droit de société.
+Le nouveau candidat est **18.0.5.2.1** pour maintenance_shareholder_equipment ;
+lartdubati_investor_home reste **18.0.3.1.0**. Les anciens résultats de 1aa5355
+restent historiques ; ils ne valent pas validation des corrections ultérieures.

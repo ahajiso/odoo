@@ -99,3 +99,15 @@ sans contrat ni mouvement à la vérification. Les cinq modèles de scénario so
 documentés dans CPT-22 à CPT-26 en trois langues et dans les exports PDF/Word.
 La caution remboursable est distincte des charges ; la valeur de remplacement ne
 constitue ni indemnité déjà due ni facture automatique.
+
+## Correction après audit de 1aa5355
+
+ADM-05 FR/EN/FA interdit désormais la mise à jour sur le service partagé : isoler
+service, checkout, configuration, accès à la base et filestore de test sur l’ancien
+code, puis vérifier cette séparation avant toute livraison du forfait. L’absence
+d’utilisation réelle d’artdubati ne suffit pas. La procédure précédente est retirée.
+CPT-25 indique qu’une facture de forfait ne peut être détachée ni supprimée, même
+annulée ; son remplacement passe par annulation puis création normale. L’opération
+conserve toutes les factures successives et leurs états dans l’onglet Factures.
+Version proposée maintenance_shareholder_equipment 18.0.5.2.1 ; les six exports
+PDF/Word sont régénérés. Aucun déploiement ou changement d’infrastructure distant.

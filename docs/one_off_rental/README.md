@@ -1,7 +1,7 @@
 # Location fournisseur ponctuelle — proposition du 17/10/2026
 
 Le propriétaire demande de rendre testable la location de quatre heures du chariot
-CHA25E. Version proposée : maintenance_shareholder_equipment **18.0.5.2.0** et
+CHA25E. Version proposée : maintenance_shareholder_equipment **18.0.5.2.1** et
 lartdubati_investor_home **18.0.3.1.0**. Aucun déploiement serveur dans cette tâche.
 
 ## Parcours et choix
@@ -27,7 +27,9 @@ lartdubati_investor_home **18.0.3.1.0**. Aucun déploiement serveur dans cette t
   approuvée utilise son élévation existante ; aucun droit supplémentaire n'est donné.
   Le bouton explicite de ligne « Open or Create One-off Bill » est réservé aux
   administrateurs comptables avec droits d'écriture sur le contrat. Il réutilise la
-  facture non annulée ; une pièce annulée/supprimée peut être remplacée. Un avoir ne
+  facture non annulée ; seule une pièce annulée peut être remplacée. Toutes les pièces
+  restent liées à l’opération d’origine et visibles avec leur état dans son onglet
+  Factures. Aucun lien, ligne ou facture de forfait ne peut être retiré ou supprimé. Un avoir ne
   déclenche pas de refacturation. La référence fournisseur, le PDF et les taxes sont
   contrôlés par le comptable avant validation ; aucune comptabilisation automatique.
 - Création et comptabilisation verrouillent les lignes de contrat dans l'ordre des
@@ -89,8 +91,10 @@ Les résultats finaux sont consignés dans le compte rendu de validation ci-dess
    groupe, ACL ou règle de société ; son action publique est un bouton ORM protégé.
    Le groupe catalogue autonome, distinct, est décrit dans sa propre proposition.
 2. Sauvegarde/restauration vérifiées et fenêtre de déploiement contrôlée selon ADM-05.
-   Les deux bases partagent le code ; l'opérateur du serveur doit tenir compte de cette
-   architecture. Aucune utilisation de production n'est autorisée par cette demande.
+   L’isolation de test sur un service, checkout, configuration et filestore distincts
+   est OBLIGATOIRE avant cette livraison, même sans utilisation réelle de production.
+   La procédure partagée de 1aa5355 est retirée ; voir DEPLOYMENT.md. Aucun déploiement
+   n’est autorisé tant que la séparation et ses outils adaptés ne sont pas vérifiés.
 3. Mettre à jour ENSEMBLE maintenance_shareholder_equipment et
    lartdubati_investor_home : le SQL du moniteur lit le nouveau champ stocké de
    contract.line. Arrêter l'application avant le changement de code et la mise à jour.
@@ -111,7 +115,8 @@ Les résultats finaux sont consignés dans le compte rendu de validation ci-dess
 ## Résultats consignés
 
 Voir [VALIDATION.md](VALIDATION.md), [REVIEW.md](REVIEW.md) et la procédure
-[DEPLOYMENT.md](DEPLOYMENT.md). L'inventaire reçu sert au contrôle serveur avant
-et après avec `EXPECTED_FILE=docs/one_off_rental/platform_expected.txt` et le
-script existant docs/phase4/check_modules.sh ; ne pas utiliser son ancien
-inventaire par défaut pour cette livraison.
+[DEPLOYMENT.md](DEPLOYMENT.md). Le fichier platform_expected.txt est la référence
+pour les outils de contrôle à adapter au service isolé. Le wrapper historique
+phase4/check_modules.sh cible odoo_web et ne doit pas servir tel quel au contrôle
+après déploiement isolé. L’inventaire ancien par défaut n’est pas celui de cette
+livraison. Aucun déploiement ne doit précéder la séparation vérifiée.

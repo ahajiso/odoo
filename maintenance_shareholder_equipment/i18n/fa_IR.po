@@ -4995,3 +4995,19 @@ msgstr "بازنگری فنی صورتحساب"
 #: code:addons/maintenance_shareholder_equipment/models/contract.py:0
 msgid "This field is maintained by the billing workflow."
 msgstr "این فیلد توسط روند صورتحساب مدیریت می‌شود."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid ""
+"A one-off bill keeps its contract link and history. Cancel it and create a "
+"replacement."
+msgstr ""
+"صورتحساب مبلغ ثابت پیوند قرارداد و تاریخچه خود را حفظ می‌کند. آن را لغو و "
+"سپس صورتحساب جایگزین ایجاد کنید."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_origin_operation_id
+msgid "Original Equipment Operation"
+msgstr "عملیات اولیه تجهیزات"

@@ -27,6 +27,11 @@ class ContractLine(models.Model):
         [("recurring", "Recurring"), ("one_off", "One-off Package")],
         default="recurring", required=True,
     )
+    equipment_origin_operation_id = fields.Many2one(
+        "equipment.operation", string="Original Equipment Operation",
+        groups="maintenance_shareholder_equipment.group_equipment_operator,maintenance_shareholder_equipment.group_equipment_approver,maintenance.group_equipment_manager",
+        readonly=True, copy=False, index=True, ondelete="restrict",
+    )
     equipment_billing_revision = fields.Integer(
         readonly=True, copy=False, groups="base.group_system",
     )
@@ -75,7 +80,39 @@ class ContractLine(models.Model):
             lambda ln: ln.equipment_billing_mode != "one_off"
         ))._check_recurring_next_date_recurring_invoices()
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.su and any(vals.get("equipment_origin_operation_id") for vals in vals_list):
+            raise AccessError(_("This field is maintained by the billing workflow."))
+        return super().create(vals_list)
+
+    def _equipment_one_off_history(self):
+        return self.env["account.move.line"].sudo().search([
+            ("contract_line_id", "in", self.ids),
+            ("move_id.move_type", "=", "in_invoice"),
+        ]).move_id
+
+    def unlink(self):
+        if self.filtered(lambda line: line.equipment_billing_mode == "one_off")._equipment_one_off_history():
+            raise UserError(_("A one-off bill keeps its contract link and history. "
+                              "Cancel it and create a replacement."))
+        return super().unlink()
+
     def write(self, vals):
+        if "equipment_origin_operation_id" in vals:
+            for line in self:
+                if not self.env.su or line.equipment_origin_operation_id.id != vals["equipment_origin_operation_id"]:
+                    raise AccessError(_("This field is maintained by the billing workflow."))
+        identity = {"equipment_billing_mode", "equipment_id", "equipment_nature", "contract_id"}
+        for line in self.filtered(lambda record: record.equipment_billing_mode == "one_off"):
+            changed = any(key in vals and vals[key] != (
+                line[key].id if self._fields[key].type == "many2one" else line[key]
+            ) for key in identity)
+            if changed:
+                line._lock_equipment_one_off()
+                if line._equipment_one_off_history():
+                    raise UserError(_("A one-off bill keeps its contract link and history. "
+                                      "Cancel it and create a replacement."))
         if "equipment_billing_revision" in vals and not self.env.su:
             raise AccessError(_("This field is maintained by the billing workflow."))
         protected = {"equipment_billing_mode", "equipment_rental_start", "equipment_rental_end",
@@ -133,6 +170,7 @@ class ContractLine(models.Model):
             existing.with_env(self.env).check_access("read")
             if len(existing) != 1:
                 raise UserError(_("Several bills already reference this one-off package."))
+            self._link_one_off_bill_history(existing)
             return existing.with_env(self.env)
         if self.price_subtotal <= 0:
             raise ValidationError(_("The untaxed one-off package price must be positive."))
@@ -142,8 +180,17 @@ class ContractLine(models.Model):
         line_vals.update(quantity=1, name=self.name)
         vals["invoice_line_ids"] = [Command.create(line_vals)]
         bill = self.env["account.move"].with_company(contract.company_id).create(vals)
+        self._link_one_off_bill_history(bill)
         contract.message_post(body=_("One-off draft bill created: %s", bill._get_html_link()))
         return bill
+
+    def _link_one_off_bill_history(self, bill):
+        self.ensure_one()
+        # Only the workflow can set this immutable origin. Narrow elevation links
+        # the actual bill to that operation; callers gain no general write access.
+        operation = self.sudo().equipment_origin_operation_id
+        if operation:
+            operation.write({"bill_ids": [Command.link(item.id) for item in bill]})
 
     def action_create_equipment_one_off_bill(self):
         self.ensure_one()
@@ -249,6 +296,16 @@ class ContractContract(models.Model):
         "res.currency", string="Contract Currency (stored)",
         compute="_compute_equipment_currency_id", store=True,
     )
+
+    def unlink(self):
+        # PostgreSQL cascades contract deletion to its lines without calling their
+        # unlink hooks. Preserve cancelled bill history through this parent too.
+        packages = self.with_context(active_test=False).contract_line_ids.filtered(
+            lambda line: line.equipment_billing_mode == "one_off")
+        if packages._equipment_one_off_history():
+            raise UserError(_("A one-off bill keeps its contract link and history. "
+                              "Cancel it and create a replacement."))
+        return super().unlink()
 
     @api.constrains("line_recurrence", "contract_type")
     def _check_equipment_one_off_contract(self):

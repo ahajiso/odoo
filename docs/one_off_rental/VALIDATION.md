@@ -39,13 +39,16 @@ inchangés. Les tests utilisent un contexte anglais explicite pour les assertion
 anglaises. Le test historique de migration vérifie maintenant le stock incomplet
 attendu indépendamment de la langue, après préparation des autres candidats.
 
-**Résultat final : 0 failed, 0 error(s) of 301 tests** (212,86 s de post-tests).
+**Résultat après correction d’audit : 0 failed, 0 error(s) of 303 tests**.
+Les 301 cas de 1aa5355 sont un résultat historique, remplacé par cette régression.
 Voir test-results.txt. Le compte Odoo inclut des tests/sous-tests ignorés : les
 tours historiques et Hoot ne s’exécutent pas faute de websocket-client, comme
 sur l’image serveur documentée. La classe TestInvestorWebsocket est aussi ignorée
 avant ses méthodes. Le test de performance 10 000 lignes n’est pas sélectionné.
-Les vérifications ciblées antérieures (6 migration, 1 traduction) recoupent les
-301 cas ; elles ne s’ajoutent pas à ce nombre.
+Un lot de 20 tests ciblés (forfait et moniteur) couvre les gardes, le détachement
+avec changement de compte et l’historique. Après la régression, ce lot est relancé
+avec la visibilité finale de l’onglet Factures, restreint aux droits de consultation
+existants. Ces cas recoupent les 303 ; ils ne s’ajoutent pas au total.
 
 Commande exécutée sur cette base et ces sources, après installation :
 
@@ -78,10 +81,14 @@ par le forfait ; le rôle catalogue reste une permission explicite distincte.
 
 ## Interface, traductions et manuel
 
-Formulaire contrôlé à nouveau dans Chromium sur cette même base à 122 modules,
+Formulaire et onglet d’historique contrôlés dans Chromium sur cette même base à 122 modules,
 français et persan, bureau et mobile : libellés traduits, début 10:00 et fin 14:00
 avec navigateur Europe/Paris, durée exactement 4, sélection Forfait unique,
 récurrence et fin ouverte cachées. Captures locales vérifiées, dont le persan RTL.
+L’historique affiche les deux factures (annulée et remplaçante brouillon), en
+français/persan. Un vrai profil Approbateur seul peut les consulter en lecture
+seule ; un Opérateur seul ouvre l’opération sans onglet comptable ni erreur
+ACL. La visibilité de l’ancien champ Achat est corrigée sans élargir ses droits.
 Ce contrôle ciblé ne remplace pas les tours historiques/Hoot ignorés ci-dessus.
 
 Les POT des DEUX modules viennent de l'export Odoo, avec leurs PO français/persan.
@@ -92,8 +99,9 @@ des mouvements. CPT-25 fait aligner navigateur, préférences et fuseau du contr
 
 Contrôle du manuel FR/EN/FA : mêmes codes, nombres, étapes et liens. Exports des
 six PDF/Word déjà régénérés ; aperçus bureau/mobile dont persan RTL vérifiés.
-Python compilé et `git diff --check` propre. La correction de compatibilité
-n'introduit aucun champ, libellé ou changement de procédure utilisateur.
+Python compilé et contrôle de la comparaison complète avec main décrit ci-dessous. La correction de compatibilité OCA précédente ne changeait pas le schéma ;
+la correction d’audit ajoute maintenant l’origine stockée sur contract.line et les
+gardes/historique décrits dans REVIEW.md.
 
 Revue : REVIEW.md. Déploiement et retour arrière : DEPLOYMENT.md. L'ancien
 inventaire phase4 par défaut ne correspond pas à cette livraison ; utiliser
@@ -106,3 +114,24 @@ comparer les deux libellés. Lorsque l'anglais est désactivé, cette version Od
 met volontairement à jour le texte source en_US lors d'une écriture française ;
 le test supposait à tort que l'anglais était toujours actif. Il ne s'agit pas
 d'une correction du moteur de traduction ou du moniteur.
+
+
+## Correction d’audit et limite opérationnelle
+
+REVIEW.md répond point par point au refus de 1aa5355. Le lien et les lignes de
+forfait ne peuvent plus être détachés, déplacés, retypés ou supprimés ; les pièces
+et les contrats parents ne peuvent pas être supprimés pour perdre cet historique,
+même après annulation. L’opération d’origine conserve toutes les factures de
+remplacement et leur état. Le rôle catalogue et les accès investisseurs ne changent pas.
+
+La procédure partagée est retirée. deploy_modules.sh refuse cette livraison avant
+toute mutation, vérifié localement avec un chemin de sauvegarde fictif non vide et
+le commit 1aa5355 : sortie STOP et retour 1, sans appel Docker. Le nouveau guide
+exige une séparation réelle sur l’ancien code puis des outils adaptés au service
+isolé. **Isolation distante et déploiement non effectués ; leur validation reste
+obligatoire avant utilisation serveur.**
+
+Les PDF sont déclarés binaires dans .gitattributes et les espaces terminaux du
+résumé de tests sont retirés. Le contrôle de livraison porte désormais sur la
+comparaison complète `git diff --check f0de375..HEAD`, avec retour 0 attendu et
+vérifié après le commit correctif ; l’ancienne affirmation sur 1aa5355 est retirée.
