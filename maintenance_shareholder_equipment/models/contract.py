@@ -190,7 +190,9 @@ class ContractLine(models.Model):
         # the actual bill to that operation; callers gain no general write access.
         operation = self.sudo().equipment_origin_operation_id
         if operation:
-            operation.write({"bill_ids": [Command.link(item.id) for item in bill]})
+            missing = bill - operation.bill_ids
+            if missing:
+                operation.write({"bill_ids": [Command.link(item.id) for item in missing]})
 
     def action_create_equipment_one_off_bill(self):
         self.ensure_one()

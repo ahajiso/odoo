@@ -62,6 +62,12 @@ class AccountMoveLine(models.Model):
                       "line.", line=line.display_name)
                 )
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        lines = super().create(vals_list)
+        lines.move_id._link_one_off_operation_history()
+        return lines
+
     def _one_off_bill_lines(self):
         return self.filtered(lambda line: line.move_id.move_type == "in_invoice"
                              and line.contract_line_id.equipment_billing_mode == "one_off")
@@ -83,8 +89,11 @@ class AccountMoveLine(models.Model):
                         _("An equipment linked to bill line %s cannot be removed from it "
                           "directly.", line.display_name)
                     )
+            self.move_id._link_one_off_operation_history()
             return res
-        return super().write(vals)
+        res = super().write(vals)
+        self.move_id._link_one_off_operation_history()
+        return res
 
     def unlink(self):
         if self._one_off_bill_lines():
@@ -158,13 +167,36 @@ class AccountMoveLine(models.Model):
 class AccountMove(models.Model):
     _inherit = "account.move"
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        moves = super().create(vals_list)
+        moves._link_one_off_operation_history()
+        return moves
+
+    def _link_one_off_operation_history(self):
+        for move in self.filtered(lambda record: record.move_type == "in_invoice"):
+            packages = move.invoice_line_ids.contract_line_id.filtered(
+                lambda line: line.equipment_billing_mode == "one_off")
+            if packages:
+                # Validate company/partner before granting the existing approver
+                # read scope via the immutable workflow origin. Amounts stay draft
+                # inputs until the full posting checks.
+                move._check_rent_lines()
+                for package in packages:
+                    package._link_one_off_bill_history(move)
+
     def write(self, vals):
+        if "equipment_operation_ids" in vals and self.line_ids._one_off_bill_lines():
+            raise UserError(_("A one-off bill keeps its contract link and history. "
+                              "Cancel it and create a replacement."))
         if "move_type" in vals:
             for move in self:
                 if move.move_type != vals["move_type"] and move.line_ids._one_off_bill_lines():
                     raise UserError(_("A one-off bill keeps its contract link and history. "
                                       "Cancel it and create a replacement."))
-        return super().write(vals)
+        res = super().write(vals)
+        self._link_one_off_operation_history()
+        return res
 
     def unlink(self):
         if self.line_ids._one_off_bill_lines():

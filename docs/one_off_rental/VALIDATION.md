@@ -46,9 +46,10 @@ tours historiques et Hoot ne s’exécutent pas faute de websocket-client, comme
 sur l’image serveur documentée. La classe TestInvestorWebsocket est aussi ignorée
 avant ses méthodes. Le test de performance 10 000 lignes n’est pas sélectionné.
 Un lot de 20 tests ciblés (forfait et moniteur) couvre les gardes, le détachement
-avec changement de compte et l’historique. Après la régression, ce lot est relancé
-avec la visibilité finale de l’onglet Factures, restreint aux droits de consultation
-existants. Ces cas recoupent les 303 ; ils ne s’ajoutent pas au total.
+avec changement de compte et l’historique. Ce lot est complété par les chemins API de
+saisie/copie manuelle et le verrouillage du lien inverse, puis la régression
+complète est relancée sur le code final, avec les vues définitives. Ces cas
+recoupent les 303 ; ils ne s’ajoutent pas au total.
 
 Commande exécutée sur cette base et ces sources, après installation :
 
@@ -121,8 +122,9 @@ d'une correction du moteur de traduction ou du moniteur.
 REVIEW.md répond point par point au refus de 1aa5355. Le lien et les lignes de
 forfait ne peuvent plus être détachés, déplacés, retypés ou supprimés ; les pièces
 et les contrats parents ne peuvent pas être supprimés pour perdre cet historique,
-même après annulation. L’opération d’origine conserve toutes les factures de
-remplacement et leur état. Le rôle catalogue et les accès investisseurs ne changent pas.
+même après annulation. Le lien inverse depuis la facture est aussi protégé.
+La saisie/copie manuelle et les API de lignes conservent également l’origine.
+L’opération d’origine conserve toutes les factures de remplacement et leur état. Le rôle catalogue et les accès investisseurs ne changent pas.
 
 La procédure partagée est retirée. deploy_modules.sh refuse cette livraison avant
 toute mutation, vérifié localement avec un chemin de sauvegarde fictif non vide et

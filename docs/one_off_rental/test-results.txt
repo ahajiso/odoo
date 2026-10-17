@@ -1,27 +1,28 @@
-Local 122-module regression after audit of 1aa5355; candidate maintenance 18.0.5.2.1.
+Final 122-module regression after audit of 1aa5355; maintenance 18.0.5.2.1.
 Command: -u maintenance_shareholder_equipment,lartdubati_investor_home --test-enable --test-tags /maintenance_shareholder_equipment,/lartdubati_investor_home --workers=0 --http-port=8079 --max-cron-threads=0 --stop-after-init --log-level=test
 Counts include framework skips (historical tours/Hoot/websocket); performance excluded.
-After regression: final invoice-tab visibility applied and 20 package/monitor cases rerun; counts overlap.
-Full logs retained in local scratch/oneoff/parity/audit-acceptance.log and audit-final-views2.log.
+20 targeted package/monitor cases overlap the 303; do not add their counts.
+Final regression includes inverse-link protection, manual creation/copy/line APIs and final invoice-tab visibility.
+Full logs retained in scratch/oneoff/parity/audit-acceptance-final.log and audit-history-apis-fixed.log.
 Guard: shared deploy_modules.sh rejected target 1aa5355, return 1 before any Docker call.
 
-2026-10-17 12:42:23,080 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped TestPhase2fTours.test_approver_alone_opens_and_approves : websocket-client module is not installed
-2026-10-17 12:42:23,900 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped Subtest TestPhase2fTours.test_approver_alone_opens_every_document_after_execution (model='purchase.order') : websocket-client module is not installed
-2026-10-17 12:42:23,900 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped Subtest TestPhase2fTours.test_approver_alone_opens_every_document_after_execution (model='stock.picking') : websocket-client module is not installed
-2026-10-17 12:42:23,901 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped Subtest TestPhase2fTours.test_approver_alone_opens_every_document_after_execution (model='stock.lot') : websocket-client module is not installed
-2026-10-17 12:42:23,901 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped Subtest TestPhase2fTours.test_approver_alone_opens_every_document_after_execution (model='account.move') : websocket-client module is not installed
-2026-10-17 12:42:23,902 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped Subtest TestPhase2fTours.test_approver_alone_opens_every_document_after_execution (model='contract.contract') : websocket-client module is not installed
-2026-10-17 12:42:24,151 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped TestPhase2fTours.test_operator_alone_cannot_approve : websocket-client module is not installed
-2026-10-17 12:43:40,654 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.tests.suite: skipped setUpClass (odoo.addons.lartdubati_investor_home.tests.test_investor_security.TestInvestorWebsocket) : websocket-client module is not installed
-2026-10-17 12:44:20,014 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.lartdubati_investor_home.tests.test_stock_monitor_ui: skipped TestStockMonitorUnit.test_dashboard_unit : websocket-client module is not installed
-2026-10-17 12:44:23,369 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.lartdubati_investor_home.tests.test_stock_monitor_ui: skipped Subtest TestStockMonitorTours.test_dashboard_tours (user='mon_investor') : websocket-client module is not installed
-2026-10-17 12:44:23,392 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.lartdubati_investor_home.tests.test_stock_monitor_ui: skipped Subtest TestStockMonitorTours.test_dashboard_tours (user='mon_accountant') : websocket-client module is not installed
-2026-10-17 12:44:23,539 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.lartdubati_investor_home.tests.test_stock_monitor_ui: skipped TestStockMonitorTours.test_investor_home_tour : websocket-client module is not installed
-2026-10-17 12:44:23,549 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.service.server: 303 post-tests in 221.85s, 380683 queries
-2026-10-17 12:44:23,550 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.tests.stats: lartdubati_investor_home: 136 tests 72.79s 123924 queries
-2026-10-17 12:44:23,550 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.tests.stats: maintenance_shareholder_equipment: 275 tests 148.22s 256489 queries
-2026-10-17 12:44:23,550 18130 INFO artdubati_test_oneoff_parity_v2_local odoo.tests.result: 0 failed, 0 error(s) of 303 tests when loading database 'artdubati_test_oneoff_parity_v2_local'
+2026-10-17 12:58:25,213 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped TestPhase2fTours.test_approver_alone_opens_and_approves : websocket-client module is not installed
+2026-10-17 12:58:25,970 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped Subtest TestPhase2fTours.test_approver_alone_opens_every_document_after_execution (model='purchase.order') : websocket-client module is not installed
+2026-10-17 12:58:25,971 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped Subtest TestPhase2fTours.test_approver_alone_opens_every_document_after_execution (model='stock.picking') : websocket-client module is not installed
+2026-10-17 12:58:25,971 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped Subtest TestPhase2fTours.test_approver_alone_opens_every_document_after_execution (model='stock.lot') : websocket-client module is not installed
+2026-10-17 12:58:25,972 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped Subtest TestPhase2fTours.test_approver_alone_opens_every_document_after_execution (model='account.move') : websocket-client module is not installed
+2026-10-17 12:58:25,972 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped Subtest TestPhase2fTours.test_approver_alone_opens_every_document_after_execution (model='contract.contract') : websocket-client module is not installed
+2026-10-17 12:58:26,203 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.maintenance_shareholder_equipment.tests.test_phase2f_rights: skipped TestPhase2fTours.test_operator_alone_cannot_approve : websocket-client module is not installed
+2026-10-17 12:59:40,300 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.tests.suite: skipped setUpClass (odoo.addons.lartdubati_investor_home.tests.test_investor_security.TestInvestorWebsocket) : websocket-client module is not installed
+2026-10-17 13:00:20,719 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.lartdubati_investor_home.tests.test_stock_monitor_ui: skipped TestStockMonitorUnit.test_dashboard_unit : websocket-client module is not installed
+2026-10-17 13:00:24,128 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.lartdubati_investor_home.tests.test_stock_monitor_ui: skipped Subtest TestStockMonitorTours.test_dashboard_tours (user='mon_investor') : websocket-client module is not installed
+2026-10-17 13:00:24,151 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.lartdubati_investor_home.tests.test_stock_monitor_ui: skipped Subtest TestStockMonitorTours.test_dashboard_tours (user='mon_accountant') : websocket-client module is not installed
+2026-10-17 13:00:24,289 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.addons.lartdubati_investor_home.tests.test_stock_monitor_ui: skipped TestStockMonitorTours.test_investor_home_tour : websocket-client module is not installed
+2026-10-17 13:00:24,299 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.service.server: 303 post-tests in 219.02s, 380990 queries
+2026-10-17 13:00:24,300 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.tests.stats: lartdubati_investor_home: 136 tests 74.31s 123926 queries
+2026-10-17 13:00:24,300 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.tests.stats: maintenance_shareholder_equipment: 275 tests 143.85s 256794 queries
+2026-10-17 13:00:24,300 19934 INFO artdubati_test_oneoff_parity_v2_local odoo.tests.result: 0 failed, 0 error(s) of 303 tests when loading database 'artdubati_test_oneoff_parity_v2_local'
 
-Final-view targeted rerun:
-2026-10-17 12:49:00,303 19222 INFO artdubati_test_oneoff_parity_v2_local odoo.service.server: 20 post-tests in 17.17s, 23997 queries
-2026-10-17 12:49:00,303 19222 INFO artdubati_test_oneoff_parity_v2_local odoo.tests.result: 0 failed, 0 error(s) of 20 tests when loading database 'artdubati_test_oneoff_parity_v2_local'
+Targeted run preceding final regression:
+2026-10-17 12:56:11,901 19902 INFO artdubati_test_oneoff_parity_v2_local odoo.service.server: 20 post-tests in 16.95s, 24226 queries
+2026-10-17 12:56:11,901 19902 INFO artdubati_test_oneoff_parity_v2_local odoo.tests.result: 0 failed, 0 error(s) of 20 tests when loading database 'artdubati_test_oneoff_parity_v2_local'

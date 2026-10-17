@@ -223,6 +223,7 @@ class TestOneOffRental(EquipmentCommon):
                        lambda: line.unlink(), lambda: bill.unlink(),
                        lambda: bill.write({"invoice_line_ids": [Command.clear()]}),
                        lambda: bill.write({"move_type": "in_refund"}),
+                       lambda: bill.write({"equipment_operation_ids": [Command.clear()]}),
                        lambda: cl.write({"equipment_billing_mode": "recurring"}),
                        lambda: cl.unlink(), lambda: cl.contract_id.unlink()]
             for action in actions:
@@ -238,6 +239,23 @@ class TestOneOffRental(EquipmentCommon):
         self.assertEqual(op.bill_ids, bill | replacement | third)
         with self.assertRaises(AccessError):
             cl.write({"equipment_origin_operation_id": False})
+        third.button_cancel()
+        # Manual replacement and direct line APIs must preserve the same origin.
+        manual = third.copy({"equipment_operation_ids": [Command.clear()],
+                             "invoice_date": fields.Date.today()})
+        self.assertIn(manual, op.bill_ids)
+        self.assertEqual(manual.state, "draft")
+        manual.action_post()
+        self.assertIn(manual, op.bill_ids)
+        manual.button_cancel()
+        direct = self.env["account.move"].create({
+            "move_type": "in_invoice", "partner_id": bill.partner_id.id,
+            "company_id": self.company.id, "journal_id": bill.journal_id.id,
+        })
+        vals = cl._prepare_invoice_line()
+        vals["move_id"] = direct.id
+        self.env["account.move.line"].create(vals)
+        self.assertIn(direct, op.bill_ids)
 
     def test_separate_delivery_collection_and_insurance_fees_total_295(self):
         op = self._execute_package()

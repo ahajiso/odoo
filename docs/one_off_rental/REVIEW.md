@@ -57,6 +57,12 @@ La ligne de contrat conserve equipment_origin_operation_id, renseigné par le
 workflow et non modifiable par le comptable. La création ou réutilisation d’une
 facture ajoute son lien à cette seule opération via une élévation privée limitée.
 Le comptable ne reçoit aucun droit général d’écriture sur les opérations.
+Le lien inverse equipment_operation_ids de la facture ne peut pas non plus être
+retiré par write. Les créations et écritures ordinaires de factures/lignes rattachent
+aussi les forfaits à leur origine, y compris les brouillons saisis manuellement et
+les copies. Le fournisseur et la société sont contrôlés avant ce rattachement ;
+les montants restent vérifiés à la comptabilisation. Un lien déjà présent n’est
+pas réécrit.
 La liste est réservée aux droits de consultation existants. L’ancien champ de
 factures du groupe Achat est également limité aux profils lecteurs : il était
 chargé même invisible et empêchait un opérateur sans droits comptables d’ouvrir
