@@ -71,3 +71,33 @@ avant intégration au manuel : prix et quantités conservés, unité carrelage f
 pour l'exercice à la boîte, brut 951,30 HT, remise unique 41,25 HT, net 910,05 HT,
 TVA arrondie par ligne 182,00, TTC 1 092,05. Le PDF fictif est livré dans
 lartdubati_manual/static/templates/facture-specimen-leroy-merlin-corrigee.pdf.
+
+## Complément locations et prêt — exercice du 17/10/2026
+
+Le propriétaire a demandé les cinq cas dans le manuel et artdubati_test, puis
+explicitement autorisé des données fictives TEST. Aucun engagement réel auprès
+d'un loueur n'est demandé. Prix de démonstration HT : camionnette 450 par mois,
+SUV 700 par mois, WC 150 par mois sur trois mois ; chariot 120 pour un forfait
+unique de quatre heures ; prêt Ryobi gratuit. Les valeurs de remplacement sont
+respectivement 25 000, 40 000, 1 200, 25 000 et 300 EUR HT. Ces valeurs ne sont
+pas des devis fournisseurs ni des valeurs comptables d'actifs de la société.
+
+| # | Question | Choix de test / limite | Où le changer | Paramétrable |
+|---|---|---|---|---|
+| C29 | Catégories des nouveaux modèles physiques utilisés uniquement pour suivre des biens de tiers ? | Trois catégories neuves préfixées TEST sous Small Durable Equipment : Modèles véhicules, Installations temporaires, Manutention ; compte 606300, coût moyen, valorisation manuelle, sans profil d'actif. Les demandes désactivent achat et vente du modèle physique. Ce choix n'autorise aucun achat de véhicule en charge ni aucune politique de capitalisation ; le loyer porte sur le service configuré 613500. Aucun compte ni catégorie existante n'est changé. | Nouvelles catégories TEST et demandes, par administrateur comptable ; traitement d'un futur achat réel à décider séparément | Oui |
+| C30 | Location de quatre heures : comment éviter une fausse récurrence mensuelle et un loyer mensuel erroné ? | Le cas est préparé mais reste en brouillon : réception actuelle uniquement Mois/Trimestre/Année et champs Date. Un parcours d'engagement ponctuel, heures prouvées, facture unique et exclusion de la récurrence est nécessaire avant exécution. Aucune conversion arbitraire du forfait de 120 HT en loyer mensuel. | Futur parcours de location ponctuelle et présentation dans le moniteur ; pas implémenté ici | Non, développement à définir |
+| C31 | Fiscalité et usage personnel du SUV de fonction loué ? | Faire valider les taxes, déductibilité, charges et éventuel avantage en nature sur le cas réel ; ne pas recopier automatiquement la fiscalité de l'utilitaire. Aucun calcul fiscal, de paie ou de TVA réel n'est appliqué par les exemples. | Paramètres fiscaux du fournisseur, taxe et compte de la facture ; futur lien Fleet / paie | À définir selon le traitement |
+
+Le catalogue courant impose un produit durable stocké et suivi en série pour les
+nouvelles demandes. Les véhicules hors stock sont décrits dans DEFINITIONS.md,
+mais ce choix n'est pas offert par la demande ; Fleet est non installé. Les
+exemples expliquent ce décalage sans contourner les champs protégés.
+
+
+Frais annexes TEST détaillés dans CPT-22 à CPT-26 et leurs pièces d'exercice :
+livraison, reprise, assurance et nettoyage sont des budgets distincts du loyer.
+Cautions remboursables 1000/1500/200/1000/0 EUR (camionnette/SUV/WC/chariot/scie)
+hors charges ; valeurs de remplacement sans incidence comptable automatique.
+Le formulaire n'a pas de champs dédiés à ces frais/cautions : notes et PDF joints
+seulement, aucune ligne de facture créée. Faire valider les comptes et taxes lors
+de la saisie des pièces TEST, puis le rapprochement et la restitution des cautions.
