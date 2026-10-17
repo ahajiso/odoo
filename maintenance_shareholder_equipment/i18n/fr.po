@@ -4865,3 +4865,22 @@ msgstr "référence de la facture fournisseur"
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid "warranty status"
 msgstr "statut de garantie"
+
+#. module: maintenance_shareholder_equipment
+#: model:res.groups,name:maintenance_shareholder_equipment.group_product_catalogue_autonomous
+msgid "Autonomous Catalogue Manager (Test / Superadmin)"
+msgstr "Gestionnaire autonome du catalogue (Test / Superadmin)"
+
+#. module: maintenance_shareholder_equipment
+#: model:res.groups,comment:maintenance_shareholder_equipment.group_product_catalogue_autonomous
+msgid ""
+"For explicitly designated test users and superadministrators only. Can "
+"approve and execute their own product creation requests. Catalogue checks, "
+"traceability and the ban on direct product creation still apply. Does not "
+"grant equipment operation approval or accounting administration."
+msgstr ""
+"Réservé aux utilisateurs de test et superadministrateurs expressément "
+"désignés. Peut approuver et exécuter ses propres demandes de création de "
+"produit. Les contrôles du catalogue, la traçabilité et l’interdiction de "
+"création directe restent applicables. N’accorde pas l’approbation des "
+"opérations matériel ni l’administration comptable."

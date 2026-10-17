@@ -338,3 +338,10 @@ tests on artdubati_test (47 passing, 08/10/2026).
    employee expenses.
 Last. Manual rewrite for all phases (cards citing removed or changed fields, new
    receiving procedures, Investor tab), after every functional phase.
+
+## Owner amendment (17/10/2026): autonomous catalogue role
+The owner requests an explicit test/superadmin profile that may approve its own
+product creation requests. Only the new autonomous catalogue group is exempt from
+requester/approver separation; ordinary catalogue managers remain subject to it.
+Direct product creation stays blocked; equipment approval and accounting roles
+are unchanged. Implementation proposed in 18.0.5.1.0, awaiting review and deployment.

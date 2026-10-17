@@ -342,3 +342,22 @@ The integration with OCA modules (order of the `action_post()` overrides, one as
 unit with `asset_product_item`, no duplicate equipment from `maintenance_account`, free
 loan producing no invoice) is a design assumption until Odoo integration tests confirm
 it. List and status in CLAUDE.md.
+
+## Explicit autonomous catalogue role (owner decision, 17/10/2026)
+
+Ordinary catalogue managers may not approve their own product creation requests.
+An explicitly assigned **Autonomous Catalogue Manager (Test / Superadmin)** role
+is the sole non-superuser exception: its holder may create, submit, approve and
+execute the same request. This is intended for designated test accounts and
+superadministrators, not automatically for all administrators or all test-database
+users. It is a separate level implying only the existing catalogue manager role;
+no account is assigned it by module installation or update.
+
+The workflow remains the creation request: direct template/variant creation stays
+blocked, all accounting/category/duplicate/document/company/unit validations and
+approval snapshots still apply, and the requester, approver and executor remain
+recorded. A context key, database name or user name does not enable self-approval.
+The role does not grant equipment operation approval/execution or accounting
+administration. Those are separate business permissions. The owner may assign
+this exception to a production superadministrator deliberately; no database-name
+heuristic enables it. Implementation: maintenance_shareholder_equipment 18.0.5.1.0.

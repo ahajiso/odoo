@@ -4783,3 +4783,21 @@ msgstr "شمارهٔ صورتحساب تأمین‌کننده"
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid "warranty status"
 msgstr "وضعیت گارانتی"
+
+#. module: maintenance_shareholder_equipment
+#: model:res.groups,name:maintenance_shareholder_equipment.group_product_catalogue_autonomous
+msgid "Autonomous Catalogue Manager (Test / Superadmin)"
+msgstr "مدیر مستقل کاتالوگ (تست / مدیر ارشد)"
+
+#. module: maintenance_shareholder_equipment
+#: model:res.groups,comment:maintenance_shareholder_equipment.group_product_catalogue_autonomous
+msgid ""
+"For explicitly designated test users and superadministrators only. Can "
+"approve and execute their own product creation requests. Catalogue checks, "
+"traceability and the ban on direct product creation still apply. Does not "
+"grant equipment operation approval or accounting administration."
+msgstr ""
+"فقط برای کاربران تست و مدیران ارشد صریحاً تعیین‌شده. می‌تواند درخواست‌های "
+"ایجاد محصول خود را تأیید و اجرا کند. کنترل‌های کاتالوگ، ثبت سوابق و ممنوعیت "
+"ایجاد مستقیم محصول باقی می‌مانند. اختیار تأیید عملیات تجهیزات یا مدیریت "
+"حسابداری اعطا نمی‌کند."
