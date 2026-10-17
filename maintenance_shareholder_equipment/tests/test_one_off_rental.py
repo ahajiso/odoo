@@ -40,6 +40,7 @@ class TestOneOffRental(EquipmentCommon):
         self.assertEqual(equipment._internal_quants().quantity, 1)
         cl = op.contract_ids.contract_line_ids
         self.assertEqual(cl.equipment_rental_hours, 4)
+        self.assertEqual(cl._prepare_invoice_line()["name"], cl.name)
         self.assertEqual(cl.equipment_billing_mode, "one_off")
         self.assertFalse(cl.recurring_next_date)
         self.assertFalse(op.contract_ids.recurring_next_date)

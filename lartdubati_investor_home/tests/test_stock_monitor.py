@@ -416,6 +416,7 @@ class TestMonitorLabels(MonitorCommon):
     """Point 6: translated text labels."""
 
     def test_product_name_translated(self):
+        self.env["res.lang"]._activate_lang("en_US")
         self.env["res.lang"]._activate_lang("fr_FR")
         self.screws.product_tmpl_id.with_context(lang="fr_FR").name = "Vis"
         self.env["stock.quant"]._update_available_quantity(self.screws, self.stock, 1)

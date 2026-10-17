@@ -353,3 +353,12 @@ the four-hour forklift. Normal equipment approval and stock execution remain in
 force; a package has one draft bill and no recurring/monthly rent. Proposed versions:
 maintenance_shareholder_equipment 18.0.5.2.0, lartdubati_investor_home 18.0.3.1.0.
 Technical decisions, validation limits and controlled rollout: docs/one_off_rental/.
+
+Server inventory received 17/10/2026: the local integration environment now reproduces
+all 122 installed modules and server OCA sources, including contract 18.0.2.5.3.
+The established nine image/font source exceptions are tied to the same image/hash
+pairs; Python package parity is not claimed. Fixed the older OCA date-marker crash
+for one-off bills. Evidence, review and the staged deployment procedure are in
+`docs/one_off_rental/VALIDATION.md`, `REVIEW.md` and `DEPLOYMENT.md`; the new platform
+file must be passed explicitly to the existing before/after checker. No deployment
+has been performed by these local verifications.

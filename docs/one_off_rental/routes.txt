@@ -1,0 +1,319 @@
+ROUTE | public | http | allowed | /bus/websocket_worker_bundle | odoo.addons.bus.controllers.websocket
+ROUTE | public | json | allowed | /mail/data | odoo.addons.lartdubati_investor_home.controllers.mail
+ROUTE | public | http | allowed | /odoo/offline | odoo.addons.web.controllers.webmanifest
+ROUTE | user | json | allowed | /web/action/load | odoo.addons.lartdubati_investor_home.controllers.action
+ROUTE | user | json | allowed | /web/action/load_breadcrumbs | odoo.addons.web.controllers.action
+ROUTE | public | http | allowed | /web/assets/<string:unique>/<string:filename> | odoo.addons.web.controllers.binary
+ROUTE | public | http | allowed | /web/bundle/<string:bundle_name> | odoo.addons.web.controllers.webclient
+ROUTE | user | json | allowed | /web/dataset/call_button | odoo.addons.lartdubati_investor_home.controllers.dataset
+ROUTE | user | json | allowed | /web/dataset/call_button/<path:path> | odoo.addons.lartdubati_investor_home.controllers.dataset
+ROUTE | user | json | allowed | /web/dataset/call_kw | odoo.addons.lartdubati_investor_home.controllers.dataset
+ROUTE | user | json | allowed | /web/dataset/call_kw/<path:path> | odoo.addons.lartdubati_investor_home.controllers.dataset
+ROUTE | user | json | allowed | /web/domain/validate | odoo.addons.web.controllers.domain
+ROUTE | user | http | allowed | /web/export/csv | odoo.addons.lartdubati_investor_home.controllers.export
+ROUTE | user | json | allowed | /web/export/formats | odoo.addons.web.controllers.export
+ROUTE | user | json | allowed | /web/export/get_fields | odoo.addons.lartdubati_investor_home.controllers.export
+ROUTE | user | json | allowed | /web/export/namelist | odoo.addons.lartdubati_investor_home.controllers.export
+ROUTE | user | http | allowed | /web/export/xlsx | odoo.addons.lartdubati_investor_home.controllers.export
+ROUTE | public | http | allowed | /web/image | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | allowed | /web/image/<string:model>/<int:id>/<string:field> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | allowed | /web/manifest.webmanifest | odoo.addons.web.controllers.webmanifest
+ROUTE | user | http | allowed | /web/pivot/export_xlsx | odoo.addons.web.controllers.pivot
+ROUTE | public | http | allowed | /web/service-worker.js | odoo.addons.web.controllers.webmanifest
+ROUTE | user | json | allowed | /web/session/check | odoo.addons.web.controllers.session
+ROUTE | user | json | allowed | /web/session/get_session_info | odoo.addons.web.controllers.session
+ROUTE | user | http | allowed | /web/webclient/load_menus/<string:unique> | odoo.addons.web.controllers.home
+ROUTE | public | http | allowed | /web/webclient/translations/<string:unique> | odoo.addons.web.controllers.webclient
+ROUTE | public | http | allowed | /websocket | odoo.addons.bus.controllers.websocket
+ROUTE | none | http | no user | / | odoo.addons.portal.controllers.web
+ROUTE | none | http | no user | /base_import_module/login_upload | odoo.addons.base_import_module.controllers.main
+ROUTE | calendar | http | no user | /calendar/meeting/accept | odoo.addons.calendar.controllers.main
+ROUTE | calendar | http | no user | /calendar/meeting/decline | odoo.addons.calendar.controllers.main
+ROUTE | calendar | http | no user | /calendar/meeting/view | odoo.addons.calendar.controllers.main
+ROUTE | calendar | http | no user | /calendar/recurrence/accept | odoo.addons.calendar.controllers.main
+ROUTE | calendar | http | no user | /calendar/recurrence/decline | odoo.addons.calendar.controllers.main
+ROUTE | none | json | no user | /jsonrpc | odoo.addons.lartdubati_investor_home.controllers.rpc
+ROUTE | none | http | no user | /logo | odoo.addons.web.controllers.binary
+ROUTE | none | http | no user | /logo.png | odoo.addons.web.controllers.binary
+ROUTE | none | http | no user | /odoo | odoo.addons.portal.controllers.web
+ROUTE | none | http | no user | /odoo/<path:subpath> | odoo.addons.portal.controllers.web
+ROUTE | none | http | no user | /robots.txt | odoo.addons.web.controllers.home
+ROUTE | none | http | no user | /scoped_app/<path:subpath> | odoo.addons.portal.controllers.web
+ROUTE | none | http | no user | /web | odoo.addons.portal.controllers.web
+ROUTE | none | http | no user | /web/binary/company_logo | odoo.addons.web.controllers.binary
+ROUTE | none | http | no user | /web/database/backup | odoo.addons.web.controllers.database
+ROUTE | none | http | no user | /web/database/change_password | odoo.addons.web.controllers.database
+ROUTE | none | http | no user | /web/database/create | odoo.addons.web.controllers.database
+ROUTE | none | http | no user | /web/database/drop | odoo.addons.web.controllers.database
+ROUTE | none | http | no user | /web/database/duplicate | odoo.addons.web.controllers.database
+ROUTE | none | json | no user | /web/database/list | odoo.addons.web.controllers.database
+ROUTE | none | http | no user | /web/database/manager | odoo.addons.web.controllers.database
+ROUTE | none | http | no user | /web/database/restore | odoo.addons.web.controllers.database
+ROUTE | none | http | no user | /web/database/selector | odoo.addons.web.controllers.database
+ROUTE | none | http | no user | /web/filestore/<path:_path> | odoo.addons.web.controllers.binary
+ROUTE | none | http | no user | /web/health | odoo.addons.web.controllers.home
+ROUTE | none | http | no user | /web/login | odoo.addons.auth_signup.controllers.main
+ROUTE | none | json | no user | /web/session/authenticate | odoo.addons.web.controllers.session
+ROUTE | none | json | no user | /web/session/get_lang_list | odoo.addons.web.controllers.session
+ROUTE | none | http | no user | /web/session/logout | odoo.addons.http_routing.controllers.main
+ROUTE | none | json | no user | /web/sign/get_fonts | odoo.addons.web.controllers.binary
+ROUTE | none | json | no user | /web/sign/get_fonts/<string:fontname> | odoo.addons.web.controllers.binary
+ROUTE | none | http | no user | /web/tests/legacy/mobile | odoo.addons.web.controllers.webclient
+ROUTE | none | json | no user | /web/webclient/bootstrap_translations | odoo.addons.web.controllers.webclient
+ROUTE | none | json | no user | /web/webclient/version_info | odoo.addons.web.controllers.webclient
+ROUTE | none | http | no user | /web_editor/font_to_img/<icon> | odoo.addons.web_editor.controllers.main
+ROUTE | none | http | no user | /web_editor/font_to_img/<icon>/<color> | odoo.addons.web_editor.controllers.main
+ROUTE | none | http | no user | /web_editor/font_to_img/<icon>/<color>/<bg> | odoo.addons.web_editor.controllers.main
+ROUTE | none | http | no user | /web_editor/font_to_img/<icon>/<color>/<bg>/<int:size> | odoo.addons.web_editor.controllers.main
+ROUTE | none | http | no user | /web_editor/font_to_img/<icon>/<color>/<bg>/<int:width>x<int:height> | odoo.addons.web_editor.controllers.main
+ROUTE | none | http | no user | /web_editor/font_to_img/<icon>/<color>/<bg>/<int:width>x<int:height>/<int:alpha> | odoo.addons.web_editor.controllers.main
+ROUTE | none | http | no user | /web_editor/font_to_img/<icon>/<color>/<int:size> | odoo.addons.web_editor.controllers.main
+ROUTE | none | http | no user | /web_editor/font_to_img/<icon>/<color>/<int:size>/<int:alpha> | odoo.addons.web_editor.controllers.main
+ROUTE | none | http | no user | /web_editor/font_to_img/<icon>/<color>/<int:width>x<int:height> | odoo.addons.web_editor.controllers.main
+ROUTE | none | http | no user | /web_editor/font_to_img/<icon>/<color>/<int:width>x<int:height>/<int:alpha> | odoo.addons.web_editor.controllers.main
+ROUTE | none | http | no user | /websocket/health | odoo.addons.bus.controllers.websocket
+ROUTE | none | http | no user | /xmlrpc/2/<service> | odoo.addons.base.controllers.rpc
+ROUTE | none | http | no user | /xmlrpc/<service> | odoo.addons.base.controllers.rpc
+ROUTE | public | http | refused | /.well-known/change-password | odoo.addons.auth_signup.controllers.main
+ROUTE | user | http | refused | /account/download_invoice_attachments/<models("ir.attachment"):attachments> | odoo.addons.account.controllers.download_docs
+ROUTE | user | http | refused | /account/download_invoice_documents/<models("account.move"):invoices>/<string:filetype> | odoo.addons.account.controllers.download_docs
+ROUTE | user | http | refused | /account/init_tests_shared_js_python | odoo.addons.account.controllers.tests_shared_js_python
+ROUTE | user | json | refused | /account/post_tests_shared_js_python | odoo.addons.account.controllers.tests_shared_js_python
+ROUTE | user | http | refused | /base_import/set_file | odoo.addons.base_import.controllers.main
+ROUTE | user | json | refused | /base_setup/data | odoo.addons.auth_signup.controllers.main
+ROUTE | user | json | refused | /base_setup/demo_active | odoo.addons.base_setup.controllers.main
+ROUTE | public | http | refused | /base_vat/1/webhook_update_vies | odoo.addons.base_vat.controllers.webhook
+ROUTE | user | json | refused | /board/add_to_dashboard | odoo.addons.board.controllers.main
+ROUTE | public | json | refused | /bus/get_autovacuum_info | odoo.addons.bus.controllers.main
+ROUTE | user | http | refused | /bus/get_model_definitions | odoo.addons.bus.controllers.main
+ROUTE | public | json | refused | /bus/has_missed_notifications | odoo.addons.bus.controllers.main
+ROUTE | user | json | refused | /calendar/check_credentials | odoo.addons.calendar.controllers.main
+ROUTE | public | http | refused | /calendar/join_videocall/<string:access_token> | odoo.addons.calendar.controllers.main
+ROUTE | user | http | refused | /calendar/meeting/join | odoo.addons.calendar.controllers.main
+ROUTE | user | json | refused | /calendar/notify | odoo.addons.calendar.controllers.main
+ROUTE | user | json | refused | /calendar/notify_ack | odoo.addons.calendar.controllers.main
+ROUTE | public | http | refused | /chat/<int:channel_id>/<string:invitation_token> | odoo.addons.mail.controllers.discuss.public_page
+ROUTE | public | http | refused | /chat/<string:create_token> | odoo.addons.mail.controllers.discuss.public_page
+ROUTE | public | http | refused | /chat/<string:create_token>/<string:channel_name> | odoo.addons.mail.controllers.discuss.public_page
+ROUTE | public | http | refused | /dashboard/data/<int:share_id>/<token> | odoo.addons.spreadsheet_dashboard.controllers.share
+ROUTE | user | http | refused | /dashboard/download/<int:share_id>/<token> | odoo.addons.spreadsheet_dashboard.controllers.share
+ROUTE | public | http | refused | /dashboard/share/<int:share_id>/<token> | odoo.addons.spreadsheet_dashboard.controllers.share
+ROUTE | user | http | refused | /digest/<int:digest_id>/set_periodicity | odoo.addons.digest.controllers.portal
+ROUTE | public | http | refused | /digest/<int:digest_id>/unsubscribe | odoo.addons.digest.controllers.portal
+ROUTE | public | http | refused | /digest/<int:digest_id>/unsubscribe_oneclik | odoo.addons.digest.controllers.portal
+ROUTE | public | http | refused | /discuss/channel/<int:channel_id> | odoo.addons.mail.controllers.discuss.public_page
+ROUTE | public | http | refused | /discuss/channel/<int:channel_id>/attachment/<int:attachment_id> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /discuss/channel/<int:channel_id>/image/<int:attachment_id> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /discuss/channel/<int:channel_id>/image/<int:attachment_id>/<int:width>x<int:height> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | json | refused | /discuss/channel/attachments | odoo.addons.mail.controllers.discuss.channel
+ROUTE | public | json | refused | /discuss/channel/fold | odoo.addons.mail.controllers.discuss.channel
+ROUTE | public | json | refused | /discuss/channel/info | odoo.addons.mail.controllers.discuss.channel
+ROUTE | public | json | refused | /discuss/channel/join | odoo.addons.mail.controllers.discuss.channel
+ROUTE | public | json | refused | /discuss/channel/mark_as_read | odoo.addons.mail.controllers.discuss.channel
+ROUTE | public | json | refused | /discuss/channel/mark_as_unread | odoo.addons.mail.controllers.discuss.channel
+ROUTE | public | json | refused | /discuss/channel/members | odoo.addons.mail.controllers.discuss.channel
+ROUTE | public | json | refused | /discuss/channel/messages | odoo.addons.mail.controllers.discuss.channel
+ROUTE | public | json | refused | /discuss/channel/notify_typing | odoo.addons.mail.controllers.discuss.channel
+ROUTE | public | json | refused | /discuss/channel/ping | odoo.addons.mail.controllers.discuss.rtc
+ROUTE | public | json | refused | /discuss/channel/pinned_messages | odoo.addons.mail.controllers.discuss.channel
+ROUTE | public | json | refused | /discuss/channel/sub_channel/create | odoo.addons.mail.controllers.discuss.channel
+ROUTE | public | json | refused | /discuss/channel/sub_channel/fetch | odoo.addons.mail.controllers.discuss.channel
+ROUTE | user | json | refused | /discuss/channel/update_avatar | odoo.addons.mail.controllers.discuss.channel
+ROUTE | user | json | refused | /discuss/gif/add_favorite | odoo.addons.mail.controllers.discuss.gif
+ROUTE | user | json | refused | /discuss/gif/categories | odoo.addons.mail.controllers.discuss.gif
+ROUTE | user | json | refused | /discuss/gif/favorites | odoo.addons.mail.controllers.discuss.gif
+ROUTE | user | json | refused | /discuss/gif/remove_favorite | odoo.addons.mail.controllers.discuss.gif
+ROUTE | user | json | refused | /discuss/gif/search | odoo.addons.mail.controllers.discuss.gif
+ROUTE | user | json | refused | /discuss/settings/custom_notifications | odoo.addons.mail.controllers.discuss.settings
+ROUTE | user | json | refused | /discuss/settings/mute | odoo.addons.mail.controllers.discuss.settings
+ROUTE | public | http | refused | /discuss/voice/worklet_processor | odoo.addons.mail.controllers.discuss.voice
+ROUTE | user | http | refused | /google_gmail/confirm | odoo.addons.google_gmail.controllers.main
+ROUTE | user | json | refused | /html_editor/attachment/add_data | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /html_editor/attachment/add_url | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /html_editor/bus_broadcast | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /html_editor/generate_text | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /html_editor/get_ice_servers | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /html_editor/get_image_info | odoo.addons.html_editor.controllers.main
+ROUTE | public | json | refused | /html_editor/link_preview_external | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /html_editor/link_preview_internal | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /html_editor/modify_image/<model("ir.attachment"):attachment> | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /html_editor/save_library_media | odoo.addons.html_editor.controllers.main
+ROUTE | public | http | refused | /html_editor/shape/<module>/<path:filename> | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /html_editor/video_url/data | odoo.addons.html_editor.controllers.main
+ROUTE | public | json | refused | /invoice/transaction/<int:invoice_id> | odoo.addons.account_payment.controllers.payment
+ROUTE | public | json | refused | /invoice/transaction/overdue | odoo.addons.account_payment.controllers.payment
+ROUTE | bearer | http | refused | /json/1/<path:subpath> | odoo.addons.web.controllers.json
+ROUTE | user | http | refused | /json/<path:subpath> | odoo.addons.web.controllers.json
+ROUTE | user | http | refused | /lead/case_mark_lost | odoo.addons.crm.controllers.main
+ROUTE | user | http | refused | /lead/case_mark_won | odoo.addons.crm.controllers.main
+ROUTE | user | http | refused | /lead/convert | odoo.addons.crm.controllers.main
+ROUTE | public | json | refused | /mail/action | odoo.addons.mail.controllers.webclient
+ROUTE | public | json | refused | /mail/attachment/delete | odoo.addons.mail.controllers.attachment
+ROUTE | public | http | refused | /mail/attachment/upload | odoo.addons.mail.controllers.attachment
+ROUTE | public | http | refused | /mail/attachment/zip | odoo.addons.mail.controllers.attachment
+ROUTE | public | http | refused | /mail/avatar/mail.message/<int:res_id>/author_avatar/<int:width>x<int:height> | odoo.addons.portal.controllers.mail
+ROUTE | public | json | refused | /mail/chatter_fetch | odoo.addons.portal.controllers.mail
+ROUTE | public | json | refused | /mail/guest/update_name | odoo.addons.mail.controllers.guest
+ROUTE | user | json | refused | /mail/history/messages | odoo.addons.mail.controllers.mailbox
+ROUTE | user | json | refused | /mail/inbox/messages | odoo.addons.mail.controllers.mailbox
+ROUTE | public | json | refused | /mail/link_preview | odoo.addons.mail.controllers.link_preview
+ROUTE | public | json | refused | /mail/link_preview/hide | odoo.addons.mail.controllers.link_preview
+ROUTE | public | http | refused | /mail/message/<int:message_id> | odoo.addons.mail.controllers.mail
+ROUTE | public | json | refused | /mail/message/post | odoo.addons.mail_bot.controllers.thread
+ROUTE | public | json | refused | /mail/message/reaction | odoo.addons.mail.controllers.message_reaction
+ROUTE | user | json | refused | /mail/message/translate | odoo.addons.mail.controllers.google_translate
+ROUTE | public | json | refused | /mail/message/update_content | odoo.addons.mail.controllers.thread
+ROUTE | user | json | refused | /mail/partner/from_email | odoo.addons.mail.controllers.thread
+ROUTE | user | json | refused | /mail/read_subscription_data | odoo.addons.mail.controllers.thread
+ROUTE | public | http | refused | /mail/rtc/audio_worklet_processor | odoo.addons.mail.controllers.discuss.rtc
+ROUTE | public | json | refused | /mail/rtc/channel/cancel_call_invitation | odoo.addons.mail.controllers.discuss.rtc
+ROUTE | public | json | refused | /mail/rtc/channel/join_call | odoo.addons.mail.controllers.discuss.rtc
+ROUTE | public | json | refused | /mail/rtc/channel/leave_call | odoo.addons.mail.controllers.discuss.rtc
+ROUTE | user | json | refused | /mail/rtc/channel/upgrade_connection | odoo.addons.mail.controllers.discuss.rtc
+ROUTE | public | json | refused | /mail/rtc/session/notify_call_members | odoo.addons.mail.controllers.discuss.rtc
+ROUTE | public | json | refused | /mail/rtc/session/update_and_broadcast | odoo.addons.mail.controllers.discuss.rtc
+ROUTE | user | json | refused | /mail/starred/messages | odoo.addons.mail.controllers.mailbox
+ROUTE | public | json | refused | /mail/thread/data | odoo.addons.mail.controllers.thread
+ROUTE | user | json | refused | /mail/thread/messages | odoo.addons.mail.controllers.thread
+ROUTE | public | http | refused | /mail/unfollow | odoo.addons.portal.controllers.mail
+ROUTE | user | json | refused | /mail/update_is_internal | odoo.addons.portal.controllers.mail
+ROUTE | public | http | refused | /mail/view | odoo.addons.mail.controllers.mail
+ROUTE | user | http | refused | /manuel | odoo.addons.lartdubati_manual.controllers.main
+ROUTE | user | http | refused | /manuel/<string:lang> | odoo.addons.lartdubati_manual.controllers.main
+ROUTE | user | http | refused | /manuel/<string:lang>/<string:page> | odoo.addons.lartdubati_manual.controllers.main
+ROUTE | public | http | refused | /meet/<string:create_token> | odoo.addons.mail.controllers.discuss.public_page
+ROUTE | public | http | refused | /meet/<string:create_token>/<string:channel_name> | odoo.addons.mail.controllers.discuss.public_page
+ROUTE | user | http | refused | /my | odoo.addons.portal.controllers.portal
+ROUTE | user | http | refused | /my/account | odoo.addons.portal.controllers.portal
+ROUTE | user | http | refused | /my/contracts | odoo.addons.contract.controllers.main
+ROUTE | public | http | refused | /my/contracts/<int:contract_contract_id> | odoo.addons.contract.controllers.main
+ROUTE | user | http | refused | /my/contracts/page/<int:page> | odoo.addons.contract.controllers.main
+ROUTE | user | json | refused | /my/counters | odoo.addons.portal.controllers.portal
+ROUTE | user | http | refused | /my/deactivate_account | odoo.addons.portal.controllers.portal
+ROUTE | user | http | refused | /my/home | odoo.addons.portal.controllers.portal
+ROUTE | user | http | refused | /my/invoices | odoo.addons.account.controllers.portal
+ROUTE | public | http | refused | /my/invoices/<int:invoice_id> | odoo.addons.account_payment.controllers.portal
+ROUTE | public | http | refused | /my/invoices/overdue | odoo.addons.account_payment.controllers.portal
+ROUTE | user | http | refused | /my/invoices/page/<int:page> | odoo.addons.account.controllers.portal
+ROUTE | user | http | refused | /my/orders | odoo.addons.sale.controllers.portal
+ROUTE | public | http | refused | /my/orders/<int:order_id> | odoo.addons.sale.controllers.portal
+ROUTE | public | json | refused | /my/orders/<int:order_id>/accept | odoo.addons.sale.controllers.portal
+ROUTE | public | json | refused | /my/orders/<int:order_id>/add_option/<int:option_id> | odoo.addons.sale_management.controllers.portal
+ROUTE | public | http | refused | /my/orders/<int:order_id>/decline | odoo.addons.sale.controllers.portal
+ROUTE | public | http | refused | /my/orders/<int:order_id>/document/<int:document_id> | odoo.addons.sale.controllers.portal
+ROUTE | public | json | refused | /my/orders/<int:order_id>/transaction | odoo.addons.sale.controllers.portal
+ROUTE | public | json | refused | /my/orders/<int:order_id>/update_line_dict | odoo.addons.sale_management.controllers.portal
+ROUTE | user | http | refused | /my/orders/page/<int:page> | odoo.addons.sale.controllers.portal
+ROUTE | user | http | refused | /my/payment_method | odoo.addons.payment.controllers.portal
+ROUTE | public | http | refused | /my/picking/pdf/<int:picking_id> | odoo.addons.sale_stock.controllers.portal
+ROUTE | public | http | refused | /my/picking/return/pdf/<int:picking_id> | odoo.addons.sale_stock.controllers.portal
+ROUTE | user | http | refused | /my/purchase | odoo.addons.purchase.controllers.portal
+ROUTE | public | http | refused | /my/purchase/<int:order_id> | odoo.addons.purchase.controllers.portal
+ROUTE | public | http | refused | /my/purchase/<int:order_id>/download_edi | odoo.addons.purchase.controllers.portal
+ROUTE | public | json | refused | /my/purchase/<int:order_id>/update | odoo.addons.purchase.controllers.portal
+ROUTE | user | http | refused | /my/purchase/page/<int:page> | odoo.addons.purchase.controllers.portal
+ROUTE | user | http | refused | /my/quotes | odoo.addons.sale.controllers.portal
+ROUTE | user | http | refused | /my/quotes/page/<int:page> | odoo.addons.sale.controllers.portal
+ROUTE | user | http | refused | /my/rfq | odoo.addons.purchase.controllers.portal
+ROUTE | user | http | refused | /my/rfq/page/<int:page> | odoo.addons.purchase.controllers.portal
+ROUTE | user | http | refused | /my/security | odoo.addons.portal.controllers.portal
+ROUTE | user | json | refused | /payment/archive_token | odoo.addons.payment.controllers.portal
+ROUTE | public | http | refused | /payment/confirmation | odoo.addons.payment.controllers.portal
+ROUTE | public | http | refused | /payment/pay | odoo.addons.sale.controllers.portal
+ROUTE | public | http | refused | /payment/status | odoo.addons.payment.controllers.post_processing
+ROUTE | public | json | refused | /payment/status/poll | odoo.addons.payment.controllers.post_processing
+ROUTE | public | json | refused | /payment/transaction | odoo.addons.payment.controllers.portal
+ROUTE | public | json | refused | /portal/attachment/remove | odoo.addons.portal.controllers.portal
+ROUTE | public | json | refused | /portal/chatter_init | odoo.addons.portal.controllers.mail
+ROUTE | user | json | refused | /product/catalog/order_lines_info | odoo.addons.product.controllers.catalog
+ROUTE | user | json | refused | /product/catalog/update_order_line_info | odoo.addons.product.controllers.catalog
+ROUTE | user | http | refused | /product/document/upload | odoo.addons.product.controllers.product_document
+ROUTE | user | http | refused | /product/export/pricelist/ | odoo.addons.product.controllers.pricelist_report
+ROUTE | user | http | refused | /report/<converter>/<reportname> | odoo.addons.report_xlsx_helper.controllers.main
+ROUTE | user | http | refused | /report/<converter>/<reportname>/<docids> | odoo.addons.report_xlsx_helper.controllers.main
+ROUTE | public | http | refused | /report/barcode | odoo.addons.web.controllers.report
+ROUTE | public | http | refused | /report/barcode/<barcode_type>/<path:value> | odoo.addons.web.controllers.report
+ROUTE | user | json | refused | /report/check_wkhtmltopdf | odoo.addons.web.controllers.report
+ROUTE | user | http | refused | /report/download | odoo.addons.report_xlsx.controllers.main
+ROUTE | user | json | refused | /sale/combo_configurator/get_data | odoo.addons.sale.controllers.combo_configurator
+ROUTE | user | json | refused | /sale/combo_configurator/get_price | odoo.addons.sale.controllers.combo_configurator
+ROUTE | user | json | refused | /sale/product_configurator/create_product | odoo.addons.sale.controllers.product_configurator
+ROUTE | user | json | refused | /sale/product_configurator/get_optional_products | odoo.addons.sale.controllers.product_configurator
+ROUTE | user | json | refused | /sale/product_configurator/get_values | odoo.addons.sale.controllers.product_configurator
+ROUTE | user | json | refused | /sale/product_configurator/update_combination | odoo.addons.sale.controllers.product_configurator
+ROUTE | user | http | refused | /sale_pdf_quote_builder/quotation_document/upload | odoo.addons.sale_pdf_quote_builder.controllers.quotation_document
+ROUTE | public | http | refused | /scoped_app | odoo.addons.web.controllers.webmanifest
+ROUTE | public | http | refused | /scoped_app_icon_png | odoo.addons.web.controllers.webmanifest
+ROUTE | public | json | refused | /sms/status | odoo.addons.sms.controllers.main
+ROUTE | user | json | refused | /spreadsheet/log | odoo.addons.spreadsheet.controllers.main
+ROUTE | user | http | refused | /stock/<string:output_format>/<string:report_name> | odoo.addons.stock.controllers.main
+ROUTE | public | http | refused | /terms | odoo.addons.account.controllers.terms
+ROUTE | user | json | refused | /web/action/run | odoo.addons.web.controllers.action
+ROUTE | user | http | refused | /web/become | odoo.addons.web.controllers.home
+ROUTE | user | http | refused | /web/binary/upload_attachment | odoo.addons.web.controllers.binary
+ROUTE | public | http | refused | /web/content | odoo.addons.web.controllers.binary
+ROUTE | public | http | refused | /web/content/<int:id> | odoo.addons.web.controllers.binary
+ROUTE | public | http | refused | /web/content/<int:id>/<string:filename> | odoo.addons.web.controllers.binary
+ROUTE | public | http | refused | /web/content/<string:model>/<int:id>/<string:field> | odoo.addons.web.controllers.binary
+ROUTE | public | http | refused | /web/content/<string:model>/<int:id>/<string:field>/<string:filename> | odoo.addons.web.controllers.binary
+ROUTE | public | http | refused | /web/content/<string:xmlid> | odoo.addons.web.controllers.binary
+ROUTE | public | http | refused | /web/content/<string:xmlid>/<string:filename> | odoo.addons.web.controllers.binary
+ROUTE | user | json | refused | /web/dataset/resequence | odoo.addons.lartdubati_investor_home.controllers.dataset
+ROUTE | public | http | refused | /web/image/<int:id> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /web/image/<int:id>-<string:unique> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /web/image/<int:id>-<string:unique>/<int:width>x<int:height> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /web/image/<int:id>-<string:unique>/<int:width>x<int:height>/<string:filename> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /web/image/<int:id>-<string:unique>/<string:filename> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /web/image/<int:id>/<int:width>x<int:height> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /web/image/<int:id>/<int:width>x<int:height>/<string:filename> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /web/image/<int:id>/<string:filename> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /web/image/<string:model>/<int:id>/<string:field>/<int:width>x<int:height> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /web/image/<string:model>/<int:id>/<string:field>/<int:width>x<int:height>/<string:filename> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /web/image/<string:model>/<int:id>/<string:field>/<string:filename> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /web/image/<string:xmlid> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /web/image/<string:xmlid>/<int:width>x<int:height> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /web/image/<string:xmlid>/<int:width>x<int:height>/<string:filename> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /web/image/<string:xmlid>/<string:filename> | odoo.addons.mail.controllers.discuss.binary
+ROUTE | public | http | refused | /web/login/totp | odoo.addons.auth_totp.controllers.home
+ROUTE | user | http | refused | /web/login_successful | odoo.addons.web.controllers.home
+ROUTE | public | http | refused | /web/manifest.scoped_app_manifest | odoo.addons.web.controllers.webmanifest
+ROUTE | user | http | refused | /web/model/get_definitions | odoo.addons.web.controllers.model
+ROUTE | user | http | refused | /web/partner/vcard | odoo.addons.web.controllers.vcard
+ROUTE | public | http | refused | /web/reset_password | odoo.addons.auth_signup.controllers.main
+ROUTE | user | json | refused | /web/session/account | odoo.addons.web.controllers.session
+ROUTE | user | json | refused | /web/session/destroy | odoo.addons.web.controllers.session
+ROUTE | user | json | refused | /web/session/modules | odoo.addons.web.controllers.session
+ROUTE | public | http | refused | /web/set_profiling | odoo.addons.web.controllers.profiling
+ROUTE | public | http | refused | /web/signup | odoo.addons.auth_signup.controllers.main
+ROUTE | user | http | refused | /web/speedscope | odoo.addons.web.controllers.profiling
+ROUTE | user | http | refused | /web/speedscope/<model("ir.profile"):profile> | odoo.addons.web.controllers.profiling
+ROUTE | user | http | refused | /web/tests | odoo.addons.web.controllers.webclient
+ROUTE | user | http | refused | /web/tests/legacy | odoo.addons.web.controllers.webclient
+ROUTE | user | json | refused | /web/view/edit_custom | odoo.addons.web.controllers.view
+ROUTE | user | json | refused | /web_editor/attachment/add_data | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /web_editor/attachment/add_url | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /web_editor/attachment/remove | odoo.addons.web_editor.controllers.main
+ROUTE | user | json | refused | /web_editor/bus_broadcast | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /web_editor/checklist | odoo.addons.web_editor.controllers.main
+ROUTE | user | json | refused | /web_editor/field/translation/update | odoo.addons.web_editor.controllers.main
+ROUTE | user | json | refused | /web_editor/generate_text | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /web_editor/get_assets_editor_resources | odoo.addons.web_editor.controllers.main
+ROUTE | user | json | refused | /web_editor/get_ice_servers | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /web_editor/get_image_info | odoo.addons.html_editor.controllers.main
+ROUTE | public | http | refused | /web_editor/image_shape/<string:img_key>/<module>/<path:filename> | odoo.addons.web_editor.controllers.main
+ROUTE | user | json | refused | /web_editor/media_library_search | odoo.addons.web_editor.controllers.main
+ROUTE | user | json | refused | /web_editor/modify_image/<model("ir.attachment"):attachment> | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /web_editor/save_library_media | odoo.addons.html_editor.controllers.main
+ROUTE | public | http | refused | /web_editor/shape/<module>/<path:filename> | odoo.addons.html_editor.controllers.main
+ROUTE | user | json | refused | /web_editor/stars | odoo.addons.web_editor.controllers.main
+ROUTE | user | http | refused | /web_editor/tests | odoo.addons.web_editor.controllers.main
+ROUTE | user | json | refused | /web_editor/video_url/data | odoo.addons.html_editor.controllers.main
+ROUTE | user | http | refused | /web_enterprise/partner/<model("res.partner"):partner>/vcard | odoo.addons.web.controllers.vcard
+ROUTE | user | json | refused | /web_unsplash/attachment/add | odoo.addons.web_unsplash.controllers.main
+ROUTE | user | json | refused | /web_unsplash/fetch_images | odoo.addons.web_unsplash.controllers.main
+ROUTE | public | json | refused | /web_unsplash/get_app_id | odoo.addons.web_unsplash.controllers.main
+ROUTE | user | json | refused | /web_unsplash/save_unsplash | odoo.addons.web_unsplash.controllers.main
+ROUTE | public | http | refused | /website/translations/<string:unique> | odoo.addons.http_routing.controllers.main
+ROUTE | public | json | refused | /websocket/on_closed | odoo.addons.bus.controllers.websocket
+ROUTE | public | json | refused | /websocket/peek_notifications | odoo.addons.bus.controllers.websocket
+ROUTE | public | json | refused | /websocket/update_bus_presence | odoo.addons.bus.controllers.websocket

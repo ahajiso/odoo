@@ -2,7 +2,8 @@
 
 Demande du propriétaire : un profil particulier pour les utilisateurs de test et
 les superadmins, permettant de créer et valider sa propre référence. Décision
-consignée dans DEFINITIONS.md ; module proposé **18.0.5.1.0**, non déployé.
+consignée dans DEFINITIONS.md ; proposition initiale 18.0.5.1.0, intégrée dans la
+livraison **18.0.5.2.0** avec la location ponctuelle, non déployée.
 
 ## Comportement
 
@@ -41,17 +42,17 @@ Il n'y a pas de nouveau contrôleur HTTP ni de nouvelle dépendance.
   supplémentaires, auto-attribution refusée, contexte sans effet, révocation.
   Les tests existants de création directe incluent aussi le nouveau profil.
   test_user_groups_view.py vérifie le niveau visible et ses implications.
-- La suite d'intégration complète n'a PAS été exécutée : les dépendances OCA et
-  la plateforme de la base serveur ne sont pas disponibles dans l'environnement
-  local. Les neuf vérifications isolées ne sont pas présentées comme une preuve de
-  parité avec les 122 modules de artdubati_test.
+- Les premiers contrôles isolés ont depuis été complétés par l'installation réelle
+  et la régression des deux modules avec les 122 modules et les sources OCA du
+  serveur. Résultats finaux et limites : docs/one_off_rental/VALIDATION.md.
 - Manuel FR/EN/FA rafraîchi et check.py sans différence ; aperçus bureau/mobile/RTL.
 
 ## Mise en service à faire après audit
 
 Suivre ADM-05 et docs/phase4/README.md : fenêtre de déploiement, sauvegarde vérifiée,
 plateforme conforme et empreinte du nouveau code, inventaire des routes avant/après,
-arrêt/code/mise à jour de maintenance_shareholder_equipment/reprise sur artdubati_test.
+arrêt/code/mise à jour ENSEMBLE de maintenance_shareholder_equipment et
+lartdubati_investor_home/reprise sur artdubati_test (livraison ponctuelle 5.2.0).
 Ne pas réutiliser comme preuve l'ancienne empreinte AFTER de la version 18.0.5.0.1.
 Exécuter les tests d'intégration du module et les contrôles de groupes, puis vérifier
 les traductions dans la fiche utilisateur. Rien n'est automatiquement attribué :
@@ -64,16 +65,16 @@ pendant cette tâche. Leurs produits sont réutilisés dans les réceptions exis
 Le nouveau profil n’a pas été nécessaire à cette validation par autrui et n’est
 pas actif sur le serveur ; il permettra l’auto-approbation future après déploiement
 et attribution explicite. La validation des opérations matériel reste distincte.
-Le chariot quatre heures reste bloqué : cette proposition ne développe pas de
-location horaire ou ponctuelle.
+Le chariot quatre heures attend le déploiement de la location ponctuelle de la
+livraison 5.2.0 ; son opération existante reste en brouillon sur le serveur.
 
 
 ## Complément lors du développement ponctuel
 
 La version proposée est désormais 18.0.5.2.0 et inclut le parcours ponctuel.
-Les dépendances OCA ont été obtenues pour installer réellement les deux modules
-sur une base locale neuve à 86 modules. Les tests de demande catalogue, y compris
-l’auto-approbation, y passent ; ce résultat complète les anciens contrôles isolés.
-La parité avec les 122 modules exacts du serveur n’est toujours pas établie.
-Voir docs/one_off_rental/README.md pour les résultats et la mise en service des deux
-modules ensemble. Aucune attribution du profil ni mise à jour distante effectuée.
+La plateforme locale a été reconstruite avec les 122 modules du serveur, leurs
+empreintes et les versions OCA exactes. Le contrôle de sources admet seulement
+les neuf écarts d'images/polices déjà prouvés pour la même image Docker ; les
+bibliothèques Python restent locales. Voir docs/one_off_rental/VALIDATION.md et
+DEPLOYMENT.md pour la régression complète et la procédure contrôlée. Aucune
+attribution du profil ni mise à jour distante effectuée lors de ces vérifications.

@@ -111,6 +111,15 @@ class ContractLine(models.Model):
             ("display_type", "=", "product"),
         ]).move_id
 
+    def _insert_markers(self, first_date_invoiced, last_date_invoiced):
+        # A package has no recurring period. The server's OCA 18.0.2.5.3
+        # formats these dates unconditionally, even when there are no markers.
+        # Keep the package description and let OCA prepare all accounting values.
+        if self.equipment_billing_mode == "one_off":
+            self.ensure_one()
+            return self.name
+        return super()._insert_markers(first_date_invoiced, last_date_invoiced)
+
     def _create_equipment_one_off_bill(self):
         self.ensure_one()
         self._lock_equipment_one_off()

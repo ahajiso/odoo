@@ -11,7 +11,9 @@ import psycopg2
 
 from odoo import SUPERUSER_ID, api, sql_db
 
-assert env.cr.dbname == "artdubati_test_oneoff_local"  # noqa: F821
+assert env.cr.dbname in {  # noqa: F821
+    "artdubati_test_oneoff_local", "artdubati_test_oneoff_parity_v2_local",
+}
 line = env["contract.line"].browse(int(os.environ["ONE_OFF_CONCURRENCY_LINE_ID"]))  # noqa: F821
 line.ensure_one()
 assert line.equipment_billing_mode == "one_off"

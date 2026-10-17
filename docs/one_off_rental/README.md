@@ -57,14 +57,22 @@ contrôlés par dates civiles : pas de nouvelle règle de rotations multiples le
 
 ## Validation et limites
 
-Installation réelle locale du module et du moniteur avec dépendances OCA 18.0 dans
-`artdubati_test_oneoff_local`, base neuve isolée. Il ne s'agit pas de la base distante
-artdubati_test. Les dépendances OCA proviennent de leurs branches 18.0 actuelles ;
-les 86 modules de cette installation ne reproduisent PAS l'empreinte des 122 modules
-serveur. Les résultats locaux sont des tests d'intégration utiles, pas une preuve de
-parité de déploiement. Les anciennes neuf vérifications isolées du profil catalogue
-sont désormais complétées par les vrais tests de demande dans cette installation.
-Les comptes et données de test de ces tests sont annulés par le framework.
+Installation d'intégration reconstruite dans `artdubati_test_oneoff_parity_v2_local`,
+base neuve isolée, avec les **122 modules** installés sur le serveur. Odoo source
+6ba80ed1 correspond à l'image 18.0-20260908 ; les dépendances OCA reproduisent
+leurs empreintes serveur, dont contract 18.0.2.5.3. Les trois modules modifiés sont
+maintenance_shareholder_equipment, lartdubati_investor_home et lartdubati_manual.
+Les neuf écarts Odoo sont les images/polices déjà comparées fichier par fichier
+pour cette même image, sans autre différence. Le contrôle reproductible est
+`python docs/one_off_rental/check_parity.py` ; les bibliothèques Python locales
+ne reproduisent pas celles de l'image Docker et la base ne copie aucune donnée
+métier distante. Voir VALIDATION.md pour les résultats et limites.
+
+La version OCA du serveur a révélé un plantage du formatage de dates récurrentes
+absentes pour un forfait. Notre surcharge garde la description du forfait ; OCA
+prépare toujours ses valeurs comptables et les contrats récurrents sont inchangés.
+Les comptes et données métier des tests sont annulés par le framework ; la fixture
+de concurrence et d'interface est commise uniquement dans cette base locale.
 
 Couverture ajoutée : réception et propriété, durée, contrat, facture brouillon unique,
 absence de récurrence sur plusieurs échéances, facture comptabilisée et restitution,
@@ -77,8 +85,9 @@ Les résultats finaux sont consignés dans le compte rendu de validation ci-dess
 
 1. Auditer la proposition et vérifier les dépendances sur le code exact du serveur
    selon docs/phase4/README.md et docs/phase4/platform.py. Exécuter les tests ajoutés
-   et les régressions sur cette plateforme. Aucun nouveau contrôleur HTTP, groupe,
-   ACL ou règle de société ; la nouvelle action publique est un bouton ORM protégé.
+   et les régressions sur cette plateforme. Le forfait n’ajoute aucun contrôleur HTTP,
+   groupe, ACL ou règle de société ; son action publique est un bouton ORM protégé.
+   Le groupe catalogue autonome, distinct, est décrit dans sa propre proposition.
 2. Sauvegarde/restauration vérifiées et fenêtre de déploiement contrôlée selon ADM-05.
    Les deux bases partagent le code ; l'opérateur du serveur doit tenir compte de cette
    architecture. Aucune utilisation de production n'est autorisée par cette demande.
@@ -101,7 +110,8 @@ Les résultats finaux sont consignés dans le compte rendu de validation ci-dess
 
 ## Résultats consignés
 
-Voir [VALIDATION.md](VALIDATION.md) : régression locale de 206 tests et dernier lot
-ciblé de 18 tests sans échec ni erreur, vérification avec deux connexions réelles,
-302 routes inchangées, traductions et manuel contrôlés. La parité avec le serveur
-reste une condition distincte de mise en service.
+Voir [VALIDATION.md](VALIDATION.md), [REVIEW.md](REVIEW.md) et la procédure
+[DEPLOYMENT.md](DEPLOYMENT.md). L'inventaire reçu sert au contrôle serveur avant
+et après avec `EXPECTED_FILE=docs/one_off_rental/platform_expected.txt` et le
+script existant docs/phase4/check_modules.sh ; ne pas utiliser son ancien
+inventaire par défaut pour cette livraison.
