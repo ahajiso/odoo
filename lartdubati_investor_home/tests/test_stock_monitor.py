@@ -256,6 +256,30 @@ class TestMonitorRent(MonitorCommon):
         op.with_user(self.user_both).action_execute()
         return op
 
+    def test_one_off_rent_has_no_monthly_equivalent_and_counts_posted_bill(self):
+        start = fields.Datetime.now().replace(hour=8, minute=0, second=0, microsecond=0)
+        op = self._rented("MON-4H", rental_billing_mode="one_off", open_ended=False,
+                          rental_start=start, rental_end=start + timedelta(hours=4),
+                          rental_timezone="Europe/Paris", periodicity=False)
+        row = self._equipment_row(op.line_ids.equipment_id)
+        self.assertEqual(row.rent_rule_type, "one_off")
+        self.assertAlmostEqual(row.rent_amount, 80)
+        self.assertEqual(row.rent_monthly_known, 0)
+        self.assertEqual(row.alert_rent_period_unsupported, 0)
+        self.assertEqual(row.rent_paid, 0)
+        op.bill_ids.write({"invoice_line_ids": [Command.create({
+            "name": "TEST ancillary fee", "product_id": self.loan_product.id,
+            "quantity": 1, "price_unit": 175, "account_id": self.acc_expense.id,
+            "tax_ids": [Command.clear()],
+        })]})
+        self.assertEqual(op.bill_ids.amount_untaxed, 255)
+        op.bill_ids.action_post()
+        self.assertAlmostEqual(self._equipment_row(op.line_ids.equipment_id).rent_paid, 80)
+        refund = op.bill_ids._reverse_moves([{"invoice_date": self.today, "date": self.today}])
+        refund.invoice_line_ids.price_unit = 30
+        refund.action_post()
+        self.assertAlmostEqual(self._equipment_row(op.line_ids.equipment_id).rent_paid, 50)
+
     def test_monthly_equivalent_per_periodicity(self):
         op = self._rented("MON-R1")
         equipment = op.line_ids.equipment_id

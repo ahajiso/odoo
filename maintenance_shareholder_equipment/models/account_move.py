@@ -142,6 +142,7 @@ class AccountMove(models.Model):
     def action_post(self):
         self._check_asset_supplier_refunds()
         self._check_rent_lines()
+        self._check_equipment_one_off_bills()
         refund_lines = self._equipment_refund_lines()
         linked_refunds = self.filtered(lambda m: m.move_type == "in_refund").invoice_line_ids.filtered(
             "equipment_ids"
@@ -358,6 +359,29 @@ class AccountMove(models.Model):
                           line=line.display_name, partner=move.partner_id.display_name,
                           company=move.company_id.name)
                     )
+
+    def _check_equipment_one_off_bills(self):
+        bills = self.filtered(lambda m: m.move_type == "in_invoice")
+        lines = bills.invoice_line_ids.filtered(
+            lambda ln: ln.display_type == "product"
+            and ln.contract_line_id.equipment_billing_mode == "one_off")
+        contracts = lines.contract_line_id
+        contracts._lock_equipment_one_off()
+        for cl in contracts:
+            linked = self.env["account.move.line"].sudo().search([
+                ("contract_line_id", "=", cl.id), ("move_id.move_type", "=", "in_invoice"),
+                ("move_id.state", "!=", "cancel"), ("display_type", "=", "product"),
+            ])
+            if len(linked) != 1:
+                raise UserError(_("A one-off rental package can have only one non-cancelled bill line."))
+            line = linked
+            expected = cl.price_unit * cl.quantity * (1 - cl.discount / 100)
+            if (line.move_id.currency_id != cl.currency_id or line.quantity != 1
+                    or line.product_id != cl.product_id or line.product_id.maintenance_ok
+                    or cl.currency_id.compare_amounts(expected, 0) <= 0
+                    or cl.currency_id.compare_amounts(line.price_subtotal, expected)):
+                raise UserError(_("The one-off rent bill must match the contract currency, "
+                                  "rental service, quantity 1 and untaxed package amount. Enter ancillary fees separately."))
 
     # ------------------------------------------------------------- cancellation
 

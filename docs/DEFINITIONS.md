@@ -361,3 +361,24 @@ The role does not grant equipment operation approval/execution or accounting
 administration. Those are separate business permissions. The owner may assign
 this exception to a production superadministrator deliberately; no database-name
 heuristic enables it. Implementation: maintenance_shareholder_equipment 18.0.5.1.0.
+
+
+## Owner amendment — one-off supplier equipment rental (17/10/2026)
+
+The owner authorises a timed one-off rental workflow for the four-hour forklift.
+An explicit one-off mode on a supplier rental receipt records planned start/end
+Datetimes, an explicit time zone for contract calendar dates, duration and positive
+untaxed package rent per physical unit (quantity 1). Approval includes these values.
+Execution keeps actual movement timestamps, creates the equipment rental contract
+line and a single draft bill. Ordinary recurring lines retain their normal behaviour.
+One-off lines are excluded from recurring billing, automatic renewal and monthly
+rent equivalents; posted supplier bills/refunds still contribute to cumulative rent.
+A non-cancelled package bill is reused and a duplicate cannot be posted. An accounting
+administrator can replace a cancelled/deleted draft through the protected contract
+line action. Refunds never make the package automatically invoiceable again.
+The physical return always needs a restitution operation. Planned hours do not
+backdate movements or automatically trigger returns. Ancillary fees, deposits,
+overtime and penalties remain separately entered and reviewed; no automatic charge.
+Existing date-based overlap rules remain conservative for multiple rentals on a day.
+See docs/one_off_rental/README.md and CPT-25. Proposed versions 18.0.5.2.0 and
+18.0.3.1.0; review, matching-platform tests and controlled deployment still required.

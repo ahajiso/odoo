@@ -66,3 +66,14 @@ pas actif sur le serveur ; il permettra l’auto-approbation future après dépl
 et attribution explicite. La validation des opérations matériel reste distincte.
 Le chariot quatre heures reste bloqué : cette proposition ne développe pas de
 location horaire ou ponctuelle.
+
+
+## Complément lors du développement ponctuel
+
+La version proposée est désormais 18.0.5.2.0 et inclut le parcours ponctuel.
+Les dépendances OCA ont été obtenues pour installer réellement les deux modules
+sur une base locale neuve à 86 modules. Les tests de demande catalogue, y compris
+l’auto-approbation, y passent ; ce résultat complète les anciens contrôles isolés.
+La parité avec les 122 modules exacts du serveur n’est toujours pas établie.
+Voir docs/one_off_rental/README.md pour les résultats et la mise en service des deux
+modules ensemble. Aucune attribution du profil ni mise à jour distante effectuée.

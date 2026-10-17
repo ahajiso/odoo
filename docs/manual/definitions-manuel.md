@@ -215,7 +215,7 @@ persans en FA).
 | Base | artdubati (production) ; artdubati_test (base de test) |
 | Conteneur | odoo_web |
 | Modules sur mesure | `/opt/odoo/addons/custom` sur le serveur = clone de github.com/ahajiso/odoo |
-| Module métier | maintenance_shareholder_equipment, version préparée 18.0.5.1.0 (non déployée ; ADM-05), dépendances complètes dans le manifeste |
+| Module métier | maintenance_shareholder_equipment, version préparée 18.0.5.2.0 (non déployée ; ADM-05), dépendances complètes dans le manifeste |
 | Module facturation BTP | lartdubati_facturation 18.0.1.0.0 : taux réduits 10 %/5,5 % réactivés, taxes et position fiscale d'autoliquidation de sous-traitance (art. 283-2 nonies CGI), articles main-d'œuvre/matériaux/conseil avec comptes 704/707/706, mentions BTP sur res.company (onglet « Mentions BTP ») imprimées sur facture et devis, menu d'export FEC, conditions de paiement. Installé sur artdubati_test uniquement. |
 | Module bandeau d'environnement | lartdubati_env_ribbon 18.0.1.0.0 : bandeau rouge quand le nom de la base se termine par `_test`, `_staging` ou `_dev`. Composant Owl purement client (`static/src/env_ribbon/env_ribbon.{js,xml,css}`), aucune donnée serveur. Pour le désactiver temporairement le temps d'une capture d'écran, voir §2 « Prendre les captures sans bandeau de test » — aucune modification du module ni du serveur. |
 | Dépôts OCA ajoutés | server-ux-18 (date_range), account-reconcile-18 (account_reconcile_oca, account_statement_base), bank-statement-import-18 (OFX, CAMT) ; addons_path mis à jour dans `/opt/odoo/config/odoo.conf` |
@@ -369,3 +369,14 @@ Aucune attribution automatique. La règle ordinaire reste demandeur ≠ approbat
 FR/EN/FA et CPT-16, CPT-22 à CPT-26 renvoient à cette exception. Les deux nouvelles
 entrées de traduction de groupe proviennent d'un export Odoo en base isolée des
 mêmes enregistrements XML, puis ont été traduites en français et persan.
+
+
+## Location ponctuelle — développement autorisé du 17/10/2026
+
+CPT-25 remplace le brouillon bloqué par le mode explicite Forfait unique : horaires,
+fuseau, durée, approbation, réception réelle, facture brouillon unique et restitution.
+Les versions proposées sont maintenance_shareholder_equipment 18.0.5.2.0 et
+lartdubati_investor_home 18.0.3.1.0, non déployées. Les anciennes limites horaires
+ci-dessus décrivent le serveur avant cette mise à jour. Aucun prorata horaire ni
+frais automatique. Les frais/cautions restent séparés du loyer. FR/EN/FA alignés,
+liens Odoo et exports PDF/Word à jour. Documentation technique : docs/one_off_rental/.

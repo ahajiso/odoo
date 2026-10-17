@@ -143,12 +143,17 @@
                             <field name="contract_mode" invisible="operation_type != 'receipt'"/>
                             <field name="contract_id" invisible="contract_mode != 'existing' or operation_type != 'receipt'"
                                    domain="[('contract_type', '=', 'purchase'), ('partner_id', '=', partner_id), ('active', '=', True), ('company_id', '=', company_id)]"/>
-                            <field name="periodicity"/>
+                            <field name="rental_billing_mode" invisible="operation_type != 'receipt' or receipt_branch != 'rented'"/>
+                            <field name="periodicity" invisible="rental_billing_mode == 'one_off'"/>
+                            <field name="rental_start" invisible="rental_billing_mode != 'one_off'" required="rental_billing_mode == 'one_off'"/>
+                            <field name="rental_end" invisible="rental_billing_mode != 'one_off'" required="rental_billing_mode == 'one_off'"/>
+                            <field name="rental_timezone" invisible="rental_billing_mode != 'one_off'" required="rental_billing_mode == 'one_off'"/>
+                            <field name="rental_hours" invisible="rental_billing_mode != 'one_off'"/>
                         </group>
                         <group>
-                            <field name="contract_start"/>
-                            <field name="open_ended"/>
-                            <field name="contract_end" invisible="open_ended"/>
+                            <field name="contract_start" invisible="rental_billing_mode == 'one_off'"/>
+                            <field name="open_ended" invisible="rental_billing_mode == 'one_off'"/>
+                            <field name="contract_end" invisible="open_ended or rental_billing_mode == 'one_off'"/>
                             <field name="contract_attachment_ids" widget="many2many_binary"/>
                         </group>
                     </group>
@@ -217,7 +222,8 @@
                                             <field name="replacement_value" invisible="parent.operation_type != 'receipt' or parent.receipt_branch not in ('borrowed', 'rented')"/>
                                             <field name="replacement_currency_id" invisible="parent.operation_type != 'receipt' or parent.receipt_branch not in ('borrowed', 'rented')"/>
                                             <field name="replacement_value_date" invisible="parent.operation_type != 'receipt' or parent.receipt_branch not in ('borrowed', 'rented')"/>
-                                            <field name="rent_amount" invisible="not ((parent.operation_type == 'receipt' and parent.receipt_branch == 'rented') or (parent.operation_type == 'exit' and parent.exit_nature == 'rental'))"/>
+                                            <field name="rent_amount" string="Package Rent (excl. tax)" invisible="parent.rental_billing_mode != 'one_off'"/>
+                                            <field name="rent_amount" invisible="parent.rental_billing_mode == 'one_off' or not ((parent.operation_type == 'receipt' and parent.receipt_branch == 'rented') or (parent.operation_type == 'exit' and parent.exit_nature == 'rental'))"/>
                                         </group>
                                         <group string="Warranty and Insurance" invisible="parent.operation_type != 'receipt' or family == 'consumable'">
                                             <field name="warranty_status"/>

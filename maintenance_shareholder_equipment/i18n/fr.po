@@ -4884,3 +4884,205 @@ msgstr ""
 "produit. Les contrôles du catalogue, la traçabilité et l’interdiction de "
 "création directe restent applicables. N’accorde pas l’approbation des "
 "opérations matériel ni l’administration comptable."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid ""
+"A one-off package needs an equipment rental line on a supplier contract with"
+" per-line billing."
+msgstr ""
+"Un forfait unique exige une ligne de location d’équipement sur un contrat "
+"fournisseur avec facturation par ligne."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid ""
+"A one-off package needs ordered start/end times, an end date and quantity 1."
+msgstr ""
+"Un forfait unique exige des horaires de début et de fin ordonnés, une date "
+"de fin et une quantité de 1."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "A one-off rental cannot be open-ended."
+msgstr "Une location ponctuelle doit avoir une fin prévue."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid "A one-off rental package can have only one non-cancelled bill line."
+msgstr ""
+"Un forfait de location unique ne peut avoir qu’une seule ligne de facture "
+"non annulée."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "Cancel the one-off bill before changing its package commitment."
+msgstr ""
+"Annulez la facture ponctuelle avant de modifier l’engagement du forfait."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "Choose a valid rental time zone."
+msgstr "Choisissez un fuseau horaire de location valide."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_billing_mode
+msgid "Equipment Billing Mode"
+msgstr "Mode de facturation de l’équipement"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.contract_contract_form_view_equipment
+msgid "One-off Bill"
+msgstr "Facture ponctuelle"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_billing_mode__one_off
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__rental_billing_mode__one_off
+msgid "One-off Package"
+msgstr "Forfait unique"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "One-off billing is supported only for supplier rental receipts."
+msgstr ""
+"La facturation ponctuelle est réservée aux réceptions de location "
+"fournisseur."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "One-off draft bill created: %s"
+msgstr "Facture ponctuelle brouillon créée : %s"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.contract_line_form_view_equipment
+msgid ""
+"One-off package: no recurring invoice or monthly rent. Check the supplier reference,\n"
+"                        PDF and taxes on the draft bill. Record the physical return through an equipment operation."
+msgstr ""
+"Forfait unique : aucune facture récurrente ni loyer mensuel. Contrôlez la référence fournisseur,\n"
+"                        le PDF et les taxes de la facture brouillon. Enregistrez le retour physique par une opération matériel."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "Only accounting administrators can create a one-off supplier bill."
+msgstr ""
+"Seuls les administrateurs comptables peuvent créer une facture fournisseur "
+"ponctuelle."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "Only an active one-off equipment rental can create this bill."
+msgstr ""
+"Seule une location ponctuelle d’équipement active peut créer cette facture."
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.contract_line_form_view_equipment
+msgid "Open or Create One-off Bill"
+msgstr "Ouvrir ou créer la facture ponctuelle"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Package Rent (excl. tax)"
+msgstr "Loyer du forfait (HT)"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_rental_hours
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__rental_hours
+msgid "Planned Duration (hours)"
+msgstr "Durée prévue (heures)"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_rental_end
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__rental_end
+msgid "Planned Rental End"
+msgstr "Fin prévue de location"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_rental_start
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__rental_start
+msgid "Planned Rental Start"
+msgstr "Début prévu de location"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_billing_mode__recurring
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__rental_billing_mode__recurring
+msgid "Recurring"
+msgstr "Récurrente"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__rental_billing_mode
+msgid "Rental Billing"
+msgstr "Facturation de la location"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__rental_timezone
+msgid "Rental Time Zone"
+msgstr "Fuseau horaire de la location"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "Several bills already reference this one-off package."
+msgstr "Plusieurs factures référencent déjà ce forfait unique."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid ""
+"The one-off rent bill must match the contract currency, rental service, "
+"quantity 1 and untaxed package amount. Enter ancillary fees separately."
+msgstr ""
+"La facture ponctuelle doit respecter la devise du contrat, le service de "
+"location, la quantité 1 et le montant HT du forfait. Saisissez les frais "
+"annexes séparément."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "The rental end must be after its start."
+msgstr "La fin de location doit être postérieure à son début."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "The untaxed one-off package price must be positive."
+msgstr "Le prix HT du forfait unique doit être positif."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "contract periodicity"
+msgstr "périodicité du contrat"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "planned rental end time"
+msgstr "heure de fin prévue de location"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "planned rental start time"
+msgstr "heure de début prévue de location"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_billing_revision
+msgid "Equipment Billing Revision"
+msgstr "Révision technique de facturation"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "This field is maintained by the billing workflow."
+msgstr "Ce champ est géré par le parcours de facturation."

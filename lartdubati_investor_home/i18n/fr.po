@@ -1859,3 +1859,9 @@ msgstr "· montants dans la devise de chaque stock"
 #: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.xml:0
 msgid "— no rate on"
 msgstr "— aucun taux au"
+
+#. module: lartdubati_investor_home
+#. odoo-javascript
+#: code:addons/lartdubati_investor_home/static/src/stock_monitor/dashboard.js:0
+msgid "One-off Package"
+msgstr "Forfait unique"

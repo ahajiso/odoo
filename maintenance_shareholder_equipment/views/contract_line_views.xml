@@ -5,10 +5,27 @@
         <field name="model">contract.line</field>
         <field name="inherit_id" ref="contract.contract_line_form_view"/>
         <field name="arch" type="xml">
+            <xpath expr="//group[@name='recurrence_info']" position="attributes">
+                <attribute name="invisible">equipment_billing_mode == 'one_off'</attribute>
+            </xpath>
+            <xpath expr="//group[@name='next_period_dates']" position="attributes">
+                <attribute name="invisible">equipment_billing_mode == 'one_off'</attribute>
+            </xpath>
             <xpath expr="//group[@name='contract_dates']" position="after">
                 <group string="Equipment" name="equipment">
                     <field name="equipment_id"/>
                     <field name="equipment_nature" required="equipment_id"/>
+                    <field name="equipment_billing_mode" invisible="not equipment_id"/>
+                    <field name="equipment_rental_start" invisible="equipment_billing_mode != 'one_off'"/>
+                    <field name="equipment_rental_end" invisible="equipment_billing_mode != 'one_off'"/>
+                    <field name="equipment_rental_hours" invisible="equipment_billing_mode != 'one_off'"/>
+                    <button name="action_create_equipment_one_off_bill" type="object"
+                            string="Open or Create One-off Bill" groups="account.group_account_manager"
+                            invisible="equipment_billing_mode != 'one_off'"/>
+                    <div class="text-muted" invisible="equipment_billing_mode != 'one_off'">
+                        One-off package: no recurring invoice or monthly rent. Check the supplier reference,
+                        PDF and taxes on the draft bill. Record the physical return through an equipment operation.
+                    </div>
                 </group>
             </xpath>
         </field>
@@ -22,6 +39,12 @@
             <xpath expr="//field[@name='contract_line_ids']/list/field[@name='product_id']" position="after">
                 <field name="equipment_id" optional="show"/>
                 <field name="equipment_nature" optional="show" required="equipment_id"/>
+                <field name="equipment_billing_mode" optional="show"/>
+                <field name="equipment_rental_start" optional="hide"/>
+                <field name="equipment_rental_end" optional="hide"/>
+                <button name="action_create_equipment_one_off_bill" type="object" icon="fa-file-text-o"
+                        string="One-off Bill" groups="account.group_account_manager"
+                        invisible="equipment_billing_mode != 'one_off'"/>
             </xpath>
         </field>
     </record>

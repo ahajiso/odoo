@@ -345,3 +345,11 @@ product creation requests. Only the new autonomous catalogue group is exempt fro
 requester/approver separation; ordinary catalogue managers remain subject to it.
 Direct product creation stays blocked; equipment approval and accounting roles
 are unchanged. Implementation proposed in 18.0.5.1.0, awaiting review and deployment.
+
+
+## Owner amendment (17/10/2026): one-off supplier rental
+The owner authorises development of timed, one-off supplier equipment rentals for
+the four-hour forklift. Normal equipment approval and stock execution remain in
+force; a package has one draft bill and no recurring/monthly rent. Proposed versions:
+maintenance_shareholder_equipment 18.0.5.2.0, lartdubati_investor_home 18.0.3.1.0.
+Technical decisions, validation limits and controlled rollout: docs/one_off_rental/.

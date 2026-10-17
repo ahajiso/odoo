@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-12 12:30+0000\n"
-"PO-Revision-Date: 2026-10-12 12:30+0000\n"
+"POT-Creation-Date: 2026-10-17 09:45+0000\n"
+"PO-Revision-Date: 2026-10-17 09:45+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -625,6 +625,33 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid ""
+"A one-off package needs an equipment rental line on a supplier contract with"
+" per-line billing."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid ""
+"A one-off package needs ordered start/end times, an end date and quantity 1."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "A one-off rental cannot be open-ended."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid "A one-off rental package can have only one non-cancelled bill line."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid "A reason is required to change the ownership."
 msgstr ""
@@ -939,6 +966,11 @@ msgid "Attachment Count"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:res.groups,name:maintenance_shareholder_equipment.group_product_catalogue_autonomous
+msgid "Autonomous Catalogue Manager (Test / Superadmin)"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_category__request_ready
 msgid "Available for Item and Service Requests"
 msgstr ""
@@ -1088,6 +1120,12 @@ msgid "Cancel"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "Cancel the one-off bill before changing its package commitment."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__state__cancel
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__product_creation_request__state__cancel
 msgid "Cancelled"
@@ -1108,6 +1146,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "Choose a receipt operation type."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "Choose a valid rental time zone."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -1577,6 +1621,16 @@ msgid "Equipment (test choices, see the accountant)"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_billing_mode
+msgid "Equipment Billing Mode"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_billing_revision
+msgid "Equipment Billing Revision"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__equipment_category_id
 msgid "Equipment Category"
 msgstr ""
@@ -1836,6 +1890,15 @@ msgstr ""
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_equipment_operation__activity_type_icon
 #: model:ir.model.fields,help:maintenance_shareholder_equipment.field_product_creation_request__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:res.groups,comment:maintenance_shareholder_equipment.group_product_catalogue_autonomous
+msgid ""
+"For explicitly designated test users and superadministrators only. Can "
+"approve and execute their own product creation requests. Catalogue checks, "
+"traceability and the ban on direct product creation still apply. Does not "
+"grant equipment operation approval or accounting administration."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2414,12 +2477,6 @@ msgid ""
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__activity_calendar_event_id
-#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__activity_calendar_event_id
-msgid "Next Activity Calendar Event"
-msgstr ""
-
-#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__activity_date_deadline
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__activity_date_deadline
 msgid "Next Activity Deadline"
@@ -2593,6 +2650,36 @@ msgid "One line per equipment unit (quantity 1)."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.contract_contract_form_view_equipment
+msgid "One-off Bill"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_billing_mode__one_off
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__rental_billing_mode__one_off
+msgid "One-off Package"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "One-off billing is supported only for supplier rental receipts."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "One-off draft bill created: %s"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.contract_line_form_view_equipment
+msgid ""
+"One-off package: no recurring invoice or monthly rent. Check the supplier reference,\n"
+"                        PDF and taxes on the draft bill. Record the physical return through an equipment operation."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
 msgid ""
@@ -2608,10 +2695,22 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "Only accounting administrators can create a one-off supplier bill."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
 msgid ""
 "Only an accounting administrator makes a product category available for "
 "product requests."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "Only an active one-off equipment rental can create this bill."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2693,6 +2792,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product_creation_request.py:0
 msgid "Only the requester or a catalogue manager can cancel."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.contract_line_form_view_equipment
+msgid "Open or Create One-off Bill"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -2793,6 +2897,11 @@ msgid "Ownership to check"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Package Rent (excl. tax)"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_stock_location__is_offsite_parent
 msgid "Parent of Off-Site Stocks"
 msgstr ""
@@ -2855,8 +2964,26 @@ msgid "Planned Date"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_rental_hours
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__rental_hours
+msgid "Planned Duration (hours)"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__contract_end
 msgid "Planned End"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_rental_end
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__rental_end
+msgid "Planned Rental End"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_rental_start
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__rental_start
+msgid "Planned Rental Start"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -3142,6 +3269,12 @@ msgid "Received by %s."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_billing_mode__recurring
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__rental_billing_mode__recurring
+msgid "Recurring"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.product_creation_request_form
 msgid "Refuse"
 msgstr ""
@@ -3181,6 +3314,16 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_nature__rental
 msgid "Rental"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__rental_billing_mode
+msgid "Rental Billing"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__rental_timezone
+msgid "Rental Time Zone"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -3374,6 +3517,12 @@ msgid ""
 "receipt type of the warehouse delivering the destination stock. Exits, "
 "returns and restitutions use the transfer type of each equipment's "
 "warehouse."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "Several bills already reference this one-off package."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -3689,6 +3838,14 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid ""
+"The one-off rent bill must match the contract currency, rental service, "
+"quantity 1 and untaxed package amount. Enter ancillary fees separately."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid ""
 "The owner of the serial number on stock differs from the equipment's "
@@ -3759,6 +3916,12 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "The rental end must be after its start."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "The return destination must be an internal physical stock."
 msgstr ""
 
@@ -3790,6 +3953,12 @@ msgid "The transfer %s could not be validated."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "The untaxed one-off package price must be positive."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
 msgid "Third Party"
 msgstr ""
@@ -3798,6 +3967,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
 msgid "This correction is being applied by someone else."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "This field is maintained by the billing workflow."
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
@@ -4167,6 +4342,12 @@ msgstr ""
 #. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "contract periodicity"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "contract product in the settings"
 msgstr ""
 
@@ -4374,6 +4555,18 @@ msgstr ""
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
 msgid "planned end (or open-ended)"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "planned rental end time"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "planned rental start time"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
