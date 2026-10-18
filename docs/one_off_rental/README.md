@@ -172,3 +172,13 @@ git show origin/main:docs/one_off_rental/routes_after_18.0.5.2.3.txt \
 Échec (FAILED, PLATFORM DIFFERS, autre nombre que 306) : arrêt, puis
 `bash /tmp/oneoff/docs/restore_db.sh oneoff` (base, filestore et code de la sauvegarde,
 registre vérifié). Ensuite : recette du chariot (DEPLOYMENT.md §4) dans artdubati_test.
+
+## Recette serveur du 18/10/2026
+
+Les réceptions TEST 1537 à 1541 ont été approuvées puis exécutées après déploiement.
+Factures de loyer 450 / 700 / 150 HT, chariot 120 HT + frais 175 HT, prêt gratuit
+et deux restitutions vérifiés. Le chariot et la scie sont désormais archivés ;
+les trois autres locations restent en stock. Les indications antérieures sur
+l’absence d’exécution distante décrivent la phase de développement, pas cet état.
+Compte rendu, limites de profil et liens : LIVE_ACCEPTANCE_20261018.md.
+Les manuels FR/EN/FA incluent les dossiers, les résultats et des captures réelles.
