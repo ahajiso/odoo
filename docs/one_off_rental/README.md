@@ -199,3 +199,33 @@ les trois autres locations restent en stock. Les indications antérieures sur
 l’absence d’exécution distante décrivent la phase de développement, pas cet état.
 Compte rendu, limites de profil et liens : LIVE_ACCEPTANCE_20261018.md.
 Les manuels FR/EN/FA incluent les dossiers, les résultats et des captures réelles.
+
+## Publication des manuels (PR nº 2, 194e9f8)
+
+Changement limité à `docs/` et `lartdubati_manual/` : pages, captures, exports. Le
+contrôleur lit les pages à chaque requête et Odoo sert les fichiers statiques depuis le
+disque : déplacer le code suffit. Pas de mise à jour de module, pas de redémarrage, pas
+de sauvegarde (aucune donnée touchée). Contrôle : `docs/phase4/platform_expected.txt`
+rebasé sur l'état déployé (MODULE = 9c432c5), une seule ligne AFTER (`lartdubati_manual`
+`cdf90711…`).
+
+```bash
+cd /opt/odoo/addons/custom
+COMMIT=<commit annoncé>
+git fetch origin +refs/heads/main:refs/remotes/origin/main
+git log -1 --oneline origin/main                       # $COMMIT
+git status --short | head                              # rien
+PREV=$(git rev-parse HEAD); echo "$PREV"               # 9c432c5…
+git diff --name-only HEAD origin/main | grep -v '^docs/\|^lartdubati_manual/' \
+  || echo "PERIMETRE OK"                               # PERIMETRE OK, rien d'autre
+rm -rf /tmp/manuel && mkdir -p /tmp/manuel
+git archive origin/main docs/phase4 | tar -x -C /tmp/manuel
+bash /tmp/manuel/docs/phase4/check_modules.sh before   # PLATFORM OK (before)
+git merge --ff-only origin/main && git log -1 --oneline   # $COMMIT
+find lartdubati_manual -type f ! -perm -o=r | head     # rien (fichiers lisibles)
+bash /tmp/manuel/docs/phase4/check_modules.sh after    # PLATFORM OK (after)
+```
+
+Retour arrière (seulement si `after` échoue) : `git reset --keep "$PREV"`, puis
+`check_modules.sh before`. Le ZIP garde son nom : un navigateur peut servir l'ancien
+depuis son cache (rechargement forcé ou fenêtre privée).

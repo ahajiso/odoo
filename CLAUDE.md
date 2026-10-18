@@ -348,7 +348,11 @@ tests on artdubati_test (47 passing, 08/10/2026).
    merged (9c432c5) and deployed on artdubati_test on 18/10/2026
    (docs/one_off_rental/README.md): PLATFORM OK before / after, BACKUP OK (oneoff, 573
    files, 0 missing), 306 tests 0 failed, routes identical. Next: forklift acceptance
-   (DEPLOYMENT.md §4) and interface checks, in artdubati_test only.
+   (DEPLOYMENT.md §4) and interface checks, in artdubati_test only. Live acceptance
+   passed on 18/10/2026 (PR #2, 194e9f8: manuals FR/EN/FA, anonymised evidence,
+   docs/one_off_rental/LIVE_ACCEPTANCE_20261018.md); open: the monitor's posted rent
+   column, to check with an account.group_account_readonly user. Manual publication:
+   code move only (docs/one_off_rental/README.md, platform AFTER = lartdubati_manual).
    Then A-K, the manual last.
 5. Translations, deployment checklist (docs/deployment/investor_home.md).
 6. Functional phases proposed by the audit of 6063db1, order to set by the owner
