@@ -1,4 +1,25 @@
-# Déploiement suspendu : isolation préalable obligatoire
+# Déploiement de la location ponctuelle (18.0.5.2.3 / 18.0.3.1.0)
+
+## 0. Décision du propriétaire du 18/10/2026 : mise à jour habituelle de artdubati_test
+
+`artdubati` ne contient aucune donnée, n'est pas utilisée, et sera **réinitialisée puis
+réinstallée entièrement** au passage en production ; son état n'importe pas avant la fin
+des tests sur artdubati_test. La mise à jour se fait donc comme les précédentes (phases
+1 à 4, ROADMAP 0, menu des demandes) : service partagé `odoo_web`, `deploy_modules.sh`
+sur **artdubati_test uniquement**, avec l'accord explicite
+`ARTDUBATI_DISPOSABLE=reset-before-production` exigé par le script à chaque exécution.
+
+Conséquences acceptées :
+- le schéma d'`artdubati` reste en retard sur le code jusqu'à sa réinitialisation ;
+  l'ouvrir peut produire des erreurs ; **aucune donnée ne doit y être saisie** ;
+- l'isolation des environnements (sections 1 à 3 ci-dessous, et CLAUDE.md : prérequis
+  obligatoire avant toute production) reste à faire **avant** la production, puis
+  `artdubati` est recréée sur le code validé.
+
+Procédure : docs/one_off_rental/README.md, section « Mise à jour sur artdubati_test ».
+Le reste de ce document décrit la séparation à préparer pour la production.
+
+## Avant la production : isolation (plan initial de la PR nº 1)
 
 L’audit de `1aa5355` a invalidé l’ancienne procédure. **Ne pas utiliser
 `docs/deploy_modules.sh` pour cette livraison sur le service partagé `odoo_web`.**

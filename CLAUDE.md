@@ -335,6 +335,14 @@ tests on artdubati_test (47 passing, 08/10/2026).
    12/10/2026: PLATFORM OK before / after, BACKUP OK (552 files, 0 missing), 281 tests
    0 failed, routes 319 lines (MENU_PLAN.md §6.1); interface checks to do.
    Before the acceptance: name a requester and a different catalogue manager.
+   One-off rentals (PR #1, merged f08981e, maintenance_shareholder_equipment 18.0.5.2.3,
+   lartdubati_investor_home 18.0.3.1.0, manuals): owner's decision of 18/10/2026,
+   artdubati is disposable (no data, reset and reinstalled from scratch before
+   production), so the update is the usual one on artdubati_test only, with the explicit
+   ARTDUBATI_DISPOSABLE=reset-before-production acknowledgement required by
+   deploy_modules.sh (docs/one_off_rental/DEPLOYMENT.md §0, README.md); separate
+   environments still mandatory before production. 307 tests locally (306 on the
+   server), audit pending, then deployment.
    Then A-K, the manual last.
 5. Translations, deployment checklist (docs/deployment/investor_home.md).
 6. Functional phases proposed by the audit of 6063db1, order to set by the owner

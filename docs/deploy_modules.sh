@@ -7,6 +7,8 @@
 # Usage: bash deploy_modules.sh <backup.dump> <expected number of tests> <label, e.g. phase3> \
 #          <commit announced by Claude, fetched as origin/main>
 # KEEP_STOPPED=1: odoo_web is not started at the end (a data migration follows).
+# ARTDUBATI_DISPOSABLE=reset-before-production: required since the one-off rentals
+# (see the guard below).
 #
 # Stops at the first failure and leaves odoo_web STOPPED: Odoo commits after each
 # module, so a failure can leave the database partly updated. Then follow
@@ -42,13 +44,24 @@ fail() {
 [ -n "$COMMIT" ] || { echo "Give the commit announced by Claude as fourth argument."; exit 1; }
 TARGET=$(git -C "$ADDONS" rev-parse --verify --quiet "$COMMIT^{commit}") || {
   echo "Commit $COMMIT not found: run the fetch step of the README first."; exit 1; }
-# This historical script is tied to the shared odoo_web service. The one-off
-# release adds stored fields: updating only artdubati_test would break artdubati.
-# Fail closed even when called directly, before stopping or changing anything.
-if git -C "$ADDONS" cat-file -e "$TARGET:docs/one_off_rental/README.md" 2>/dev/null; then
-  echo "STOP: one-off rentals require an isolated test service, checkout and filestore."
-  echo "This shared-service script cannot deploy this release. See docs/one_off_rental/DEPLOYMENT.md."
+# This script is tied to the shared odoo_web service, which also opens artdubati.
+# Since the one-off rentals (stored fields), updating only artdubati_test leaves
+# artdubati's schema behind the code. Allowed only under the owner's decision of
+# 18/10/2026: artdubati holds no data and is reset and reinstalled from scratch before
+# any production use (docs/one_off_rental/DEPLOYMENT.md, section 0). The acknowledgement
+# is explicit on every run; without it the script fails closed, before any change.
+DISPOSABLE_ACK=reset-before-production
+if git -C "$ADDONS" cat-file -e "$TARGET:docs/one_off_rental/README.md" 2>/dev/null \
+   && [ "${ARTDUBATI_DISPOSABLE:-}" != "$DISPOSABLE_ACK" ]; then
+  echo "STOP: this release adds stored fields and odoo_web also serves artdubati."
+  echo "Allowed only while artdubati is disposable (owner's decision 18/10/2026, reset and"
+  echo "reinstalled before production): ARTDUBATI_DISPOSABLE=$DISPOSABLE_ACK bash $0 ..."
+  echo "See docs/one_off_rental/DEPLOYMENT.md, section 0."
   exit 1
+fi
+if [ "${ARTDUBATI_DISPOSABLE:-}" = "$DISPOSABLE_ACK" ]; then
+  echo "artdubati: disposable (owner's decision 18/10/2026); only $DB is updated and tested;"
+  echo "artdubati's schema stays behind the code until its reset before production."
 fi
 [ "$(git -C "$ADDONS" rev-parse origin/main)" = "$TARGET" ] || {
   echo "origin/main is not $COMMIT: fetch again or check the commit with Claude."; exit 1; }

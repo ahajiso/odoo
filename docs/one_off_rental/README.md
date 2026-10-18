@@ -125,3 +125,48 @@ pour les outils de contrôle à adapter au service isolé. Le wrapper historique
 phase4/check_modules.sh cible odoo_web et ne doit pas servir tel quel au contrôle
 après déploiement isolé. L’inventaire ancien par défaut n’est pas celui de cette
 livraison. Aucun déploiement ne doit précéder la séparation vérifiée.
+
+## Mise à jour sur artdubati_test (décision du 18/10/2026, DEPLOYMENT.md §0)
+
+Comme les mises à jour précédentes : service partagé `odoo_web`, artdubati_test seule,
+`artdubati` jetable (réinitialisée et réinstallée avant la production).
+
+Preuve locale (clean checkout de 776f5c2, modules identiques à f08981e ; base de
+répétition au code et aux données du serveur, en 18.0.5.0.1) : mise à jour sans erreur,
+**307 tests, 0 échec** (claude_clean_checkout_307_tests_776f5c2.log.gz ; la classe
+websocket réelle s'exécute en local, elle est sautée sur le serveur : **306** attendus,
+comme dans test-results.txt) ; empreintes des trois modules identiques à
+platform_expected.txt de la PR, reportées dans docs/phase4/platform_expected.txt (lignes
+AFTER) ; routes HTTP identiques au code actuel du serveur (319 lignes,
+routes_after_18.0.5.2.3.txt) ; traductions : aucun terme périmé après mise à jour, sauf
+le nom persan du modèle technique `ir.websocket` (menus techniques seulement, laissé).
+`lartdubati_manual` : fichiers modifiés, version inchangée, pas de mise à jour en base
+(pages lues à la demande par son contrôleur) ; son empreinte est contrôlée.
+
+Commandes, une par une (COMMIT = commit annoncé après l'audit) :
+
+```bash
+cd /opt/odoo/addons/custom
+COMMIT=<commit annoncé>
+git fetch origin +refs/heads/main:refs/remotes/origin/main
+git log -1 --oneline origin/main                       # $COMMIT
+rm -rf /tmp/oneoff && mkdir -p /tmp/oneoff
+git archive origin/main docs/phase4 docs/deploy_modules.sh docs/backup_db.sh \
+  docs/restore_db.sh | tar -x -C /tmp/oneoff
+git status --short | head                              # rien
+bash /tmp/oneoff/docs/phase4/check_modules.sh before   # PLATFORM OK (before)
+bash /tmp/oneoff/docs/backup_db.sh oneoff              # BACKUP OK
+BACKUP=$(sed -n 's/^DUMP=//p' /opt/odoo/logs/oneoff_backup)
+echo "$BACKUP $COMMIT"
+ARTDUBATI_DISPOSABLE=reset-before-production \
+  bash /tmp/oneoff/docs/deploy_modules.sh "$BACKUP" 306 oneoff "$COMMIT"   # TESTS OK … 306
+bash /tmp/oneoff/docs/phase4/check_modules.sh after    # PLATFORM OK (after)
+docker exec -i odoo_web odoo shell -d artdubati_test --no-http \
+  < /tmp/oneoff/docs/phase4/routes.py > /opt/odoo/logs/oneoff_routes.txt
+git show origin/main:docs/one_off_rental/routes_after_18.0.5.2.3.txt \
+  | diff - /opt/odoo/logs/oneoff_routes.txt && echo "ROUTES IDENTIQUES"
+```
+
+Échec (FAILED, PLATFORM DIFFERS, autre nombre que 306) : arrêt, puis
+`bash /tmp/oneoff/docs/restore_db.sh oneoff` (base, filestore et code de la sauvegarde,
+registre vérifié). Ensuite : recette du chariot (DEPLOYMENT.md §4) dans artdubati_test.
