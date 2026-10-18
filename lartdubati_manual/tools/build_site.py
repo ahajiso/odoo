@@ -75,6 +75,11 @@ ODOO_BASE = "https://erp.lartdubati.com/odoo/action-"
 # minuscules, sans espaces superflus. Un chemin plus long tombe sur la même entrée.
 SCREENS = {
     "fr": {
+        "demandes d'articles et services": "maintenance_shareholder_equipment.action_product_creation_request",
+        "demandes d’articles et services": "maintenance_shareholder_equipment.action_product_creation_request",
+        "contrats d’achats": "contract.action_supplier_contract",
+        "opérations matériel": "maintenance_shareholder_equipment.action_equipment_operation",
+        "moniteur de stock": "lartdubati_investor_home.action_stock_monitor",
         "équipement": "maintenance.hr_equipment_action",
         "catégories d'équipement": "maintenance.hr_equipment_category_action",
         "emplacements": "stock.action_location_form",
@@ -99,6 +104,9 @@ SCREENS = {
         "réceptions": "stock.method_action_picking_tree_incoming",
     },
     "en": {
+        "item and service requests": "maintenance_shareholder_equipment.action_product_creation_request",
+        "equipment operations": "maintenance_shareholder_equipment.action_equipment_operation",
+        "stock monitor": "lartdubati_investor_home.action_stock_monitor",
         "equipment": "maintenance.hr_equipment_action",
         "equipment categories": "maintenance.hr_equipment_category_action",
         "locations": "stock.action_location_form",
@@ -123,6 +131,10 @@ SCREENS = {
         "receipts": "stock.method_action_picking_tree_incoming",
     },
     "fa": {
+        "درخواست‌های کالا و خدمات": "maintenance_shareholder_equipment.action_product_creation_request",
+        "عملیات تجهیزات": "maintenance_shareholder_equipment.action_equipment_operation",
+        "پایش موجودی": "lartdubati_investor_home.action_stock_monitor",
+        "قراردادهای خرید": "contract.action_supplier_contract",
         "تجهیزات": "maintenance.hr_equipment_action",
         "دسته\u200cبندی تجهیزات": "maintenance.hr_equipment_category_action",
         "دسته\u200cبندی\u200cهای تجهیزات": "maintenance.hr_equipment_category_action",

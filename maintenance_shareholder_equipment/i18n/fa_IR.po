@@ -4783,3 +4783,235 @@ msgstr "شمارهٔ صورتحساب تأمین‌کننده"
 #: code:addons/maintenance_shareholder_equipment/models/maintenance_equipment.py:0
 msgid "warranty status"
 msgstr "وضعیت گارانتی"
+
+#. module: maintenance_shareholder_equipment
+#: model:res.groups,name:maintenance_shareholder_equipment.group_product_catalogue_autonomous
+msgid "Autonomous Catalogue Manager (Test / Superadmin)"
+msgstr "مدیر مستقل کاتالوگ (تست / مدیر ارشد)"
+
+#. module: maintenance_shareholder_equipment
+#: model:res.groups,comment:maintenance_shareholder_equipment.group_product_catalogue_autonomous
+msgid ""
+"For explicitly designated test users and superadministrators only. Can "
+"approve and execute their own product creation requests. Catalogue checks, "
+"traceability and the ban on direct product creation still apply. Does not "
+"grant equipment operation approval or accounting administration."
+msgstr ""
+"فقط برای کاربران تست و مدیران ارشد صریحاً تعیین‌شده. می‌تواند درخواست‌های "
+"ایجاد محصول خود را تأیید و اجرا کند. کنترل‌های کاتالوگ، ثبت سوابق و ممنوعیت "
+"ایجاد مستقیم محصول باقی می‌مانند. اختیار تأیید عملیات تجهیزات یا مدیریت "
+"حسابداری اعطا نمی‌کند."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid ""
+"A one-off package needs an equipment rental line on a supplier contract with"
+" per-line billing."
+msgstr ""
+"مبلغ ثابت یک‌باره به سطر اجاره تجهیز در قرارداد تأمین‌کننده با صورتحساب در "
+"سطح سطر نیاز دارد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid ""
+"A one-off package needs ordered start/end times, an end date and quantity 1."
+msgstr ""
+"مبلغ ثابت یک‌باره به زمان شروع و پایان مرتب، تاریخ پایان و تعداد 1 نیاز "
+"دارد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "A one-off rental cannot be open-ended."
+msgstr "اجاره موردی باید پایان مشخص داشته باشد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid "A one-off rental package can have only one non-cancelled bill line."
+msgstr ""
+"مبلغ ثابت اجاره یک‌باره فقط می‌تواند یک سطر صورتحساب لغونشده داشته باشد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "Choose a valid rental time zone."
+msgstr "یک منطقه زمانی معتبر برای اجاره انتخاب کنید."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_billing_mode
+msgid "Equipment Billing Mode"
+msgstr "روش صورتحساب تجهیز"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.contract_contract_form_view_equipment
+msgid "One-off Bill"
+msgstr "صورتحساب موردی"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_billing_mode__one_off
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__rental_billing_mode__one_off
+msgid "One-off Package"
+msgstr "مبلغ ثابت یک‌باره"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "One-off billing is supported only for supplier rental receipts."
+msgstr "صورتحساب موردی فقط برای دریافت اجاره از تأمین‌کننده پشتیبانی می‌شود."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "One-off draft bill created: %s"
+msgstr "صورتحساب موردی پیش‌نویس ایجاد شد: %s"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.contract_line_form_view_equipment
+msgid ""
+"One-off package: no recurring invoice or monthly rent. Check the supplier reference,\n"
+"                        PDF and taxes on the draft bill. Record the physical return through an equipment operation."
+msgstr ""
+"مبلغ ثابت یک‌باره: بدون صورتحساب دوره‌ای یا اجاره ماهانه. مرجع تأمین‌کننده،\n"
+"                        فایل PDF و مالیات‌های پیش‌نویس را کنترل کنید. بازگشت فیزیکی را با عملیات تجهیزات ثبت کنید."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "Only accounting administrators can create a one-off supplier bill."
+msgstr "فقط مدیران حسابداری می‌توانند صورتحساب موردی تأمین‌کننده ایجاد کنند."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "Only an active one-off equipment rental can create this bill."
+msgstr "فقط اجاره موردی فعال تجهیز می‌تواند این صورتحساب را ایجاد کند."
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.contract_line_form_view_equipment
+msgid "Open or Create One-off Bill"
+msgstr "بازکردن یا ایجاد صورتحساب موردی"
+
+#. module: maintenance_shareholder_equipment
+#: model_terms:ir.ui.view,arch_db:maintenance_shareholder_equipment.equipment_operation_view_form
+msgid "Package Rent (excl. tax)"
+msgstr "اجاره مبلغ ثابت (بدون مالیات)"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_rental_hours
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__rental_hours
+msgid "Planned Duration (hours)"
+msgstr "مدت پیش‌بینی‌شده (ساعت)"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_rental_end
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__rental_end
+msgid "Planned Rental End"
+msgstr "پایان پیش‌بینی‌شده اجاره"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_rental_start
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__rental_start
+msgid "Planned Rental Start"
+msgstr "شروع پیش‌بینی‌شده اجاره"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__contract_line__equipment_billing_mode__recurring
+#: model:ir.model.fields.selection,name:maintenance_shareholder_equipment.selection__equipment_operation__rental_billing_mode__recurring
+msgid "Recurring"
+msgstr "دوره‌ای"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__rental_billing_mode
+msgid "Rental Billing"
+msgstr "صورتحساب اجاره"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_equipment_operation__rental_timezone
+msgid "Rental Time Zone"
+msgstr "منطقه زمانی اجاره"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "Several bills already reference this one-off package."
+msgstr "چند صورتحساب از قبل به این مبلغ ثابت یک‌باره ارجاع دارند."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+msgid ""
+"The one-off rent bill must match the contract currency, rental service, "
+"quantity 1 and untaxed package amount. Enter ancillary fees separately."
+msgstr ""
+"صورتحساب اجاره موردی باید با ارز قرارداد، خدمت اجاره، تعداد 1 و مبلغ ثابت "
+"بدون مالیات مطابقت داشته باشد. هزینه‌های جانبی را جدا وارد کنید."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "The rental end must be after its start."
+msgstr "پایان اجاره باید پس از شروع آن باشد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "The untaxed one-off package price must be positive."
+msgstr "قیمت مبلغ ثابت یک‌باره بدون مالیات باید مثبت باشد."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "contract periodicity"
+msgstr "دوره قرارداد"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "planned rental end time"
+msgstr "زمان پایان پیش‌بینی‌شده اجاره"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/equipment_operation.py:0
+msgid "planned rental start time"
+msgstr "زمان شروع پیش‌بینی‌شده اجاره"
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_billing_revision
+msgid "Equipment Billing Revision"
+msgstr "بازنگری فنی صورتحساب"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid "This field is maintained by the billing workflow."
+msgstr "این فیلد توسط روند صورتحساب مدیریت می‌شود."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/account_move.py:0
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid ""
+"A one-off bill keeps its contract link and history. Cancel it and create a "
+"replacement."
+msgstr ""
+"صورتحساب مبلغ ثابت پیوند قرارداد و تاریخچه خود را حفظ می‌کند. آن را لغو و "
+"سپس صورتحساب جایگزین ایجاد کنید."
+
+#. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_contract_line__equipment_origin_operation_id
+msgid "Original Equipment Operation"
+msgstr "عملیات اولیه تجهیزات"
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/contract.py:0
+msgid ""
+"A billed one-off package commitment cannot be changed, even after bill "
+"cancellation."
+msgstr ""
+"تعهد مبلغ ثابت یک‌باره پس از صدور صورتحساب، حتی پس از لغو صورتحساب، قابل "
+"تغییر نیست."

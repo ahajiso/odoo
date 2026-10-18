@@ -23,7 +23,7 @@ class EquipmentCommon(TransactionCase):
                 "the database, as on artdubati_test: install it first.")
         env["account.chart.template"].try_loading("fr", cls.company, install_demo=False)
         cls.env = env(context=dict(env.context, allowed_company_ids=[cls.company.id],
-                                   tracking_disable=True))
+                                   tracking_disable=True, lang="en_US"))
         cls.env.user.company_id = cls.company
         env = cls.env
         Account = env["account.account"]

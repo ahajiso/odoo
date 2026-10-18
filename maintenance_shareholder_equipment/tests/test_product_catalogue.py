@@ -55,6 +55,8 @@ class CatalogueCommon(EquipmentCommon):
 
         cls.manager = user("cat_manager", [manager_group, env.ref("stock.group_stock_user")])
         cls.manager2 = user("cat_manager2", [manager_group])
+        cls.autonomous = user("cat_autonomous", [
+            env.ref("%s.group_product_catalogue_autonomous" % MODULE)])
         cls.buyer = user("cat_buyer", [env.ref("purchase.group_purchase_user")])
         cls.taxes_purchase = env["account.tax"].search([
             ("type_tax_use", "=", "purchase"), ("company_id", "=", cls.company.id)], limit=1)
@@ -93,7 +95,7 @@ class TestCatalogueGuards(CatalogueCommon):
         self.assertEqual(labels["fa_IR"], "قابل تعمیر و نگهداری است")
 
     def test_direct_creation_refused_to_everyone(self):
-        for user in (self.manager, self.buyer, self.user_operator):
+        for user in (self.manager, self.buyer, self.user_operator, self.autonomous):
             with self.subTest(user=user.login):
                 with self.assertRaises(AccessError):
                     self.env["product.template"].with_user(user).create({"name": "Direct"})
@@ -220,6 +222,50 @@ class TestCreationRequest(CatalogueCommon):
         # the approver may execute (catalogue manager)
         request.with_user(self.manager2).action_execute()
         self.assertEqual(request.state, "done")
+
+    def test_autonomous_catalogue_self_approval_is_traced(self):
+        request = self._request(user=self.autonomous)
+        request.action_submit()
+        request.action_approve()
+        self.assertEqual(request.requester_id, self.autonomous)
+        self.assertEqual(request.approver_id, self.autonomous)
+        self.assertTrue(request.approval_date)
+        request.action_execute()
+        self.assertEqual(request.state, "done")
+        self.assertEqual(request.executor_id, self.autonomous)
+        self.assertEqual(request.product_tmpl_id.default_code, "MAC-001")
+
+    def test_autonomous_catalogue_keeps_validation_and_role_boundaries(self):
+        request = self._request(user=self.autonomous, family="service",
+                                equipment_category_id=False)
+        # The IT category is not a service category, even for this special role.
+        with self.assertRaises(ValidationError):
+            request.action_submit()
+        for group in ("base.group_system", "account.group_account_manager",
+                      "%s.group_equipment_operator" % MODULE,
+                      "%s.group_equipment_approver" % MODULE):
+            self.assertFalse(self.autonomous.has_group(group))
+        # Catalogue access does not let a buyer assign the exceptional role to self.
+        with self.assertRaises(AccessError):
+            self.buyer.with_user(self.buyer).write({"groups_id": [Command.link(
+                self.env.ref("%s.group_product_catalogue_autonomous" % MODULE).id)]})
+
+    def test_context_cannot_enable_self_approval(self):
+        request = self._request(user=self.manager)
+        request.action_submit()
+        with self.assertRaisesRegex(UserError, "requester"):
+            request.with_context(allow_self_approval=True, test_mode=True,
+                                 superadmin=True).action_approve()
+
+    def test_removing_autonomous_role_restores_separation(self):
+        request = self._request(user=self.autonomous)
+        request.action_submit()
+        self.autonomous.write({"groups_id": [Command.set([
+            self.env.ref("base.group_user").id,
+            self.env.ref("%s.group_product_catalogue_manager" % MODULE).id])]})
+        self.assertTrue(self.autonomous.has_group("%s.group_product_catalogue_manager" % MODULE))
+        with self.assertRaisesRegex(UserError, "requester"):
+            request.action_approve()
 
     def test_waiting_family_refused(self):
         categ = self.env["product.category"].create({

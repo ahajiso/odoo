@@ -33,6 +33,9 @@ class AccountMoveLine(models.Model):
     # OCA maintenance_account field, redeclared: a reversal is built with copy() and
     # must not start with the equipment of the original bill.
     equipment_ids = fields.Many2many(copy=False)
+    equipment_contract_billing_mode = fields.Selection(
+        related="contract_line_id.equipment_billing_mode", readonly=True,
+    )
 
     # ------------------------------------------------------- link, both relations
 
@@ -59,7 +62,23 @@ class AccountMoveLine(models.Model):
                       "line.", line=line.display_name)
                 )
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        lines = super().create(vals_list)
+        lines.move_id._link_one_off_operation_history()
+        return lines
+
+    def _one_off_bill_lines(self):
+        return self.filtered(lambda line: line.move_id.move_type == "in_invoice"
+                             and line.contract_line_id.equipment_billing_mode == "one_off")
+
     def write(self, vals):
+        for line in self._one_off_bill_lines():
+            for field in ("contract_line_id", "move_id", "display_type"):
+                current = line[field].id if self._fields[field].type == "many2one" else line[field]
+                if field in vals and (vals[field] or False) != (current or False):
+                    raise UserError(_("A one-off bill keeps its contract link and history. "
+                                      "Cancel it and create a replacement."))
         if "equipment_ids" in vals and not self.env.su:
             before = {line.id: line.equipment_ids for line in self}
             res = super().write(vals)
@@ -70,8 +89,17 @@ class AccountMoveLine(models.Model):
                         _("An equipment linked to bill line %s cannot be removed from it "
                           "directly.", line.display_name)
                     )
+            self.move_id._link_one_off_operation_history()
             return res
-        return super().write(vals)
+        res = super().write(vals)
+        self.move_id._link_one_off_operation_history()
+        return res
+
+    def unlink(self):
+        if self._one_off_bill_lines():
+            raise UserError(_("A one-off bill keeps its contract link and history. "
+                              "Cancel it and create a replacement."))
+        return super().unlink()
 
     def _link_equipment(self, equipments):
         """Link equipment to this line, both relations, in the order compatible with the
@@ -139,9 +167,47 @@ class AccountMoveLine(models.Model):
 class AccountMove(models.Model):
     _inherit = "account.move"
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        moves = super().create(vals_list)
+        moves._link_one_off_operation_history()
+        return moves
+
+    def _link_one_off_operation_history(self):
+        for move in self.filtered(lambda record: record.move_type == "in_invoice"):
+            packages = move.invoice_line_ids.contract_line_id.filtered(
+                lambda line: line.equipment_billing_mode == "one_off")
+            if packages:
+                # Validate company/partner before granting the existing approver
+                # read scope via the immutable workflow origin. Amounts stay draft
+                # inputs until the full posting checks.
+                move._check_rent_lines()
+                for package in packages:
+                    package._link_one_off_bill_history(move)
+
+    def write(self, vals):
+        if "equipment_operation_ids" in vals and self.line_ids._one_off_bill_lines():
+            raise UserError(_("A one-off bill keeps its contract link and history. "
+                              "Cancel it and create a replacement."))
+        if "move_type" in vals:
+            for move in self:
+                if move.move_type != vals["move_type"] and move.line_ids._one_off_bill_lines():
+                    raise UserError(_("A one-off bill keeps its contract link and history. "
+                                      "Cancel it and create a replacement."))
+        res = super().write(vals)
+        self._link_one_off_operation_history()
+        return res
+
+    def unlink(self):
+        if self.line_ids._one_off_bill_lines():
+            raise UserError(_("A one-off bill keeps its contract link and history. "
+                              "Cancel it and create a replacement."))
+        return super().unlink()
+
     def action_post(self):
         self._check_asset_supplier_refunds()
         self._check_rent_lines()
+        self._check_equipment_one_off_bills()
         refund_lines = self._equipment_refund_lines()
         linked_refunds = self.filtered(lambda m: m.move_type == "in_refund").invoice_line_ids.filtered(
             "equipment_ids"
@@ -358,6 +424,29 @@ class AccountMove(models.Model):
                           line=line.display_name, partner=move.partner_id.display_name,
                           company=move.company_id.name)
                     )
+
+    def _check_equipment_one_off_bills(self):
+        bills = self.filtered(lambda m: m.move_type == "in_invoice")
+        lines = bills.invoice_line_ids.filtered(
+            lambda ln: ln.display_type == "product"
+            and ln.contract_line_id.equipment_billing_mode == "one_off")
+        contracts = lines.contract_line_id
+        contracts._lock_equipment_one_off()
+        for cl in contracts:
+            linked = self.env["account.move.line"].sudo().search([
+                ("contract_line_id", "=", cl.id), ("move_id.move_type", "=", "in_invoice"),
+                ("move_id.state", "!=", "cancel"), ("display_type", "=", "product"),
+            ])
+            if len(linked) != 1:
+                raise UserError(_("A one-off rental package can have only one non-cancelled bill line."))
+            line = linked
+            expected = cl.price_unit * cl.quantity * (1 - cl.discount / 100)
+            if (line.move_id.currency_id != cl.currency_id or line.quantity != 1
+                    or line.product_id != cl.product_id or line.product_id.maintenance_ok
+                    or cl.currency_id.compare_amounts(expected, 0) <= 0
+                    or cl.currency_id.compare_amounts(line.price_subtotal, expected)):
+                raise UserError(_("The one-off rent bill must match the contract currency, "
+                                  "rental service, quantity 1 and untaxed package amount. Enter ancillary fees separately."))
 
     # ------------------------------------------------------------- cancellation
 

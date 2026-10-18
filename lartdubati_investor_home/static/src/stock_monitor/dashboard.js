@@ -531,6 +531,10 @@ export class StockMonitorDashboard extends Component {
         if (!row.rent_amount && !row.rent_start) {
             return "";
         }
+        if (row.rent_rule_type === "one_off") {
+            const label = _t("One-off Package");
+            return `${this.money(row.rent_amount, row.rent_currency_id)} · ${label}`;
+        }
         const periods = {
             daily: _t("day"),
             weekly: _t("week"),

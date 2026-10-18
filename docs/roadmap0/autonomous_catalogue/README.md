@@ -1,0 +1,80 @@
+# Catalogue autonome — proposition du 17/10/2026
+
+Demande du propriétaire : un profil particulier pour les utilisateurs de test et
+les superadmins, permettant de créer et valider sa propre référence. Décision
+consignée dans DEFINITIONS.md ; proposition initiale 18.0.5.1.0, intégrée dans la
+livraison **18.0.5.2.1** avec la location ponctuelle, non déployée.
+
+## Comportement
+
+Le groupe `maintenance_shareholder_equipment.group_product_catalogue_autonomous`
+implique uniquement le gestionnaire du catalogue existant. Aucun utilisateur n'est
+ajouté par défaut. Dans la fiche utilisateur, Catalogue produits propose le niveau
+« Gestionnaire autonome du catalogue (Test / Superadmin) » (ADM-13).
+
+Son titulaire peut créer une demande, la soumettre, l'approuver lui-même, puis
+créer le produit. Tous les autres contrôles restent exécutés et les acteurs sont
+tracés. Pas de création directe de product.template / product.product, pas de
+contournement des doublons, catégories, documents, unités ou sociétés. Un contexte
+API, un nom d'utilisateur ou un nom de base ne donnent pas cette permission.
+
+Le gestionnaire ordinaire ne peut toujours pas approuver sa propre demande. Le
+profil spécial ne donne pas les rôles d'opérateur matériel, d'approbateur matériel,
+d'administrateur comptable ou d'administrateur général. Aucune ACL et aucune règle
+multi-société ne sont élargies ; seule la condition d'auto-approbation est modifiée.
+Il n'y a pas de nouveau contrôleur HTTP ni de nouvelle dépendance.
+
+## Validation effectuée et limites
+
+- Python compilé et XML de groupe analysé ; diff sans erreur d'espacement.
+- Neuf vérifications isolées passées : méthode action_approve extraite du vrai
+  code, exécutée avec de vrais utilisateurs/groupes Odoo sur une base locale neuve.
+  Les assistants de stockage, de catalogue et de document sont des doublures :
+  ce n'est pas un test d'intégration complet du module. Vérifié : refus ordinaire,
+  autorisation du rôle spécial et traces, validation normale par autrui, contexte
+  falsifié sans effet, administrateur sans rôle refusé, contrôle de catégorie,
+  doublon bloquant, retrait du rôle et implication du seul gestionnaire.
+- Entrées de traduction des deux nouveaux termes exportées par Odoo depuis les
+  mêmes enregistrements XML dans cette base isolée, puis traduites en FR et FA.
+  Les références model:res.groups,name/comment sont celles du groupe réel.
+- Tests d'intégration ajoutés à test_product_catalogue.py : demande complète avec
+  auto-approbation et exécution tracées, contrôles toujours actifs, absence de droits
+  supplémentaires, auto-attribution refusée, contexte sans effet, révocation.
+  Les tests existants de création directe incluent aussi le nouveau profil.
+  test_user_groups_view.py vérifie le niveau visible et ses implications.
+- Les premiers contrôles isolés ont depuis été complétés par l'installation réelle
+  et la régression des deux modules avec les 122 modules et les sources OCA du
+  serveur. Résultats finaux et limites : docs/one_off_rental/VALIDATION.md.
+- Manuel FR/EN/FA rafraîchi et check.py sans différence ; aperçus bureau/mobile/RTL.
+
+## Mise en service à faire après audit
+
+Suivre ADM-05 et docs/phase4/README.md : fenêtre de déploiement, sauvegarde vérifiée,
+plateforme conforme et empreinte du nouveau code, inventaire des routes avant/après,
+arrêt/code/mise à jour ENSEMBLE de maintenance_shareholder_equipment et
+lartdubati_investor_home/reprise sur artdubati_test (livraison ponctuelle 5.2.1).
+Ne pas réutiliser comme preuve l'ancienne empreinte AFTER de la version 18.0.5.0.1.
+Exécuter les tests d'intégration du module et les contrôles de groupes, puis vérifier
+les traductions dans la fiche utilisateur. Rien n'est automatiquement attribué :
+un administrateur sélectionne explicitement le niveau autonome pour le compte voulu.
+La production n'est pas concernée par les opérations de test de cette tâche.
+
+Pour les cinq cas TEST préparés le même jour, les quatre demandes de produit ont
+été approuvées et exécutées séparément sur la version actuellement en ligne,
+pendant cette tâche. Leurs produits sont réutilisés dans les réceptions existantes.
+Le nouveau profil n’a pas été nécessaire à cette validation par autrui et n’est
+pas actif sur le serveur ; il permettra l’auto-approbation future après déploiement
+et attribution explicite. La validation des opérations matériel reste distincte.
+Le chariot quatre heures attend le déploiement de la location ponctuelle de la
+livraison 5.2.1 ; son opération existante reste en brouillon sur le serveur.
+
+
+## Complément lors du développement ponctuel
+
+La version proposée est désormais 18.0.5.2.1 et inclut le parcours ponctuel.
+La plateforme locale a été reconstruite avec les 122 modules du serveur, leurs
+empreintes et les versions OCA exactes. Le contrôle de sources admet seulement
+les neuf écarts d'images/polices déjà prouvés pour la même image Docker ; les
+bibliothèques Python restent locales. Voir docs/one_off_rental/VALIDATION.md et
+DEPLOYMENT.md pour la régression complète et la procédure contrôlée. Aucune
+attribution du profil ni mise à jour distante effectuée lors de ces vérifications.
