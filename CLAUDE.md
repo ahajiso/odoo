@@ -344,8 +344,11 @@ tests on artdubati_test (47 passing, 08/10/2026).
    production), so the update is the usual one on artdubati_test only, with the explicit
    ARTDUBATI_DISPOSABLE=reset-before-production acknowledgement required by
    deploy_modules.sh (docs/one_off_rental/DEPLOYMENT.md §0, README.md); separate
-   environments still mandatory before production. 307 tests locally (306 on the
-   server), audit pending, then deployment.
+   environments still mandatory before production. 307 tests locally; audited,
+   merged (9c432c5) and deployed on artdubati_test on 18/10/2026
+   (docs/one_off_rental/README.md): PLATFORM OK before / after, BACKUP OK (oneoff, 573
+   files, 0 missing), 306 tests 0 failed, routes identical. Next: forklift acceptance
+   (DEPLOYMENT.md §4) and interface checks, in artdubati_test only.
    Then A-K, the manual last.
 5. Translations, deployment checklist (docs/deployment/investor_home.md).
 6. Functional phases proposed by the audit of 6063db1, order to set by the owner

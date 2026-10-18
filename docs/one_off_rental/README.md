@@ -172,3 +172,19 @@ git show origin/main:docs/one_off_rental/routes_after_18.0.5.2.3.txt \
 Échec (FAILED, PLATFORM DIFFERS, autre nombre que 306) : arrêt, puis
 `bash /tmp/oneoff/docs/restore_db.sh oneoff` (base, filestore et code de la sauvegarde,
 registre vérifié). Ensuite : recette du chariot (DEPLOYMENT.md §4) dans artdubati_test.
+
+### Déploiement consigné (18/10/2026)
+
+**Déployé sur artdubati_test : code 9c432c5** (maintenance_shareholder_equipment
+18.0.5.2.3, lartdubati_investor_home 18.0.3.1.0, lartdubati_manual 18.0.1.0.0),
+commandes ci-dessus exécutées une par une par le propriétaire :
+PLATFORM OK (before) ; BACKUP OK (`oneoff`, dump
+`/opt/odoo/backups/artdubati_test_20261018_145413_oneoff.dump`, 573 fichiers, 0 pièce
+jointe manquante, COUNTS `9 28 4 12 9 722`, code de la sauvegarde f0de375) ; garde
+`ARTDUBATI_DISPOSABLE` acquittée ; CODE OK 9c432c5 ; UPDATE OK ; **306 tests, 0 échec,
+0 erreur** ; PLATFORM OK (after) avec les empreintes AFTER ; routes HTTP identiques à
+routes_after_18.0.5.2.3.txt (ROUTES IDENTIQUES). Rien n'a été saisi dans `artdubati`.
+
+Restent (propriétaire) : recette du chariot (DEPLOYMENT.md §4, dans artdubati_test) et
+contrôles d'interface. Sauvegardes conservées jusqu'à la recette réussie : `oneoff`,
+`menu`, `roadmap0`, `roadmap0b` et les copies du premier retour arrière.
