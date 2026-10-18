@@ -413,5 +413,9 @@ write rights to the accounting user.
 The shared-service deployment plan for 1aa5355 is withdrawn. Test-only upgrades
 adding stored fields require an isolated test service, independent checkout and
 filestore, configuration and database access, verified on the old code first.
-Unused production does not make new code compatible with its old schema. No
+Unused production does not make new code compatible with its old schema.
+Superseded for the transitional acceptance by the owner's decision of 18/10/2026:
+artdubati is disposable and reset before production, so artdubati_test is updated
+on the shared service (docs/one_off_rental/DEPLOYMENT.md §0); the isolation stays
+mandatory before opening production. No
 production upgrade or infrastructure change was performed by this correction.

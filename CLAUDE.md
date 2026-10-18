@@ -21,12 +21,15 @@
   `stock.location.warehouse_id` is empty for Bg/Stock and its children. Never rely on
   `warehouse_id` to find a stock's warehouse, address or country.
 - One container `odoo_web` and one addons folder currently serve both databases.
-  The audit of 1aa5355 (17/10/2026) rejects a test-only schema upgrade on this shared
-  service, even without real production use. Before the one-off release, isolate
-  test service, checkout, configuration, database access and filestore on the old
-  code. Production upgrades are not authorised. The old shared deploy script refuses
-  this release; docs/one_off_rental/DEPLOYMENT.md records the mandatory isolation gate.
-  See also docs/deployment/investor_home.md, section 0.
+  The audit of 1aa5355 (17/10/2026) rejected a test-only schema upgrade on this shared
+  service; superseded for the transitional acceptance by the owner's decision of
+  18/10/2026: artdubati is disposable (no data, reset and reinstalled from scratch
+  before production), so artdubati_test is updated as before, with the explicit
+  ARTDUBATI_DISPOSABLE=reset-before-production acknowledgement (deploy_modules.sh
+  refuses otherwise). Isolating test service, checkout, configuration, database
+  access and filestore remains mandatory before opening production; production
+  upgrades are not authorised (docs/one_off_rental/DEPLOYMENT.md §0,
+  docs/deployment/investor_home.md section 0).
 - Single company. DB container: odoo_db (`docker exec -i odoo_db psql -U odoo -d artdubati_test`).
 - Languages: en_US, fr_FR, fa_IR (RTL). All UI strings translatable; .po files come from
   `odoo --i18n-export`, never written by hand.
@@ -101,9 +104,9 @@
   docs/manual/maintenance-manuel-odoo.md and docs/manual/definitions-manuel.md; tools:
   lartdubati_manual/tools/README.md. Read them before touching the manual. Investor
   profile tab in the three manuals.
-- Historical shared-service commands below are NOT valid for the one-off release.
-  Do not execute them for this PR: isolate test first and audit tools for that
-  dedicated service (docs/one_off_rental/DEPLOYMENT.md).
+- Shared-service commands: valid for artdubati_test while artdubati is disposable
+  (owner's decision 18/10/2026); deployments go through docs/deploy_modules.sh, which
+  requires ARTDUBATI_DISPOSABLE=reset-before-production since the one-off release.
   Historical update command: `docker exec -i odoo_web odoo -d artdubati_test -u <module>
   --stop-after-init` then `docker restart odoo_web`.
   Run tests: `docker exec -i odoo_web odoo -d artdubati_test -u <module> --test-enable
@@ -377,3 +380,6 @@ for one-off bills. Evidence, review and the staged deployment procedure are in
 `docs/one_off_rental/VALIDATION.md`, `REVIEW.md` and `DEPLOYMENT.md`; the new platform
 file must be passed explicitly to the existing before/after checker. No deployment
 has been performed by these local verifications.
+Superseded on 18/10/2026 for the transitional acceptance (owner's decision, artdubati
+disposable): usual update of artdubati_test, docs/one_off_rental/DEPLOYMENT.md §0;
+isolation still mandatory before production.

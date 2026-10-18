@@ -5,13 +5,14 @@ tested on `artdubati_test`. **Run nothing here without the owner's explicit go.*
 
 ## 0. Mandatory prerequisite: separate test and production environments
 
-**Audit correction, 17/10/2026 (1aa5355):** the one-off release cannot update only
-artdubati_test on the shared code/service even if production is unused. Its new
-stored fields would be missing in artdubati. Separate test on the old code first;
-no production schema update is authorised. The previous shared deployment recipe
-is withdrawn and its script refuses this release. See
-[the isolation gate](../one_off_rental/DEPLOYMENT.md). The historical allowance
-below is not an exception for this release.
+**Audit correction, 17/10/2026 (1aa5355), superseded for the transitional acceptance
+by the owner's decision of 18/10/2026:** artdubati holds no data and will be reset and
+reinstalled from scratch before production, so artdubati_test is updated on the shared
+service as before, with the explicit acknowledgement required by deploy_modules.sh
+(ARTDUBATI_DISPOSABLE=reset-before-production; [DEPLOYMENT.md §0](../one_off_rental/DEPLOYMENT.md)).
+artdubati's schema stays behind the code meanwhile: nothing is entered in it. The
+separation of test and production below remains **mandatory before opening
+production**; no production schema update is authorised.
 
 Today one container `odoo_web` and one addons folder serve both databases: a `git pull`
 for the test changes the code production runs, and a restart would load it against a

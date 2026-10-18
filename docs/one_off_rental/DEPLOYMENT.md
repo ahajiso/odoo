@@ -21,12 +21,20 @@ Le reste de ce document décrit la séparation à préparer pour la production.
 
 ## Avant la production : isolation (plan initial de la PR nº 1)
 
-L’audit de `1aa5355` a invalidé l’ancienne procédure. **Ne pas utiliser
-`docs/deploy_modules.sh` pour cette livraison sur le service partagé `odoo_web`.**
-Il est incorrect de changer son checkout, mettre à jour seulement artdubati_test,
-puis redémarrer ce service qui ouvre aussi artdubati : les nouveaux champs stockés
-et le moniteur SQL seraient chargés sur un schéma non mis à jour. L’absence
-d’utilisation réelle de production ne supprime pas ce défaut structurel.
+> **Plan initial remplacé par la décision du 18/10/2026 (§0) pour la recette
+> transitoire sur artdubati_test.** Les interdictions ci-dessous (ne pas utiliser
+> `deploy_modules.sh`, isoler avant cette livraison) ne s'appliquent plus à cette
+> livraison : `artdubati` étant jetable, son schéma peut rester en retard jusqu'à sa
+> réinitialisation. **L'isolation reste obligatoire avant l'ouverture de la
+> production**, puis `artdubati` est recréée sur le code validé. Les sections 1 à 3
+> sont conservées comme plan de cette isolation.
+
+Texte initial (audit de `1aa5355`, 17/10/2026, remplacé pour la recette) : ne pas
+utiliser `docs/deploy_modules.sh` pour cette livraison sur le service partagé
+`odoo_web`, car changer son checkout, mettre à jour seulement artdubati_test, puis
+redémarrer ce service qui ouvre aussi artdubati chargerait les nouveaux champs stockés
+et le moniteur SQL sur un schéma d'artdubati non mis à jour. Ce défaut est accepté
+tant qu'artdubati est jetable ; il redevient bloquant pour toute base à conserver.
 
 Le choix retenu est d’isoler artdubati_test. Mettre à jour artdubati n’est pas
 autorisé par cette demande. Aucun changement d’infrastructure distant, fusion,

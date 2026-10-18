@@ -96,10 +96,11 @@ Les résultats finaux sont consignés dans le compte rendu de validation ci-dess
    groupe, ACL ou règle de société ; son action publique est un bouton ORM protégé.
    Le groupe catalogue autonome, distinct, est décrit dans sa propre proposition.
 2. Sauvegarde/restauration vérifiées et fenêtre de déploiement contrôlée selon ADM-05.
-   L’isolation de test sur un service, checkout, configuration et filestore distincts
-   est OBLIGATOIRE avant cette livraison, même sans utilisation réelle de production.
-   La procédure partagée de 1aa5355 est retirée ; voir DEPLOYMENT.md. Aucun déploiement
-   n’est autorisé tant que la séparation et ses outils adaptés ne sont pas vérifiés.
+   Plan initial remplacé par la décision du 18/10/2026 (DEPLOYMENT.md §0) : la recette
+   transitoire se fait par la mise à jour habituelle d'artdubati_test sur le service
+   partagé, artdubati étant jetable (section « Mise à jour sur artdubati_test »
+   ci-dessous). L'isolation (service, checkout, configuration et filestore distincts)
+   reste OBLIGATOIRE avant l'ouverture de la production, pas avant cette recette.
 3. Mettre à jour ENSEMBLE maintenance_shareholder_equipment et
    lartdubati_investor_home : le SQL du moniteur lit le nouveau champ stocké de
    contract.line. Arrêter l'application avant le changement de code et la mise à jour.
@@ -121,10 +122,11 @@ Les résultats finaux sont consignés dans le compte rendu de validation ci-dess
 
 Voir [VALIDATION.md](VALIDATION.md), [REVIEW.md](REVIEW.md) et la procédure
 [DEPLOYMENT.md](DEPLOYMENT.md). Le fichier platform_expected.txt est la référence
-pour les outils de contrôle à adapter au service isolé. Le wrapper historique
-phase4/check_modules.sh cible odoo_web et ne doit pas servir tel quel au contrôle
-après déploiement isolé. L’inventaire ancien par défaut n’est pas celui de cette
-livraison. Aucun déploiement ne doit précéder la séparation vérifiée.
+pour les outils de contrôle du futur service isolé. Pour la recette transitoire
+(décision du 18/10/2026), phase4/check_modules.sh contrôle odoo_web avec
+docs/phase4/platform_expected.txt, mis à jour avec les mêmes empreintes AFTER. Plan
+initial remplacé : la séparation vérifiée est exigée avant l'ouverture de la
+production, pas avant cette recette.
 
 ## Mise à jour sur artdubati_test (décision du 18/10/2026, DEPLOYMENT.md §0)
 
