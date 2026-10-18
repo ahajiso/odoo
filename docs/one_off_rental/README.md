@@ -238,3 +238,10 @@ encore avancé). Attendu : PLATFORM OK (before), PLATFORM OK (after), « MANUEL 
 Retour arrière (seulement si `after` échoue après le merge) :
 `git reset --keep "$(cat /opt/odoo/logs/manuel_prev)"`, puis `check_modules.sh before`. Le ZIP garde son nom : un navigateur peut servir l'ancien
 depuis son cache (rechargement forcé ou fenêtre privée).
+
+**Publié le 18/10/2026, code 1740e6b** : bloc unique exécuté par le propriétaire,
+périmètre `docs/`, `lartdubati_manual/` et `CLAUDE.md` (32 fichiers) ; PLATFORM OK
+(before) ; fast-forward 9c432c5..1740e6b ; fichiers lisibles ; PLATFORM OK (after),
+empreinte `lartdubati_manual` `cdf90711…` ; « MANUEL PUBLIÉ ». Aucune mise à jour de
+module, aucun redémarrage. Un premier essai, `main` pas encore avancé, s'est arrêté
+sur « origin/main n'est pas 1740e6b » sans rien toucher.

@@ -352,7 +352,8 @@ tests on artdubati_test (47 passing, 08/10/2026).
    passed on 18/10/2026 (PR #2, 194e9f8: manuals FR/EN/FA, anonymised evidence,
    docs/one_off_rental/LIVE_ACCEPTANCE_20261018.md); open: the monitor's posted rent
    column, to check with an account.group_account_readonly user. Manual publication:
-   code move only (docs/one_off_rental/README.md, platform AFTER = lartdubati_manual).
+   code move only, published on artdubati_test on 18/10/2026 (1740e6b, PLATFORM OK
+   before / after, docs/one_off_rental/README.md).
    Then A-K, the manual last.
 5. Translations, deployment checklist (docs/deployment/investor_home.md).
 6. Functional phases proposed by the audit of 6063db1, order to set by the owner
