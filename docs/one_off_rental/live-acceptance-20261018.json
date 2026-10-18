@@ -1,0 +1,977 @@
+{
+  "date": "2026-10-18",
+  "database": "artdubati_test",
+  "versions": [
+    {
+      "id": 753,
+      "name": "lartdubati_manual",
+      "installed_version": "18.0.1.0.0",
+      "state": "installed"
+    },
+    {
+      "id": 832,
+      "name": "lartdubati_investor_home",
+      "installed_version": "18.0.3.1.0",
+      "state": "installed"
+    },
+    {
+      "id": 738,
+      "name": "maintenance_shareholder_equipment",
+      "installed_version": "18.0.5.2.3",
+      "state": "installed"
+    }
+  ],
+  "roles": {
+    "base.group_system": true,
+    "maintenance_shareholder_equipment.group_equipment_operator": true,
+    "maintenance_shareholder_equipment.group_equipment_approver": false,
+    "account.group_account_manager": true,
+    "maintenance_shareholder_equipment.group_product_catalogue_autonomous": false
+  },
+  "receipts": [
+    {
+      "id": 1534,
+      "name": "EQOP/2026/1541",
+      "state": "done",
+      "executor_id": [
+        8,
+        "Test"
+      ],
+      "contract_ids": [
+        686
+      ],
+      "bill_ids": [],
+      "picking_ids": [
+        1811
+      ],
+      "execution_date": "2026-10-18 15:12:03",
+      "approver_label": "Approbateur TEST"
+    },
+    {
+      "id": 1533,
+      "name": "EQOP/2026/1540",
+      "state": "done",
+      "executor_id": [
+        8,
+        "Test"
+      ],
+      "contract_ids": [
+        685
+      ],
+      "bill_ids": [
+        798,
+        793,
+        797
+      ],
+      "picking_ids": [
+        1810
+      ],
+      "execution_date": "2026-10-18 15:12:02",
+      "approver_label": "Approbateur TEST"
+    },
+    {
+      "id": 1532,
+      "name": "EQOP/2026/1539",
+      "state": "done",
+      "executor_id": [
+        8,
+        "Test"
+      ],
+      "contract_ids": [
+        684
+      ],
+      "bill_ids": [],
+      "picking_ids": [
+        1809
+      ],
+      "execution_date": "2026-10-18 15:12:01",
+      "approver_label": "Approbateur TEST"
+    },
+    {
+      "id": 1531,
+      "name": "EQOP/2026/1538",
+      "state": "done",
+      "executor_id": [
+        8,
+        "Test"
+      ],
+      "contract_ids": [
+        683
+      ],
+      "bill_ids": [],
+      "picking_ids": [
+        1808
+      ],
+      "execution_date": "2026-10-18 15:12:00",
+      "approver_label": "Approbateur TEST"
+    },
+    {
+      "id": 1530,
+      "name": "EQOP/2026/1537",
+      "state": "done",
+      "executor_id": [
+        8,
+        "Test"
+      ],
+      "contract_ids": [
+        682
+      ],
+      "bill_ids": [],
+      "picking_ids": [
+        1807
+      ],
+      "execution_date": "2026-10-18 15:11:29",
+      "approver_label": "Approbateur TEST"
+    }
+  ],
+  "equipment": [
+    {
+      "id": 1828,
+      "name": "TEST – Camionnette louée",
+      "active": true,
+      "ownership_status": "rented",
+      "owner_partner_id": [
+        4482,
+        "TEST – Loueur de véhicules"
+      ],
+      "stock_lot_id": [
+        1166,
+        "TEST-VAN-20261017"
+      ],
+      "asset_id": false,
+      "replacement_value": 25000.0
+    },
+    {
+      "id": 1829,
+      "name": "TEST – SUV de fonction loué",
+      "active": true,
+      "ownership_status": "rented",
+      "owner_partner_id": [
+        4482,
+        "TEST – Loueur de véhicules"
+      ],
+      "stock_lot_id": [
+        1167,
+        "TEST-SUV-20261017"
+      ],
+      "asset_id": false,
+      "replacement_value": 40000.0
+    },
+    {
+      "id": 1830,
+      "name": "TEST – WC WCHANT loué trois mois",
+      "active": true,
+      "ownership_status": "rented",
+      "owner_partner_id": [
+        4483,
+        "TEST – Kiloutou (exercice)"
+      ],
+      "stock_lot_id": [
+        1168,
+        "TEST-WC-20261017"
+      ],
+      "asset_id": false,
+      "replacement_value": 1200.0
+    },
+    {
+      "id": 1831,
+      "name": "TEST – CHA25E loué quatre heures",
+      "active": false,
+      "ownership_status": "rented",
+      "owner_partner_id": [
+        4483,
+        "TEST – Kiloutou (exercice)"
+      ],
+      "stock_lot_id": [
+        1169,
+        "TEST-CHA25E-20261017"
+      ],
+      "asset_id": false,
+      "replacement_value": 25000.0
+    },
+    {
+      "id": 1832,
+      "name": "TEST – Scie Ryobi prêtée par Manager",
+      "active": false,
+      "ownership_status": "borrowed",
+      "owner_partner_id": [
+        8,
+        "Manager"
+      ],
+      "stock_lot_id": [
+        1170,
+        "TEST-RYOBI-MANAGER-20261017"
+      ],
+      "asset_id": false,
+      "replacement_value": 300.0
+    }
+  ],
+  "contracts": [
+    {
+      "id": 719,
+      "contract_id": [
+        682,
+        "EQOP/2026/1537 – TEST – Loueur de véhicules"
+      ],
+      "equipment_id": [
+        1828,
+        "TEST – Camionnette louée"
+      ],
+      "equipment_nature": "rental",
+      "date_start": "2026-10-17",
+      "date_end": "2027-10-16",
+      "price_unit": 450.0,
+      "price_subtotal": 450.0,
+      "equipment_rental_hours": 0.0,
+      "recurring_next_date": "2026-11-17",
+      "last_date_invoiced": "2026-11-16"
+    },
+    {
+      "id": 720,
+      "contract_id": [
+        683,
+        "EQOP/2026/1538 – TEST – Loueur de véhicules"
+      ],
+      "equipment_id": [
+        1829,
+        "TEST – SUV de fonction loué"
+      ],
+      "equipment_nature": "rental",
+      "date_start": "2026-10-17",
+      "date_end": "2027-10-16",
+      "price_unit": 700.0,
+      "price_subtotal": 700.0,
+      "equipment_rental_hours": 0.0,
+      "recurring_next_date": "2026-11-17",
+      "last_date_invoiced": "2026-11-16"
+    },
+    {
+      "id": 721,
+      "contract_id": [
+        684,
+        "EQOP/2026/1539 – TEST – Kiloutou (exercice)"
+      ],
+      "equipment_id": [
+        1830,
+        "TEST – WC WCHANT loué trois mois"
+      ],
+      "equipment_nature": "rental",
+      "date_start": "2026-10-17",
+      "date_end": "2027-01-16",
+      "price_unit": 150.0,
+      "price_subtotal": 150.0,
+      "equipment_rental_hours": 0.0,
+      "recurring_next_date": false,
+      "last_date_invoiced": "2027-01-16"
+    },
+    {
+      "id": 722,
+      "contract_id": [
+        685,
+        "EQOP/2026/1540 – TEST – Kiloutou (exercice)"
+      ],
+      "equipment_id": [
+        1831,
+        "TEST – CHA25E loué quatre heures"
+      ],
+      "equipment_nature": "rental",
+      "date_start": "2026-10-17",
+      "date_end": "2026-10-17",
+      "price_unit": 120.0,
+      "price_subtotal": 120.0,
+      "equipment_rental_hours": 4.0,
+      "recurring_next_date": false,
+      "last_date_invoiced": false
+    },
+    {
+      "id": 723,
+      "contract_id": [
+        686,
+        "EQOP/2026/1541 – Manager"
+      ],
+      "equipment_id": [
+        1832,
+        "TEST – Scie Ryobi prêtée par Manager"
+      ],
+      "equipment_nature": "loan",
+      "date_start": "2026-10-17",
+      "date_end": "2026-10-18",
+      "price_unit": 0.0,
+      "price_subtotal": 0.0,
+      "equipment_rental_hours": 0.0,
+      "recurring_next_date": "2026-10-17",
+      "last_date_invoiced": false
+    }
+  ],
+  "bills": [
+    {
+      "id": 800,
+      "name": false,
+      "state": "draft",
+      "ref": "TEST-RECETTE-20261018-WC-ECHEANCE-03-PREVISIONNELLE",
+      "invoice_date": "2026-12-17",
+      "amount_untaxed": 150.0,
+      "amount_tax": 30.0,
+      "amount_total": 180.0,
+      "partner_id": [
+        4483,
+        "TEST – Kiloutou (exercice)"
+      ],
+      "currency_id": [
+        126,
+        "EUR"
+      ],
+      "journal_id": [
+        2,
+        "Vendor Bills"
+      ]
+    },
+    {
+      "id": 799,
+      "name": false,
+      "state": "draft",
+      "ref": "TEST-RECETTE-20261018-WC-ECHEANCE-02-PREVISIONNELLE",
+      "invoice_date": "2026-11-17",
+      "amount_untaxed": 150.0,
+      "amount_tax": 30.0,
+      "amount_total": 180.0,
+      "partner_id": [
+        4483,
+        "TEST – Kiloutou (exercice)"
+      ],
+      "currency_id": [
+        126,
+        "EUR"
+      ],
+      "journal_id": [
+        2,
+        "Vendor Bills"
+      ]
+    },
+    {
+      "id": 798,
+      "name": false,
+      "state": "cancel",
+      "ref": "TEST-DUPLICATE-MUST-NOT-POST",
+      "invoice_date": false,
+      "amount_untaxed": 120.0,
+      "amount_tax": 24.0,
+      "amount_total": 144.0,
+      "partner_id": [
+        4483,
+        "TEST – Kiloutou (exercice)"
+      ],
+      "currency_id": [
+        126,
+        "EUR"
+      ],
+      "journal_id": [
+        2,
+        "Vendor Bills"
+      ]
+    },
+    {
+      "id": 793,
+      "name": false,
+      "state": "cancel",
+      "ref": false,
+      "invoice_date": "2026-10-18",
+      "amount_untaxed": 120.0,
+      "amount_tax": 24.0,
+      "amount_total": 144.0,
+      "partner_id": [
+        4483,
+        "TEST – Kiloutou (exercice)"
+      ],
+      "currency_id": [
+        126,
+        "EUR"
+      ],
+      "journal_id": [
+        2,
+        "Vendor Bills"
+      ]
+    },
+    {
+      "id": 797,
+      "name": "BILL/2026/10/0011",
+      "state": "posted",
+      "ref": "TEST-RECETTE-20261018-CHA25E-REMPLACEMENT",
+      "invoice_date": "2026-10-18",
+      "amount_untaxed": 295.0,
+      "amount_tax": 56.0,
+      "amount_total": 351.0,
+      "partner_id": [
+        4483,
+        "TEST – Kiloutou (exercice)"
+      ],
+      "currency_id": [
+        126,
+        "EUR"
+      ],
+      "journal_id": [
+        2,
+        "Vendor Bills"
+      ]
+    },
+    {
+      "id": 796,
+      "name": "BILL/2026/10/0010",
+      "state": "posted",
+      "ref": "TEST-RECETTE-20261018-WC-LOYER-01",
+      "invoice_date": "2026-10-18",
+      "amount_untaxed": 150.0,
+      "amount_tax": 30.0,
+      "amount_total": 180.0,
+      "partner_id": [
+        4483,
+        "TEST – Kiloutou (exercice)"
+      ],
+      "currency_id": [
+        126,
+        "EUR"
+      ],
+      "journal_id": [
+        2,
+        "Vendor Bills"
+      ]
+    },
+    {
+      "id": 795,
+      "name": "BILL/2026/10/0009",
+      "state": "posted",
+      "ref": "TEST-RECETTE-20261018-SUV-LOYER-01",
+      "invoice_date": "2026-10-18",
+      "amount_untaxed": 700.0,
+      "amount_tax": 140.0,
+      "amount_total": 840.0,
+      "partner_id": [
+        4482,
+        "TEST – Loueur de véhicules"
+      ],
+      "currency_id": [
+        126,
+        "EUR"
+      ],
+      "journal_id": [
+        2,
+        "Vendor Bills"
+      ]
+    },
+    {
+      "id": 794,
+      "name": "BILL/2026/10/0008",
+      "state": "posted",
+      "ref": "TEST-RECETTE-20261018-VAN-LOYER-01",
+      "invoice_date": "2026-10-18",
+      "amount_untaxed": 450.0,
+      "amount_tax": 90.0,
+      "amount_total": 540.0,
+      "partner_id": [
+        4482,
+        "TEST – Loueur de véhicules"
+      ],
+      "currency_id": [
+        126,
+        "EUR"
+      ],
+      "journal_id": [
+        2,
+        "Vendor Bills"
+      ]
+    }
+  ],
+  "returns": [
+    {
+      "tag": "SAW",
+      "operation": {
+        "id": 1718,
+        "name": "EQOP/2026/1726",
+        "state": "done",
+        "needs_approval": false,
+        "stop_line_ids": [
+          153
+        ],
+        "picking_ids": [
+          1812
+        ],
+        "execution_date": "2026-10-18 15:17:56"
+      },
+      "equipment": {
+        "id": 1832,
+        "name": "TEST – Scie Ryobi prêtée par Manager",
+        "active": false,
+        "stock_lot_id": [
+          1170,
+          "TEST-RYOBI-MANAGER-20261017"
+        ],
+        "ownership_status": "borrowed",
+        "owner_partner_id": [
+          8,
+          "Manager"
+        ]
+      },
+      "remaining_internal_stock": []
+    },
+    {
+      "tag": "FORKLIFT",
+      "operation": {
+        "id": 1719,
+        "name": "EQOP/2026/1727",
+        "state": "done",
+        "needs_approval": false,
+        "stop_line_ids": [],
+        "picking_ids": [
+          1813
+        ],
+        "execution_date": "2026-10-18 15:17:58"
+      },
+      "equipment": {
+        "id": 1831,
+        "name": "TEST – CHA25E loué quatre heures",
+        "active": false,
+        "stock_lot_id": [
+          1169,
+          "TEST-CHA25E-20261017"
+        ],
+        "ownership_status": "rented",
+        "owner_partner_id": [
+          4483,
+          "TEST – Kiloutou (exercice)"
+        ]
+      },
+      "remaining_internal_stock": []
+    }
+  ],
+  "monitor_before_returns": [
+    {
+      "id": 3664,
+      "equipment_id": [
+        1832,
+        "TEST – Scie Ryobi prêtée par Manager"
+      ],
+      "equipment_name": "TEST – Scie Ryobi prêtée par Manager",
+      "ownership_status": "borrowed",
+      "quantity": 1.0,
+      "rent_amount": 0.0,
+      "rent_rule_type": false,
+      "rent_monthly": 0.0,
+      "replacement_value": 300.0,
+      "alert_rental_ended": 0,
+      "alert_rent_period_unsupported": 0,
+      "location_name": "Bg/Stock"
+    },
+    {
+      "id": 3656,
+      "equipment_id": [
+        1828,
+        "TEST – Camionnette louée"
+      ],
+      "equipment_name": "TEST – Camionnette louée",
+      "ownership_status": "rented",
+      "quantity": 1.0,
+      "rent_amount": 450.0,
+      "rent_rule_type": "monthly",
+      "rent_monthly": 450.0,
+      "replacement_value": 25000.0,
+      "alert_rental_ended": 0,
+      "alert_rent_period_unsupported": 0,
+      "location_name": "Bg/Stock"
+    },
+    {
+      "id": 3662,
+      "equipment_id": [
+        1831,
+        "TEST – CHA25E loué quatre heures"
+      ],
+      "equipment_name": "TEST – CHA25E loué quatre heures",
+      "ownership_status": "rented",
+      "quantity": 1.0,
+      "rent_amount": 0.0,
+      "rent_rule_type": false,
+      "rent_monthly": 0.0,
+      "replacement_value": 25000.0,
+      "alert_rental_ended": 1,
+      "alert_rent_period_unsupported": 0,
+      "location_name": "Bg/Stock"
+    },
+    {
+      "id": 3658,
+      "equipment_id": [
+        1829,
+        "TEST – SUV de fonction loué"
+      ],
+      "equipment_name": "TEST – SUV de fonction loué",
+      "ownership_status": "rented",
+      "quantity": 1.0,
+      "rent_amount": 700.0,
+      "rent_rule_type": "monthly",
+      "rent_monthly": 700.0,
+      "replacement_value": 40000.0,
+      "alert_rental_ended": 0,
+      "alert_rent_period_unsupported": 0,
+      "location_name": "Bg/Stock"
+    },
+    {
+      "id": 3660,
+      "equipment_id": [
+        1830,
+        "TEST – WC WCHANT loué trois mois"
+      ],
+      "equipment_name": "TEST – WC WCHANT loué trois mois",
+      "ownership_status": "rented",
+      "quantity": 1.0,
+      "rent_amount": 150.0,
+      "rent_rule_type": "monthly",
+      "rent_monthly": 150.0,
+      "replacement_value": 1200.0,
+      "alert_rental_ended": 0,
+      "alert_rent_period_unsupported": 0,
+      "location_name": "Bg/Stock"
+    }
+  ],
+  "monitor_after_returns": [
+    {
+      "id": 3656,
+      "equipment_id": [
+        1828,
+        "TEST – Camionnette louée"
+      ],
+      "ownership_status": "rented",
+      "quantity": 1.0,
+      "rent_amount": 450.0,
+      "rent_monthly": 450.0,
+      "replacement_value": 25000.0,
+      "alert_rent_period_unsupported": 0
+    },
+    {
+      "id": 3658,
+      "equipment_id": [
+        1829,
+        "TEST – SUV de fonction loué"
+      ],
+      "ownership_status": "rented",
+      "quantity": 1.0,
+      "rent_amount": 700.0,
+      "rent_monthly": 700.0,
+      "replacement_value": 40000.0,
+      "alert_rent_period_unsupported": 0
+    },
+    {
+      "id": 3660,
+      "equipment_id": [
+        1830,
+        "TEST – WC WCHANT loué trois mois"
+      ],
+      "ownership_status": "rented",
+      "quantity": 1.0,
+      "rent_amount": 150.0,
+      "rent_monthly": 150.0,
+      "replacement_value": 1200.0,
+      "alert_rent_period_unsupported": 0
+    }
+  ],
+  "billing_checks": [
+    {
+      "check": "No recurring bill for contract 685",
+      "result": "passed"
+    },
+    {
+      "check": "No recurring bill for contract 686",
+      "result": "passed"
+    },
+    {
+      "check": "Detach contract plus change account",
+      "result": "refused",
+      "message": "A one-off bill keeps its contract link and history. Cancel it and create a replacement."
+    },
+    {
+      "check": "Delete package line",
+      "result": "refused",
+      "message": "A one-off bill keeps its contract link and history. Cancel it and create a replacement."
+    },
+    {
+      "check": "Frozen package price_unit",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen package specific_price",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen package discount",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen package quantity",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen package product_id",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen package uom_id",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen package automatic_price",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen package date_start",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen package date_end",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen package equipment_rental_start",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen package equipment_rental_end",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen parent partner_id",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen parent invoice_partner_id",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen parent currency_id",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen parent manual_currency_id",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen parent journal_id",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen parent date_start",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Frozen parent date_end",
+      "result": "refused",
+      "message": "A billed one-off package commitment cannot be changed, even after bill cancellation."
+    },
+    {
+      "check": "Duplicate package cannot post",
+      "result": "refused",
+      "message": "A one-off rental package can have only one non-cancelled bill line."
+    },
+    {
+      "check": "Changed draft amount cannot post",
+      "result": "refused",
+      "message": "The one-off rent bill must match the contract currency, rental service, quantity 1 and untaxed package amount. Enter ancillary fees separately."
+    }
+  ],
+  "wc_schedule": {
+    "lines": [
+      {
+        "id": 1948,
+        "move_id": [
+          796,
+          "BILL/2026/10/0010 (TEST-RECETTE-20261018-WC-LOYER-01)"
+        ],
+        "price_subtotal": 150.0,
+        "name": "Location de matériel (payée) – TEST – WC WCHANT loué trois mois"
+      },
+      {
+        "id": 1960,
+        "move_id": [
+          799,
+          "Draft Bill (TEST-RECETTE-20261018-WC- [...])"
+        ],
+        "price_subtotal": 150.0,
+        "name": "Location de matériel (payée) – TEST – WC WCHANT loué trois mois"
+      },
+      {
+        "id": 1963,
+        "move_id": [
+          800,
+          "Draft Bill (TEST-RECETTE-20261018-WC- [...])"
+        ],
+        "price_subtotal": 150.0,
+        "name": "Location de matériel (payée) – TEST – WC WCHANT loué trois mois"
+      }
+    ],
+    "bills": [
+      {
+        "id": 796,
+        "name": "BILL/2026/10/0010",
+        "state": "posted",
+        "ref": "TEST-RECETTE-20261018-WC-LOYER-01",
+        "amount_untaxed": 150.0,
+        "invoice_date": "2026-10-18"
+      },
+      {
+        "id": 799,
+        "name": false,
+        "state": "draft",
+        "ref": "TEST-RECETTE-20261018-WC-ECHEANCE-02-PREVISIONNELLE",
+        "amount_untaxed": 150.0,
+        "invoice_date": "2026-11-17"
+      },
+      {
+        "id": 800,
+        "name": false,
+        "state": "draft",
+        "ref": "TEST-RECETTE-20261018-WC-ECHEANCE-03-PREVISIONNELLE",
+        "amount_untaxed": 150.0,
+        "invoice_date": "2026-12-17"
+      }
+    ],
+    "contract_line": [
+      {
+        "id": 721,
+        "date_start": "2026-10-17",
+        "date_end": "2027-01-16",
+        "recurring_next_date": false,
+        "last_date_invoiced": "2027-01-16",
+        "price_unit": 150.0
+      }
+    ]
+  },
+  "valuation_layers": [],
+  "pickings": [
+    {
+      "id": 1807,
+      "name": "Bg/IN/00013",
+      "state": "done",
+      "date_done": "2026-10-18 15:11:29",
+      "equipment_operation_id": [
+        1530,
+        "EQOP/2026/1537"
+      ]
+    },
+    {
+      "id": 1808,
+      "name": "Bg/IN/00014",
+      "state": "done",
+      "date_done": "2026-10-18 15:12:00",
+      "equipment_operation_id": [
+        1531,
+        "EQOP/2026/1538"
+      ]
+    },
+    {
+      "id": 1809,
+      "name": "Bg/IN/00015",
+      "state": "done",
+      "date_done": "2026-10-18 15:12:01",
+      "equipment_operation_id": [
+        1532,
+        "EQOP/2026/1539"
+      ]
+    },
+    {
+      "id": 1810,
+      "name": "Bg/IN/00016",
+      "state": "done",
+      "date_done": "2026-10-18 15:12:02",
+      "equipment_operation_id": [
+        1533,
+        "EQOP/2026/1540"
+      ]
+    },
+    {
+      "id": 1811,
+      "name": "Bg/IN/00017",
+      "state": "done",
+      "date_done": "2026-10-18 15:12:04",
+      "equipment_operation_id": [
+        1534,
+        "EQOP/2026/1541"
+      ]
+    },
+    {
+      "id": 1812,
+      "name": "Bg/OUT/00001",
+      "state": "done",
+      "date_done": "2026-10-18 15:17:56",
+      "equipment_operation_id": [
+        1718,
+        "EQOP/2026/1726"
+      ]
+    },
+    {
+      "id": 1813,
+      "name": "Bg/OUT/00002",
+      "state": "done",
+      "date_done": "2026-10-18 15:17:58",
+      "equipment_operation_id": [
+        1719,
+        "EQOP/2026/1727"
+      ]
+    }
+  ],
+  "ui": [
+    {
+      "lang": "fr_FR",
+      "package_label": "Forfait unique",
+      "hours": "4.00",
+      "history_rows": 3,
+      "anonymised": true
+    },
+    {
+      "lang": "en_US",
+      "package_label": "One-off Package",
+      "hours": "4.00",
+      "history_rows": 3,
+      "anonymised": true
+    },
+    {
+      "lang": "fa_IR",
+      "package_label": "مبلغ ثابت یک‌باره",
+      "hours": "4.00",
+      "history_rows": 3,
+      "anonymised": true
+    }
+  ],
+  "user_preferences_restored": [
+    {
+      "id": 8,
+      "lang": "en_US",
+      "tz": "Europe/Paris"
+    }
+  ],
+  "limits": [
+    "Monitor rent_paid field refused without account.group_account_readonly; no role added.",
+    "No real supplier invoice, payment, bank reconciliation, deposit or replacement indemnity.",
+    "Installed versions read; host code fingerprints not independently collected.",
+    "WC repeat mutation refused by auto-review; read-only diagnosis confirms exactly three bills."
+  ],
+  "privacy": {
+    "publication": "redacted public copy",
+    "approver": "real name and user id replaced with Approbateur TEST",
+    "screenshots": "approver and company labels replaced in browser rendering only",
+    "erp_record_urls": "not included in this public proof",
+    "original_approval": "unchanged in ERP; raw working copies excluded from corrected tree; earlier published revisions may remain accessible"
+  }
+}

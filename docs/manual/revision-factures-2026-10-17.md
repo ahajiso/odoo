@@ -127,3 +127,20 @@ devise et paramètres de facturation du contrat restent gelés après facturatio
 y compris après annulation et avec une ligne archivée. Une restitution anticipée
 conserve la période approuvée et le montant, sans bloquer le mouvement physique.
 Version proposée 18.0.5.2.3. Aucun déploiement ou fusion autorisé par ce correctif.
+
+## Recette serveur du 18/10/2026 — locations et prêt
+
+Réceptions 1537 à 1541 exécutées après approbation séparée par le propriétaire.
+CPT-22 à CPT-26 FR/EN/FA : dossiers existants liés, coûts de modèles constatés à 0,
+valeurs de remplacement séparées, résultats de facturation et restitutions,
+limite du groupe de lecture comptable et captures réelles dans les trois langues.
+ADM-05 suit la décision transitoire de main : test partagé avec artdubati jetable,
+isolation et réinitialisation avant production. Compte rendu et preuves :
+docs/one_off_rental/LIVE_ACCEPTANCE_20261018.md. Aucun code métier ni droit modifié.
+
+## Confidentialité de la recette du 18/10/2026
+
+Preuve publique expurgée : approbateur pseudonymisé et URL ERP retirées du JSON
+et du compte rendu. Captures FR/EN/FA reprises avec noms d’approbateur et de société
+anonymisés dans le rendu seulement ; PDF/Word régénérés. Identités et traces en
+base conservées. Réserve de lecture du cumul comptable toujours ouverte.

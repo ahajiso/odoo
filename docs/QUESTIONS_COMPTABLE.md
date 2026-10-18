@@ -85,7 +85,7 @@ pas des devis fournisseurs ni des valeurs comptables d'actifs de la société.
 | # | Question | Choix de test / limite | Où le changer | Paramétrable |
 |---|---|---|---|---|
 | C29 | Catégories des nouveaux modèles physiques utilisés uniquement pour suivre des biens de tiers ? | Trois catégories neuves préfixées TEST sous Small Durable Equipment : Modèles véhicules, Installations temporaires, Manutention ; compte 606300, coût moyen, valorisation manuelle, sans profil d'actif. Les demandes désactivent achat et vente du modèle physique. Ce choix n'autorise aucun achat de véhicule en charge ni aucune politique de capitalisation ; le loyer porte sur le service configuré 613500. Aucun compte ni catégorie existante n'est changé. | Nouvelles catégories TEST et demandes, par administrateur comptable ; traitement d'un futur achat réel à décider séparément | Oui |
-| C30 | Location de quatre heures : comment éviter une fausse récurrence mensuelle et un loyer mensuel erroné ? | Parcours développé sur la branche : mode Forfait unique, horaires prévus, facture brouillon unique, exclusion de la récurrence et du loyer mensuel. Le brouillon distant reste bloqué jusqu’au déploiement contrôlé des deux modules. Forfait 120 HT, frais distincts, caution hors charges. | Réception, ligne de contrat, facture et moniteur ; voir docs/one_off_rental/README.md | Oui, après revue, tests et déploiement |
+| C30 | Location de quatre heures : comment éviter une fausse récurrence mensuelle et un loyer mensuel erroné ? | Parcours déployé et testé sur artdubati_test le 18/10/2026 : Forfait unique 120 HT pour quatre heures, sans récurrence ni loyer mensuel ; remplacement comptabilisé à 295 HT avec frais distincts. Caution hors charges, restitution exécutée ; voir LIVE_ACCEPTANCE_20261018.md. | Réception, ligne de contrat, facture et moniteur ; voir docs/one_off_rental/README.md | Oui, configuration déployée en test |
 | C31 | Fiscalité et usage personnel du SUV de fonction loué ? | Faire valider les taxes, déductibilité, charges et éventuel avantage en nature sur le cas réel ; ne pas recopier automatiquement la fiscalité de l'utilitaire. Aucun calcul fiscal, de paie ou de TVA réel n'est appliqué par les exemples. | Paramètres fiscaux du fournisseur, taxe et compte de la facture ; futur lien Fleet / paie | À définir selon le traitement |
 
 Le catalogue courant impose un produit durable stocké et suivi en série pour les
@@ -101,3 +101,18 @@ hors charges ; valeurs de remplacement sans incidence comptable automatique.
 Le formulaire n'a pas de champs dédiés à ces frais/cautions : notes et PDF joints
 seulement, aucune ligne de facture créée. Faire valider les comptes et taxes lors
 de la saisie des pièces TEST, puis le rapprochement et la restitution des cautions.
+
+## Recette du 18/10/2026 — hypothèses de frais et limites
+
+| # | Question | Choix appliqué uniquement au TEST | Où le changer | Paramétrable |
+|---|---|---|---|---|
+| C32 | Comptes et taxes des frais de la location de chariot ? | Loyer 120 HT sur 613500 ; livraison et reprise 80 HT chacune sur 624100 avec la taxe d’achat existante 20% G ; assurance ponctuelle 15 HT sur 616100 sans TVA pour cet exemple. Facture TEST 797 : 295 HT, 56 de TVA, 351 TTC. Ces hypothèses de test ne fixent pas le traitement d’une assurance ou d’un transport réel. Aucun compte ni taxe créé ou reconfiguré. | Compte et taxes de chaque ligne de facture avant comptabilisation ; pour une pièce réelle, faire valider justificatif et déductibilité. | Oui, sur chaque ligne |
+
+La première échéance camionnette/SUV/WC est comptabilisée en TEST. Les deux
+échéances WC suivantes sont des brouillons prévisionnels, sans paiement. Le prêt
+gratuit ne produit aucune facture. Aucun paiement, dépôt/caution ou indemnité de
+remplacement n’a été enregistré. Les quatre modèles de location ont un coût
+d’achat observé de 0 ; les valeurs de remplacement sont portées par les exemplaires.
+Le cumul comptable du moniteur n’est pas lisible par Test faute du groupe
+account.group_account_readonly ; aucun droit ajouté pour contourner ce contrôle.
+Les anciens paragraphes du 17/10 sur les frais non saisis décrivent l’état antérieur.
