@@ -213,19 +213,28 @@ rebasé sur l'état déployé (MODULE = 9c432c5), une seule ligne AFTER (`lartdu
 cd /opt/odoo/addons/custom
 COMMIT=<commit annoncé>
 git fetch origin +refs/heads/main:refs/remotes/origin/main
-git log -1 --oneline origin/main                       # $COMMIT
-git status --short | head                              # rien
-PREV=$(git rev-parse HEAD); echo "$PREV"               # 9c432c5…
-git diff --name-only HEAD origin/main | grep -v '^docs/\|^lartdubati_manual/' \
-  || echo "PERIMETRE OK"                               # PERIMETRE OK, rien d'autre
-rm -rf /tmp/manuel && mkdir -p /tmp/manuel
-git archive origin/main docs/phase4 | tar -x -C /tmp/manuel
-bash /tmp/manuel/docs/phase4/check_modules.sh before   # PLATFORM OK (before)
-git merge --ff-only origin/main && git log -1 --oneline   # $COMMIT
-find lartdubati_manual -type f ! -perm -o=r | head     # rien (fichiers lisibles)
-bash /tmp/manuel/docs/phase4/check_modules.sh after    # PLATFORM OK (after)
+(
+  stop() { echo "STOP: $1 (envoyer la sortie à Claude)"; exit 1; }
+  [ "$(git rev-parse origin/main)" = "$(git rev-parse "$COMMIT^{commit}")" ] \
+    || stop "origin/main n'est pas $COMMIT"
+  [ -z "$(git status --short)" ] || stop "copie de travail modifiée"
+  OUT=$(git diff --name-only HEAD origin/main | grep -v '^docs/\|^lartdubati_manual/\|^CLAUDE\.md$')
+  [ -z "$OUT" ] || { echo "$OUT"; stop "fichiers hors périmètre (ci-dessus)"; }
+  git rev-parse HEAD > /opt/odoo/logs/manuel_prev || stop "manuel_prev"
+  rm -rf /tmp/manuel && mkdir -p /tmp/manuel || stop "/tmp/manuel"
+  git archive origin/main docs/phase4 | tar -x -C /tmp/manuel || stop "archive"
+  bash /tmp/manuel/docs/phase4/check_modules.sh before || stop "plateforme avant"
+  git merge --ff-only origin/main || stop "merge"
+  [ -z "$(find lartdubati_manual -type f ! -perm -o=r)" ] || stop "fichiers illisibles"
+  bash /tmp/manuel/docs/phase4/check_modules.sh after || stop "plateforme après"
+  echo "MANUEL PUBLIÉ: $(git log -1 --oneline)"
+)
 ```
 
-Retour arrière (seulement si `after` échoue) : `git reset --keep "$PREV"`, puis
-`check_modules.sh before`. Le ZIP garde son nom : un navigateur peut servir l'ancien
+Un seul bloc : il s'arrête au premier échec (le 18/10/2026, un collage de commandes
+séparées a lancé le merge après un PLATFORM DIFFERS ; sans effet, `main` n'ayant pas
+encore avancé). Attendu : PLATFORM OK (before), PLATFORM OK (after), « MANUEL PUBLIÉ ».
+
+Retour arrière (seulement si `after` échoue après le merge) :
+`git reset --keep "$(cat /opt/odoo/logs/manuel_prev)"`, puis `check_modules.sh before`. Le ZIP garde son nom : un navigateur peut servir l'ancien
 depuis son cache (rechargement forcé ou fenêtre privée).
