@@ -393,18 +393,21 @@ isolation still mandatory before production.
 
 ## Business-cycle acceptance before AI (owner request, 19/10/2026)
 
-Plan revision 2: `docs/business_cycle/PLAN.md`; audit request:
-`docs/business_cycle/AUDIT_REQUEST.md`. No profile or business record has been created.
-The four requested profiles are insufficient to prove separation: the plan also needs a
-distinct catalogue manager, equipment-operation approver and daily warehouse operator.
-A least-privilege business requester does not exist yet. Two functional gaps prevent a
-claim of a complete request-to-use cycle: a catalogue request is not purchase approval,
-and worksite consumption is not implemented (ROADMAP G). The current manual passes its
-FR/EN/FA structural checker but contains obsolete fields and direct location-edit
-instructions; semantic correction and role-based replay are blocking exit criteria.
-Next step: audit the plan, then write and audit a read-only characterisation and an
-idempotent dry-run/apply profile setup for an isolated ephemeral clone of
-`artdubati_test` only. Every audit account and business reference carries one immutable
-campaign ID. The database, filestore, sessions and unsanitised evidence are removed as
-one verified campaign boundary after owner confirmation; posted records are never
-individually forced-deleted.
+Plan revision 3: `docs/business_cycle/PLAN.md`; audit request:
+`docs/business_cycle/AUDIT_REQUEST.md`. No profile, business record, database, container
+or server configuration has been created. The audit of revision 2 found that another DB
+inside live `odoo_db` is not isolated from Odoo cron. The campaign now requires its own
+ephemeral PostgreSQL instance/data-WAL volume, Odoo container and filestore, exact
+database selection, neutralisation, disabled cron/autovacuum, distinct hostname and no
+network path to either live service. Existing backup/restore scripts are excluded from
+campaign clone creation.
+Before any script, revision 3 requires owner decisions D1-D7 and an audited read-only
+characterisation. Direct RPC tests cover excessive stock/purchase/configuration rights
+of warehouse, purchasing, catalogue and accounting roles. The reference path uses an
+existing PO prepared by Purchasing; `purchase_mode=create` is to be disabled/restricted.
+Attribution uses separate configuration/business baselines with row-by-row PK and
+relation diffs. A replay uses a new isolated pair and campaign ID; the campaign never
+mutates `artdubati_test`. P7b is the separate investor-without-profile control. The full
+known obsolete manual-card list and the relative-link/no-real-host rule are recorded.
+Next authorised deliverable after audit is only the read-only server characterisation;
+no campaign/account creation is authorised.
