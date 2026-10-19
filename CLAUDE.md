@@ -393,7 +393,7 @@ isolation still mandatory before production.
 
 ## Business-cycle acceptance before AI (owner request, 19/10/2026)
 
-Plan revision 1: `docs/business_cycle/PLAN.md`; audit request:
+Plan revision 2: `docs/business_cycle/PLAN.md`; audit request:
 `docs/business_cycle/AUDIT_REQUEST.md`. No profile or business record has been created.
 The four requested profiles are insufficient to prove separation: the plan also needs a
 distinct catalogue manager, equipment-operation approver and daily warehouse operator.
@@ -403,4 +403,8 @@ and worksite consumption is not implemented (ROADMAP G). The current manual pass
 FR/EN/FA structural checker but contains obsolete fields and direct location-edit
 instructions; semantic correction and role-based replay are blocking exit criteria.
 Next step: audit the plan, then write and audit a read-only characterisation and an
-idempotent dry-run/apply profile setup for `artdubati_test` only.
+idempotent dry-run/apply profile setup for an isolated ephemeral clone of
+`artdubati_test` only. Every audit account and business reference carries one immutable
+campaign ID. The database, filestore, sessions and unsanitised evidence are removed as
+one verified campaign boundary after owner confirmation; posted records are never
+individually forced-deleted.

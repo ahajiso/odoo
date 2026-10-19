@@ -1,10 +1,11 @@
-# Business-cycle acceptance before AI — plan revision 1
+# Business-cycle acceptance before AI — plan revision 2
 
 Status: **plan only, submitted for audit**. No user, access right, business record,
 module or server configuration is changed by this revision.
 
-Date: 19/10/2026. Target database: `artdubati_test` only. Production remains out of
-scope and blocked by the isolation and rebuild decisions recorded in `CLAUDE.md`.
+Date: 19/10/2026. Source database: `artdubati_test`. The campaign runs only on an
+ephemeral clone dedicated to the audit. Production remains out of scope and blocked by
+the isolation and rebuild decisions recorded in `CLAUDE.md`.
 
 ## 1. Goal and meaning of “complete cycle”
 
@@ -69,8 +70,8 @@ password, invitation token or personal e-mail is stored in the repository or log
 Before creation, an audited read-only characterisation resolves every external ID on
 the installed server, expands implied groups, and records the menus and model rights.
 The creation script then has a dry-run mode and an explicit `--apply` mode. It refuses
-any database other than `artdubati_test`, existing users with unexpected rights, and
-any incomplete profile.
+the source database, production, any database name other than the exact campaign name,
+existing users with unexpected rights, and any incomplete profile.
 
 | ID | Test profile | Groups to assign explicitly | Purpose and exclusions |
 | --- | --- | --- | --- |
@@ -118,16 +119,100 @@ not business actors. They must not perform a positive acceptance step.
   accounting value and posted-rent columns. P1/P2 must see the operational cost fields
   but not gain accounting administration.
 
-## 5. Acceptance data and cleanup
+## 5. Audit campaign identity, isolation and complete removal
 
-Every created record uses the prefix `RECETTE-METIER-20261019` and fictitious contacts,
-references, serial numbers and attachments. No real supplier is contacted and no real
-payment is made.
+### 5.1 One immutable campaign identity
 
-The acceptance uses a new, small dataset rather than editing the records used by the
-one-off-rental evidence. Accounting records are never deleted after posting. Cleanup
-archives the test users and reversible master data; posted documents remain as clearly
-labelled test history. The setup report lists every created record and its final state.
+Before anything is created, the owner chooses one identifier such as
+`AUDIT-METIER-20261019-01`. The identifier is immutable and used in:
+
+- the exact database name: `artdubati_audit_metier_20261019_01`;
+- the filestore directory of that database;
+- every audit user's login and display name, for example
+  `audit-metier-20261019-01-warehouse-operator` and
+  `[AUDIT-METIER-20261019-01] Warehouse Operator`;
+- every partner, item, reference, serial number, request description, operation note,
+  purchase origin/reference and attachment filename created by the campaign;
+- the browser evidence directory and the machine-readable campaign manifest.
+
+Logins use a reserved non-routable test domain if an e-mail-shaped login is required.
+They are never personal accounts and never reuse the historical `Test` user. Outbound
+mail, invitations and real payment/provider integrations are disabled.
+
+The setup script creates a campaign manifest before the accounts. It records the source
+backup hashes, source commit/platform fingerprint, campaign database and filestore,
+account IDs, explicit/implied groups and every record subsequently registered by the
+scenario runner. A record cannot be registered under two campaigns.
+
+### 5.2 Database-level isolation is authoritative
+
+Prefixes make records easy to recognise, but they are not sufficient isolation. The
+campaign runs in a checked clone of `artdubati_test`, never in `artdubati_test` itself:
+
+1. stop writes long enough to take/verify a consistent database and filestore snapshot;
+2. restore it under the exact campaign database name and copy its filestore;
+3. prove row counts, installed modules, filestore count and platform fingerprint match;
+4. serve it through a temporary Odoo process/container restricted to that exact
+   database, with no production database access, no external mail and no unattended
+   cron execution;
+5. prove the normal `odoo_web` process cannot select or run cron on the campaign clone;
+6. display a conspicuous audit banner containing the campaign identifier.
+
+The clone may live on the same test infrastructure, but its database, filestore,
+sessions, browser profile, downloads and evidence workspace are separate. If the
+current `dbfilter`, cron or proxy setup cannot enforce this, the campaign does not
+start; it is not downgraded to prefix-only isolation.
+
+### 5.3 Identifying every operation
+
+The database clone is the complete boundary: every write in it after the baseline is
+an audit write. The campaign additionally produces a before/after database inventory,
+grouped by model and author, so that background or administrator writes cannot remain
+invisible.
+
+Business documents also carry the campaign identifier in their available business
+references (`origin`, notes, references and attachment names). The report reconciles:
+
+- records created/modified/deleted since the baseline;
+- `create_uid`/`write_uid` and chatter authors against the audit-account list;
+- catalogue requests, products, purchase orders, pickings/moves, lots, equipment,
+  contracts, bills/assets/payments and monitor rows through their actual links;
+- any write made by a non-audit user or scheduled process, which is an anomaly and
+  blocks acceptance until explained. A narrow internal `sudo()` write is accepted only
+  when it is linked to the triggering campaign document and that document preserves the
+  real requester, approver or executor; otherwise its author is not identifiable and
+  the scenario fails.
+
+No generic context flag or name prefix grants rights. Identification is evidence only,
+never an authorisation bypass.
+
+### 5.4 Removal after acceptance
+
+Individual deletion is forbidden as the cleanup mechanism: posted bills and completed
+stock moves are intentionally difficult to delete, and forcing their deletion would
+damage audit trails. Complete removal is instead performed at the campaign boundary:
+
+1. finish and sign the acceptance report; export only sanitised evidence needed for the
+   project history;
+2. revoke/expire every campaign session and stop the temporary Odoo process;
+3. verify no connection still uses the campaign database;
+4. make the exact database and filestore read-only/quarantined while the owner checks
+   the manifest and deletion target;
+5. drop only the explicitly resolved campaign database and remove only its explicitly
+   resolved filestore, browser profile, downloads and unsanitised evidence;
+6. verify the database, filestore, users and campaign identifier no longer exist, while
+   `artdubati_test`, `artdubati` and their filestores have unchanged fingerprints;
+7. write a deletion certificate containing the campaign ID, exact targets, hashes of
+   the retained sanitised evidence and the verification results.
+
+No persistent backup of the campaign clone is added to the retained `roadmap0`, `menu`
+or `oneoff` backups. Any temporary recovery copy is named with the campaign ID and is
+destroyed in the same verified cleanup. The clean source snapshot is retained according
+to the existing backup policy because it contains no campaign operation.
+
+Destructive cleanup requires a separate owner confirmation after the targets are
+printed. Scripts refuse globs, unresolved variables, production/test source names,
+symlinks and broad filesystem paths.
 
 ## 6. Scenario matrix
 
@@ -262,24 +347,30 @@ what”; a truly new business profile/page follows the impact matrix in
 ## 9. Execution order and stop rules
 
 1. Audit this plan and decide G1/G2 scope.
-2. Write the read-only platform/profile characterisation and profile-creation plan.
-3. Audit the script and exact groups; then back up `artdubati_test`.
-4. Dry-run profile creation; review explicit and implied rights.
-5. Apply P1–P7 only; set temporary passwords outside the script.
+2. Write the read-only platform/profile characterisation and campaign lifecycle plan.
+3. Audit the clone, manifest, profile setup and verified-deletion scripts; then take the
+   clean source snapshot of `artdubati_test`.
+4. Create and verify the isolated campaign clone; dry-run profile creation and review
+   explicit and implied rights.
+5. Apply P1–P7 only inside the campaign clone; set temporary passwords outside the
+   script.
 6. Run S0. Any excessive right stops the acceptance and removes/archives the affected
    account before continuing.
 7. Run S1–S6 with screenshots and structured evidence.
 8. Correct the manuals and defects; audit every code or security change before deploy.
 9. Run S7–S8.
 10. Decide/implement G1 and G2, or explicitly narrow the declared business scope.
+11. Export sanitised evidence, obtain the owner's explicit deletion confirmation, then
+    remove and verify the complete campaign boundary as described in §5.4.
 
 Rollback is mandatory after a failed module update or security migration. Functional
-test data is not “rolled back” by deleting posted accounting history; it is labelled,
-archived where possible and listed in the report.
+test data is never cleaned record by record: the isolated campaign clone is discarded
+as a whole after evidence export and owner confirmation.
 
 ## 10. Exit criteria before resuming the IA programme
 
-- every P1–P7 account has the audited minimal rights and passes its negative tests;
+- every P1–P7 account is campaign-labelled, has the audited minimal rights and passes
+  its negative tests;
 - catalogue request, purchase, receipt, bill and internal transfer/usage scenarios pass
   with distinct actors;
 - G1 and G2 are either implemented and accepted, or the owner explicitly records that
@@ -288,11 +379,17 @@ archived where possible and listed in the report.
 - all applicable manual cards are factually correct in FR/EN/FA and work from their
   published links in desktop/mobile/RTL;
 - no unresolved severity-blocking or severity-high defect remains;
-- full tests, platform parity, HTTP-route comparison, backup/restore proof and final
-  browser replay are green on `artdubati_test`;
+- full tests, platform parity, HTTP-route comparison, clone/restore proof and final
+  browser replay are green on the isolated clone of `artdubati_test`;
+- the before/after inventory accounts for every campaign write and flags every
+  non-campaign author;
+- the campaign database, filestore, accounts, sessions and unsanitised working files are
+  removed with a verified deletion certificate after audit;
+- `artdubati_test` has the same database/filestore fingerprint it had before the
+  campaign;
 - production remains untouched.
 
-## 11. Evidence used for revision 1
+## 11. Evidence used for revision 2
 
 - `maintenance_shareholder_equipment/security/security.xml`
 - `maintenance_shareholder_equipment/security/ir.model.access.csv`
