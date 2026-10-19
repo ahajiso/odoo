@@ -1,4 +1,4 @@
-# Business-cycle acceptance before AI — plan revision 4
+# Business-cycle acceptance before AI — plan revision 5
 
 Status: **plan only, submitted for audit**. No account, business record, module,
 database, container or server configuration is created or changed by this revision.
@@ -7,9 +7,9 @@ Date: 19/10/2026. Source: a verified backup of `artdubati_test`. The campaign ru
 an ephemeral Odoo/PostgreSQL pair dedicated to the audit. `artdubati_test` and
 `artdubati` remain outside the campaign.
 
-Revision 4 incorporates the audit of commit `1411d1d`. Only the preparation of the
-read-only server characterisation is authorised, and its commands must be audited before
-use. Profile, security and campaign scripts remain forbidden.
+Revision 5 incorporates the audits of commits `1411d1d` and `f79f839`. Only the
+preparation of the read-only server characterisation is authorised, and its commands
+must be audited before use. Profile, security and campaign scripts remain forbidden.
 
 ## 1. Goal and exact meaning of “complete cycle”
 
@@ -179,10 +179,14 @@ uses:
 - a stable neutral hostname, containing no campaign or business identifier, not merely
   another port, so cookies and sessions cannot collide;
 - authentication at the reverse proxy in addition to Odoo authentication;
+- removal of the proxy's own `Authorization` header before forwarding to Odoo, so it
+  cannot interact with Odoo bearer authentication or an injected ERP key;
 - an explicit audit banner carrying the campaign ID;
 - no Internet egress, real SMTP, invitations, payment/provider callback or webhook.
 
-The verified source database/filestore snapshot is taken while writes are stopped. The
+The verified source database/filestore snapshot is taken while writes are stopped. This
+requires a separately planned and authorised stop of real `odoo_web`, during which both
+real databases are unavailable; it is not part of read-only characterisation. The
 database is restored only into the ephemeral PostgreSQL instance, then neutralised with
 `odoo db load --neutralize`. A fresh `database.uuid`, `database.secret` and audit base
 URL are verified. `web.base.url.freeze` is explicitly reset/verified because Odoo
@@ -232,13 +236,23 @@ never an authorisation bypass.
 
 ### 5.5 Complete removal
 
-The recommended storage is size-bounded `tmpfs` for PostgreSQL data/WAL and filestore,
+The confirmed storage is size-bounded `tmpfs` for PostgreSQL data/WAL and filestore,
 subject to the read-only size and memory characterisation. The fallback is an encrypted
 ephemeral volume with a per-campaign key followed by verified cryptographic erasure.
 Ordinary persistent volumes are not acceptable merely because a backup exclusion is
 claimed. If host swap, provider snapshots, Docker logs or backup/WAL retention can hold
 campaign content and cannot be avoided or cryptographically erased, the owner must make
 the explicit D9 retention decision and complete deletion cannot be claimed.
+
+Any audit-container or host restart loses a `tmpfs` campaign. Such a campaign is
+abandoned and restarted from the clean source under a new campaign ID; it is never
+recovered from a persistent copy. Host swap is disabled during the campaign, or is
+encrypted under an independently verified ephemeral key, otherwise `tmpfs` is not an
+acceptable deletion boundary.
+
+Audit containers use Docker's `none` log driver where operationally possible, otherwise
+the size-bounded `local` driver on the encrypted/ephemeral boundary. They never use
+`journald`, because its entries cannot be deleted selectively.
 
 After a signed, sanitised report and a separate owner confirmation, cleanup resolves
 and prints exact targets, stops audit services, revokes sessions and removes only:
@@ -264,7 +278,7 @@ contain only sanitised evidence under the relevant provider's retention policy.
 
 ### S0 — profile, ACL, record-rule and RPC baseline
 
-For P1–P9 as applicable, capture explicit/implied groups, menus, ACLs, record rules and
+For P1–P10 as applicable, capture explicit/implied groups, menus, ACLs, record rules and
 direct RPC results. Mandatory server calls, not UI observations, include:
 
 - profile setup rejects every prohibited combination in §3.1, after implied-group
@@ -329,8 +343,10 @@ draft bill and must be refused.
 
 P6 checks the match, attachment, supplier reference, date, taxes and expense/asset
 treatment, then posts the bill. No payment is made. A supplier refund violating the
-frozen operation is tested under the one-off-rental guard. Separately, C8 tests the
-specific asset-supplier-refund restriction; it is not described as an operation freeze.
+frozen operation is first probed because no existing one-off-rental guard covers refund
+moves (`out_refund`). The expected result is explicitly unknown: acceptance is a defect
+to classify, not a successful negative test. Separately, C8 tests the specific
+asset-supplier-refund restriction; it is not described as an operation freeze.
 The Mac Mini remains a separate named scenario requiring accountant choices.
 
 ### S5 — warehouse exit, worksite and maintenance boundary
@@ -341,8 +357,12 @@ request. Record return to warehouse and, where applicable, rental return/restitu
 Do not call this consumption or analytic allocation.
 
 Also test an approved output to a “loaned” stock and receipt of a “borrowed” item, with
-P5 approval where required. Until D8 creates a least-privilege site role, P2 performs
-physical movements and the manual must not instruct a site worker to execute stock.
+P5 approval where required. D8 depends on the request document selected under D6 for a
+purchase need and D7 for a stock/worksite need. Until either document exists, P10 is not
+created and the CH cards state that the site reports the need to the warehouse through
+the current organisational channel outside Odoo; this gap is not counted as validated.
+P2 performs every physical movement and the manual never instructs a site worker to
+execute stock.
 
 ### S6 — monitor and investor isolation
 
@@ -409,9 +429,9 @@ to confirm before security or campaign scripts are written:
 | D3 | Consumable entries/exits, adjustment and scrap | P2 cannot adjust, scrap or change consumable stock through any non-internal boundary outside a governed operation. P1 may do so only with explicit reason/evidence under a narrow server guard. |
 | D4 | Structural configuration | Only accounting/config administration alters category accounting fields. P4 uses governed structural correction; P1 edits only a named operational subset. |
 | D5 | P3/P6 RPC rights | Guard P3/P6 stock execution and P3 edits/deletion of operation-created draft bills. Characterise legitimate P6 purchase-order writes before guarding them so invoice matching is not broken. Menus are not controls. |
-| D6 | Generic purchase request (G1/G3) | `purchase_request` is **not installed**. Evaluate adding it plus tier validation as a platform change, including route inventory, but only with a custom `tier.review` guard and least-privilege rules that prevent P8 reading all POs/moves. |
+| D6 | Generic purchase request (G1/G3) | `purchase_request` is **not installed**. Evaluate adding it plus tier validation as a platform change, including route inventory, but only with a custom `tier.review` guard and least-privilege rules that prevent P8 reading all POs/moves. P8 must also be added explicitly to catalogue `REQUESTER_GROUPS`, with positive/negative tests. |
 | D7 | Worksite consumption (G2) | Characterise `stock_request`, `stock_analytic` and `project_task_stock` after the accountant decides valuation. Until implemented, limit the milestone to transfer/use/return. |
-| D8 — **confirmed** | Site actors | Create a least-privilege P10 Site Manager/Requester who requests and acknowledges; P2 Warehouse Operator alone executes physical stock moves. Rewrite CH cards accordingly. |
+| D8 — **confirmed** | Site actors | P10 requests/acknowledges through the future D6 purchase-request or D7 stock-request document; P2 alone executes stock. Until that document exists, P10 is not created and CH records the out-of-Odoo organisational request as an unvalidated gap. |
 | D9 — **confirmed** | Ephemeral storage and retained copies | Use bounded `tmpfs`, subject to size/memory characterisation. Per-campaign encrypted storage with cryptographic erasure is only the audited fallback. Any unavoidable provider/session retention is declared instead of claiming deletion. |
 | D10 — **confirmed** | Human/browser access | Use one stable neutral audit hostname, proxy authentication plus Odoo login, no campaign ID in DNS/certificate, and a separately audited proxy/DNS/network-policy change. |
 
@@ -420,7 +440,7 @@ test choice becomes a production rule without accountant signoff.
 
 ## 9. Ordered roadmap and stop rules
 
-1. Audit revision 4 and obtain decisions D1–D7; D8–D10 are confirmed.
+1. Audit revision 5 and obtain decisions D1–D7; D8–D10 are confirmed.
 2. Perform only the read-only server characterisation in section 5.1; audit its output.
 3. Write and audit a lifecycle plan for the separate PostgreSQL/Odoo pair, backup
    exclusions, hostname, neutralisation and deletion proof.
@@ -454,9 +474,10 @@ No step in this plan authorises campaign creation or destructive cleanup yet.
   classified by author and no deployment occurs during an active campaign; production
   remains untouched.
 
-## 11. Evidence used for revision 4
+## 11. Evidence used for revision 5
 
-- independent audits of commits `1383a33` and `1411d1d`, supplied on 19/10/2026;
+- independent audits of commits `1383a33`, `1411d1d` and `f79f839`, supplied on
+  19/10/2026;
 - installed security, access CSVs and server methods for product requests, equipment
   operations, stock, purchase, accounting and investor access;
 - `docs/DEFINITIONS.md`, `docs/ROADMAP.md`, manual sources and generation rules;
