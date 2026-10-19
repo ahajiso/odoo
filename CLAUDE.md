@@ -390,3 +390,17 @@ has been performed by these local verifications.
 Superseded on 18/10/2026 for the transitional acceptance (owner's decision, artdubati
 disposable): usual update of artdubati_test, docs/one_off_rental/DEPLOYMENT.md §0;
 isolation still mandatory before production.
+
+## Business-cycle acceptance before AI (owner request, 19/10/2026)
+
+Plan revision 1: `docs/business_cycle/PLAN.md`; audit request:
+`docs/business_cycle/AUDIT_REQUEST.md`. No profile or business record has been created.
+The four requested profiles are insufficient to prove separation: the plan also needs a
+distinct catalogue manager, equipment-operation approver and daily warehouse operator.
+A least-privilege business requester does not exist yet. Two functional gaps prevent a
+claim of a complete request-to-use cycle: a catalogue request is not purchase approval,
+and worksite consumption is not implemented (ROADMAP G). The current manual passes its
+FR/EN/FA structural checker but contains obsolete fields and direct location-edit
+instructions; semantic correction and role-based replay are blocking exit criteria.
+Next step: audit the plan, then write and audit a read-only characterisation and an
+idempotent dry-run/apply profile setup for `artdubati_test` only.
