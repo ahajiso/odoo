@@ -393,7 +393,7 @@ isolation still mandatory before production.
 
 ## Business-cycle acceptance before AI (owner request, 19/10/2026)
 
-Plan revision 3: `docs/business_cycle/PLAN.md`; audit request:
+Plan revision 4: `docs/business_cycle/PLAN.md`; audit request:
 `docs/business_cycle/AUDIT_REQUEST.md`. No profile, business record, database, container
 or server configuration has been created. The audit of revision 2 found that another DB
 inside live `odoo_db` is not isolated from Odoo cron. The campaign now requires its own
@@ -401,7 +401,8 @@ ephemeral PostgreSQL instance/data-WAL volume, Odoo container and filestore, exa
 database selection, neutralisation, disabled cron/autovacuum, distinct hostname and no
 network path to either live service. Existing backup/restore scripts are excluded from
 campaign clone creation.
-Before any script, revision 3 requires owner decisions D1-D7 and an audited read-only
+Before any security/profile/campaign script, revision 4 requires owner decisions D1-D10
+and an audited read-only
 characterisation. Direct RPC tests cover excessive stock/purchase/configuration rights
 of warehouse, purchasing, catalogue and accounting roles. The reference path uses an
 existing PO prepared by Purchasing; `purchase_mode=create` is to be disabled/restricted.
@@ -409,5 +410,16 @@ Attribution uses separate configuration/business baselines with row-by-row PK an
 relation diffs. A replay uses a new isolated pair and campaign ID; the campaign never
 mutates `artdubati_test`. P7b is the separate investor-without-profile control. The full
 known obsolete manual-card list and the relative-link/no-real-host rule are recorded.
-Next authorised deliverable after audit is only the read-only server characterisation;
-no campaign/account creation is authorised.
+Audit of revision 3 (`1411d1d`): green light only to draft the read-only server
+characterisation, itself to be audited before execution. Revision 4 corrects the actual
+dangerous role combination (Equipment Operator + Equipment Approver), unguarded OCA
+`tier.review`, non-installed and over-broad `purchase_request`, all non-internal
+consumable boundaries, P3 draft-bill mutation and the live-fingerprint criterion. The
+inventory now covers every table/sequence and filestore file. Added P10/D8 for site
+requests, D9 for tmpfs/encrypted erasure and retained copies, D10 for a stable neutral
+proxy-authenticated audit host, plus the 67 × 3 manual-card audit. Next authorised
+deliverable remains only a draft of read-only commands; no execution, campaign or
+account creation is authorised.
+Owner decisions on 19/10/2026: D8 = P10 requests/acknowledges while P2 alone executes
+stock moves; D9 = bounded tmpfs, subject to characterisation, with encrypted fallback;
+D10 = stable neutral audit hostname protected by proxy authentication and Odoo login.

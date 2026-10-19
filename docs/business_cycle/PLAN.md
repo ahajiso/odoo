@@ -1,4 +1,4 @@
-# Business-cycle acceptance before AI — plan revision 3
+# Business-cycle acceptance before AI — plan revision 4
 
 Status: **plan only, submitted for audit**. No account, business record, module,
 database, container or server configuration is created or changed by this revision.
@@ -7,9 +7,9 @@ Date: 19/10/2026. Source: a verified backup of `artdubati_test`. The campaign ru
 an ephemeral Odoo/PostgreSQL pair dedicated to the audit. `artdubati_test` and
 `artdubati` remain outside the campaign.
 
-Revision 3 incorporates the audit of commit `1383a33`. It prevents writing profile or
-campaign scripts until the infrastructure and security decisions in sections 5 and 8
-have themselves received a green light.
+Revision 4 incorporates the audit of commit `1411d1d`. Only the preparation of the
+read-only server characterisation is authorised, and its commands must be audited before
+use. Profile, security and campaign scripts remain forbidden.
 
 ## 1. Goal and exact meaning of “complete cycle”
 
@@ -37,10 +37,9 @@ identities only and do not constitute business evidence.
 
 ### 2.1 Supported today
 
-- `product.creation.request` governs creation of products and services. Ordinary
-  requester and catalogue-manager paths are separate in normal use, but the code also
-  permits a user who has both ordinary operator and approver groups to approve their
-  own request. Group independence is therefore not sufficient enforcement.
+- `product.creation.request` governs creation of products and services. It refuses
+  self-approval even when ordinary requester and catalogue-manager groups are combined;
+  only the explicit Autonomous Catalogue group is exempt.
 - `equipment.operation` governs equipment and consumable receipts. The installed code
   supports an existing confirmed purchase order and an operation-created order.
 - Equipment Operator implies Inventory / User. Standard Odoo transfers move goods
@@ -59,8 +58,13 @@ suggest:
 - Purchasing Manager can validate pickings through installed stock/purchase methods;
 - Accountant has create/write access on stock pickings/moves and can write purchase
   orders/lines through inherited core/OCA access;
-- Inventory User can perform consumable inventory adjustments; Inventory Manager can
-  scrap;
+- Inventory User can perform inventory adjustment and scrap, so both are available to
+  P2 through implied rights;
+- consumable protection covers only supplier/acquisition sources. Other non-internal
+  sources and destinations (Customers, Inventory, Production and Transit) can change
+  stock without a governed equipment operation;
+- Purchase users can modify `account.move`; P3 can therefore alter or delete an
+  operation-created draft supplier bill unless a server guard prevents it;
 - warehouse, purchasing and catalogue roles can reach structural product-category or
   accounting fields in combinations that require explicit server-side restriction;
 - hiding menus does not remove any of these RPC capabilities.
@@ -100,14 +104,19 @@ incomplete profiles and prohibited group combinations.
 | P7 | Shareholder / Investor | Stock Monitor Investor + restricted profile | Only Investor Home and scoped stock monitor. |
 | P7b | Investor without profile | Stock Monitor Investor, no Stock Access Profile | Separate account proving zero rows and the warning; P7 is never modified during the run. |
 | P8 | Business / Site Requester | **missing group; do not create yet** | Target role for own requests only, without Purchase/Inventory/approval rights. |
-| P9 | Accounting Administrator | Accounting Manager, plus Accounting Read-only only if the monitor probe proves it is needed | Exceptional accounting correction only; never ordinary invoice evidence. |
+| P9 | Accounting Administrator | Accounting Manager + Accounting Read-only | Exceptional accounting correction only; never ordinary invoice evidence. Read-only is explicitly required by the stock monitor. |
+| P10 | Site Manager / Site Requester | **missing least-privilege group; do not create yet** | Requests stock for a site and acknowledges use/return without stock execution, Purchase or approval rights. The recommended D8 assigns physical moves to P2. |
 
 ### 3.1 Prohibited combinations
 
 The recommended policy, pending the owner's explicit confirmation, is:
 
-- an ordinary audit or production user may not combine requester/operator and ordinary
-  catalogue approver groups;
+- Equipment Operator and Equipment Operations Approver may not be combined: current
+  code intentionally approves and executes in one click for this combination;
+- P6 Accounting may not be combined with Purchase;
+- P3 Purchase may not be combined with Inventory;
+- Investor may not be combined with any other business group;
+- no business profile may have Settings or Administration;
 - the historical `Test` exception and Autonomous Catalogue group are excluded from the
   campaign;
 - profile creation refuses every prohibited combination after expanding implied groups;
@@ -142,7 +151,10 @@ Before any script is written, a read-only server report must establish:
   webhooks and filestore;
 - reverse-proxy/DNS topology and the identity/scope of injected ERP credentials,
   without printing any secret value;
-- host/provider snapshots, backup agents, WAL archiving and volume-backup inclusion.
+- actual `db_name`, `dbfilter`, `list_db`, `web.base.url.freeze`, mail servers and the
+  PostgreSQL `odoo` role's superuser status;
+- Docker log driver, host swap, reverse-proxy configuration, provider snapshot schedule,
+  backup agents, WAL archiving and volume-backup inclusion.
 
 Existing `backup_db.sh` and `restore_db.sh` are not used to create the campaign clone:
 they intentionally create or preserve databases in the live PostgreSQL instance. Any
@@ -158,23 +170,30 @@ uses:
 - one ephemeral PostgreSQL container and private volume containing only the audit DB;
 - one ephemeral filestore volume;
 - one ephemeral Odoo container using the exact tested image digest and checked-out
-  code, connected only to the audit PostgreSQL network;
+  code from a separate frozen checkout mounted read-only, never the live
+  `/opt/odoo/addons/custom`, connected only to the audit PostgreSQL network;
 - `db_name` fixed to the exact audit database, an exact anchored `dbfilter`,
   `list_db = False` and `max_cron_threads = 0`;
 - no network path from normal `odoo_web` to audit PostgreSQL and no path from audit Odoo
   to live PostgreSQL;
-- a distinct hostname, not merely another port, so cookies and sessions cannot collide;
+- a stable neutral hostname, containing no campaign or business identifier, not merely
+  another port, so cookies and sessions cannot collide;
+- authentication at the reverse proxy in addition to Odoo authentication;
 - an explicit audit banner carrying the campaign ID;
 - no Internet egress, real SMTP, invitations, payment/provider callback or webhook.
 
 The verified source database/filestore snapshot is taken while writes are stopped. The
 database is restored only into the ephemeral PostgreSQL instance, then neutralised with
 `odoo db load --neutralize`. A fresh `database.uuid`, `database.secret` and audit base
-URL are verified. Scheduled actions are disabled in the clone, including Odoo cron and
-installed `autovacuum_job`; no unattended worker may run.
+URL are verified. `web.base.url.freeze` is explicitly reset/verified because Odoo
+initialisation does not necessarily reset it. A dump restore copies the filestore
+separately; only an Odoo zip restore includes it. Scheduled actions are disabled in the
+clone, including Odoo cron and installed `autovacuum_job`; no unattended worker may run.
 
-The temporary audit hostname will require a later, explicit network-policy addition for
-browser automation. That change is not requested and nothing is provisioned now.
+The stable audit hostname, proxy authentication, DNS and reverse-proxy configuration
+will require a later audited infrastructure change and explicit network-policy addition.
+A public certificate would leave a permanent Certificate Transparency record, so the
+name is neutral and stable. Nothing is provisioned now.
 
 ### 5.3 Immutable campaign identity
 
@@ -199,9 +218,11 @@ The evidence therefore uses two explicit windows:
 2. **business window** — a second baseline is taken after configuration and before S0;
    business scenarios then run without configuration changes.
 
-For selected and discovered affected tables, both snapshots export primary keys,
-business references, relation rows and stable field hashes. The comparison reports
-created, modified and deleted keys row by row. A small, versioned noise allowlist names
+Both snapshots cover **every table in the PostgreSQL catalogue**, including relation
+tables. They export primary keys (or deterministic full-row identities where no PK
+exists), stable field hashes, sequence values and the complete filestore path/hash
+inventory. The comparison reports created, modified and deleted rows/files and changed
+sequences. A small, versioned noise allowlist names
 each permitted session/login/asset technical write and its reason; no catch-all pattern
 is allowed. Chatter, request/approval/execution fields and linked documents prove the
 business actor. Every unexplained diff blocks acceptance.
@@ -211,9 +232,13 @@ never an authorisation bypass.
 
 ### 5.5 Complete removal
 
-The campaign uses ephemeral volumes excluded from host/provider backup, snapshot and
-WAL-retention policies. If exclusion cannot be proven, complete deletion cannot be
-claimed and the campaign does not start.
+The recommended storage is size-bounded `tmpfs` for PostgreSQL data/WAL and filestore,
+subject to the read-only size and memory characterisation. The fallback is an encrypted
+ephemeral volume with a per-campaign key followed by verified cryptographic erasure.
+Ordinary persistent volumes are not acceptable merely because a backup exclusion is
+claimed. If host swap, provider snapshots, Docker logs or backup/WAL retention can hold
+campaign content and cannot be avoided or cryptographically erased, the owner must make
+the explicit D9 retention decision and complete deletion cannot be claimed.
 
 After a signed, sanitised report and a separate owner confirmation, cleanup resolves
 and prints exact targets, stops audit services, revokes sessions and removes only:
@@ -222,13 +247,18 @@ and prints exact targets, stops audit services, revokes sessions and removes onl
 - their exact network, database/WAL volume and filestore volume;
 - audit reverse-proxy/DNS entry and certificate material;
 - browser profiles, downloads, Playwright traces/videos/screenshots, temporary files,
-  raw evidence and any temporary source snapshot labelled with the campaign ID.
+  raw evidence, Docker/journald logs where applicable and any temporary source snapshot
+  labelled with the campaign ID.
 
 Cleanup refuses globs, symlinks, unresolved variables, broad paths and either live
 database name. A deletion certificate proves absence of every exact target and verifies
 unchanged fingerprints for live containers, databases and filestores. Only sanitised
 evidence remains; it contains no real contact, credential, session, attachment content
 or unrestricted screenshot.
+
+Conversation transcripts or images already copied into an external audit/AI service
+cannot be deleted by these scripts. They are declared retained external copies and must
+contain only sanitised evidence under the relevant provider's retention policy.
 
 ## 6. Scenario and security matrix
 
@@ -237,17 +267,25 @@ or unrestricted screenshot.
 For P1–P9 as applicable, capture explicit/implied groups, menus, ACLs, record rules and
 direct RPC results. Mandatory server calls, not UI observations, include:
 
-- profile setup rejects operator/requester + ordinary catalogue approver;
-- P4 cannot self-approve and has no Autonomous Catalogue role;
+- profile setup rejects every prohibited combination in §3.1, after implied-group
+  expansion, especially Equipment Operator + Equipment Approver;
+- P4 cannot self-approve and has no Autonomous Catalogue role (already enforced by the
+  current catalogue code and retained as a regression test);
 - P5 cannot edit or execute the operation it approves; P2 cannot approve;
 - P3 and P6 cannot validate pickings, create/write stock moves or move lines, or perform
   a controlled receipt outside its operation;
 - P6 cannot write purchase orders/lines; P3 cannot post supplier bills;
-- P2 cannot perform inventory adjustments under the recommended policy;
-- P1's scrap/adjustment scope follows D3 and records mandatory reason/evidence;
+- P2 cannot adjust or scrap, and cannot change consumable stock through any non-internal
+  source/destination (Customers, Inventory, Production or Transit) outside the governed
+  operation;
+- P1's scrap/adjustment and non-internal consumable movement scope follows D3 and
+  records mandatory reason/evidence;
 - P1/P3/P4 cannot change product-category accounting fields, valuation, accounts,
   asset profile or other structural fields outside governed correction;
 - P1 can change only an explicitly approved operational monitor subset, if D4 keeps it;
+- P3 cannot modify or delete an operation-created draft supplier bill;
+- on a local rebuilt database, P8 cannot create/write/delete its own `tier.review`,
+  change its status directly or be selected as reviewer of its own request;
 - P7/P7b cannot call staff actions; no business account reaches Settings/Admin.
 
 Current code is expected to fail some probes. That is a discovery result, not a waiver:
@@ -268,24 +306,31 @@ to an explicitly approved exceptional role before the campaign. P3 verifies supp
 currency, taxes, quantity, unit and untaxed amounts.
 
 If G1 is implemented first, P8 submits the purchase request and a distinct tier
-approver approves it before P3 creates the RFQ. Otherwise the report labels the pre-RFQ
-approval step “not implemented”.
+approver approves it before P3 creates the RFQ. This is conditional on a custom server
+guard around `tier.review`: installed OCA ACLs otherwise let any internal user create,
+write or delete reviews and derive approval from their statuses. Otherwise the report
+labels the pre-RFQ approval step “not implemented”.
 
 ### S3 — controlled durable and consumable receipts
 
 P2 prepares operations linked to P3's confirmed orders: one serialised durable item and
-one consumable. P5 approves; P2 executes. Verify one transfer, quantities/lots,
-equipment creation, cost source and bill behaviour. P3/P6 direct validation attempts
-must be refused by RPC.
+one consumable. P5 approves only when the operation needs approval, including when it
+creates the invoice; P2 executes. Verify one transfer, quantities/lots, equipment
+creation, cost source and bill behaviour. P3/P6 direct validation attempts must be
+refused by RPC.
 
-Also test `bill_mode=existing`: a pre-existing draft bill is linked/checked without an
-operation-created duplicate. Do not silently exercise `purchase_mode=create`.
+Also test `bill_mode=existing`: name the authorised accountant who created the
+pre-existing draft bill, then link/check it without an operation-created duplicate.
+The plan must not claim P5 approval if `_needs_approval` is false. Do not silently
+exercise `purchase_mode=create`. P3 also attempts to edit/delete the operation-created
+draft bill and must be refused.
 
 ### S4 — bill, asset and refund controls
 
 P6 checks the match, attachment, supplier reference, date, taxes and expense/asset
 treatment, then posts the bill. No payment is made. A supplier refund violating the
-frozen operation is refused (C8); permitted replacement follows its audited workflow.
+frozen operation is tested under the one-off-rental guard. Separately, C8 tests the
+specific asset-supplier-refund restriction; it is not described as an operation freeze.
 The Mac Mini remains a separate named scenario requiring accountant choices.
 
 ### S5 — warehouse exit, worksite and maintenance boundary
@@ -294,6 +339,10 @@ P2 performs an internal transfer from `Bg/Stock` to an audit job-site location f
 consumable and durable item. Verify quants/serials, holder/usage and CH-03 maintenance
 request. Record return to warehouse and, where applicable, rental return/restitution.
 Do not call this consumption or analytic allocation.
+
+Also test an approved output to a “loaned” stock and receipt of a “borrowed” item, with
+P5 approval where required. Until D8 creates a least-privilege site role, P2 performs
+physical movements and the manual must not instruct a site worker to execute stock.
 
 ### S6 — monitor and investor isolation
 
@@ -314,10 +363,11 @@ structural checker, desktop/mobile and Persian RTL validation.
 ### S8 — correction and replay
 
 Each module/security/manual correction is independently audited and deployed to
-`artdubati_test` by the controlled procedure. `artdubati_test` business data and
-filestore remain unchanged by the campaign itself. Replay occurs only on a new audit
-pair and campaign ID. Platform fingerprints may change only through that separate
-audited deployment, never through the audit run.
+`artdubati_test` by the controlled procedure. A deployment closes any active campaign;
+replay occurs only on a new audit pair and campaign ID. The live test database may have
+ordinary cron or owner writes, but no write may be attributable to audit infrastructure.
+Writes in the campaign window are classified by author. Platform fingerprints may
+change only through a separate audited deployment, never through an audit run.
 
 ## 7. Complete manual-conformity baseline
 
@@ -333,33 +383,44 @@ The known affected set from the audit is:
 - **removed M2M / `bi_sql` reporting:** PARC-11, CPT-14, CPT-15, INV-03 and ADM-12;
 - **removed replacement-price setting:** ADM-12 and INV-03;
 - **obsolete `WH/Stock` instead of `Bg/Stock`:** CH-02, ADM-03 and REF-07;
+- **absolute links and numeric database IDs:** CPT-22 through CPT-26;
+- **index/header errors:** remove “Base: artdubati”, correct the ADM-13 and CPT-26
+  ranges, and include every current card;
+- **obsolete import artifacts:** remove both CSV templates, not only references to them;
 - index ranges and “Who reads what” omit purchasing, catalogue, equipment-approval and
   requester roles.
 
-All FR cards are corrected semantically first, then EN/FA aligned and exports rebuilt.
-Manual correction and role replay are blocking exit criteria.
+The keyword list above is not treated as exhaustive. The audit produces a verdict for
+each of the 67 cards in each of FR, EN and FA (201 verdicts), plus templates, index and
+exports. All FR cards are corrected semantically first, then EN/FA aligned and exports
+rebuilt. Manual correction and role replay are blocking exit criteria. Human testers
+receive the same no-real-host rule as Playwright and stop if a link leaves the neutral
+audit hostname.
 
 ## 8. Owner decisions and functional gaps
 
-These recommendations require explicit owner decisions before security or campaign
-scripts are written:
+Decisions D8–D10 were confirmed by the owner on 19/10/2026. D1–D7 remain recommendations
+to confirm before security or campaign scripts are written:
 
 | ID | Subject | Recommended decision |
 | --- | --- | --- |
-| D1 | Requester/operator combined with ordinary catalogue approver | Forbid for ordinary audit and production users; keep the historical autonomous exception outside this campaign. |
+| D1 | Prohibited group combinations | Forbid the complete §3.1 matrix, especially Equipment Operator + Equipment Approver. Catalogue self-approval is already refused except for the autonomous exception, which remains outside the campaign. |
 | D2 | Purchase reference path | Use P3's existing confirmed PO. Disable or restrict `purchase_mode=create` before acceptance. |
-| D3 | Inventory adjustment and scrap | P2 cannot adjust inventory. P1 may adjust/scrap only with explicit reason and evidence under a narrow server guard. |
+| D3 | Consumable entries/exits, adjustment and scrap | P2 cannot adjust, scrap or change consumable stock through any non-internal boundary outside a governed operation. P1 may do so only with explicit reason/evidence under a narrow server guard. |
 | D4 | Structural configuration | Only accounting/config administration alters category accounting fields. P4 uses governed structural correction; P1 edits only a named operational subset. |
-| D5 | P3/P6 RPC rights | Add server guards so P3/P6 cannot validate controlled receipts or mutate stock, and P6 cannot mutate POs. Menus are not controls. |
-| D6 | Generic purchase request (G1/G3) | Characterise installed OCA `purchase_request` plus `purchase_request_tier_validation`; use tier validation or a custom guard, and add P8 to catalogue requesters. |
+| D5 | P3/P6 RPC rights | Guard P3/P6 stock execution and P3 edits/deletion of operation-created draft bills. Characterise legitimate P6 purchase-order writes before guarding them so invoice matching is not broken. Menus are not controls. |
+| D6 | Generic purchase request (G1/G3) | `purchase_request` is **not installed**. Evaluate adding it plus tier validation as a platform change, including route inventory, but only with a custom `tier.review` guard and least-privilege rules that prevent P8 reading all POs/moves. |
 | D7 | Worksite consumption (G2) | Characterise `stock_request`, `stock_analytic` and `project_task_stock` after the accountant decides valuation. Until implemented, limit the milestone to transfer/use/return. |
+| D8 — **confirmed** | Site actors | Create a least-privilege P10 Site Manager/Requester who requests and acknowledges; P2 Warehouse Operator alone executes physical stock moves. Rewrite CH cards accordingly. |
+| D9 — **confirmed** | Ephemeral storage and retained copies | Use bounded `tmpfs`, subject to size/memory characterisation. Per-campaign encrypted storage with cryptographic erasure is only the audited fallback. Any unavoidable provider/session retention is declared instead of claiming deletion. |
+| D10 — **confirmed** | Human/browser access | Use one stable neutral audit hostname, proxy authentication plus Odoo login, no campaign ID in DNS/certificate, and a separately audited proxy/DNS/network-policy change. |
 
 Open accounting choices remain Mac Mini treatment, C24/C25 and category treatment. No
 test choice becomes a production rule without accountant signoff.
 
 ## 9. Ordered roadmap and stop rules
 
-1. Audit revision 3 and obtain D1–D7 decisions.
+1. Audit revision 4 and obtain decisions D1–D7; D8–D10 are confirmed.
 2. Perform only the read-only server characterisation in section 5.1; audit its output.
 3. Write and audit a lifecycle plan for the separate PostgreSQL/Odoo pair, backup
    exclusions, hostname, neutralisation and deletion proof.
@@ -387,12 +448,15 @@ No step in this plan authorises campaign creation or destructive cleanup yet.
 - every business-window row diff is explained and no blocking/high defect remains;
 - full tests, platform parity and route comparison are green after separate deployments;
 - campaign containers, volumes, DB/WAL, filestore, sessions and raw artifacts are
-  removed with a deletion certificate;
-- live database/filestore fingerprints are unchanged; production remains untouched.
+  removed with a deletion certificate, subject to explicitly declared external retained
+  copies under D9;
+- no live write is attributable to the audit infrastructure; ordinary live writes are
+  classified by author and no deployment occurs during an active campaign; production
+  remains untouched.
 
-## 11. Evidence used for revision 3
+## 11. Evidence used for revision 4
 
-- independent audit of revision 2 / commit `1383a33`, supplied on 19/10/2026;
+- independent audits of commits `1383a33` and `1411d1d`, supplied on 19/10/2026;
 - installed security, access CSVs and server methods for product requests, equipment
   operations, stock, purchase, accounting and investor access;
 - `docs/DEFINITIONS.md`, `docs/ROADMAP.md`, manual sources and generation rules;
