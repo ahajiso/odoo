@@ -444,3 +444,6 @@ and option names, masks mount credentials, propagates every multi-command sectio
 failure, extends API-key classification and cron coverage, and declares effective
 reverse-proxy topology as external evidence. The exact file hashes, not the semantic
 checker alone, remain the security boundary.
+Audit of `232b21b`: green light to draft the single-run procedure, conditional on two
+low fixes and a complete disposable replay. The malformed-cron and mount-source leaks
+are now fixed and covered by canaries; the real-server execution remains forbidden.

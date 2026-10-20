@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "characterize_readonly.sh"
 HELPER = ROOT / "characterize_helpers.py"
 EXPECTED_SCRIPT_SHA256 = "70488b7249cd25f95c1f3b0079ecb601a0417f5a06697b6ee199e6046a92f0ce"
-EXPECTED_HELPER_SHA256 = "55b3bddf77dcf61ec99a84eb334732d1947c6827c6b2014db0901e458c7595a4"
+EXPECTED_HELPER_SHA256 = "f27d4f27a241056301b20f7e0427df7c561f5f18dbb3ce201f60a4ab07be5c38"
 
 ALLOWED_COMMANDS = {
     "awk", "break", "cat", "command", "date", "df", "docker", "done", "du", "else",

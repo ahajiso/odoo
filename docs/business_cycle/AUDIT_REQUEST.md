@@ -56,6 +56,9 @@ The documentation no longer presents the semantic checker as a formal boundary. 
 security boundary is the exact commit plus independently compared hashes of all four
 files and human review. The semantic checks and mutations are defence in depth.
 
+The final two low findings are also closed: cron alphabetic tokens are restricted to
+month/day names and supported markers, and DAV/SSHFS mount sources discard userinfo.
+
 ## Important qualification
 
 “Read-only” is logical, not physically side-effect-free. `docker exec`, filesystem

@@ -191,13 +191,30 @@ class SanitisationTests(unittest.TestCase):
             self.assertIn("executable=pg_dump", rendered_cron)
             self.assertNotIn("hunter2", rendered_cron)
 
+        output = StringIO()
+        with redirect_stdout(output):
+            helpers.cron_line(Path("/etc/cron.d/broken"), 1, "backup hunter2 a b c d", True)
+        malformed = output.getvalue()
+        self.assertIn("unparsed=yes", malformed)
+        self.assertNotIn("hunter2", malformed)
+
         previous = sys.stdin
         output = StringIO()
         try:
-            sys.stdin = StringIO(json.dumps({"filesystems": [{
-                "target": "/mnt/share", "source": "//server/share", "fstype": "cifs",
-                "options": "rw,username=person,credentials=/secret/path,password=hunter2",
-            }]}))
+            sys.stdin = StringIO(json.dumps({"filesystems": [
+                {
+                    "target": "/mnt/share", "source": "//server/share", "fstype": "cifs",
+                    "options": "rw,username=person,credentials=/secret/path,password=hunter2",
+                },
+                {
+                    "target": "/mnt/dav", "source": "https://person:hunter2@dav.invalid/x",
+                    "fstype": "fuse", "options": "rw",
+                },
+                {
+                    "target": "/mnt/ssh", "source": "person@host.invalid:/x",
+                    "fstype": "fuse.sshfs", "options": "rw",
+                },
+            ]}))
             with redirect_stdout(output):
                 helpers.host_mounts()
         finally:
@@ -207,6 +224,8 @@ class SanitisationTests(unittest.TestCase):
         self.assertNotIn("/secret/path", mounts)
         self.assertNotIn("hunter2", mounts)
         self.assertIn("username=[present]", mounts)
+        self.assertIn("https://dav.invalid/x", mounts)
+        self.assertIn("[identity]@host.invalid:/x", mounts)
 
         script = checker.SCRIPT.read_text(encoding="utf-8")
         self.assertNotIn("secret path=%p mode=%m uid=%U gid=%G size=%s", script)

@@ -15,6 +15,10 @@ from urllib.parse import urlsplit, urlunsplit
 SENSITIVE = re.compile(r"(?:auth|pass|passwd|password|secret|token|api.?key|private.?key|credential)", re.I)
 PROXY = re.compile(r"(?:nginx|caddy|traefik|haproxy|reverse.?proxy)", re.I)
 DETAIL_NAMES = {"odoo_web", "odoo_db"}
+CRON_WORDS = {
+    "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec",
+    "mon", "tue", "wed", "thu", "fri", "sat", "sun", "l", "w", "lw",
+}
 
 
 def safe_command(tokens: object) -> list[str]:
@@ -143,13 +147,25 @@ def host_mounts() -> None:
                     options.append(raw if not (separator and SENSITIVE.search(key)) else f"{key}=[present]")
             print(json.dumps({
                 "target": item.get("target"),
-                "source": item.get("source"),
+                "source": safe_mount_source(str(item.get("source") or "")),
                 "fstype": item.get("fstype"),
                 "options": options,
             }, sort_keys=True, separators=(",", ":")))
             visit(item.get("children"))
 
     visit(payload.get("filesystems") if isinstance(payload, dict) else None)
+
+
+def safe_mount_source(value: str) -> str:
+    if "://" in value:
+        try:
+            parsed = urlsplit(value)
+            host = parsed.hostname or ""
+            port = f":{parsed.port}" if parsed.port else ""
+            return urlunsplit((parsed.scheme, host + port, parsed.path, "", ""))
+        except ValueError:
+            return "unparseable"
+    return re.sub(r"^[^/@:]+(?::[^/@]*)?@", "[identity]@", value)
 
 
 def odoo_config() -> None:
@@ -278,7 +294,12 @@ def cron_line(path: Path, number: int, raw: str, system_style: bool) -> None:
         schedule_fields = fields[:5]
         user_index = 5 if system_style else None
         command_index = 6 if system_style else 5
-    schedule_valid = bool(macro) or all(re.fullmatch(r"[A-Za-z0-9*/?,#LWK-]+", field, re.I) for field in schedule_fields)
+    def valid_field(field: str) -> bool:
+        if not re.fullmatch(r"[A-Za-z0-9*/?,#-]+", field):
+            return False
+        return all(word.lower() in CRON_WORDS for word in re.findall(r"[A-Za-z]+", field))
+
+    schedule_valid = bool(macro) or all(valid_field(field) for field in schedule_fields)
     if len(fields) < minimum or not schedule_valid:
         print(f"cron path={path} line={number} unparsed=yes")
         return

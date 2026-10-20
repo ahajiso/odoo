@@ -55,6 +55,9 @@ by these files.
 15. Mounted proxy configuration below the three known configuration roots is inspected
     safely. Embedded-image and effective proxy topology/authentication remain external
     evidence requirements because sanitised labels cannot prove D10.
+16. Malformed cron schedules cannot smuggle free text into the schedule field: alphabetic
+    tokens are limited to month/day names and the supported `L`/`W` markers.
+17. URL and SSHFS mount sources remove `user[:password]@` before output.
 
 ## Checker and tests
 
@@ -81,11 +84,11 @@ Current pinned hashes:
 - `characterize_readonly.sh`:
   `70488b7249cd25f95c1f3b0079ecb601a0417f5a06697b6ee199e6046a92f0ce`;
 - `characterize_helpers.py`:
-  `55b3bddf77dcf61ec99a84eb334732d1947c6827c6b2014db0901e458c7595a4`;
+  `f27d4f27a241056301b20f7e0427df7c561f5f18dbb3ce201f60a4ab07be5c38`;
 - `check_characterization.py`:
-  `fb04e0f7d5709f0e40fcb310a22130dee24d147578b171f75bb18a1a97deee5e`;
+  `bb900cf762b1b620c6672cc8043f168723ea3d30d671eb06c3b032bf9d3233bb`;
 - `test_characterization.py`:
-  `7aa1d04fee5702fe3aed20aea3de0804826816cda14cc28d704360c6c96ccf90`.
+  `0217c0228bc492f7130031a2cbb056271925c2ecddee457e705bc732f4b5abb9`.
 
 ## Intended execution contract
 
