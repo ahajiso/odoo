@@ -447,3 +447,9 @@ checker alone, remain the security boundary.
 Audit of `232b21b`: green light to draft the single-run procedure, conditional on two
 low fixes and a complete disposable replay. The malformed-cron and mount-source leaks
 are now fixed and covered by canaries; the real-server execution remains forbidden.
+The four-file package is frozen in `b5566cc`; `RUN_CHARACTERIZATION.md` is the draft
+single-run procedure and pins that commit plus all four hashes. The required full local
+replay is still pending: the managed cloud Docker daemon retained a ghost reservation
+for the deleted name `odoo_web`. All disposable containers, volumes and network were
+removed, and the shared daemon was deliberately not restarted. Do not submit the
+procedure for final audit or execute it on the server until that replay succeeds.

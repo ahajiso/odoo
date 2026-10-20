@@ -85,3 +85,11 @@ Return exactly one outcome: green light for drafting a separately approved one-t
 server execution procedure; corrections required, ranked by severity with precise
 file/line evidence; or owner prerequisites. A green light does not itself authorise the
 server command, campaign environment or audit users.
+
+## Status after the green light of `232b21b`
+
+The two remaining low findings are fixed and the four files are frozen in `b5566cc`.
+`RUN_CHARACTERIZATION.md` is drafted but not yet submitted for final audit. The required
+complete disposable replay is pending because the managed cloud Docker daemon retained
+the deleted name `odoo_web`; all visible disposable resources were removed and the
+shared daemon was not restarted. Real-server execution remains forbidden.
