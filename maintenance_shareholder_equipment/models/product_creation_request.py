@@ -434,6 +434,20 @@ class ProductCreationRequest(models.Model):
                                 "catalogue managers can request a product."))
         for vals in vals_list:
             if not self.env.su:
+                # A form button first saves a new virtual record.  The web client may
+                # send the readonly defaults it received from default_get; accepting
+                # those exact defaults is not an authority escalation.  Remove them
+                # before the protected-field check, then set them on the server.  Any
+                # other value (another requester, a chosen sequence or a non-draft
+                # state) remains an attempted workflow bypass and is refused.
+                harmless_defaults = {
+                    "name": (False, "/"),
+                    "state": (False, "draft"),
+                    "requester_id": (False, self.env.user.id),
+                }
+                for field, allowed in harmless_defaults.items():
+                    if field in vals and vals[field] in allowed:
+                        vals.pop(field)
                 if PROTECTED_FIELDS.intersection(vals) or "similar_confirmed" in vals:
                     raise AccessError(_("This field is set by the request itself."))
                 # the requester is always the user who creates the request (D9)

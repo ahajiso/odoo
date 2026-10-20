@@ -562,6 +562,25 @@ class TestRequestBypasses(CatalogueCommon):
         with self.assertRaisesRegex(UserError, "requester"):
             request.with_user(self.manager).action_approve()
 
+    def test_web_readonly_defaults_are_accepted_on_create(self):
+        """A form button saves its virtual record before calling the object method."""
+        request = self._request(
+            user=self.manager, name="/", state="draft", requester_id=self.manager.id)
+        self.assertNotEqual(request.name, "/")
+        self.assertEqual(request.state, "draft")
+        self.assertEqual(request.requester_id, self.manager)
+        request.with_user(self.manager).action_submit()
+        self.assertEqual(request.state, "to_approve")
+
+    def test_non_default_protected_values_remain_refused_on_create(self):
+        for values in (
+                {"name": "PCR/CLIENT"},
+                {"state": "approved"},
+                {"requester_id": self.buyer.id},
+                {"name": "/", "requester_id": self.buyer.id}):
+            with self.subTest(values=values), self.assertRaises(AccessError):
+                self._request(user=self.manager, **values)
+
     def test_protected_fields_refused_to_clients(self):
         request = self._request()
         record_fields = {
@@ -575,8 +594,14 @@ class TestRequestBypasses(CatalogueCommon):
                 with self.subTest(user=user.login, field=name):
                     with self.assertRaises(AccessError):
                         request.with_user(user).write({name: value})
-                    with self.assertRaises(AccessError):
-                        self._request(user=user, **{name: value})
+                    # The web client sends its readonly requester default while saving
+                    # a new form.  Only the current user's own id is harmless on create.
+                    if name == "requester_id" and value == user.id:
+                        created = self._request(user=user, **{name: value})
+                        self.assertEqual(created.requester_id, user)
+                    else:
+                        with self.assertRaises(AccessError):
+                            self._request(user=user, **{name: value})
         # nothing changed, the workflow still has to be followed
         self.assertEqual(request.state, "draft")
         self.assertFalse(request.approver_id)
