@@ -174,3 +174,11 @@ diff /tmp/catfam/docs/one_off_rental/routes_after_18.0.5.2.3.txt \
 ```
 
 Any FAILED or a count other than 311: stop, `bash /tmp/catfam/docs/restore_db.sh catfam`.
+
+**Deployed on artdubati_test on 20/10/2026, code b080ff0** (window `catfam2`, one guarded
+block): PLATFORM OK (before); BACKUP OK (`catfam2`, 584 files, 0 missing, code 877a30d);
+CODE OK; UPDATE OK; **311 tests, 0 failed**; PLATFORM OK (after); routes identical;
+« DÉPLOIEMENT OK ». A first paste ran before main was advanced: the deployment refused
+« Commit b080ff0 not found », nothing changed (its backup `catfam` is valid, unused).
+Next: the owner's interface check (consumable → six categories; service → category
+emptied).
