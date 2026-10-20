@@ -1,7 +1,8 @@
 # Stock categories for governed requests
 
 This test-only configuration opens the six imported categories 20–25 to **Item and
-Service Requests**. It reuses the records; it does not create duplicate categories.
+Service Requests**. It reuses those records and adds only the two missing leaves needed
+by the Leroy Merlin exercise: workwear and small durable workshop tools.
 
 ## Test accounting choice
 
@@ -13,10 +14,14 @@ Service Requests**. It reuses the records; it does not create duplicate categori
 | 23 Electrical Consumables | Consumable or accessory | 602230 | 321000 | 603200 |
 | 24 Plumbing Consumables | Consumable or accessory | 602230 | 321000 | 603200 |
 | 25 Spare Parts | Consumable or accessory | 602220 | 321000 | 603200 |
+| Workwear & PPE | Consumable or accessory | 602230 | 321000 | 603200 |
+| Tools & Workshop Equipment | Durable equipment | 606300 | manual valuation | — |
 
-All six use average cost and automated valuation. Accounts 311000 and 321000 are
-created if absent. This is a configurable **test choice**, not an accountant's
-validation for production.
+The material and consumable categories use average cost and automated valuation.
+Accounts 311000 and 321000 are created if absent. Small durable tools use average cost,
+manual valuation and immediate expense on 606300, so their accounting book value is
+zero unless the accountant classifies the item as a fixed asset instead. This is a
+configurable **test choice**, not an accountant's validation for production.
 
 The activation refuses production, multiple companies, unexpected external IDs,
 partial configurations and categories containing products. It defaults to a rollback.
@@ -45,6 +50,11 @@ Create a new request for `AXTON adhesive 25 kg`:
 - Product Category: **All / Construction Materials / 22 Construction Consumables**;
 - Tracking: **By Quantity**;
 - Supplier reference: `91952403`.
+
+For the remaining specimen lines use **Workwear & PPE** for the trousers,
+**20 Tool Accessories** for the Bosch set, and **Tools & Workshop Equipment** only for
+a saw deliberately treated as non-capitalised. A capitalised saw belongs in the fixed
+asset branch instead.
 
 The first click on **Submit** must create a numbered request instead of returning
 “This field is set by the request itself.” A different requester, state or request

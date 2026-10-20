@@ -6,10 +6,11 @@ artdubati_test and uses the imported external IDs instead of names or guessed ID
 
 Test accounting choice (owner request, 20/10/2026): AVCO and automated valuation.
 Construction materials use 601000 / 311000 / 603100.  Consumables use their existing
-602xxx purchase account / 321000 / 603200.  The three balance accounts are created only
-when their code is absent; an existing account is reused only if it is the single
-current-asset account of the company.  All choices remain category configuration and
-must be reviewed by the accountant before production.
+602xxx purchase account / 321000 / 603200. Small durable tools are expensed immediately
+on 606300 with manual valuation. The two balance accounts are created only when their
+code is absent; an existing account is reused only if it is the single current-asset
+account of the company.  All choices remain category configuration and must be reviewed
+by the accountant before production.
 """
 import os
 
@@ -94,7 +95,7 @@ def find_account(code, allowed_types):
     return records
 
 
-expense_codes = ("601000", "602220", "602230", "603100", "603200")
+expense_codes = ("601000", "602220", "602230", "603100", "603200", "606300")
 accounts = {code: find_account(code, ("expense",)) for code in expense_codes}
 
 # Stock balance accounts are the only new accounting records.  Existing codes are
@@ -122,6 +123,7 @@ for key, code, name in (
 root_old = ref("__import__.cat_consumables")
 root_materials = ref(f"{MODULE}.categ_root_materials")
 root_consumables = ref(f"{MODULE}.categ_root_consumables")
+root_small = ref(f"{MODULE}.categ_root_small_equipment")
 
 # xmlid, inventory id, target root, expense, valuation, variation
 specs = (
@@ -134,6 +136,7 @@ specs = (
 )
 
 categories = []
+ready_categories = []
 for xmlid, expected_id, target_root, expense, valuation, variation in specs:
     category = ref(f"__import__.{xmlid}")
     if not category:
@@ -175,6 +178,7 @@ for xmlid, expected_id, target_root, expense, valuation, variation in specs:
             error(f"{category.complete_name}: contains products; automatic valuation needs a separate migration")
         else:
             categories.append((category, target))
+    ready_categories.append(category)
     out("CATEGORY", category.id, category.complete_name,
         "target=" + target_root.complete_name, f"expense={expense}",
         f"stock={valuation}", f"variation={variation}")
@@ -208,8 +212,47 @@ for category, target in categories:
     category.write(target)
     changed(f"configure and open {category.complete_name}")
 
-for xmlid, _expected_id, _root, _expense, _valuation, _variation in specs:
-    category = ref(f"__import__.{xmlid}").with_company(company)
+# These two leaves did not exist in the imported product-category tree but are needed
+# by the same Leroy Merlin acceptance.  Their technical IDs make subsequent runs and
+# deployment checks independent of translated/display names.
+for xmlid, name, root, target in (
+        ("categ_workwear", "Workwear & PPE", root_consumables, {
+            "property_cost_method": "average",
+            "property_valuation": "real_time",
+            "property_account_expense_categ_id": accounts["602230"].id,
+            "property_stock_valuation_account_id": accounts["321000"].id,
+            "property_stock_account_input_categ_id": accounts["603200"].id,
+            "property_stock_account_output_categ_id": accounts["603200"].id,
+            "request_ready": True,
+        }),
+        ("categ_small_tools", "Tools & Workshop Equipment", root_small, {
+            "property_cost_method": "average",
+            "property_valuation": "manual_periodic",
+            "property_account_expense_categ_id": accounts["606300"].id,
+            "request_ready": True,
+        })):
+    category = env.ref(f"{XMLID_MODULE}.{xmlid}", raise_if_not_found=False)
+    matches = env["product.category"].search([("name", "=", name), ("parent_id", "=", root.id)])
+    if not category:
+        if matches:
+            error(f"{root.complete_name} / {name} exists without {XMLID_MODULE}.{xmlid}")
+            continue
+        category = env["product.category"].create(dict(target, name=name, parent_id=root.id))
+        ensure_xmlid(category, xmlid)
+        changed(f"create and open {category.complete_name}")
+    else:
+        category = category.with_company(company)
+        expected = dict(target, parent_id=root.id)
+        actual = {}
+        for field in expected:
+            value = category[field]
+            actual[field] = value.id if hasattr(value, "_name") else value
+        if actual != expected:
+            error(f"{category.complete_name}: unexpected configuration {actual}")
+    ready_categories.append(category)
+
+for category in ready_categories:
+    category = category.with_company(company)
     problems = category._request_problems(category._catalogue_family(), company)
     if problems:
         error(f"{category.complete_name}: {'; '.join(problems)}")
