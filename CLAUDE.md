@@ -393,7 +393,7 @@ isolation still mandatory before production.
 
 ## Business-cycle acceptance before AI (owner request, 19/10/2026)
 
-Plan revision 5: `docs/business_cycle/PLAN.md`; audit request:
+Plan revision 6: `docs/business_cycle/PLAN.md`; audit request:
 `docs/business_cycle/AUDIT_REQUEST.md`. No profile, business record, database, container
 or server configuration has been created. The audit of revision 2 found that another DB
 inside live `odoo_db` is not isolated from Odoo cron. The campaign now requires its own
@@ -428,7 +428,13 @@ characterisation commands. Revision 5 records the unknown one-off-refund behavio
 ties P10 to future D6/D7 documents, treats every tmpfs restart as campaign abandonment,
 requires disabled/encrypted swap, avoids journald, strips proxy Authorization, restores
 P8 to catalogue REQUESTER_GROUPS and separates the later real-service stop from
-characterisation. Proposed commands are in
-`docs/business_cycle/characterize_readonly.sh`, with static checker and
-`CHARACTERIZATION_AUDIT.md`; they have never been executed and require audit plus a
-separate owner approval before use.
+characterisation. The first command draft (`2d5041e`) was rejected for a wrong module
+fingerprint, incomplete read-only propagation, possible secret disclosure, insufficient
+allowlisting and missing infrastructure probes. Revision 6 corrects those points with a
+standard-library sanitiser, exact-file pins, semantic positive allowlists and negative
+mutation/canary tests. The corrected package was exercised only against disposable
+PostgreSQL 16 and official Odoo 18.0 containers: both database sections and the secret
+sanitisation passed; expected host-only failures demonstrated continuation; every
+disposable container, volume and network was removed. It has never run on the real
+server. The four files listed in `CHARACTERIZATION_AUDIT.md` require a new audit and a
+separate owner approval before any real-server use.

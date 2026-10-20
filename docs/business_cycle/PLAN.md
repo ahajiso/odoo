@@ -1,4 +1,4 @@
-# Business-cycle acceptance before AI — plan revision 5
+# Business-cycle acceptance before AI — plan revision 6
 
 Status: **plan only, submitted for audit**. No account, business record, module,
 database, container or server configuration is created or changed by this revision.
@@ -7,9 +7,10 @@ Date: 19/10/2026. Source: a verified backup of `artdubati_test`. The campaign ru
 an ephemeral Odoo/PostgreSQL pair dedicated to the audit. `artdubati_test` and
 `artdubati` remain outside the campaign.
 
-Revision 5 incorporates the audits of commits `1411d1d` and `f79f839`. Only the
-preparation of the read-only server characterisation is authorised, and its commands
-must be audited before use. Profile, security and campaign scripts remain forbidden.
+Revision 6 incorporates the audits of commits `1411d1d`, `f79f839` and `2d5041e`.
+Only preparation and local disposable validation of the read-only server
+characterisation are authorised. Its corrected commands must be audited again before
+any real-server use. Profile, security and campaign scripts remain forbidden.
 
 ## 1. Goal and exact meaning of “complete cycle”
 
@@ -344,7 +345,7 @@ draft bill and must be refused.
 P6 checks the match, attachment, supplier reference, date, taxes and expense/asset
 treatment, then posts the bill. No payment is made. A supplier refund violating the
 frozen operation is first probed because no existing one-off-rental guard covers refund
-moves (`out_refund`). The expected result is explicitly unknown: acceptance is a defect
+moves (`in_refund`). The expected result is explicitly unknown: acceptance is a defect
 to classify, not a successful negative test. Separately, C8 tests the specific
 asset-supplier-refund restriction; it is not described as an operation freeze.
 The Mac Mini remains a separate named scenario requiring accountant choices.
@@ -440,7 +441,7 @@ test choice becomes a production rule without accountant signoff.
 
 ## 9. Ordered roadmap and stop rules
 
-1. Audit revision 5 and obtain decisions D1–D7; D8–D10 are confirmed.
+1. Audit revision 6 and obtain decisions D1–D7; D8–D10 are confirmed.
 2. Perform only the read-only server characterisation in section 5.1; audit its output.
 3. Write and audit a lifecycle plan for the separate PostgreSQL/Odoo pair, backup
    exclusions, hostname, neutralisation and deletion proof.
@@ -474,13 +475,16 @@ No step in this plan authorises campaign creation or destructive cleanup yet.
   classified by author and no deployment occurs during an active campaign; production
   remains untouched.
 
-## 11. Evidence used for revision 5
+## 11. Evidence used for revision 6
 
-- independent audits of commits `1383a33`, `1411d1d` and `f79f839`, supplied on
-  19/10/2026;
+- independent audits of commits `1383a33`, `1411d1d`, `f79f839` and `2d5041e`,
+  supplied on 19–20/10/2026;
 - installed security, access CSVs and server methods for product requests, equipment
   operations, stock, purchase, accounting and investor access;
 - `docs/DEFINITIONS.md`, `docs/ROADMAP.md`, manual sources and generation rules;
 - `docs/one_off_rental/LIVE_ACCEPTANCE_20261018.md`;
 - existing backup/restore/deployment scripts, unsuitable for campaign clone creation
   until the separate lifecycle audit is complete.
+- local disposable execution against PostgreSQL 16 and official Odoo 18.0, used only
+  to validate the corrected characterisation's SQL, sanitisation and failure
+  continuation; it is not evidence of production-platform parity.

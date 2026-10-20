@@ -1,0 +1,268 @@
+#!/usr/bin/env python3
+"""Read-only parsers/sanitisers for characterize_readonly.sh."""
+
+from __future__ import annotations
+
+import configparser
+import json
+from pathlib import Path
+import re
+import shlex
+import sys
+from urllib.parse import urlsplit, urlunsplit
+
+
+SENSITIVE = re.compile(r"(?:auth|pass|passwd|password|secret|token|api.?key|private.?key|credential)", re.I)
+PROXY = re.compile(r"(?:nginx|caddy|traefik|haproxy|reverse.?proxy)", re.I)
+DETAIL_NAMES = {"odoo_web", "odoo_db"}
+
+
+def safe_command(tokens: object) -> list[str]:
+    if not isinstance(tokens, list):
+        return []
+    result: list[str] = []
+    hide_next = False
+    for raw in tokens:
+        token = str(raw)
+        if hide_next:
+            result.append("[present]")
+            hide_next = False
+            continue
+        if "=" in token and token.startswith("-"):
+            option, value = token.split("=", 1)
+            result.append(f"{option}={'[present]' if SENSITIVE.search(option) else value}")
+            continue
+        if SENSITIVE.search(token) and not token.startswith("-"):
+            result.append("[present]")
+            continue
+        result.append(token)
+        if SENSITIVE.search(token) or token in {"-c", "-w", "--command", "--password"}:
+            hide_next = True
+    return result
+
+
+def safe_labels(labels: object, proxy: bool) -> dict[str, str]:
+    if not isinstance(labels, dict):
+        return {}
+    output: dict[str, str] = {}
+    for key, raw in sorted(labels.items()):
+        value = "" if raw is None else str(raw)
+        if SENSITIVE.search(key):
+            output[key] = "[present]"
+        else:
+            output[key] = "[present]"
+    return output
+
+
+def docker_containers() -> None:
+    objects = json.load(sys.stdin)
+    for item in sorted(objects, key=lambda value: value.get("Name", "")):
+        name = str(item.get("Name", "")).lstrip("/")
+        config = item.get("Config") or {}
+        host = item.get("HostConfig") or {}
+        image = str(config.get("Image", ""))
+        is_proxy = bool(PROXY.search(f"{name} {image}"))
+        detailed = name in DETAIL_NAMES or is_proxy
+        base = {
+            "name": name,
+            "id": item.get("Id"),
+            "image_id": item.get("Image"),
+            "image_name": image,
+            "running": (item.get("State") or {}).get("Running"),
+            "log_driver": (host.get("LogConfig") or {}).get("Type"),
+            "network_mode": host.get("NetworkMode"),
+            "restart": (host.get("RestartPolicy") or {}).get("Name"),
+        }
+        if detailed:
+            base.update(
+                user=config.get("User"),
+                entrypoint=safe_command(config.get("Entrypoint")),
+                cmd=safe_command(config.get("Cmd")),
+                env_names=sorted(
+                    str(value).split("=", 1)[0]
+                    for value in (config.get("Env") or [])
+                    if "=" in str(value)
+                ),
+                mounts=[
+                    {
+                        "type": mount.get("Type"),
+                        "source": mount.get("Source"),
+                        "destination": mount.get("Destination"),
+                        "rw": mount.get("RW"),
+                    }
+                    for mount in item.get("Mounts") or []
+                ],
+                labels=safe_labels(config.get("Labels"), is_proxy),
+            )
+        print(json.dumps(base, sort_keys=True, separators=(",", ":")))
+
+
+def docker_volumes() -> None:
+    objects = json.load(sys.stdin)
+    for item in sorted(objects, key=lambda value: value.get("Name", "")):
+        print(
+            json.dumps(
+                {
+                    "name": item.get("Name"),
+                    "driver": item.get("Driver"),
+                    "mountpoint": item.get("Mountpoint"),
+                    "option_names": sorted((item.get("Options") or {}).keys()),
+                    "label_names": sorted((item.get("Labels") or {}).keys()),
+                },
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+        )
+
+
+def odoo_config() -> None:
+    payload = sys.stdin.buffer.read()
+    path_raw, separator, content = payload.partition(b"\0")
+    if not separator:
+        raise SystemExit("missing Odoo config path separator")
+    path = path_raw.decode("utf-8", errors="strict")
+    parser = configparser.ConfigParser(interpolation=None)
+    parser.read_string(content.decode("utf-8", errors="strict"))
+    values = parser["options"] if parser.has_section("options") else {}
+    safe = {
+        "addons_path", "data_dir", "db_host", "db_name", "db_port", "db_sslmode",
+        "db_template", "db_user", "dbfilter", "gevent_port",
+        "http_port", "list_db", "log_handler", "log_level", "max_cron_threads",
+        "proxy_mode", "server_wide_modules", "smtp_port", "smtp_server", "smtp_ssl",
+        "workers",
+    }
+    secrets = {"admin_passwd", "db_password", "email_from", "smtp_password", "smtp_user"}
+    print(f"config path={path}")
+    for key in sorted(safe | secrets):
+        if key not in values:
+            print(f"config key={key} present=no")
+        elif key in secrets:
+            print(f"config key={key} present=yes")
+        else:
+            print(f"config key={key} value={values[key]}")
+
+
+def safe_proxy_target(value: str) -> str:
+    try:
+        parsed = urlsplit(value)
+        host = parsed.hostname or ""
+        port = f":{parsed.port}" if parsed.port else ""
+        return urlunsplit((parsed.scheme, host + port, "", "", ""))
+    except ValueError:
+        return "unparseable"
+
+
+def proxy_line(path: Path, number: int, line: str) -> None:
+    match = re.match(r"([A-Za-z_][A-Za-z0-9_]*)\s+(.+?);?$", line)
+    if not match:
+        return
+    directive, value = match.groups()
+    value = value.rstrip(";").strip()
+    prefix = f"proxy path={path} line={number} directive={directive}"
+    if directive in {"listen", "server_name", "location", "auth_basic_user_file"}:
+        print(f"{prefix} value={value}")
+    elif directive == "auth_basic":
+        print(f"{prefix} present=yes")
+    elif directive == "proxy_pass":
+        print(f"{prefix} safe_target={safe_proxy_target(value)}")
+    elif directive == "proxy_set_header":
+        parts = value.split(None, 1)
+        header = parts[0] if parts else ""
+        print(f"{prefix} header={header} value_present={'yes' if len(parts) == 2 else 'no'}")
+
+
+def scan_proxy_path(path: Path) -> None:
+    candidates = [path] if path.is_file() else sorted(path.rglob("*")) if path.is_dir() else []
+    for candidate in candidates:
+        if not candidate.is_file() or candidate.is_symlink():
+            continue
+        try:
+            lines = candidate.read_text(encoding="utf-8", errors="strict").splitlines()
+        except (OSError, UnicodeError):
+            continue
+        print(f"proxy_file path={candidate}")
+        for number, raw in enumerate(lines, start=1):
+            line = raw.strip()
+            if line and not line.startswith("#"):
+                proxy_line(candidate, number, line)
+
+
+def proxy_config() -> None:
+    inspected = json.load(sys.stdin)
+    roots = {Path("/etc/nginx"), Path("/etc/caddy"), Path("/etc/traefik")}
+    for item in inspected:
+        name = str(item.get("Name", ""))
+        image = str((item.get("Config") or {}).get("Image", ""))
+        if not PROXY.search(f"{name} {image}"):
+            continue
+        for mount in item.get("Mounts") or []:
+            source = mount.get("Source")
+            destination = str(mount.get("Destination") or "")
+            if source and destination in {"/etc/nginx", "/etc/caddy", "/etc/traefik"}:
+                roots.add(Path(str(source)))
+    for root in sorted(roots):
+        scan_proxy_path(root)
+
+
+def masked_cron_command(command: str) -> str:
+    try:
+        tokens = shlex.split(command, comments=True, posix=True)
+    except ValueError:
+        return "unparseable present=yes"
+    if not tokens:
+        return "empty"
+    while tokens and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", tokens[0]):
+        tokens.pop(0)
+    if not tokens:
+        return "environment_only"
+    executable = tokens[0]
+    option_names = []
+    for token in tokens[1:]:
+        if token.startswith("-"):
+            option_names.append(token.split("=", 1)[0])
+    return f"executable={executable} arguments={max(0, len(tokens) - 1)} option_names={','.join(option_names)}"
+
+
+def cron_config() -> None:
+    paths = [Path("/etc/crontab"), Path("/var/spool/cron/crontabs/root"), Path("/var/spool/cron/root")]
+    paths.extend(sorted(Path("/etc/cron.d").glob("*")) if Path("/etc/cron.d").is_dir() else [])
+    for path in paths:
+        if not path.is_file() or path.is_symlink():
+            continue
+        try:
+            lines = path.read_text(encoding="utf-8", errors="strict").splitlines()
+        except (OSError, UnicodeError):
+            continue
+        system_style = path == Path("/etc/crontab") or path.parent == Path("/etc/cron.d")
+        for number, raw in enumerate(lines, start=1):
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" in line.split(None, 1)[0]:
+                continue
+            fields = line.split(None, 6 if system_style else 5)
+            minimum = 7 if system_style else 6
+            if len(fields) < minimum:
+                print(f"cron path={path} line={number} unparsed=yes")
+                continue
+            schedule = " ".join(fields[:5])
+            user = fields[5] if system_style else "root"
+            command = fields[6] if system_style else fields[5]
+            print(f"cron path={path} line={number} schedule={schedule!r} user={user} {masked_cron_command(command)}")
+
+
+COMMANDS = {
+    "cron-config": cron_config,
+    "docker-containers": docker_containers,
+    "docker-volumes": docker_volumes,
+    "odoo-config": odoo_config,
+    "proxy-config": proxy_config,
+}
+
+
+def main() -> None:
+    if len(sys.argv) != 2 or sys.argv[1] not in COMMANDS:
+        raise SystemExit("expected one known helper command")
+    COMMANDS[sys.argv[1]]()
+
+
+if __name__ == "__main__":
+    main()
