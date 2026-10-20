@@ -269,6 +269,11 @@ class TestCreationRequest(CatalogueCommon):
             request.action_approve()
 
     def test_waiting_family_refused(self):
+        # independent of the database: on artdubati_test a material category may already
+        # be open to requests (docs/catalogue_stock, 20/10/2026); closed here, in the
+        # test's transaction only, so that the family waits again
+        ready = self.env["product.category"].search([("request_ready", "=", True)])
+        ready.filtered(lambda c: c._catalogue_family() == "material").request_ready = False
         categ = self.env["product.category"].create({
             "name": "Tiles (test)", "parent_id": self.root_materials.id})
         request = self._request(family="material", categ_id=categ.id,
