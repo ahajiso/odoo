@@ -391,3 +391,19 @@ has been performed by these local verifications.
 Superseded on 18/10/2026 for the transitional acceptance (owner's decision, artdubati
 disposable): usual update of artdubati_test, docs/one_off_rental/DEPLOYMENT.md §0;
 isolation still mandatory before production.
+
+## Stock catalogue categories — proposal of 20/10/2026
+
+The owner's Leroy Merlin acceptance exposed two blockers: imported categories 20–25
+were still outside the governed catalogue branches and unavailable to requests, and a
+new web form could resend its readonly `/`, draft state and current requester defaults,
+which the API guard rejected. The proposed 18.0.5.2.4 keeps the guard strict for every
+non-default value while accepting and replacing those exact web defaults server-side.
+`docs/catalogue_stock/` reuses categories 20–25, moves 22 under Construction Materials
+and the other five under Consumables & Accessories (catalogue), and opens them only
+with AVCO, automated valuation and complete accounts. It also creates the missing
+Workwear & PPE leaf and a manually valued Tools & Workshop Equipment leaf for durable
+items deliberately expensed on 606300. Test choice C29: materials 601000/311000/603100;
+consumables 602220 or 602230/321000/603200. It is limited to
+artdubati_test, defaults to rollback and remains subject to audit and accountant review
+before production. The server migration and Odoo integration tests have not run yet.
