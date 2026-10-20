@@ -4,6 +4,7 @@ silent equipment category."""
 import base64
 from unittest.mock import patch
 
+from lxml import etree
 from psycopg2.errors import ForeignKeyViolation
 
 from odoo import Command
@@ -572,11 +573,40 @@ class TestRequestBypasses(CatalogueCommon):
         request.with_user(self.manager).action_submit()
         self.assertEqual(request.state, "to_approve")
 
+    def test_web_form_first_save_of_a_manager(self):
+        """The exact payload of the web client's first save (Submit on a new form),
+        captured in the browser on 18.0.5.2.3 for a catalogue manager: it carries
+        « similar_confirmed »: False and was refused (« This field is set by the
+        request itself. »)."""
+        Request = self.env["product.creation.request"].with_user(self.manager)
+        form = Request.get_views([(False, "form")])["views"]["form"]["arch"]
+        node = etree.fromstring(form).xpath("//field[@name='similar_confirmed']")[0]
+        self.assertEqual(node.get("readonly"), "state != 'to_approve'")
+        payload = {
+            "image_1920": False, "product_name": "Web form service (test)",
+            "family": "service", "categ_id": self.categ_service.id,
+            "equipment_category_id": False, "tracking": "none", "default_code": False,
+            "barcode": False, "purchase_ok": True, "sale_ok": False,
+            "responsible_id": self.manager.id, "decision_note": False,
+            "supplier_id": False, "supplier_code": False, "supplier_price": 0,
+            "min_qty": 0, "delay": 0, "supplier_taxes_ids": [], "standard_price": 0,
+            "list_price": 0, "taxes_ids": [], "similar_confirmed": False,
+            "attachment_ids": [], "description": False,
+        }
+        saved = Request.web_save(payload, {"name": {}, "state": {}, "requester_id": {}})
+        request = Request.browse(saved[0]["id"])
+        self.assertNotEqual(request.name, "/")
+        self.assertEqual((request.state, request.requester_id), ("draft", self.manager))
+        self.assertFalse(request.similar_confirmed)
+        request.action_submit()
+        self.assertEqual(request.state, "to_approve")
+
     def test_non_default_protected_values_remain_refused_on_create(self):
         for values in (
                 {"name": "PCR/CLIENT"},
                 {"state": "approved"},
                 {"requester_id": self.buyer.id},
+                {"similar_confirmed": True},
                 {"name": "/", "requester_id": self.buyer.id}):
             with self.subTest(values=values), self.assertRaises(AccessError):
                 self._request(user=self.manager, **values)

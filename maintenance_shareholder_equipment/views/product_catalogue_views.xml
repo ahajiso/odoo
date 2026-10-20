@@ -100,7 +100,9 @@
                     </group>
                     <group string="Duplicates" invisible="not duplicate_text">
                         <field name="duplicate_text" nolabel="1" colspan="2"/>
-                        <field name="similar_confirmed"
+                        <!-- only while the request waits for approval (write rule); readonly
+                             before, so that a new form does not send it (PR #3 follow-up) -->
+                        <field name="similar_confirmed" readonly="state != 'to_approve'"
                                groups="maintenance_shareholder_equipment.group_product_catalogue_manager"/>
                     </group>
                     <notebook>
