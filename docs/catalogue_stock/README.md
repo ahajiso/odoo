@@ -135,3 +135,42 @@ The first click on **Submit** must create a numbered request instead of returnin
 “This field is set by the request itself.”, for a catalogue manager too. A different
 requester, state, request number or `similar_confirmed: true` sent through the API
 must still be refused.
+
+## Family filter of the request form (18.0.5.2.5, owner's request of 20/10/2026)
+
+The owner chose « 20 Tool Accessories » on a request of another family and got, at
+submission, « … is not in the branch of this family ». Now the form offers only the
+categories open to requests **in the branch of the chosen family** (`FAMILY_ROOTS`):
+computed field `allowed_categ_ids` (not stored) used as the domain of `categ_id`;
+changing the family empties a category of another branch. The server check
+(`_check_values`) is unchanged for every other path (import, API). Equipment categories
+unchanged (owner's option a: all assignable ones, shown for durable equipment only).
+One new term, « Allowed Product Categories » (fr, fa), exported with `--i18n-export`.
+
+Verified locally on the activated copy: browser (catalogue manager): family consumable
+→ its six categories only, « Telecom » → no record, change to service → the category is
+emptied and the seven service categories are offered; two new tests; full suites
+**312, 0 failed** (311 on the server). No route added; no data change.
+
+```bash
+cd /opt/odoo/addons/custom
+COMMIT=<commit announced after the audit>
+git fetch origin +refs/heads/main:refs/remotes/origin/main
+git log -1 --oneline origin/main                       # $COMMIT
+rm -rf /tmp/catfam && mkdir -p /tmp/catfam
+git archive origin/main docs/phase4 docs/deploy_modules.sh docs/backup_db.sh \
+  docs/restore_db.sh docs/one_off_rental/routes_after_18.0.5.2.3.txt | tar -x -C /tmp/catfam
+git status --short | head                              # nothing
+bash /tmp/catfam/docs/phase4/check_modules.sh before   # PLATFORM OK (before)
+bash /tmp/catfam/docs/backup_db.sh catfam              # BACKUP OK
+BACKUP=$(sed -n 's/^DUMP=//p' /opt/odoo/logs/catfam_backup)
+ARTDUBATI_DISPOSABLE=reset-before-production \
+  bash /tmp/catfam/docs/deploy_modules.sh "$BACKUP" 311 catfam "$COMMIT"   # TESTS OK … 311
+bash /tmp/catfam/docs/phase4/check_modules.sh after    # PLATFORM OK (after)
+docker exec -i odoo_web odoo shell -d artdubati_test --no-http \
+  < /tmp/catfam/docs/phase4/routes.py > /opt/odoo/logs/catfam_routes.txt
+diff /tmp/catfam/docs/one_off_rental/routes_after_18.0.5.2.3.txt \
+  /opt/odoo/logs/catfam_routes.txt && echo "ROUTES IDENTIQUES"
+```
+
+Any FAILED or a count other than 311: stop, `bash /tmp/catfam/docs/restore_db.sh catfam`.

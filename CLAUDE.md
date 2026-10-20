@@ -414,4 +414,6 @@ locally (309 on the server); activation rehearsed locally (9, then 0). First win
 (b4648bd) stopped by a data-dependent test (fixed in 2b80aef) and rolled back; deployed
 on artdubati_test on 20/10/2026 (877a30d, window catstock2): 309 tests 0 failed,
 activation 9 then 0, PLATFORM OK before / after, routes identical. Acceptance (AXTON
-request) by the owner to do; C29 provisional.
+request) by the owner to do; C29 provisional. Family filter of the request form
+(18.0.5.2.5, owner's request 20/10/2026, option a for equipment categories): developed,
+312 tests locally (311 on the server), browser-checked; audit pending.
