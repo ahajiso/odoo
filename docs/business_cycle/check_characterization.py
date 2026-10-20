@@ -13,8 +13,8 @@ import sys
 ROOT = Path(__file__).resolve().parent
 SCRIPT = ROOT / "characterize_readonly.sh"
 HELPER = ROOT / "characterize_helpers.py"
-EXPECTED_SCRIPT_SHA256 = "bd6bc707683a585b2f58b172124c6a3909019e212cf9c765f6b3e8704001fb74"
-EXPECTED_HELPER_SHA256 = "0d4020ee143f984e74f16bd53dd0e2496e8c23744eae6b9709dd3a9bc7965615"
+EXPECTED_SCRIPT_SHA256 = "70488b7249cd25f95c1f3b0079ecb601a0417f5a06697b6ee199e6046a92f0ce"
+EXPECTED_HELPER_SHA256 = "55b3bddf77dcf61ec99a84eb334732d1947c6827c6b2014db0901e458c7595a4"
 
 ALLOWED_COMMANDS = {
     "awk", "break", "cat", "command", "date", "df", "docker", "done", "du", "else",
@@ -26,7 +26,7 @@ ALLOWED_COMMANDS = {
 ALLOWED_DOCKER = {"exec", "image", "info", "inspect", "network", "ps", "version", "volume"}
 ALLOWED_DOCKER_NESTED = {"image": {"inspect"}, "network": {"inspect", "ls"}, "volume": {"inspect", "ls"}}
 ALLOWED_GIT = {"ls-files", "rev-parse", "status", "submodule"}
-ALLOWED_HELPERS = {"cron-config", "docker-containers", "docker-volumes", "odoo-config", "proxy-config"}
+ALLOWED_HELPERS = {"cron-config", "docker-containers", "docker-volumes", "host-mounts", "odoo-config", "proxy-config"}
 ALLOWED_IMPORTS = {
     "__future__", "configparser", "hashlib", "json", "pathlib", "re", "shlex", "sys",
     "urllib.parse",

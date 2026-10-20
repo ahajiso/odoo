@@ -121,7 +121,11 @@ class SanitisationTests(unittest.TestCase):
             "Config": {
                 "Image": "odoo:test",
                 "Env": [],
-                "Cmd": ["sh", "-c", "curl -H 'Authorization: Bearer embedded-secret'", "--db_password=hunter2", "--token", "secret-token", "--workers=2"],
+                "Cmd": [
+                    "sh", "-c", "curl -H 'Authorization: Bearer embedded-secret'",
+                    "--db_password=hunter2", "--token", "secret-token", "--workers=2",
+                    "-whunter2", "postgresql://person:hunter2@db.invalid/database",
+                ],
                 "Entrypoint": [],
                 "Labels": {},
             },
@@ -129,11 +133,14 @@ class SanitisationTests(unittest.TestCase):
             "Mounts": [],
         }]
         result = self.run_container_parser(payload)
-        self.assertIn("--db_password=[present]", result)
-        self.assertIn('"--token","[present]"', result)
+        self.assertIn("--db_password=[arg]", result)
+        self.assertIn('"--token","[arg]"', result)
+        self.assertIn("-w[arg]", result)
         self.assertNotIn("hunter2", result)
         self.assertNotIn("secret-token", result)
         self.assertNotIn("embedded-secret", result)
+        self.assertNotIn("person", result)
+        self.assertNotIn("db.invalid", result)
 
         previous = sys.stdin
         output = StringIO()
@@ -172,8 +179,44 @@ class SanitisationTests(unittest.TestCase):
         self.assertNotIn("hunter2", cron)
         self.assertNotIn("secret-token", cron)
 
+        for system_style, line in (
+            (False, "@reboot PGPASSWORD=hunter2 pg_dump -h db example"),
+            (True, "@daily root PGPASSWORD=hunter2 pg_dump -h db example"),
+        ):
+            output = StringIO()
+            with redirect_stdout(output):
+                helpers.cron_line(Path("/etc/crontab" if system_style else "/var/spool/cron/root"), 1, line, system_style)
+            rendered_cron = output.getvalue()
+            self.assertIn("schedule='@", rendered_cron)
+            self.assertIn("executable=pg_dump", rendered_cron)
+            self.assertNotIn("hunter2", rendered_cron)
+
+        previous = sys.stdin
+        output = StringIO()
+        try:
+            sys.stdin = StringIO(json.dumps({"filesystems": [{
+                "target": "/mnt/share", "source": "//server/share", "fstype": "cifs",
+                "options": "rw,username=person,credentials=/secret/path,password=hunter2",
+            }]}))
+            with redirect_stdout(output):
+                helpers.host_mounts()
+        finally:
+            sys.stdin = previous
+        mounts = output.getvalue()
+        self.assertNotIn("person", mounts)
+        self.assertNotIn("/secret/path", mounts)
+        self.assertNotIn("hunter2", mounts)
+        self.assertIn("username=[present]", mounts)
+
         script = checker.SCRIPT.read_text(encoding="utf-8")
         self.assertNotIn("secret path=%p mode=%m uid=%U gid=%G size=%s", script)
+        for required in (
+            "date -u '+utc=%Y-%m-%dT%H:%M:%SZ' || return",
+            "docker version --format 'client={{.Client.Version}} server={{.Server.Version}}' || return",
+            'python3 -B "$HELPER" cron-config || return',
+            'docker exec -i "$WEB_CONTAINER" du -sb -- "$target" || return',
+        ):
+            self.assertIn(required, script)
 
 
 if __name__ == "__main__":

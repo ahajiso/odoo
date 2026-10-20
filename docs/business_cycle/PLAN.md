@@ -1,4 +1,4 @@
-# Business-cycle acceptance before AI — plan revision 6
+# Business-cycle acceptance before AI — plan revision 7
 
 Status: **plan only, submitted for audit**. No account, business record, module,
 database, container or server configuration is created or changed by this revision.
@@ -7,7 +7,8 @@ Date: 19/10/2026. Source: a verified backup of `artdubati_test`. The campaign ru
 an ephemeral Odoo/PostgreSQL pair dedicated to the audit. `artdubati_test` and
 `artdubati` remain outside the campaign.
 
-Revision 6 incorporates the audits of commits `1411d1d`, `f79f839` and `2d5041e`.
+Revision 7 incorporates the audits of commits `1411d1d`, `f79f839`, `2d5041e` and
+`3f682e6`.
 Only preparation and local disposable validation of the read-only server
 characterisation are authorised. Its corrected commands must be audited again before
 any real-server use. Profile, security and campaign scripts remain forbidden.
@@ -441,7 +442,7 @@ test choice becomes a production rule without accountant signoff.
 
 ## 9. Ordered roadmap and stop rules
 
-1. Audit revision 6 and obtain decisions D1–D7; D8–D10 are confirmed.
+1. Audit revision 7 and obtain decisions D1–D7; D8–D10 are confirmed.
 2. Perform only the read-only server characterisation in section 5.1; audit its output.
 3. Write and audit a lifecycle plan for the separate PostgreSQL/Odoo pair, backup
    exclusions, hostname, neutralisation and deletion proof.
@@ -475,9 +476,10 @@ No step in this plan authorises campaign creation or destructive cleanup yet.
   classified by author and no deployment occurs during an active campaign; production
   remains untouched.
 
-## 11. Evidence used for revision 6
+## 11. Evidence used for revision 7
 
-- independent audits of commits `1383a33`, `1411d1d`, `f79f839` and `2d5041e`,
+- independent audits of commits `1383a33`, `1411d1d`, `f79f839`, `2d5041e` and
+  `3f682e6`,
   supplied on 19–20/10/2026;
 - installed security, access CSVs and server methods for product requests, equipment
   operations, stock, purchase, accounting and investor access;
@@ -485,6 +487,6 @@ No step in this plan authorises campaign creation or destructive cleanup yet.
 - `docs/one_off_rental/LIVE_ACCEPTANCE_20261018.md`;
 - existing backup/restore/deployment scripts, unsuitable for campaign clone creation
   until the separate lifecycle audit is complete.
-- local disposable execution against PostgreSQL 16 and official Odoo 18.0, used only
-  to validate the corrected characterisation's SQL, sanitisation and failure
-  continuation; it is not evidence of production-platform parity.
+- local disposable execution of the revision-6 base against PostgreSQL 16 and official
+  Odoo 18.0, plus revision-7 targeted tests for sanitisation and failure propagation;
+  neither is evidence of production-platform parity.

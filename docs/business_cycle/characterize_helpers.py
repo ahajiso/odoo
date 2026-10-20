@@ -22,21 +22,29 @@ def safe_command(tokens: object) -> list[str]:
         return []
     result: list[str] = []
     hide_next = False
-    for raw in tokens:
+    for index, raw in enumerate(tokens):
         token = str(raw)
+        if index == 0:
+            result.append(safe_proxy_target(token) if "://" in token else token)
+            continue
         if hide_next:
-            result.append("[present]")
+            result.append("[arg]")
             hide_next = False
             continue
-        if "=" in token and token.startswith("-"):
-            option, value = token.split("=", 1)
-            result.append(f"{option}={'[present]' if SENSITIVE.search(option) else value}")
+        if token.startswith("--"):
+            option, separator, _value = token.partition("=")
+            result.append(f"{option}=[arg]" if separator else option)
+            if not separator and SENSITIVE.search(option):
+                hide_next = True
             continue
-        if SENSITIVE.search(token) and not token.startswith("-"):
-            result.append("[present]")
+        if re.match(r"^-[wWp].+", token):
+            result.append(f"{token[:2]}[arg]")
             continue
-        result.append(token)
-        if SENSITIVE.search(token) or token in {"-c", "-w", "--command", "--password"}:
+        if token.startswith("-"):
+            result.append(token[:2] if len(token) > 2 else token)
+        else:
+            result.append("[arg]")
+        if token in {"-c", "-w", "-W", "-p"}:
             hide_next = True
     return result
 
@@ -113,6 +121,35 @@ def docker_volumes() -> None:
                 separators=(",", ":"),
             )
         )
+
+
+def host_mounts() -> None:
+    payload = json.load(sys.stdin)
+
+    def visit(items: object) -> None:
+        if not isinstance(items, list):
+            return
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            options = []
+            for raw in str(item.get("options") or "").split(","):
+                key, separator, value = raw.partition("=")
+                if not raw:
+                    continue
+                if separator and key.lower() in {"user", "username", "credentials", "password", "passwd"}:
+                    options.append(f"{key}=[present]")
+                else:
+                    options.append(raw if not (separator and SENSITIVE.search(key)) else f"{key}=[present]")
+            print(json.dumps({
+                "target": item.get("target"),
+                "source": item.get("source"),
+                "fstype": item.get("fstype"),
+                "options": options,
+            }, sort_keys=True, separators=(",", ":")))
+            visit(item.get("children"))
+
+    visit(payload.get("filesystems") if isinstance(payload, dict) else None)
 
 
 def odoo_config() -> None:
@@ -198,7 +235,8 @@ def proxy_config() -> None:
         for mount in item.get("Mounts") or []:
             source = mount.get("Source")
             destination = str(mount.get("Destination") or "")
-            if source and destination in {"/etc/nginx", "/etc/caddy", "/etc/traefik"}:
+            config_roots = ("/etc/nginx", "/etc/caddy", "/etc/traefik")
+            if source and any(destination == root or destination.startswith(root + "/") for root in config_roots):
                 roots.add(Path(str(source)))
     for root in sorted(roots):
         scan_proxy_path(root)
@@ -223,36 +261,64 @@ def masked_cron_command(command: str) -> str:
     return f"executable={executable} arguments={max(0, len(tokens) - 1)} option_names={','.join(option_names)}"
 
 
+def cron_line(path: Path, number: int, raw: str, system_style: bool) -> None:
+    line = raw.strip()
+    if not line or line.startswith("#") or "=" in line.split(None, 1)[0]:
+        return
+    macro = re.fullmatch(r"@(reboot|yearly|annually|monthly|weekly|daily|midnight|hourly)", line.split(None, 1)[0], re.I)
+    if macro:
+        fields = line.split(None, 2 if system_style else 1)
+        minimum = 3 if system_style else 2
+        schedule_fields = fields[:1]
+        user_index = 1 if system_style else None
+        command_index = 2 if system_style else 1
+    else:
+        fields = line.split(None, 6 if system_style else 5)
+        minimum = 7 if system_style else 6
+        schedule_fields = fields[:5]
+        user_index = 5 if system_style else None
+        command_index = 6 if system_style else 5
+    schedule_valid = bool(macro) or all(re.fullmatch(r"[A-Za-z0-9*/?,#LWK-]+", field, re.I) for field in schedule_fields)
+    if len(fields) < minimum or not schedule_valid:
+        print(f"cron path={path} line={number} unparsed=yes")
+        return
+    schedule = " ".join(schedule_fields)
+    user = fields[user_index] if user_index is not None else path.name
+    command = fields[command_index]
+    print(f"cron path={path} line={number} schedule={schedule!r} user={user} {masked_cron_command(command)}")
+
+
 def cron_config() -> None:
-    paths = [Path("/etc/crontab"), Path("/var/spool/cron/crontabs/root"), Path("/var/spool/cron/root")]
+    paths = [Path("/etc/crontab")]
     paths.extend(sorted(Path("/etc/cron.d").glob("*")) if Path("/etc/cron.d").is_dir() else [])
+    for root in (Path("/var/spool/cron/crontabs"), Path("/var/spool/cron")):
+        if root.is_dir():
+            paths.extend(sorted(path for path in root.glob("*") if path.is_file()))
+    seen: set[Path] = set()
     for path in paths:
-        if not path.is_file() or path.is_symlink():
+        if path in seen or not path.is_file() or path.is_symlink():
             continue
+        seen.add(path)
         try:
             lines = path.read_text(encoding="utf-8", errors="strict").splitlines()
         except (OSError, UnicodeError):
             continue
         system_style = path == Path("/etc/crontab") or path.parent == Path("/etc/cron.d")
         for number, raw in enumerate(lines, start=1):
-            line = raw.strip()
-            if not line or line.startswith("#") or "=" in line.split(None, 1)[0]:
-                continue
-            fields = line.split(None, 6 if system_style else 5)
-            minimum = 7 if system_style else 6
-            if len(fields) < minimum:
-                print(f"cron path={path} line={number} unparsed=yes")
-                continue
-            schedule = " ".join(fields[:5])
-            user = fields[5] if system_style else "root"
-            command = fields[6] if system_style else fields[5]
-            print(f"cron path={path} line={number} schedule={schedule!r} user={user} {masked_cron_command(command)}")
+            cron_line(path, number, raw, system_style)
+    for directory in ("/etc/cron.hourly", "/etc/cron.daily", "/etc/cron.weekly", "/etc/cron.monthly"):
+        root = Path(directory)
+        if root.is_dir():
+            for entry in sorted(root.iterdir()):
+                if entry.is_file() and not entry.is_symlink():
+                    print(f"periodic path={entry}")
 
 
 COMMANDS = {
     "cron-config": cron_config,
     "docker-containers": docker_containers,
     "docker-volumes": docker_volumes,
+    "host-mounts": host_mounts,
     "odoo-config": odoo_config,
     "proxy-config": proxy_config,
 }

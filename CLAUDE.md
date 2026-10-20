@@ -393,7 +393,7 @@ isolation still mandatory before production.
 
 ## Business-cycle acceptance before AI (owner request, 19/10/2026)
 
-Plan revision 6: `docs/business_cycle/PLAN.md`; audit request:
+Plan revision 7: `docs/business_cycle/PLAN.md`; audit request:
 `docs/business_cycle/AUDIT_REQUEST.md`. No profile, business record, database, container
 or server configuration has been created. The audit of revision 2 found that another DB
 inside live `odoo_db` is not isolated from Odoo cron. The campaign now requires its own
@@ -438,3 +438,9 @@ sanitisation passed; expected host-only failures demonstrated continuation; ever
 disposable container, volume and network was removed. It has never run on the real
 server. The four files listed in `CHARACTERIZATION_AUDIT.md` require a new audit and a
 separate owner approval before any real-server use.
+Audit of `3f682e6`: corrections still required before that approval. Revision 7 parses
+cron macros without leaking command fields, reduces inspected commands to executable
+and option names, masks mount credentials, propagates every multi-command section
+failure, extends API-key classification and cron coverage, and declares effective
+reverse-proxy topology as external evidence. The exact file hashes, not the semantic
+checker alone, remain the security boundary.

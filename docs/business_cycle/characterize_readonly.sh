@@ -37,35 +37,46 @@ run_section() {
 }
 
 identity() {
-    date -u '+utc=%Y-%m-%dT%H:%M:%SZ'
-    hostname
-    uname -a
-    sha256sum "$SCRIPT_PATH" "$HELPER"
+    date -u '+utc=%Y-%m-%dT%H:%M:%SZ' || return
+    hostname || return
+    uname -a || return
+    sha256sum "$SCRIPT_PATH" "$HELPER" || return
 }
 
 docker_engine() {
-    docker version --format 'client={{.Client.Version}} server={{.Server.Version}}'
-    docker info --format 'root={{.DockerRootDir}} driver={{.Driver}} logging={{.LoggingDriver}} cgroup={{.CgroupDriver}} security={{json .SecurityOptions}} live_restore={{.LiveRestoreEnabled}}'
-    docker ps -a --no-trunc --format 'container={{.ID}} name={{.Names}} image={{.Image}} status={{.Status}} networks={{.Networks}}'
+    docker version --format 'client={{.Client.Version}} server={{.Server.Version}}' || return
+    docker info --format 'root={{.DockerRootDir}} driver={{.Driver}} logging={{.LoggingDriver}} cgroup={{.CgroupDriver}} security={{json .SecurityOptions}} live_restore={{.LiveRestoreEnabled}}' || return
+    docker ps -a --no-trunc --format 'container={{.ID}} name={{.Names}} image={{.Image}} status={{.Status}} networks={{.Networks}}' || return
+}
+
+host_mounts() {
+    findmnt --json --real --bytes --output TARGET,SOURCE,FSTYPE,OPTIONS |
+        python3 -B "$HELPER" host-mounts || return
 }
 
 docker_containers() {
     local ids=()
-    mapfile -t ids < <(docker ps -aq --no-trunc)
+    local output
+    output="$(docker ps -aq --no-trunc)" || return
+    mapfile -t ids < <(printf '%s' "$output")
     ((${#ids[@]})) || return 0
     docker inspect "${ids[@]}" | python3 -B "$HELPER" docker-containers
 }
 
 docker_networks() {
     local ids=()
-    mapfile -t ids < <(docker network ls -q --no-trunc)
+    local output
+    output="$(docker network ls -q --no-trunc)" || return
+    mapfile -t ids < <(printf '%s' "$output")
     ((${#ids[@]})) || return 0
     docker network inspect --format 'network name={{.Name}} id={{.Id}} driver={{.Driver}} internal={{.Internal}} attachable={{.Attachable}} scope={{.Scope}} ipam={{json .IPAM.Config}} container_names={{range .Containers}}{{.Name}} {{end}}' "${ids[@]}"
 }
 
 docker_volumes() {
     local names=()
-    mapfile -t names < <(docker volume ls -q)
+    local output
+    output="$(docker volume ls -q)" || return
+    mapfile -t names < <(printf '%s' "$output")
     ((${#names[@]})) || return 0
     docker volume inspect "${names[@]}" | python3 -B "$HELPER" docker-volumes
 }
@@ -186,10 +197,21 @@ WHERE state = 'installed';
 SELECT 'res_users' AS relation, count(*) FROM res_users
 UNION ALL SELECT 'res_partner', count(*) FROM res_partner
 UNION ALL SELECT 'ir_attachment', count(*) FROM ir_attachment;
-SELECT user_id, COALESCE(scope, '[global]') AS scope, expiration_date, count(*) AS api_keys
-FROM res_users_apikeys
-GROUP BY user_id, scope, expiration_date
-ORDER BY user_id, scope, expiration_date;
+SELECT k.user_id, COALESCE(k.scope, '[global]') AS scope, k.expiration_date,
+       EXISTS (
+           SELECT 1 FROM res_groups_users_rel r
+           JOIN ir_model_data d ON d.model = 'res.groups' AND d.res_id = r.gid
+           WHERE r.uid = k.user_id AND d.module = 'base' AND d.name = 'group_user'
+       ) AS internal_user,
+       EXISTS (
+           SELECT 1 FROM res_groups_users_rel r
+           JOIN ir_model_data d ON d.model = 'res.groups' AND d.res_id = r.gid
+           WHERE r.uid = k.user_id AND d.module = 'base' AND d.name = 'group_system'
+       ) AS administrator,
+       count(*) AS api_keys
+FROM res_users_apikeys k
+GROUP BY k.user_id, k.scope, k.expiration_date
+ORDER BY k.user_id, k.scope, k.expiration_date;
 SELECT state, count(*) AS server_actions
 FROM ir_act_server
 WHERE state = 'webhook'
@@ -204,6 +226,7 @@ SQL
 
 secret_metadata() {
     local container_name="$1"
+    docker inspect --format 'secret_container={{.Id}}' "$container_name" || return
     if docker exec -i "$container_name" test -d /run/secrets; then
         docker exec -i "$container_name" find /run/secrets -xdev -type f \
             -printf 'secret path=%p mode=%m uid=%U gid=%G\n'
@@ -213,17 +236,18 @@ secret_metadata() {
 }
 
 git_identity() {
-    git -c core.fsmonitor=false -c safe.directory="$CUSTOM_ROOT" -C "$CUSTOM_ROOT" rev-parse HEAD
-    git -c core.fsmonitor=false -c safe.directory="$CUSTOM_ROOT" -C "$CUSTOM_ROOT" status --porcelain=v1 --untracked-files=all | wc -l | awk '{print "git_status_entries=" $1}'
-    git -c core.fsmonitor=false -c safe.directory="$CUSTOM_ROOT" -C "$CUSTOM_ROOT" status --porcelain=v1 --untracked-files=all | sha256sum | awk '{print "git_status_sha256=" $1}'
-    git -c core.fsmonitor=false -c safe.directory="$CUSTOM_ROOT" -C "$CUSTOM_ROOT" ls-files -s | sha256sum | awk '{print "git_index_listing_sha256=" $1}'
-    git -c core.fsmonitor=false -c safe.directory="$CUSTOM_ROOT" -C "$CUSTOM_ROOT" submodule status --recursive
+    git -c core.fsmonitor=false -c safe.directory="$CUSTOM_ROOT" -C "$CUSTOM_ROOT" rev-parse HEAD || return
+    git -c core.fsmonitor=false -c safe.directory="$CUSTOM_ROOT" -C "$CUSTOM_ROOT" status --porcelain=v1 --untracked-files=all | wc -l | awk '{print "git_status_entries=" $1}' || return
+    git -c core.fsmonitor=false -c safe.directory="$CUSTOM_ROOT" -C "$CUSTOM_ROOT" status --porcelain=v1 --untracked-files=all | sha256sum | awk '{print "git_status_sha256=" $1}' || return
+    git -c core.fsmonitor=false -c safe.directory="$CUSTOM_ROOT" -C "$CUSTOM_ROOT" ls-files -s | sha256sum | awk '{print "git_index_listing_sha256=" $1}' || return
+    git -c core.fsmonitor=false -c safe.directory="$CUSTOM_ROOT" -C "$CUSTOM_ROOT" submodule status --recursive || return
 }
 
 filestore_size() {
     local database_name="$1"
     local target=""
     local candidate
+    docker inspect --format 'filestore_container={{.Id}}' "$WEB_CONTAINER" || return
     for candidate in \
         "/var/lib/odoo/.local/share/Odoo/filestore/$database_name" \
         "/var/lib/odoo/filestore/$database_name"; do
@@ -236,9 +260,9 @@ filestore_size() {
         printf '%s\n' 'filestore_present=no'
         return 0
     fi
-    docker exec -i "$WEB_CONTAINER" du -sb -- "$target"
+    docker exec -i "$WEB_CONTAINER" du -sb -- "$target" || return
     docker exec -i "$WEB_CONTAINER" find "$target" -xdev -type f -printf '%s\n' |
-        awk '{total += $1; count += 1} END {print "files=" count, "bytes=" total}'
+        awk '{total += $1; count += 1} END {print "files=" count, "bytes=" total}' || return
 }
 
 backup_inventory() {
@@ -252,7 +276,9 @@ backup_inventory() {
 
 proxy_configuration() {
     local ids=()
-    mapfile -t ids < <(docker ps -aq --no-trunc)
+    local output
+    output="$(docker ps -aq --no-trunc)" || return
+    mapfile -t ids < <(printf '%s' "$output")
     if ((${#ids[@]})); then
         docker inspect "${ids[@]}" | python3 -B "$HELPER" proxy-config
     else
@@ -261,10 +287,10 @@ proxy_configuration() {
 }
 
 cron_configuration() {
-    python3 -B "$HELPER" cron-config
+    python3 -B "$HELPER" cron-config || return
     systemctl list-unit-files --no-pager --no-legend |
-        awk 'tolower($0) ~ /(nginx|caddy|traefik|backup|snapshot|restic|borg|duplicity|docker|odoo|postgres)/'
-    systemctl list-timers --all --no-pager
+        awk 'tolower($0) ~ /(nginx|caddy|traefik|backup|snapshot|restic|borg|duplicity|docker|odoo|postgres)/' || return
+    systemctl list-timers --all --no-pager || return
 }
 
 run_section "identity" identity
@@ -272,7 +298,7 @@ run_section "host os" sed -n -E '/^(NAME|VERSION|ID|VERSION_ID)=/p' /etc/os-rele
 run_section "host memory" free -b
 run_section "host swap" swapon --show --bytes --output NAME,TYPE,SIZE,USED,PRIO
 run_section "host filesystems" df -B1 -T
-run_section "host mounts" findmnt --real --bytes --output TARGET,SOURCE,FSTYPE,OPTIONS
+run_section "host mounts sanitized" host_mounts
 run_section "docker engine" docker_engine
 run_section "docker containers sanitized" docker_containers
 run_section "docker networks" docker_networks
@@ -301,6 +327,7 @@ run_section "cron and timer configuration sanitized" cron_configuration
 run_section "external evidence" printf '%s\n' \
     'EXTERNAL_REQUIRED provider_snapshot_schedule_and_retention' \
     'EXTERNAL_REQUIRED provider_volume_backup_scope' \
+    'EXTERNAL_REQUIRED reverse_proxy_effective_topology_and_authentication' \
     'EXTERNAL_REQUIRED public_dns_and_certificate_transparency_history'
 
 if ((${#FAILED_SECTIONS[@]})); then

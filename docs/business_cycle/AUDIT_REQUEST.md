@@ -1,6 +1,6 @@
-# Audit request — business-cycle acceptance plan revision 6
+# Audit request — business-cycle acceptance plan revision 7
 
-Scope: `docs/business_cycle/PLAN.md` revision 6 and the four-file, unexecuted-on-server
+Scope: `docs/business_cycle/PLAN.md` revision 7 and the four-file, unexecuted-on-server
 characterisation package described in `CHARACTERIZATION_AUDIT.md`.
 
 No account, profile, business record, database, container or server configuration is
@@ -22,7 +22,7 @@ Odoo 18.0 and PostgreSQL 16; its resources were removed afterwards.
 - The refund probe for a one-off supplier rental is an `in_refund`; its expected result
   remains unknown until tested.
 
-## Corrections requested by the audit of `2d5041e`
+## Corrections requested by the audits of `2d5041e` and `3f682e6`
 
 The module fingerprint now uses `latest_version`. Multiline environment values,
 commands, entrypoints, labels, volume options, proxy headers and secret metadata are
@@ -39,9 +39,22 @@ explicitly outside host proof.
 
 The checker now rejects the dangerous shell, SQL and Python mutations listed in
 `CHARACTERIZATION_AUDIT.md`; secret-canary tests cover multiline and embedded values.
-Local disposable execution proved both real Odoo database SQL sections, sanitisation
-and continuation after expected sandbox-specific section failures. It did not touch or
-reproduce the production host.
+Local disposable execution of the revision-6 base proved both real Odoo database SQL
+sections, sanitisation and continuation after expected sandbox-specific section
+failures. Revision 7's targeted sanitisation/failure tests pass, but its full disposable
+Odoo/PostgreSQL exercise was not repeated. Neither run touched or reproduced the
+production host.
+
+After the second audit, cron macros have a strict dedicated parser; command output is
+reduced to executable and option names; attached password options, URL credentials and
+mount credentials are masked; and every command in a multi-command section propagates
+failure. Cron coverage includes every user spool and periodic filenames. API-key owners
+are classified as internal/administrator without login disclosure. Effective proxy
+topology is now explicitly external evidence when it cannot be safely derived.
+
+The documentation no longer presents the semantic checker as a formal boundary. The
+security boundary is the exact commit plus independently compared hashes of all four
+files and human review. The semantic checks and mutations are defence in depth.
 
 ## Important qualification
 
@@ -63,7 +76,7 @@ invalidates the pin and requires another audit.
 4. Verify the superuser/read-only reasoning and the full-file plus semantic allowlist.
 5. Verify that the local disposable evidence is neither overstated nor missing a
    required production-specific check.
-6. Review revision 6 for consistency with the prior plan findings and owner decisions.
+6. Review revision 7 for consistency with the prior plan findings and owner decisions.
 
 Return exactly one outcome: green light for drafting a separately approved one-time
 server execution procedure; corrections required, ranked by severity with precise
