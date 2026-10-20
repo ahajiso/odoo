@@ -64,6 +64,20 @@ open to requests, false on artdubati_test (one already is) and after any activat
 own transaction; full suites on that copy: 310, 0 failed. Activation not run. Rolled
 back with `restore_db.sh catstock`.
 
+### Deployment record (20/10/2026, second window `catstock2`, code 877a30d)
+
+Rollback of the first window confirmed (RESTORE OK, REGISTRY OK 122, code 1740e6b,
+PLATFORM OK). Before the second window the owner unticked « Available for requests » on
+12 and 13 (ticked by hand that afternoon, refused by the script as partial) and on the
+root 507 « Construction Materials » (no stock accounts); no request used them.
+PLATFORM OK (before); BACKUP OK (`catstock2`, 584 files, 0 missing, code 1740e6b); CODE
+OK 877a30d; UPDATE OK; **309 tests, 0 failed**; odoo_web left stopped; activation dry
+run 9 (categories 12 to 17 in their original state, 311000 to create, 321000 id 188
+reused, 8 READY), `--apply` **9 changed**, control run **0**; start, HEALTH OK;
+PLATFORM OK (after); routes identical to routes_after_18.0.5.2.3.txt. Kept until the
+acceptance: backups `catstock`, `catstock2`, copies `*_before_restore_20261020_150943`.
+Next: acceptance by the owner (below). C29 stays a test choice for the accountant.
+
 ### Procedure (one command at a time, after the audit)
 
 ```bash

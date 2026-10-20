@@ -410,4 +410,8 @@ before production. Audit of 20/10/2026 (Claude, docs/catalogue_stock/README.md):
 not fix the bug (the browser sends `similar_confirmed: false` for catalogue managers;
 name/state/requester are model-readonly and never sent); corrected in 2b9762d (field
 readonly before approval, exact False accepted on create), browser-checked; 310 tests
-locally (309 on the server); activation rehearsed locally (9, then 0). Not deployed.
+locally (309 on the server); activation rehearsed locally (9, then 0). First window
+(b4648bd) stopped by a data-dependent test (fixed in 2b80aef) and rolled back; deployed
+on artdubati_test on 20/10/2026 (877a30d, window catstock2): 309 tests 0 failed,
+activation 9 then 0, PLATFORM OK before / after, routes identical. Acceptance (AXTON
+request) by the owner to do; C29 provisional.
