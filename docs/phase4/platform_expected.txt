@@ -3,12 +3,12 @@
 #   IMAGE_ID=<docker image id of odoo_web>        ODOO_VERSION=<odoo --version>
 #   MODULE <name> <version> <sha256 of the module's code (platform.py)>
 #   AFTER  <name> <version> <sha256>   (expected after the update; MODULE = before)
-# Since the manuals of PR #2 (rentals and loans, 194e9f8): MODULE = artdubati_test after
-# the one-off rentals (9c432c5, PLATFORM OK (after) on 18/10/2026); AFTER = only
-# lartdubati_manual 18.0.1.0.0, whose files change (pages, screenshots, exports), not its
-# version: published by moving the code, no database update. Computed with the
-# module_hash of platform.py on a clean export of the merged tree (the same method gives
-# 173f63ac… on 9c432c5, the fingerprint seen on the server).
+# Since the stock catalogue categories (PR #3, d7e1335, and its correction): MODULE =
+# artdubati_test after the manuals of PR #2 (1740e6b, PLATFORM OK (after) on 18/10/2026);
+# AFTER = maintenance_shareholder_equipment 18.0.5.2.4 and lartdubati_manual 18.0.1.0.0
+# (files only). lartdubati_investor_home unchanged. Computed with the module_hash of
+# platform.py on a clean export of the branch head (the same method gave cdf90711… for
+# 1740e6b, the fingerprint seen on the server).
 # How the local tests match it (10/10/2026): Odoo source = branch 18.0 at 6ba80ed1
 # (07/09/2026, the build of the image 18.0-20260908): same code in every module, except
 # 155 PNG images recompressed when the image was built and 14 font files (12
@@ -82,7 +82,7 @@ MODULE l10n_fr_account 18.0.2.2 27b64a2322204779d8400c06182dafcbdd036260eef8edc3
 MODULE lartdubati_env_ribbon 18.0.1.0.0 bf5894e2131d7732be3d5e0cb5ac2be319915f82b28ed703eada38754a447bbf
 MODULE lartdubati_facturation 18.0.1.0.0 e3453593d3330651cdefb96f72effa0b78f1eab20c9eb8a4352c67c8e6c830c0
 MODULE lartdubati_investor_home 18.0.3.1.0 64cc3bcbe29df6fbcec3c0f4e76e0a9d10f2b4d57282e6a523861d71553f3a22
-MODULE lartdubati_manual 18.0.1.0.0 173f63acdf6c1b3867af69aeaab570ce9e780a03f54b62da7a78678ee2e88e97
+MODULE lartdubati_manual 18.0.1.0.0 cdf90711a6a5b1bc31a856d3cda8db15866bff8e7ae1d87a8a709dd572d889dd
 MODULE mail 18.0.1.18 2556eb85e705a00c1c0e2fca7620988ae3719b2a11543edfeb6094b51338df97
 MODULE mail_bot 18.0.1.2 78fd0c61d2d12c350bf5d6c0fa96e07829b0371f18dc12f733bb590eff30654f
 MODULE maintenance 18.0.1.0 0152ded998ce15429f73099aa656bf7043c40835f07eb8c8a84b746ea3ccb5a6
@@ -143,4 +143,5 @@ MODULE web_editor 18.0.1.0 d9c30141b581d4e9369c56f2bed55501dd3a822fdc485d8a8db3d
 MODULE web_quick_start_screen 18.0.1.0.0 80ab11f7bd0c1e3ae0c4b27db430a4f799c70025258d3c646b2d4f71e3741461
 MODULE web_tour 18.0.1.0 1660f964aad7a234a656a1c32324e8b59d97258b4ad4d4018632dd6ce724f5b5
 MODULE web_unsplash 18.0.1.1 8b8eaeff4ae714bb6ab6fed01b53a2da77376a114987e6ca4a4d4f2b8bb02e5c
-AFTER lartdubati_manual 18.0.1.0.0 cdf90711a6a5b1bc31a856d3cda8db15866bff8e7ae1d87a8a709dd572d889dd
+AFTER maintenance_shareholder_equipment 18.0.5.2.4 6bf8bd1ff00225b23791309953193f27c165ce0c4b7d543f549f784bc4948c78
+AFTER lartdubati_manual 18.0.1.0.0 58fb32fa5e5aac004a6b76dce245c1d77b8469eb0be4d7b6b6c02257a1875081

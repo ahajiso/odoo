@@ -28,19 +28,70 @@ partial configurations and categories containing products. It defaults to a roll
 
 ## Controlled deployment on `artdubati_test`
 
-After audit, use the ordinary platform check and verified backup. Deploy
-`maintenance_shareholder_equipment` 18.0.5.2.4 with `docs/deploy_modules.sh`, including
-the normal route comparison, then while `odoo_web` is stopped run:
+### Audit of PR #3 (20/10/2026, Claude)
+
+- **The bug was not fixed by PR #3.** Reproduced in a browser (local copy of the
+  server's code and data, catalogue manager): the first save sends
+  `similar_confirmed: false`, a field shown to catalogue managers only. `name`, `state`
+  and `requester_id` are readonly in the model, so the web client never sends them
+  (`web/static/src/views/fields/field.js`, `record.js` `_getChanges`). With PR #3 alone
+  (18.0.5.2.4 of d7e1335) the same click still gives « This field is set by the
+  request itself. ».
+- Correction (2b9762d): `similar_confirmed` readonly in the form before approval (same
+  rule as the write check) and an exact `False` accepted on create (`True` still
+  refused); test replaying the captured payload through `web_save`. PR #3's three
+  accepted defaults stay (harmless, for other clients).
+- Browser check after the correction: a service request and the AXTON request (material,
+  category 22) are saved and submitted on the first click; the payload no longer
+  carries `similar_confirmed`.
+- Suites of both modules on the server's code and data, updated from 18.0.5.2.3:
+  **310 tests, 0 failed** locally (309 on the server: the real websocket class is
+  skipped there). No route added.
+- Activation script rehearsed on a local copy renamed `artdubati_test` (only the six
+  expected ids adapted to the local ones): dry run 9 changes, `--apply` 9, control run
+  0; the six categories at automated valuation with the stock journal STJ; the two
+  leaves created. `request_ready` is traced to the system user (shell run as
+  superuser), not to a person. The server ids 12 to 17 come from PR #3, not verified
+  by Claude: the dry run refuses any difference before writing.
+
+### Procedure (one command at a time, after the audit)
 
 ```bash
-bash /tmp/catalogue_stock/docs/catalogue_stock/run_activation.sh
-bash /tmp/catalogue_stock/docs/catalogue_stock/run_activation.sh --apply
-bash /tmp/catalogue_stock/docs/catalogue_stock/run_activation.sh
+cd /opt/odoo/addons/custom
+COMMIT=<commit announced after the audit>
+git fetch origin +refs/heads/main:refs/remotes/origin/main
+git log -1 --oneline origin/main                       # $COMMIT
+rm -rf /tmp/catstock && mkdir -p /tmp/catstock
+git archive origin/main docs/phase4 docs/catalogue_stock docs/deploy_modules.sh \
+  docs/backup_db.sh docs/restore_db.sh docs/one_off_rental/routes_after_18.0.5.2.3.txt \
+  | tar -x -C /tmp/catstock
+git status --short | head                              # nothing
+bash /tmp/catstock/docs/phase4/check_modules.sh before # PLATFORM OK (before)
+bash /tmp/catstock/docs/backup_db.sh catstock          # BACKUP OK
+BACKUP=$(sed -n 's/^DUMP=//p' /opt/odoo/logs/catstock_backup)
+KEEP_STOPPED=1 ARTDUBATI_DISPOSABLE=reset-before-production \
+  bash /tmp/catstock/docs/deploy_modules.sh "$BACKUP" 309 catstock "$COMMIT"
+                                       # TESTS OK … 309, « odoo_web left STOPPED »
+bash /tmp/catstock/docs/catalogue_stock/run_activation.sh          # CATALOGUE STOCK OK (dryrun)
+bash /tmp/catstock/docs/catalogue_stock/run_activation.sh --apply  # END | applied, N record(s) changed
+bash /tmp/catstock/docs/catalogue_stock/run_activation.sh          # END | dry run, 0 record(s) rolled back
+docker start odoo_web
+docker exec odoo_web python3 -c "import urllib.request,time
+for _ in range(30):
+    try: urllib.request.urlopen('http://localhost:8069/web/health', timeout=3); print('HEALTH OK'); break
+    except Exception: time.sleep(3)
+else: print('HEALTH FAILED')"
+bash /tmp/catstock/docs/phase4/check_modules.sh after  # PLATFORM OK (after)
+docker exec -i odoo_web odoo shell -d artdubati_test --no-http \
+  < /tmp/catstock/docs/phase4/routes.py > /opt/odoo/logs/catstock_routes.txt
+diff /tmp/catstock/docs/one_off_rental/routes_after_18.0.5.2.3.txt \
+  /opt/odoo/logs/catstock_routes.txt && echo "ROUTES IDENTIQUES"
 ```
 
-The first command must describe the intended changes, the second commits them, and the
-last must end with `0 record(s) rolled back`. Restart Odoo and repeat the platform and
-route checks.
+Send the dry run's output before `--apply` if it shows any `ERROR` (nothing is written
+then). On any FAILED, an `ERROR`, a count other than 309 or a control run other than
+0: stop, odoo_web stays stopped, then `bash /tmp/catstock/docs/restore_db.sh catstock`
+(database, filestore and code of the backup).
 
 ## Acceptance
 
@@ -57,5 +108,6 @@ a saw deliberately treated as non-capitalised. A capitalised saw belongs in the 
 asset branch instead.
 
 The first click on **Submit** must create a numbered request instead of returning
-“This field is set by the request itself.” A different requester, state or request
-number sent through the API must still be refused.
+“This field is set by the request itself.”, for a catalogue manager too. A different
+requester, state, request number or `similar_confirmed: true` sent through the API
+must still be refused.

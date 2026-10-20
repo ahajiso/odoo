@@ -406,4 +406,8 @@ Workwear & PPE leaf and a manually valued Tools & Workshop Equipment leaf for du
 items deliberately expensed on 606300. Test choice C29: materials 601000/311000/603100;
 consumables 602220 or 602230/321000/603200. It is limited to
 artdubati_test, defaults to rollback and remains subject to audit and accountant review
-before production. The server migration and Odoo integration tests have not run yet.
+before production. Audit of 20/10/2026 (Claude, docs/catalogue_stock/README.md): PR #3 did
+not fix the bug (the browser sends `similar_confirmed: false` for catalogue managers;
+name/state/requester are model-readonly and never sent); corrected in 2b9762d (field
+readonly before approval, exact False accepted on create), browser-checked; 310 tests
+locally (309 on the server); activation rehearsed locally (9, then 0). Not deployed.
