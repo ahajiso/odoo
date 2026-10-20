@@ -41,6 +41,7 @@
                     <group>
                         <group string="Product">
                             <field name="family"/>
+                            <field name="allowed_categ_ids" invisible="1"/>
                             <field name="categ_id" options="{'no_create': True}"/>
                             <field name="equipment_category_id" options="{'no_create': True}"
                                    invisible="family != 'durable_equipment'"

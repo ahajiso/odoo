@@ -15,7 +15,8 @@ from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 from .maintenance_equipment import INSURANCE_STATUS, WARRANTY_STATUS
-from .product_catalogue import FAMILIES, normalise_barcode, normalise_reference
+from .product_catalogue import (
+    FAMILIES, FAMILY_ROOTS, MODULE, normalise_barcode, normalise_reference)
 
 MANAGER_GROUP = "maintenance_shareholder_equipment.group_product_catalogue_manager"
 AUTONOMOUS_GROUP = "maintenance_shareholder_equipment.group_product_catalogue_autonomous"
@@ -98,7 +99,12 @@ class ProductCreationRequest(models.Model):
     sale_ok = fields.Boolean(string="Can be Sold", default=False)
     categ_id = fields.Many2one(
         "product.category", string="Product Category", required=True, tracking=True,
-        domain="[('request_ready', '=', True)]")
+        domain="[('id', 'in', allowed_categ_ids)]")
+    # the categories offered for the family (owner's request, 20/10/2026): open to
+    # requests and in the family's branch; _check_values still refuses any other one
+    allowed_categ_ids = fields.Many2many(
+        "product.category", string="Allowed Product Categories",
+        compute="_compute_allowed_categ_ids")
     equipment_category_id = fields.Many2one(
         "maintenance.equipment.category", string="Equipment Category", tracking=True,
         domain="[('assignable', '=', True)]")
@@ -172,6 +178,26 @@ class ProductCreationRequest(models.Model):
                 "WHERE state = 'done' AND %s IS NOT NULL AND %s <> ''" % (key, key, key, key))
 
     # ------------------------------------------------------------------ computes
+
+    @api.depends("family")
+    def _compute_allowed_categ_ids(self):
+        Category = self.env["product.category"]
+        for request in self:
+            domain = [("request_ready", "=", True)]
+            if request.family:
+                roots = Category.browse([
+                    root.id for root in (
+                        self.env.ref("%s.%s" % (MODULE, xmlid), raise_if_not_found=False)
+                        for xmlid in FAMILY_ROOTS.get(request.family, ()))
+                    if root])
+                domain.append(("id", "child_of", roots.ids or [0]))
+            request.allowed_categ_ids = Category.search(domain)
+
+    @api.onchange("family")
+    def _onchange_family_categ(self):
+        # real ids: on a form being edited the x2many holds NewIds
+        if self.categ_id and self.categ_id.id not in self.allowed_categ_ids.ids:
+            self.categ_id = False
 
     @api.depends("supplier_id", "company_id")
     def _compute_currency_id(self):

@@ -812,6 +812,11 @@ msgid "Allow Supplier Refunds on Fixed-Asset Accounts"
 msgstr ""
 
 #. module: maintenance_shareholder_equipment
+#: model:ir.model.fields,field_description:maintenance_shareholder_equipment.field_product_creation_request__allowed_categ_ids
+msgid "Allowed Product Categories"
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
 #. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
 msgid "An applied correction can no longer be changed."

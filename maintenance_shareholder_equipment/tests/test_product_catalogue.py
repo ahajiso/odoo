@@ -9,7 +9,7 @@ from psycopg2.errors import ForeignKeyViolation
 
 from odoo import Command
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tests import tagged
+from odoo.tests import Form, tagged
 
 from .common import EquipmentCommon
 
@@ -287,6 +287,38 @@ class TestCreationRequest(CatalogueCommon):
                                 equipment_category_id=False)
         with self.assertRaisesRegex(ValidationError, "branch"):
             request.action_submit()
+
+    def test_categories_offered_by_family(self):
+        """Owner's request (20/10/2026): the form offers only the categories of the
+        family's branch that are open to requests."""
+        Category = self.env["product.category"]
+        closed = Category.create({"name": "Closed services (test)",
+                                  "parent_id": self.root_services.id})
+        Request = self.env["product.creation.request"].with_user(self.buyer)
+        for family, inside, outside in (
+                ("service", self.categ_service, self.categ_it | closed),
+                ("durable_equipment", self.categ_it, self.categ_service),
+                ("intangible", Category, self.categ_it | self.categ_service)):
+            allowed = Category.browse(Request.new({"family": family}).allowed_categ_ids.ids)
+            with self.subTest(family=family):
+                self.assertTrue(inside <= allowed)
+                self.assertFalse(outside & allowed)
+                self.assertTrue(all(c.request_ready and c._catalogue_family() == family
+                                    for c in allowed))
+        domain = Request.fields_get(["categ_id"], ["domain"])["categ_id"]["domain"]
+        self.assertEqual(domain, "[('id', 'in', allowed_categ_ids)]")
+
+    def test_changing_family_empties_a_category_of_another_branch(self):
+        with Form(self.env["product.creation.request"].with_user(self.manager)) as form:
+            form.product_name = "Family change (test)"
+            form.family = "service"
+            form.categ_id = self.categ_service
+            form.family = "service"
+            self.assertEqual(form.categ_id, self.categ_service)
+            form.family = "durable_equipment"
+            self.assertFalse(form.categ_id)
+            form.categ_id = self.categ_it
+            form.equipment_category_id = self.ecat_computers
 
     def test_service_request(self):
         request = self._approved(family="service", categ_id=self.categ_service.id,
