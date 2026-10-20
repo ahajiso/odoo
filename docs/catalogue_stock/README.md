@@ -54,6 +54,16 @@ partial configurations and categories containing products. It defaults to a roll
   superuser), not to a person. The server ids 12 to 17 come from PR #3, not verified
   by Claude: the dry run refuses any difference before writing.
 
+### First window (20/10/2026, b4648bd): stopped by the tests, rolled back
+
+PLATFORM OK (before); BACKUP OK (`catstock`, 584 files, 0 missing, COUNTS `9 28 9 18 17
+743`, code 1740e6b); CODE OK b4648bd; UPDATE OK; **1 failed of 309**:
+`TestCreationRequest.test_waiting_family_refused` assumed that no material category is
+open to requests, false on artdubati_test (one already is) and after any activation
+(category 22). Reproduced locally on an activated copy; the test now closes them in its
+own transaction; full suites on that copy: 310, 0 failed. Activation not run. Rolled
+back with `restore_db.sh catstock`.
+
 ### Procedure (one command at a time, after the audit)
 
 ```bash
