@@ -356,6 +356,22 @@ msgstr ""
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"%s is a category of services purchased: tick « Can be Purchased » or choose "
+"a category of services sold."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"%s is a category of services sold: tick « Can be Sold » or choose a category"
+" of services purchased."
+msgstr ""
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
 msgid "%s is already applied."
 msgstr ""

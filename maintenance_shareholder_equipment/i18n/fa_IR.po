@@ -385,6 +385,26 @@ msgstr "%s ارزش‌گذاری خودکار با حساب‌های موجود�
 
 #. module: maintenance_shareholder_equipment
 #. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"%s is a category of services purchased: tick « Can be Purchased » or choose "
+"a category of services sold."
+msgstr ""
+"%s یک دسته‌بندی خدمات خریداری‌شده است: گزینهٔ « قابل خرید » را علامت بزنید یا "
+"یک دسته‌بندی خدمات فروخته‌شده انتخاب کنید."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
+#: code:addons/maintenance_shareholder_equipment/models/product_catalogue.py:0
+msgid ""
+"%s is a category of services sold: tick « Can be Sold » or choose a category"
+" of services purchased."
+msgstr ""
+"%s یک دسته‌بندی خدمات فروخته‌شده است: گزینهٔ « قابل فروش » را علامت بزنید یا "
+"یک دسته‌بندی خدمات خریداری‌شده انتخاب کنید."
+
+#. module: maintenance_shareholder_equipment
+#. odoo-python
 #: code:addons/maintenance_shareholder_equipment/models/product_structural_correction.py:0
 msgid "%s is already applied."
 msgstr "%s قبلاً اعمال شده است."

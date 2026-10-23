@@ -308,6 +308,44 @@ class TestCreationRequest(CatalogueCommon):
         domain = Request.fields_get(["categ_id"], ["domain"])["categ_id"]["domain"]
         self.assertEqual(domain, "[('id', 'in', allowed_categ_ids)]")
 
+    def test_service_categories_follow_purchase_and_sale(self):
+        """Owner (23/10/2026): « Service » offered the Sales categories (services sold)
+        on a purchase request. Services Purchased for « Can be Purchased », Sales for
+        « Can be Sold », both when both are ticked; the server applies the same rule."""
+        Category = self.env["product.category"]
+        sold = Category.create({
+            "name": "Works sold (test)", "parent_id": self.env.ref(
+                "%s.categ_root_sales" % MODULE).id,
+            "property_account_income_categ_id": self.acc_rent_income.id,
+            "property_account_expense_categ_id": self.acc_expense.id,
+            "request_ready": True})
+        Request = self.env["product.creation.request"].with_user(self.buyer)
+
+        def offered(**flags):
+            return Category.browse(
+                Request.new(dict(family="service", **flags)).allowed_categ_ids.ids)
+
+        self.assertIn(self.categ_service, offered(purchase_ok=True, sale_ok=False))
+        self.assertNotIn(sold, offered(purchase_ok=True, sale_ok=False))
+        self.assertIn(sold, offered(purchase_ok=False, sale_ok=True))
+        self.assertNotIn(self.categ_service, offered(purchase_ok=False, sale_ok=True))
+        self.assertTrue(self.categ_service | sold <= offered(purchase_ok=True, sale_ok=True))
+        # server side, whatever the form offered
+        request = self._request(user=self.buyer, family="service", categ_id=sold.id,
+                                equipment_category_id=False, default_code="SOLD-1",
+                                barcode=False, supplier_code="SOLD-1")
+        with self.assertRaisesRegex(ValidationError, "category of services sold"):
+            request.action_submit()
+        request.sale_ok = True
+        request.action_submit()
+        self.assertEqual(request.state, "to_approve")
+        request = self._request(user=self.buyer, family="service",
+                                categ_id=self.categ_service.id, purchase_ok=False,
+                                sale_ok=True, equipment_category_id=False,
+                                default_code="SOLD-2", barcode=False, supplier_code="SOLD-2")
+        with self.assertRaisesRegex(ValidationError, "category of services purchased"):
+            request.action_submit()
+
     def test_changing_family_empties_a_category_of_another_branch(self):
         with Form(self.env["product.creation.request"].with_user(self.manager)) as form:
             form.product_name = "Family change (test)"
@@ -315,6 +353,11 @@ class TestCreationRequest(CatalogueCommon):
             form.categ_id = self.categ_service
             form.family = "service"
             self.assertEqual(form.categ_id, self.categ_service)
+            form.sale_ok = True
+            form.purchase_ok = False
+            self.assertFalse(form.categ_id, "a purchased-services category on a sale-only request")
+            form.purchase_ok = True
+            form.categ_id = self.categ_service
             form.family = "durable_equipment"
             self.assertFalse(form.categ_id)
             form.categ_id = self.categ_it

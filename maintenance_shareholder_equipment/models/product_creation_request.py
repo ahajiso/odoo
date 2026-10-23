@@ -179,21 +179,28 @@ class ProductCreationRequest(models.Model):
 
     # ------------------------------------------------------------------ computes
 
-    @api.depends("family")
+    @api.depends("family", "purchase_ok", "sale_ok")
     def _compute_allowed_categ_ids(self):
         Category = self.env["product.category"]
         for request in self:
             domain = [("request_ready", "=", True)]
             if request.family:
+                xmlids = FAMILY_ROOTS.get(request.family, ())
+                if request.family == "service":
+                    # services purchased for « Can be Purchased », services sold for
+                    # « Can be Sold » (owner, 23/10/2026; same rule in _request_problems)
+                    xmlids = [xmlid for xmlid, wanted in (
+                        ("categ_root_services_purchased", request.purchase_ok),
+                        ("categ_root_sales", request.sale_ok)) if wanted]
                 roots = Category.browse([
                     root.id for root in (
                         self.env.ref("%s.%s" % (MODULE, xmlid), raise_if_not_found=False)
-                        for xmlid in FAMILY_ROOTS.get(request.family, ()))
+                        for xmlid in xmlids)
                     if root])
                 domain.append(("id", "child_of", roots.ids or [0]))
             request.allowed_categ_ids = Category.search(domain)
 
-    @api.onchange("family")
+    @api.onchange("family", "purchase_ok", "sale_ok")
     def _onchange_family_categ(self):
         # real ids: on a form being edited the x2many holds NewIds
         if self.categ_id and self.categ_id.id not in self.allowed_categ_ids.ids:

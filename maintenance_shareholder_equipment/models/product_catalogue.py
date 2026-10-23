@@ -132,6 +132,11 @@ class ProductCategory(models.Model):
         root = self.env.ref("%s.categ_root_small_equipment" % MODULE, raise_if_not_found=False)
         return bool(root) and str(root.id) in (self.parent_path or "").split("/")
 
+    def _is_sales_category(self):
+        self.ensure_one()
+        root = self.env.ref("%s.categ_root_sales" % MODULE, raise_if_not_found=False)
+        return bool(root) and str(root.id) in (self.parent_path or "").split("/")
+
     def _request_problems(self, family, company, purchase_ok=True, sale_ok=False):
         """Why this category cannot receive a product of the family for the company
         (empty list: it can). Only final configurations are accepted (PLAN.md §2.9)."""
@@ -168,6 +173,17 @@ class ProductCategory(models.Model):
             if not expense.asset_profile_id:
                 problems.append(_("%s has no account with an asset profile.", categ.display_name))
         if family == "service":
+            # services sold under Sales, services purchased under Services Purchased
+            # (owner, 23/10/2026): the request's flags must match the branch
+            if categ._is_sales_category():
+                if not sale_ok:
+                    problems.append(_("%s is a category of services sold: tick « Can be "
+                                      "Sold » or choose a category of services purchased.",
+                                      categ.display_name))
+            elif not purchase_ok:
+                problems.append(_("%s is a category of services purchased: tick « Can be "
+                                  "Purchased » or choose a category of services sold.",
+                                  categ.display_name))
             if purchase_ok and not expense:
                 problems.append(_("no expense account on %s.", categ.display_name))
             if sale_ok and not income:
