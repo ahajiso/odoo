@@ -418,4 +418,7 @@ request) by the owner to do; C29 provisional. Family filter of the request form
 (18.0.5.2.5, owner's request 20/10/2026, option a for equipment categories): developed,
 312 tests locally (311 on the server), browser-checked; audited and deployed on
 artdubati_test on 20/10/2026 (b080ff0, window catfam2): 311 tests 0 failed, PLATFORM OK
-before / after, routes identical. Interface check by the owner to do.
+before / after, routes identical. Owner's check (23/10/2026): service offered the Sales
+categories on purchase requests; 18.0.5.2.6: branches follow « Can be Purchased » /
+« Can be Sold » (form and server), 313 tests locally (312 on the server),
+browser-checked; audit pending.

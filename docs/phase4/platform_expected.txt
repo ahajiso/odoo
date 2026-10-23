@@ -3,11 +3,11 @@
 #   IMAGE_ID=<docker image id of odoo_web>        ODOO_VERSION=<odoo --version>
 #   MODULE <name> <version> <sha256 of the module's code (platform.py)>
 #   AFTER  <name> <version> <sha256>   (expected after the update; MODULE = before)
-# Since the family filter of the requests (18.0.5.2.5): MODULE = artdubati_test after the
-# stock catalogue categories (877a30d, PLATFORM OK (after) on 20/10/2026); AFTER = only
-# maintenance_shareholder_equipment 18.0.5.2.5. Computed with the module_hash of
-# platform.py on a clean export of the branch head (the same method gave 07cfa1cf… for
-# 877a30d, the fingerprint seen on the server).
+# Since the purchase / sale rule of service requests (18.0.5.2.6): MODULE = artdubati_test
+# after the family filter (b080ff0, PLATFORM OK (after) on 20/10/2026); AFTER = only
+# maintenance_shareholder_equipment 18.0.5.2.6. Computed with the module_hash of
+# platform.py on a clean export of the branch head (the same method gave fdafb10e… for
+# b080ff0, the fingerprint seen on the server).
 # How the local tests match it (10/10/2026): Odoo source = branch 18.0 at 6ba80ed1
 # (07/09/2026, the build of the image 18.0-20260908): same code in every module, except
 # 155 PNG images recompressed when the image was built and 14 font files (12
@@ -92,7 +92,7 @@ MODULE maintenance_partner 18.0.1.0.1 efee24db71424aa23069a2c439cca2e5bb1421082e
 MODULE maintenance_product 18.0.1.0.2 3a03eafc76389078ca35defe98cbe45523aba8f91727c4d754fbe6e21536201d
 MODULE maintenance_request_purchase 18.0.1.0.0 77b4736f23489e6c6c41879313774f93dddd3f3ab00801c173b0fc47432c7ad6
 MODULE maintenance_request_repair 18.0.1.0.0 d839950f94ae1260939c81609d5ab24ac185c025b9b0f2273177295c886e692b
-MODULE maintenance_shareholder_equipment 18.0.5.2.4 07cfa1cf2dc14d489acd859c3f2b1dd02ef3314bd6184d6d7810333ac4c49aee
+MODULE maintenance_shareholder_equipment 18.0.5.2.5 fdafb10e6ab45765b3c0706a8816657d019e4574cefcdd57a3dee712aea3dee4
 MODULE mis_builder 18.0.1.10.0 ca69eff09cc2a3de161c5e9167ddd46dabaac82ed77c4b60a754ddaa82e5b24d
 MODULE onboarding 18.0.1.2 14d4c5a1eba207a6ec5c4759da8604fc0907b74e5345bc0427167113544dd41c
 MODULE partner_autocomplete 18.0.1.1 bbab70c95ba3fe97689877af00298da261bc229345c2a161159f5169c6d11314
@@ -142,4 +142,4 @@ MODULE web_editor 18.0.1.0 d9c30141b581d4e9369c56f2bed55501dd3a822fdc485d8a8db3d
 MODULE web_quick_start_screen 18.0.1.0.0 80ab11f7bd0c1e3ae0c4b27db430a4f799c70025258d3c646b2d4f71e3741461
 MODULE web_tour 18.0.1.0 1660f964aad7a234a656a1c32324e8b59d97258b4ad4d4018632dd6ce724f5b5
 MODULE web_unsplash 18.0.1.1 8b8eaeff4ae714bb6ab6fed01b53a2da77376a114987e6ca4a4d4f2b8bb02e5c
-AFTER maintenance_shareholder_equipment 18.0.5.2.5 fdafb10e6ab45765b3c0706a8816657d019e4574cefcdd57a3dee712aea3dee4
+AFTER maintenance_shareholder_equipment 18.0.5.2.6 67bcaef3b0660387fafb5ff2ef9f74f5da43574bf69a89a618fbec23f8f822a6

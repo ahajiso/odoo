@@ -182,3 +182,38 @@ CODE OK; UPDATE OK; **311 tests, 0 failed**; PLATFORM OK (after); routes identic
 « Commit b080ff0 not found », nothing changed (its backup `catfam` is valid, unused).
 Next: the owner's interface check (consumable → six categories; service → category
 emptied).
+
+## Services purchased or sold (18.0.5.2.6, owner's report of 23/10/2026)
+
+With the family « Service » the form also offered the Sales categories (Consulting,
+Equipment Rentals, Works: services **sold**) on a purchase request; server inventory of
+23/10/2026: 4 ready categories under Services Purchased, 3 under Sales. Now the offered
+branches follow the request's flags: « Can be Purchased » → Services Purchased, « Can be
+Sold » → Sales, both when both are ticked; changing a flag empties a category that no
+longer matches; `_request_problems` refuses the mismatch on the server (two new
+messages, fr, fa). Other families unchanged.
+
+Verified locally: browser (catalogue manager): service with « Can be Purchased » only →
+the four purchased-service categories; « Can be Sold » ticked too → the seven; « Can be
+Purchased » unticked → the chosen Telecom & Internet emptied, the three Sales categories
+offered. New test; full suites **313, 0 failed** (312 on the server). No route, no data
+change.
+
+Before the window, read-only: open requests that the new server rule would block at
+their next step (expected: none, or decide them first).
+
+```bash
+docker exec -i odoo_db psql -U odoo -d artdubati_test -At -F ' | ' -c "
+with roots as (select name, res_id from ir_model_data where module =
+  'maintenance_shareholder_equipment' and name in ('categ_root_sales',
+  'categ_root_services_purchased'))
+select r.name, q.name, q.state, q.purchase_ok, q.sale_ok, c.complete_name
+from product_creation_request q join product_category c on c.id = q.categ_id
+join roots r on c.parent_path like '%/' || r.res_id || '/%'
+where q.state in ('draft', 'to_approve', 'approved')
+  and ((r.name = 'categ_root_sales' and not coalesce(q.sale_ok, false))
+    or (r.name = 'categ_root_services_purchased' and not coalesce(q.purchase_ok, false)));"
+```
+
+Window: the guarded block of the family filter above with `COMMIT=<announced>`, backup
+label `catsvc`, **312** tests.
