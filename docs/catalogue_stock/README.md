@@ -217,3 +217,10 @@ where q.state in ('draft', 'to_approve', 'approved')
 
 Window: the guarded block of the family filter above with `COMMIT=<announced>`, backup
 label `catsvc`, **312** tests.
+
+**Deployed on artdubati_test on 23/10/2026, code 6a33f70** (window `catsvc`, guarded
+block), after Claude's own audit at the owner's request (no external audit available;
+not independent) and the owner's « go »: precheck 0 open request blocked; CODE OK;
+UPDATE OK; **312 tests, 0 failed**; PLATFORM OK (after); routes identical; « DÉPLOIEMENT
+OK ». (The pasted output starts at CODE OK; PLATFORM OK (before) and BACKUP OK precede
+it in the block, which stops otherwise.) Next: the owner's interface check.

@@ -421,4 +421,6 @@ artdubati_test on 20/10/2026 (b080ff0, window catfam2): 311 tests 0 failed, PLAT
 before / after, routes identical. Owner's check (23/10/2026): service offered the Sales
 categories on purchase requests; 18.0.5.2.6: branches follow « Can be Purchased » /
 « Can be Sold » (form and server), 313 tests locally (312 on the server),
-browser-checked; audit pending.
+browser-checked; self-audit by Claude at the owner's request (GPT unavailable), deployed
+on artdubati_test on 23/10/2026 (6a33f70, window catsvc): 312 tests 0 failed, PLATFORM
+OK after, routes identical. Interface check by the owner to do.
