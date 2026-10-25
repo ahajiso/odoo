@@ -112,3 +112,8 @@ would be created. Still to do by the owner: confirm assets 460 and 461 (deprecia
 starts), and the BOSCH product's default equipment category (still « Formwork &
 Shoring ») through Structural Corrections. A side incident: pasted output in the shell
 created an empty untracked `FETCH_HEAD` file in the addons checkout, removed.
+
+**Closed (25/10/2026, read-only check):** assets 460 Mac Mini (1 100.00, 4 depreciation
+lines) and 461 EVOLUTION (519.97, 6 lines) confirmed (`open`); 462 gone; BOSCH product's
+default equipment category « Hand Tools Tracked Individually » by correction
+PSC/2026/0037 (done, 25/10/2026 08:40).

@@ -430,5 +430,5 @@ Owner's test choice C28: Mac Mini (asset 460, 1 100) and EVOLUTION table saw (as
 519.97) capitalised; DEXTER mitre saw expensed (bill posted first: draft asset 462
 deleted, entry MISC/2026/10/0001 606300/215400 88.22 by script) and moved with the BOSCH
 set to Tools & Workshop Equipment (script, backup assetfix). Monitor: 0 « Fixed Asset
-Missing », 3 informative « expensed ». To do: confirm assets 460/461, BOSCH product
-default equipment category; never repost BILL/2026/10/0013.
+Missing », 3 informative « expensed »; assets 460/461 confirmed, BOSCH default equipment
+category corrected (PSC/2026/0037). Done. Never repost BILL/2026/10/0013.
