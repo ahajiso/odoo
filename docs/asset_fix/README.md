@@ -117,3 +117,16 @@ created an empty untracked `FETCH_HEAD` file in the addons checkout, removed.
 lines) and 461 EVOLUTION (519.97, 6 lines) confirmed (`open`); 462 gone; BOSCH product's
 default equipment category « Hand Tools Tracked Individually » by correction
 PSC/2026/0037 (done, 25/10/2026 08:40).
+
+## Consigned TEST cement bags of TBER/Stock (P4-1, owner 25/10/2026)
+
+Quant 10: 15 « TEST Cement bag » owned by « TEST Supplier (owner) » (monitor
+« Integrity » alert since 10/10/2026). The owner confirmed test data, no physical goods:
+`remove_consigned_test.py` applies the standard inventory adjustment counted 0
+(CHARACTERISATION.md S1: no valuation layer, no journal item). Our rule
+`_check_third_party_owner` refuses it; the script relaxes it in its own shell process,
+for this quant only (module code unchanged, odoo_web keeps the rule). Rehearsed locally
+on a seeded consigned quant: the rule refuses outside the script; dry run (one done line
+of 15 carrying the owner, layers and entries unchanged, no monitor row left), apply,
+control (SKIP). The step-2 business action of P4-1 and C23 stay open for real
+consignment (item 5).
