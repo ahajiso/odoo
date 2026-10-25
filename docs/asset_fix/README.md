@@ -55,3 +55,24 @@ docker exec -i odoo_web odoo shell -d artdubati_test --no-http \
    EVOLUTION), costs final, no « Fixed Asset Missing » left; three informative
    « No Fixed Asset (Expensed) » (Scie 1234, DEXTER, BOSCH).
 5. Read-only control: `inventory.py` again.
+
+## Situation after the first dry run (25/10/2026)
+
+The dry run refused (nothing written): P01144 had already been billed and paid
+(BILL/2026/10/0013, posted, paid) before the script. Mac Mini billed too
+(BILL/2026/10/0012, posted, paid). Fixed assets created, all **draft**, no depreciation
+posted (only their creation line): 460 Mac Mini 1 100.00, 461 EVOLUTION 519.97, 462 DEXTER
+88.22. The BOSCH line is on 606300 (no asset). No « Fixed Asset Missing » left; yellow:
+Scie 1234 and BOSCH.
+
+The script now lists bill lines instead of refusing them (an equipment that still has a
+fixed asset is still refused) and reports a refused category change as an ERROR
+(savepoint) instead of a traceback; rehearsed locally (constraint refusal reported,
+control run 0).
+
+Option A (DEXTER stays capitalised): confirm the draft assets 460, 461, 462; the script
+runs for the BOSCH only. Option B (DEXTER expensed, owner's choice C28): accounting user
+deletes the draft asset 462 (allowed by account_asset_management for a draft asset
+without posted depreciation; the bill line's and the equipment's links are cleared),
+posts a miscellaneous entry 606300 debit / 215400 credit 88.22 dated as the bill, then
+the script moves the DEXTER and the BOSCH; assets 460 and 461 are confirmed.

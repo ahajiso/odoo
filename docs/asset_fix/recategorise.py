@@ -6,10 +6,11 @@ expensed, not capitalised; the BOSCH set (23.12 € excl. tax, filed by mistake 
 All / Small Durable Equipment / Tools & Workshop Equipment (606300, manual valuation),
 created by docs/catalogue_stock (external ID catalogue_stock.categ_small_tools).
 
-Run BEFORE the bill of P01144 is created: a bill line takes its account from the
-product category when it is created. Dry run by default; CATEGORY_FIX_APPLY=1 commits.
+Planned before the bill of P01144; that bill was posted first (BILL/2026/10/0013), so
+the bill lines are only listed and the DEXTER's fixed asset must be deleted before
+(README, option B): an equipment that still has a fixed asset is refused. Dry run by default; CATEGORY_FIX_APPLY=1 commits.
 Refuses (ERROR, nothing written) on any unexpected state: database, module version,
-names, current categories, an existing bill line or fixed asset, a valuation change.
+names, current categories, a fixed asset still linked, a valuation change.
 Data from the read-only inventory of 25/10/2026 (docs/asset_fix/inventory.py).
 """
 import os
@@ -78,6 +79,7 @@ for tmpl_id, (name, current_id, equipment_id, serial) in ITEMS.items():
     equipment = Equipment.browse(equipment_id).exists()
     out("ITEM", tmpl.id, tmpl.name, f"category={tmpl.categ_id.id} {tmpl.categ_id.complete_name}",
         f"equipment={equipment.id} {equipment.name}", f"serial={equipment.stock_lot_id.name}",
+        f"default_ecat={tmpl.equipment_category_id.name or '-'}",
         f"asset={equipment.asset_id.id or '-'}")
     if tmpl.name != name:
         error(f"template {tmpl_id}: name « {tmpl.name} », expected « {name} »")
@@ -90,9 +92,12 @@ for tmpl_id, (name, current_id, equipment_id, serial) in ITEMS.items():
         ("product_id", "in", tmpl.product_variant_ids.ids),
         ("move_id.move_type", "in", ("in_invoice", "in_refund")),
         ("move_id.state", "!=", "cancel")])
-    if bill_lines:
-        error(f"{name}: supplier bill lines exist ({', '.join(bill_lines.move_id.mapped('display_name'))}); "
-              "the category must change before the bill is created")
+    # P01144 was billed before this script (BILL/2026/10/0013, 25/10/2026): the bill
+    # lines keep their accounts; the DEXTER's 215400 line is reclassified by the
+    # accountant's entry and its draft asset deleted first (README, option B)
+    for line in bill_lines:
+        out("BILLED", name, line.move_id.name, f"state={line.move_id.state}",
+            f"account={line.account_id.code}", f"amount={line.price_subtotal}")
     if tmpl.categ_id == target:
         out("SKIP", name, "already in the target category")
         continue
@@ -108,9 +113,16 @@ if errors:
     out("END", f"{len(errors)} error(s); nothing written")
     raise SystemExit(1)
 
+from odoo.exceptions import UserError, ValidationError  # noqa: E402
+
 for tmpl, equipment in todo:
     old = tmpl.categ_id.complete_name
-    tmpl.write({"categ_id": target.id})
+    try:
+        with env.cr.savepoint():
+            tmpl.write({"categ_id": target.id})
+    except (UserError, ValidationError) as exc:
+        error(f"{tmpl.name}: {exc.args[0]}")
+        continue
     note = (f"Product category changed from « {old} » to « {target.complete_name} » "
             "(owner's test choice C28 of 25/10/2026, docs/asset_fix/recategorise.py): "
             "expensed on 606300, no fixed asset.")
