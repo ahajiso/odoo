@@ -76,3 +76,20 @@ deletes the draft asset 462 (allowed by account_asset_management for a draft ass
 without posted depreciation; the bill line's and the equipment's links are cleared),
 posts a miscellaneous entry 606300 debit / 215400 credit 88.22 dated as the bill, then
 the script moves the DEXTER and the BOSCH; assets 460 and 461 are confirmed.
+
+## Reclassification entry by script (25/10/2026)
+
+A manual entry on 215400 inherits the account's asset profile (`_compute_asset_profile`)
+and its posting creates a fixed asset (`action_post`); the « Asset Profile » column is
+not offered to the owner on the entry lines. `reclass_entry.py` creates the entry
+606300 debit / 215400 credit 88.22 in the MISC journal at the bill's date, with no asset
+profile on either line, posts it and checks that no fixed asset was created. It refuses
+if asset 462 still exists, if the equipment still has an asset, if the DEXTER line of
+BILL/2026/10/0013 is not 88.22 on 215400 without asset, or if a draft entry on 215400
+is left in MISC (the one started by hand: delete it). Rehearsed locally with a stand-in:
+without the guard the 215400 line keeps the profile (refused); dry run, apply, control
+(entry found, 0 change); no asset created.
+
+Order: delete the hand-made draft entry and the draft asset 462 → `reclass_entry.py`
+(dry run, apply, control) → `recategorise.py` (dry run, apply, control) → confirm
+assets 460 and 461 → BOSCH equipment category (Structural Corrections) → `inventory.py`.
