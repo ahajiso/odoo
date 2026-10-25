@@ -432,3 +432,7 @@ deleted, entry MISC/2026/10/0001 606300/215400 88.22 by script) and moved with t
 set to Tools & Workshop Equipment (script, backup assetfix). Monitor: 0 « Fixed Asset
 Missing », 3 informative « expensed »; assets 460/461 confirmed, BOSCH default equipment
 category corrected (PSC/2026/0037). Done. Never repost BILL/2026/10/0013.
+P4-1 TEST data (25/10/2026): consigned TEST cement bags of TBER/Stock (quant 10, 15 units)
+removed by an inventory adjustment counted 0 (script, rule relaxed for that quant in its
+own process only; no valuation, no entry; backup consigned). The P4-1 business action
+and C23 stay open for real consignment (item 5).

@@ -130,3 +130,8 @@ on a seeded consigned quant: the rule refuses outside the script; dry run (one d
 of 15 carrying the owner, layers and entries unchanged, no monitor row left), apply,
 control (SKIP). The step-2 business action of P4-1 and C23 stay open for real
 consignment (item 5).
+
+**Done on artdubati_test (25/10/2026):** backup `consigned` (606 files, 0 missing, code
+6a33f70); dry run, apply (one done line of 15 TBER/Stock → Inventory adjustment carrying
+the owner; valuation layers 17 → 17, journal entries 25 → 25; no monitor row left),
+control SKIP. The « Integrity » alert of TBER/Stock is gone.
