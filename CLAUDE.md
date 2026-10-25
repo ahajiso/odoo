@@ -424,3 +424,11 @@ categories on purchase requests; 18.0.5.2.6: branches follow « Can be Purchased
 browser-checked; self-audit by Claude at the owner's request (GPT unavailable), deployed
 on artdubati_test on 23/10/2026 (6a33f70, window catsvc): 312 tests 0 failed, PLATFORM
 OK after, routes identical. Interface check by the owner to do.
+
+## Asset alerts of the monitor (25/10/2026, docs/asset_fix/)
+Owner's test choice C28: Mac Mini (asset 460, 1 100) and EVOLUTION table saw (asset 461,
+519.97) capitalised; DEXTER mitre saw expensed (bill posted first: draft asset 462
+deleted, entry MISC/2026/10/0001 606300/215400 88.22 by script) and moved with the BOSCH
+set to Tools & Workshop Equipment (script, backup assetfix). Monitor: 0 « Fixed Asset
+Missing », 3 informative « expensed ». To do: confirm assets 460/461, BOSCH product
+default equipment category; never repost BILL/2026/10/0013.

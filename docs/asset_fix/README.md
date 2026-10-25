@@ -93,3 +93,22 @@ without the guard the 215400 line keeps the profile (refused); dry run, apply, c
 Order: delete the hand-made draft entry and the draft asset 462 → `reclass_entry.py`
 (dry run, apply, control) → `recategorise.py` (dry run, apply, control) → confirm
 assets 460 and 461 → BOSCH equipment category (Structural Corrections) → `inventory.py`.
+
+## Record (25/10/2026)
+
+Backup `assetfix` (606 files, 0 missing, code 6a33f70). Draft asset 462 deleted by the
+owner; the hand-made draft entry (id 1108) deleted. `reclass_entry.py`: dry run (no
+profile on either line, assets 2 → 2), apply **MISC/2026/10/0001** posted (606300 debit /
+215400 credit 88.22, 25/10/2026), control SKIP. `recategorise.py`: dry run 2, apply **2**
+(DEXTER from Plant & Tools, BOSCH from « TEST – Installations temporaires », both to
+Tools & Workshop Equipment, 1108), control 0. BOSCH equipment category set by the owner
+to « Tools / Hand Tools Tracked Individually ». Final inventory: **3 rows, all
+expensed (yellow), 0 « Fixed Asset Missing »** (Scie 1234, BOSCH, DEXTER); costs final
+from BILL/2026/10/0013. Fixed assets left: 460 Mac Mini 1 100.00, 461 EVOLUTION 519.97.
+
+Notes: the DEXTER line of the posted BILL/2026/10/0013 still carries the asset profile
+(stored on the line): never reset that bill to draft and post it again, or a new asset
+would be created. Still to do by the owner: confirm assets 460 and 461 (depreciation
+starts), and the BOSCH product's default equipment category (still « Formwork &
+Shoring ») through Structural Corrections. A side incident: pasted output in the shell
+created an empty untracked `FETCH_HEAD` file in the addons checkout, removed.
